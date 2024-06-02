@@ -1,0 +1,17 @@
+{
+	"name": "schema-validator",
+	"devDependencies": {
+		"@biomejs/biome": "1.7.3",
+		"@tsconfig/strictest": "^2.0.5",
+		"typescript": "^5.4.5",
+		"vitest": "^1.6.0",
+		"zod": "^3.23.8"
+	},
+	"scripts": {
+		"lint": "biome lint src",
+		"format": "biome format src",
+		"test": "vitest --run",
+		"bench": "vitest bench --run"
+	},
+	"packageManager": "pnpm@9.1.4+sha256.30a1801ac4e723779efed13a21f4c39f9eb6c9fbb4ced101bce06b422593d7c9"
+}
