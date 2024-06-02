@@ -43,4 +43,4 @@ abstract class Schema<OutputType> {
 }
 
 export { Schema };
-export type { ParseResult, ParseSuccessResult, ParseErrorResult };
+export type { ParseResult, ParseSuccessResult, ParseErrorResult, CheckResult };

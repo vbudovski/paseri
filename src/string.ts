@@ -1,15 +1,4 @@
-import { type ParseResult, Schema } from './schema';
-
-interface CheckSuccessResult {
-	status: 'success';
-}
-
-interface CheckErrorResult {
-	status: 'error';
-	message: string;
-}
-
-type CheckResult = CheckSuccessResult | CheckErrorResult;
+import { type CheckResult, type ParseResult, Schema } from './schema';
 
 const emailRegex = /^(?!\.)(?!.*\.\.)([A-Z0-9_'+\-\.]*)[A-Z0-9_+-]@([A-Z0-9][A-Z0-9\-]*\.)+[A-Z]{2,}$/i;
 const emojiRegex = /^(\p{Extended_Pictographic}|\p{Emoji_Component})+$/u;
@@ -25,8 +14,8 @@ class StringSchema extends Schema<string> {
 		return super.parse(value);
 	}
 	min(length: number) {
-		function check(value: string): CheckResult {
-			if (value.length < length) {
+		function check(_value: string): CheckResult {
+			if (_value.length < length) {
 				return { status: 'error', message: 'Too short.' };
 			}
 
@@ -38,8 +27,8 @@ class StringSchema extends Schema<string> {
 		return this;
 	}
 	max(length: number) {
-		function check(value: string): CheckResult {
-			if (value.length > length) {
+		function check(_value: string): CheckResult {
+			if (_value.length > length) {
 				return { status: 'error', message: 'Too long.' };
 			}
 
@@ -57,8 +46,8 @@ class StringSchema extends Schema<string> {
 		return this;
 	}
 	email() {
-		function check(value: string): CheckResult {
-			if (!emailRegex.test(value)) {
+		function check(_value: string): CheckResult {
+			if (!emailRegex.test(_value)) {
 				return { status: 'error', message: 'Not an email.' };
 			}
 
@@ -70,8 +59,8 @@ class StringSchema extends Schema<string> {
 		return this;
 	}
 	emoji() {
-		function check(value: string): CheckResult {
-			if (!emojiRegex.test(value)) {
+		function check(_value: string): CheckResult {
+			if (!emojiRegex.test(_value)) {
 				return { status: 'error', message: 'Not an emoji.' };
 			}
 
@@ -83,8 +72,8 @@ class StringSchema extends Schema<string> {
 		return this;
 	}
 	uuid() {
-		function check(value: string): CheckResult {
-			if (!uuidRegex.test(value)) {
+		function check(_value: string): CheckResult {
+			if (!uuidRegex.test(_value)) {
 				return { status: 'error', message: 'Not a UUID.' };
 			}
 
@@ -96,8 +85,8 @@ class StringSchema extends Schema<string> {
 		return this;
 	}
 	nanoid() {
-		function check(value: string): CheckResult {
-			if (!nanoidRegex.test(value)) {
+		function check(_value: string): CheckResult {
+			if (!nanoidRegex.test(_value)) {
 				return { status: 'error', message: 'Not a Nano ID.' };
 			}
 
