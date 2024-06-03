@@ -1,12 +1,12 @@
-import { type ParseResult, Schema } from './schema';
+import { Schema, type ValidationError } from './schema';
 
 class BooleanSchema extends Schema<boolean> {
-	override parse(value: unknown): ParseResult<boolean> {
+	override _parse(value: unknown): ValidationError[] {
 		if (typeof value !== 'boolean') {
-			return { status: 'error', errors: ['Not a boolean.'] };
+			return [{ path: [], message: 'Not a boolean.' }];
 		}
 
-		return super.parse(value);
+		return super._parse(value);
 	}
 }
 

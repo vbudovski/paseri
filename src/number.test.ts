@@ -16,7 +16,7 @@ describe('Type', () => {
 		const result = schema.parse(null);
 		expect(result.status).toBe('error');
 		const error = result as ParseErrorResult;
-		expect(error.errors).toEqual(['Not a number.']);
+		expect(error.errors).toEqual([{ path: [], message: 'Not a number.' }]);
 	});
 });
 
@@ -34,7 +34,7 @@ describe('Greater than or equal', () => {
 		const result = schema.parse(9);
 		expect(result.status).toBe('error');
 		const error = result as ParseErrorResult;
-		expect(error.errors).toEqual(['Too small.']);
+		expect(error.errors).toEqual([{ path: [], message: 'Too small.' }]);
 	});
 });
 
@@ -52,7 +52,7 @@ describe('Greater than', () => {
 		const result = schema.parse(10);
 		expect(result.status).toBe('error');
 		const error = result as ParseErrorResult;
-		expect(error.errors).toEqual(['Too small.']);
+		expect(error.errors).toEqual([{ path: [], message: 'Too small.' }]);
 	});
 });
 
@@ -70,7 +70,7 @@ describe('Less than or equal', () => {
 		const result = schema.parse(11);
 		expect(result.status).toBe('error');
 		const error = result as ParseErrorResult;
-		expect(error.errors).toEqual(['Too large.']);
+		expect(error.errors).toEqual([{ path: [], message: 'Too large.' }]);
 	});
 });
 
@@ -88,7 +88,7 @@ describe('Less than', () => {
 		const result = schema.parse(10);
 		expect(result.status).toBe('error');
 		const error = result as ParseErrorResult;
-		expect(error.errors).toEqual(['Too large.']);
+		expect(error.errors).toEqual([{ path: [], message: 'Too large.' }]);
 	});
 });
 
@@ -106,7 +106,7 @@ describe('Integer', () => {
 		const result = schema.parse(123.4);
 		expect(result.status).toBe('error');
 		const error = result as ParseErrorResult;
-		expect(error.errors).toEqual(['Not an integer.']);
+		expect(error.errors).toEqual([{ path: [], message: 'Not an integer.' }]);
 	});
 });
 
@@ -124,7 +124,7 @@ describe('Finite', () => {
 		const result = schema.parse(Number.NEGATIVE_INFINITY);
 		expect(result.status).toBe('error');
 		const error = result as ParseErrorResult;
-		expect(error.errors).toEqual(['Not finite.']);
+		expect(error.errors).toEqual([{ path: [], message: 'Not finite.' }]);
 	});
 });
 
@@ -142,6 +142,6 @@ describe('Safe integer', () => {
 		const result = schema.parse(Number.MAX_SAFE_INTEGER + 1);
 		expect(result.status).toBe('error');
 		const error = result as ParseErrorResult;
-		expect(error.errors).toEqual(['Not safe integer.']);
+		expect(error.errors).toEqual([{ path: [], message: 'Not safe integer.' }]);
 	});
 });

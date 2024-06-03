@@ -16,6 +16,6 @@ describe('Type', () => {
 		const result = schema.parse(null);
 		expect(result.status).toBe('error');
 		const error = result as ParseErrorResult;
-		expect(error.errors).toEqual(['Not a boolean.']);
+		expect(error.errors).toEqual([{ path: [], message: 'Not a boolean.' }]);
 	});
 });

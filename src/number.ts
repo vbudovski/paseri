@@ -1,12 +1,12 @@
-import { type CheckResult, type ParseResult, Schema } from './schema';
+import { type CheckResult, Schema, type ValidationError } from './schema';
 
 class NumberSchema extends Schema<number> {
-	override parse(value: unknown): ParseResult<number> {
+	override _parse(value: unknown): ValidationError[] {
 		if (typeof value !== 'number') {
-			return { status: 'error', errors: ['Not a number.'] };
+			return [{ path: [], message: 'Not a number.' }];
 		}
 
-		return super.parse(value);
+		return super._parse(value);
 	}
 	gte(value: number) {
 		function check(_value: number): CheckResult {

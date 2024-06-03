@@ -16,7 +16,7 @@ describe('Type', () => {
 		const result = schema.parse(null);
 		expect(result.status).toBe('error');
 		const error = result as ParseErrorResult;
-		expect(error.errors).toEqual(['Not a string.']);
+		expect(error.errors).toEqual([{ path: [], message: 'Not a string.' }]);
 	});
 });
 
@@ -34,7 +34,7 @@ describe('Min', () => {
 		const result = schema.parse('aa');
 		expect(result.status).toBe('error');
 		const error = result as ParseErrorResult;
-		expect(error.errors).toEqual(['Too short.']);
+		expect(error.errors).toEqual([{ path: [], message: 'Too short.' }]);
 	});
 });
 
@@ -52,7 +52,7 @@ describe('Max', () => {
 		const result = schema.parse('aaaa');
 		expect(result.status).toBe('error');
 		const error = result as ParseErrorResult;
-		expect(error.errors).toEqual(['Too long.']);
+		expect(error.errors).toEqual([{ path: [], message: 'Too long.' }]);
 	});
 });
 
@@ -70,14 +70,14 @@ describe('Length', () => {
 		const result = schema.parse('aaaa');
 		expect(result.status).toBe('error');
 		const error = result as ParseErrorResult;
-		expect(error.errors).toEqual(['Too long.']);
+		expect(error.errors).toEqual([{ path: [], message: 'Too long.' }]);
 	});
 
 	test('Too short', async () => {
 		const result = schema.parse('aa');
 		expect(result.status).toBe('error');
 		const error = result as ParseErrorResult;
-		expect(error.errors).toEqual(['Too short.']);
+		expect(error.errors).toEqual([{ path: [], message: 'Too short.' }]);
 	});
 });
 
@@ -95,7 +95,7 @@ describe('Email', () => {
 		const result = schema.parse('not_an_email');
 		expect(result.status).toBe('error');
 		const error = result as ParseErrorResult;
-		expect(error.errors).toEqual(['Not an email.']);
+		expect(error.errors).toEqual([{ path: [], message: 'Not an email.' }]);
 	});
 });
 
@@ -113,7 +113,7 @@ describe('Emoji', () => {
 		const result = schema.parse('a');
 		expect(result.status).toBe('error');
 		const error = result as ParseErrorResult;
-		expect(error.errors).toEqual(['Not an emoji.']);
+		expect(error.errors).toEqual([{ path: [], message: 'Not an emoji.' }]);
 	});
 });
 
@@ -131,7 +131,7 @@ describe('UUID', () => {
 		const result = schema.parse('not_a_uuid');
 		expect(result.status).toBe('error');
 		const error = result as ParseErrorResult;
-		expect(error.errors).toEqual(['Not a UUID.']);
+		expect(error.errors).toEqual([{ path: [], message: 'Not a UUID.' }]);
 	});
 });
 
@@ -149,6 +149,6 @@ describe('Nano ID', () => {
 		const result = schema.parse('not_a_nano_id');
 		expect(result.status).toBe('error');
 		const error = result as ParseErrorResult;
-		expect(error.errors).toEqual(['Not a Nano ID.']);
+		expect(error.errors).toEqual([{ path: [], message: 'Not a Nano ID.' }]);
 	});
 });
