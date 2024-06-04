@@ -6,6 +6,18 @@ type ObjectOutput<ShapeType> = { [Key in keyof ShapeType]: ChildOutputType<Shape
 // biome-ignore lint/suspicious/noExplicitAny: We don't know the output type of the child schemas, and unknown is too restrictive.
 type SchemaType<ShapeType> = NonEmptyObject<{ [Key in keyof ShapeType]: Schema<any> }>;
 
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+	return !(
+		typeof value !== 'object' ||
+		Array.isArray(value) ||
+		value instanceof Promise ||
+		value instanceof Map ||
+		value instanceof Set ||
+		value instanceof Date ||
+		value === null
+	);
+}
+
 class ObjectSchema<ShapeType extends SchemaType<ShapeType>> extends Schema<ObjectOutput<ShapeType>> {
 	private readonly _shape: Map<string, Schema<unknown>>;
 	private _strict = false;
@@ -17,15 +29,7 @@ class ObjectSchema<ShapeType extends SchemaType<ShapeType>> extends Schema<Objec
 	}
 
 	override _parse(value: unknown): ValidationError[] {
-		if (
-			typeof value !== 'object' ||
-			Array.isArray(value) ||
-			value instanceof Promise ||
-			value instanceof Map ||
-			value instanceof Set ||
-			value instanceof Date ||
-			value === null
-		) {
+		if (!isPlainObject(value)) {
 			return [{ path: [], message: 'Not an object.' }];
 		}
 
