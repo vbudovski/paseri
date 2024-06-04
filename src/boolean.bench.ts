@@ -8,7 +8,7 @@ describe('Type valid', () => {
 	const zodSchema = z.boolean();
 
 	bench('This', async () => {
-		mySchema.parse(data);
+		mySchema.safeParse(data);
 	});
 
 	bench('Zod', async () => {
@@ -22,7 +22,7 @@ describe('Type invalid', () => {
 	const zodSchema = z.boolean();
 
 	bench('This', async () => {
-		mySchema.parse(data);
+		mySchema.safeParse(data);
 	});
 
 	bench('Zod', async () => {

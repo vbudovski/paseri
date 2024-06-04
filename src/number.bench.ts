@@ -8,7 +8,7 @@ describe('Type valid', () => {
 	const zodSchema = z.number();
 
 	bench('This', async () => {
-		mySchema.parse(data);
+		mySchema.safeParse(data);
 	});
 
 	bench('Zod', async () => {
@@ -22,7 +22,7 @@ describe('Type invalid', () => {
 	const zodSchema = z.number();
 
 	bench('This', async () => {
-		mySchema.parse(data);
+		mySchema.safeParse(data);
 	});
 
 	bench('Zod', async () => {
@@ -40,7 +40,7 @@ describe('Greater than or equal valid', () => {
 	const zodSchema = z.number().gte(10);
 
 	bench('This', async () => {
-		mySchema.parse(data);
+		mySchema.safeParse(data);
 	});
 
 	bench('Zod', async () => {
@@ -54,7 +54,7 @@ describe('Greater than or equal invalid', () => {
 	const zodSchema = z.number().gte(10);
 
 	bench('This', async () => {
-		mySchema.parse(data);
+		mySchema.safeParse(data);
 	});
 
 	bench('Zod', async () => {
@@ -72,7 +72,7 @@ describe('Greater than valid', () => {
 	const zodSchema = z.number().gt(10);
 
 	bench('This', async () => {
-		mySchema.parse(data);
+		mySchema.safeParse(data);
 	});
 
 	bench('Zod', async () => {
@@ -86,7 +86,7 @@ describe('Greater than invalid', () => {
 	const zodSchema = z.number().gt(10);
 
 	bench('This', async () => {
-		mySchema.parse(data);
+		mySchema.safeParse(data);
 	});
 
 	bench('Zod', async () => {
@@ -104,7 +104,7 @@ describe('Less than or equal valid', () => {
 	const zodSchema = z.number().lte(10);
 
 	bench('This', async () => {
-		mySchema.parse(data);
+		mySchema.safeParse(data);
 	});
 
 	bench('Zod', async () => {
@@ -118,7 +118,7 @@ describe('Less than or equal invalid', () => {
 	const zodSchema = z.number().lte(10);
 
 	bench('This', async () => {
-		mySchema.parse(data);
+		mySchema.safeParse(data);
 	});
 
 	bench('Zod', async () => {
@@ -136,7 +136,7 @@ describe('Less than valid', () => {
 	const zodSchema = z.number().lt(10);
 
 	bench('This', async () => {
-		mySchema.parse(data);
+		mySchema.safeParse(data);
 	});
 
 	bench('Zod', async () => {
@@ -150,7 +150,7 @@ describe('Less than invalid', () => {
 	const zodSchema = z.number().lt(10);
 
 	bench('This', async () => {
-		mySchema.parse(data);
+		mySchema.safeParse(data);
 	});
 
 	bench('Zod', async () => {
@@ -168,7 +168,7 @@ describe('Integer valid', () => {
 	const zodSchema = z.number().int();
 
 	bench('This', async () => {
-		mySchema.parse(data);
+		mySchema.safeParse(data);
 	});
 
 	bench('Zod', async () => {
@@ -182,7 +182,7 @@ describe('Integer invalid', () => {
 	const zodSchema = z.number().int();
 
 	bench('This', async () => {
-		mySchema.parse(data);
+		mySchema.safeParse(data);
 	});
 
 	bench('Zod', async () => {
@@ -200,7 +200,7 @@ describe('Finite valid', () => {
 	const zodSchema = z.number().finite();
 
 	bench('This', async () => {
-		mySchema.parse(data);
+		mySchema.safeParse(data);
 	});
 
 	bench('Zod', async () => {
@@ -214,7 +214,7 @@ describe('Finite invalid', () => {
 	const zodSchema = z.number().finite();
 
 	bench('This', async () => {
-		mySchema.parse(data);
+		mySchema.safeParse(data);
 	});
 
 	bench('Zod', async () => {
@@ -232,7 +232,7 @@ describe('Safe integer valid', () => {
 	const zodSchema = z.number().safe();
 
 	bench('This', async () => {
-		mySchema.parse(data);
+		mySchema.safeParse(data);
 	});
 
 	bench('Zod', async () => {
@@ -246,7 +246,7 @@ describe('Safe integer invalid', () => {
 	const zodSchema = z.number().safe();
 
 	bench('This', async () => {
-		mySchema.parse(data);
+		mySchema.safeParse(data);
 	});
 
 	bench('Zod', async () => {

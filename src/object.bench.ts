@@ -21,7 +21,7 @@ describe('Type valid', () => {
 	});
 
 	bench('This', async () => {
-		mySchema.parse(data);
+		mySchema.safeParse(data);
 	});
 
 	bench('Zod', async () => {
@@ -39,7 +39,7 @@ describe('Type invalid', () => {
 	});
 
 	bench('This', async () => {
-		mySchema.parse(data);
+		mySchema.safeParse(data);
 	});
 
 	bench('Zod', async () => {

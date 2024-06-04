@@ -7,14 +7,13 @@ type ObjectOutput<ShapeType> = { [Key in keyof ShapeType]: ChildOutputType<Shape
 type SchemaType<ShapeType> = NonEmptyObject<{ [Key in keyof ShapeType]: Schema<any> }>;
 
 class ObjectSchema<ShapeType extends SchemaType<ShapeType>> extends Schema<ObjectOutput<ShapeType>> {
-	private readonly shape: Map<string, Schema<unknown>>;
-	private readonly strict: boolean;
+	private readonly _shape: Map<string, Schema<unknown>>;
+	private _strict = false;
 
-	constructor(shape: ShapeType, strict = false) {
+	constructor(shape: ShapeType) {
 		super();
 
-		this.shape = new Map(Object.entries(shape) as [string, Schema<unknown>][]);
-		this.strict = strict;
+		this._shape = new Map(Object.entries(shape) as [string, Schema<unknown>][]);
 	}
 
 	override _parse(value: unknown): ValidationError[] {
@@ -35,9 +34,9 @@ class ObjectSchema<ShapeType extends SchemaType<ShapeType>> extends Schema<Objec
 		const unknownKeys: string[] = [];
 
 		for (const [key, childValue] of Object.entries(value)) {
-			const schema = this.shape.get(key);
+			const schema = this._shape.get(key);
 			if (schema) {
-				const result = schema.parse(childValue);
+				const result = schema.safeParse(childValue);
 				if (result.status === 'success') {
 					sanitisedValue[key] = result.value;
 				} else {
@@ -49,13 +48,13 @@ class ObjectSchema<ShapeType extends SchemaType<ShapeType>> extends Schema<Objec
 					);
 				}
 			} else {
-				if (this.strict) {
+				if (this._strict) {
 					unknownKeys.push(key);
 				}
 			}
 		}
 
-		if (this.strict && unknownKeys.length > 0) {
+		if (this._strict && unknownKeys.length > 0) {
 			errors.push({
 				path: [],
 				message: `Unrecognised key(s) in object: ${unknownKeys.map((key) => `'${key}'`).join(', ')}.`,
@@ -63,6 +62,12 @@ class ObjectSchema<ShapeType extends SchemaType<ShapeType>> extends Schema<Objec
 		}
 
 		return [...errors, ...super._parse(sanitisedValue)];
+	}
+
+	strict(): this {
+		this._strict = true;
+
+		return this;
 	}
 }
 

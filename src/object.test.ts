@@ -11,7 +11,7 @@ describe('Type', () => {
 	});
 
 	test('Valid', async () => {
-		const result = schema.parse({
+		const result = schema.safeParse({
 			string1: 'hello',
 			object1: { string2: 'world' },
 			object2: { object3: { string3: 'abc' } },
@@ -26,7 +26,7 @@ describe('Type', () => {
 	});
 
 	test('Invalid child value', async () => {
-		const result = schema.parse({
+		const result = schema.safeParse({
 			string1: 123,
 			object1: { string2: 'world' },
 			object2: { object3: { string3: 'abc' } },
@@ -37,7 +37,7 @@ describe('Type', () => {
 	});
 
 	test('Invalid deep child value', async () => {
-		const result = schema.parse({
+		const result = schema.safeParse({
 			string1: 'hello',
 			object1: { string2: 456 },
 			object2: { object3: { string3: null } },
@@ -51,7 +51,7 @@ describe('Type', () => {
 	});
 
 	test('Not an object', async () => {
-		const result = schema.parse(null);
+		const result = schema.safeParse(null);
 		expect(result.status).toBe('error');
 		const error = result as ParseErrorResult;
 		expect(error.errors).toEqual([{ path: [], message: 'Not an object.' }]);

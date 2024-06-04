@@ -41,7 +41,7 @@ abstract class Schema<OutputType> {
 		return errors;
 	}
 
-	parse(value: unknown): ParseResult<OutputType> {
+	safeParse(value: unknown): ParseResult<OutputType> {
 		const errors = this._parse(value);
 		if (errors.length) {
 			return { status: 'error', errors: errors };

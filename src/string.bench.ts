@@ -8,7 +8,7 @@ describe('Type valid', () => {
 	const zodSchema = z.string();
 
 	bench('This', async () => {
-		mySchema.parse(data);
+		mySchema.safeParse(data);
 	});
 
 	bench('Zod', async () => {
@@ -22,7 +22,7 @@ describe('Type invalid', () => {
 	const zodSchema = z.string();
 
 	bench('This', async () => {
-		mySchema.parse(data);
+		mySchema.safeParse(data);
 	});
 
 	bench('Zod', async () => {
@@ -40,7 +40,7 @@ describe('Min valid', () => {
 	const zodSchema = z.string().min(3);
 
 	bench('This', async () => {
-		mySchema.parse(data);
+		mySchema.safeParse(data);
 	});
 
 	bench('Zod', async () => {
@@ -54,7 +54,7 @@ describe('Min invalid', () => {
 	const zodSchema = z.string().min(3);
 
 	bench('This', async () => {
-		mySchema.parse(data);
+		mySchema.safeParse(data);
 	});
 
 	bench('Zod', async () => {
@@ -72,7 +72,7 @@ describe('Max valid', () => {
 	const zodSchema = z.string().max(3);
 
 	bench('This', async () => {
-		mySchema.parse(data);
+		mySchema.safeParse(data);
 	});
 
 	bench('Zod', async () => {
@@ -86,7 +86,7 @@ describe('Max invalid', () => {
 	const zodSchema = z.string().max(3);
 
 	bench('This', async () => {
-		mySchema.parse(data);
+		mySchema.safeParse(data);
 	});
 
 	bench('Zod', async () => {
@@ -104,7 +104,7 @@ describe('Length valid', () => {
 	const zodSchema = z.string().length(3);
 
 	bench('This', async () => {
-		mySchema.parse(data);
+		mySchema.safeParse(data);
 	});
 
 	bench('Zod', async () => {
@@ -118,7 +118,7 @@ describe('Length too long', () => {
 	const zodSchema = z.string().length(3);
 
 	bench('This', async () => {
-		mySchema.parse(data);
+		mySchema.safeParse(data);
 	});
 
 	bench('Zod', async () => {
@@ -136,7 +136,7 @@ describe('Length too short', () => {
 	const zodSchema = z.string().length(3);
 
 	bench('This', async () => {
-		mySchema.parse(data);
+		mySchema.safeParse(data);
 	});
 
 	bench('Zod', async () => {
@@ -154,7 +154,7 @@ describe('Email valid', () => {
 	const zodSchema = z.string().email();
 
 	bench('This', async () => {
-		mySchema.parse(data);
+		mySchema.safeParse(data);
 	});
 
 	bench('Zod', async () => {
@@ -168,7 +168,7 @@ describe('Email invalid', () => {
 	const zodSchema = z.string().email();
 
 	bench('This', async () => {
-		mySchema.parse(data);
+		mySchema.safeParse(data);
 	});
 
 	bench('Zod', async () => {
@@ -186,7 +186,7 @@ describe('Emoji valid', () => {
 	const zodSchema = z.string().emoji();
 
 	bench('This', async () => {
-		mySchema.parse(data);
+		mySchema.safeParse(data);
 	});
 
 	bench('Zod', async () => {
@@ -200,7 +200,7 @@ describe('Emoji invalid', () => {
 	const zodSchema = z.string().emoji();
 
 	bench('This', async () => {
-		mySchema.parse(data);
+		mySchema.safeParse(data);
 	});
 
 	bench('Zod', async () => {
@@ -218,7 +218,7 @@ describe('UUID valid', () => {
 	const zodSchema = z.string().uuid();
 
 	bench('This', async () => {
-		mySchema.parse(data);
+		mySchema.safeParse(data);
 	});
 
 	bench('Zod', async () => {
@@ -232,7 +232,7 @@ describe('UUID invalid', () => {
 	const zodSchema = z.string().uuid();
 
 	bench('This', async () => {
-		mySchema.parse(data);
+		mySchema.safeParse(data);
 	});
 
 	bench('Zod', async () => {
@@ -250,7 +250,7 @@ describe('Nano ID valid', () => {
 	const zodSchema = z.string().nanoid();
 
 	bench('This', async () => {
-		mySchema.parse(data);
+		mySchema.safeParse(data);
 	});
 
 	bench('Zod', async () => {
@@ -264,7 +264,7 @@ describe('Nano ID invalid', () => {
 	const zodSchema = z.string().nanoid();
 
 	bench('This', async () => {
-		mySchema.parse(data);
+		mySchema.safeParse(data);
 	});
 
 	bench('Zod', async () => {
