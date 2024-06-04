@@ -25,7 +25,7 @@ describe('Type valid', () => {
 	});
 
 	bench('Zod', async () => {
-		zodSchema.parse(data);
+		zodSchema.safeParse(data);
 	});
 });
 
@@ -43,10 +43,6 @@ describe('Type invalid', () => {
 	});
 
 	bench('Zod', async () => {
-		try {
-			zodSchema.parse(data);
-		} catch (error) {
-			//
-		}
+		zodSchema.safeParse(data);
 	});
 });

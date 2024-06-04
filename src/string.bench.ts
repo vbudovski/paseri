@@ -12,7 +12,7 @@ describe('Type valid', () => {
 	});
 
 	bench('Zod', async () => {
-		zodSchema.parse(data);
+		zodSchema.safeParse(data);
 	});
 });
 
@@ -26,11 +26,7 @@ describe('Type invalid', () => {
 	});
 
 	bench('Zod', async () => {
-		try {
-			zodSchema.parse(data);
-		} catch (error) {
-			//
-		}
+		zodSchema.safeParse(data);
 	});
 });
 
@@ -44,7 +40,7 @@ describe('Min valid', () => {
 	});
 
 	bench('Zod', async () => {
-		zodSchema.parse(data);
+		zodSchema.safeParse(data);
 	});
 });
 
@@ -58,11 +54,7 @@ describe('Min invalid', () => {
 	});
 
 	bench('Zod', async () => {
-		try {
-			zodSchema.parse(data);
-		} catch (error) {
-			//
-		}
+		zodSchema.safeParse(data);
 	});
 });
 
@@ -76,7 +68,7 @@ describe('Max valid', () => {
 	});
 
 	bench('Zod', async () => {
-		zodSchema.parse(data);
+		zodSchema.safeParse(data);
 	});
 });
 
@@ -90,11 +82,7 @@ describe('Max invalid', () => {
 	});
 
 	bench('Zod', async () => {
-		try {
-			zodSchema.parse(data);
-		} catch (error) {
-			//
-		}
+		zodSchema.safeParse(data);
 	});
 });
 
@@ -108,7 +96,7 @@ describe('Length valid', () => {
 	});
 
 	bench('Zod', async () => {
-		zodSchema.parse(data);
+		zodSchema.safeParse(data);
 	});
 });
 
@@ -122,11 +110,7 @@ describe('Length too long', () => {
 	});
 
 	bench('Zod', async () => {
-		try {
-			zodSchema.parse(data);
-		} catch (error) {
-			//
-		}
+		zodSchema.safeParse(data);
 	});
 });
 
@@ -140,11 +124,7 @@ describe('Length too short', () => {
 	});
 
 	bench('Zod', async () => {
-		try {
-			zodSchema.parse(data);
-		} catch (error) {
-			//
-		}
+		zodSchema.safeParse(data);
 	});
 });
 
@@ -158,7 +138,7 @@ describe('Email valid', () => {
 	});
 
 	bench('Zod', async () => {
-		zodSchema.parse(data);
+		zodSchema.safeParse(data);
 	});
 });
 
@@ -172,11 +152,7 @@ describe('Email invalid', () => {
 	});
 
 	bench('Zod', async () => {
-		try {
-			zodSchema.parse(data);
-		} catch (error) {
-			//
-		}
+		zodSchema.safeParse(data);
 	});
 });
 
@@ -190,7 +166,7 @@ describe('Emoji valid', () => {
 	});
 
 	bench('Zod', async () => {
-		zodSchema.parse(data);
+		zodSchema.safeParse(data);
 	});
 });
 
@@ -204,11 +180,7 @@ describe('Emoji invalid', () => {
 	});
 
 	bench('Zod', async () => {
-		try {
-			zodSchema.parse(data);
-		} catch (error) {
-			//
-		}
+		zodSchema.safeParse(data);
 	});
 });
 
@@ -222,7 +194,7 @@ describe('UUID valid', () => {
 	});
 
 	bench('Zod', async () => {
-		zodSchema.parse(data);
+		zodSchema.safeParse(data);
 	});
 });
 
@@ -236,11 +208,7 @@ describe('UUID invalid', () => {
 	});
 
 	bench('Zod', async () => {
-		try {
-			zodSchema.parse(data);
-		} catch (error) {
-			//
-		}
+		zodSchema.safeParse(data);
 	});
 });
 
@@ -254,7 +222,7 @@ describe('Nano ID valid', () => {
 	});
 
 	bench('Zod', async () => {
-		zodSchema.parse(data);
+		zodSchema.safeParse(data);
 	});
 });
 
@@ -268,10 +236,6 @@ describe('Nano ID invalid', () => {
 	});
 
 	bench('Zod', async () => {
-		try {
-			zodSchema.parse(data);
-		} catch (error) {
-			//
-		}
+		zodSchema.safeParse(data);
 	});
 });

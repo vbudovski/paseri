@@ -12,7 +12,7 @@ describe('Type valid', () => {
 	});
 
 	bench('Zod', async () => {
-		zodSchema.parse(data);
+		zodSchema.safeParse(data);
 	});
 });
 
@@ -26,11 +26,7 @@ describe('Type invalid', () => {
 	});
 
 	bench('Zod', async () => {
-		try {
-			zodSchema.parse(data);
-		} catch (error) {
-			//
-		}
+		zodSchema.safeParse(data);
 	});
 });
 
@@ -44,7 +40,7 @@ describe('Greater than or equal valid', () => {
 	});
 
 	bench('Zod', async () => {
-		zodSchema.parse(data);
+		zodSchema.safeParse(data);
 	});
 });
 
@@ -58,11 +54,7 @@ describe('Greater than or equal invalid', () => {
 	});
 
 	bench('Zod', async () => {
-		try {
-			zodSchema.parse(data);
-		} catch (error) {
-			//
-		}
+		zodSchema.safeParse(data);
 	});
 });
 
@@ -76,7 +68,7 @@ describe('Greater than valid', () => {
 	});
 
 	bench('Zod', async () => {
-		zodSchema.parse(data);
+		zodSchema.safeParse(data);
 	});
 });
 
@@ -90,11 +82,7 @@ describe('Greater than invalid', () => {
 	});
 
 	bench('Zod', async () => {
-		try {
-			zodSchema.parse(data);
-		} catch (error) {
-			//
-		}
+		zodSchema.safeParse(data);
 	});
 });
 
@@ -108,7 +96,7 @@ describe('Less than or equal valid', () => {
 	});
 
 	bench('Zod', async () => {
-		zodSchema.parse(data);
+		zodSchema.safeParse(data);
 	});
 });
 
@@ -122,11 +110,7 @@ describe('Less than or equal invalid', () => {
 	});
 
 	bench('Zod', async () => {
-		try {
-			zodSchema.parse(data);
-		} catch (error) {
-			//
-		}
+		zodSchema.safeParse(data);
 	});
 });
 
@@ -140,7 +124,7 @@ describe('Less than valid', () => {
 	});
 
 	bench('Zod', async () => {
-		zodSchema.parse(data);
+		zodSchema.safeParse(data);
 	});
 });
 
@@ -154,11 +138,7 @@ describe('Less than invalid', () => {
 	});
 
 	bench('Zod', async () => {
-		try {
-			zodSchema.parse(data);
-		} catch (error) {
-			//
-		}
+		zodSchema.safeParse(data);
 	});
 });
 
@@ -172,7 +152,7 @@ describe('Integer valid', () => {
 	});
 
 	bench('Zod', async () => {
-		zodSchema.parse(data);
+		zodSchema.safeParse(data);
 	});
 });
 
@@ -186,11 +166,7 @@ describe('Integer invalid', () => {
 	});
 
 	bench('Zod', async () => {
-		try {
-			zodSchema.parse(data);
-		} catch (error) {
-			//
-		}
+		zodSchema.safeParse(data);
 	});
 });
 
@@ -204,7 +180,7 @@ describe('Finite valid', () => {
 	});
 
 	bench('Zod', async () => {
-		zodSchema.parse(data);
+		zodSchema.safeParse(data);
 	});
 });
 
@@ -218,11 +194,7 @@ describe('Finite invalid', () => {
 	});
 
 	bench('Zod', async () => {
-		try {
-			zodSchema.parse(data);
-		} catch (error) {
-			//
-		}
+		zodSchema.safeParse(data);
 	});
 });
 
@@ -236,7 +208,7 @@ describe('Safe integer valid', () => {
 	});
 
 	bench('Zod', async () => {
-		zodSchema.parse(data);
+		zodSchema.safeParse(data);
 	});
 });
 
@@ -250,10 +222,6 @@ describe('Safe integer invalid', () => {
 	});
 
 	bench('Zod', async () => {
-		try {
-			zodSchema.parse(data);
-		} catch (error) {
-			//
-		}
+		zodSchema.safeParse(data);
 	});
 });
