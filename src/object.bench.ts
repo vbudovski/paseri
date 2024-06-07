@@ -20,11 +20,11 @@ describe('Type valid', () => {
 		object2: z.object({ object3: z.object({ string3: z.string() }) }),
 	});
 
-	bench('This', async () => {
+	bench('This', () => {
 		mySchema.safeParse(data);
 	});
 
-	bench('Zod', async () => {
+	bench('Zod', () => {
 		zodSchema.safeParse(data);
 	});
 });
@@ -38,11 +38,11 @@ describe('Type invalid', () => {
 		foo: z.string(),
 	});
 
-	bench('This', async () => {
+	bench('This', () => {
 		mySchema.safeParse(data);
 	});
 
-	bench('Zod', async () => {
+	bench('Zod', () => {
 		zodSchema.safeParse(data);
 	});
 });

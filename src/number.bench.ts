@@ -7,11 +7,11 @@ describe('Type valid', () => {
 	const mySchema = new NumberSchema();
 	const zodSchema = z.number();
 
-	bench('This', async () => {
+	bench('This', () => {
 		mySchema.safeParse(data);
 	});
 
-	bench('Zod', async () => {
+	bench('Zod', () => {
 		zodSchema.safeParse(data);
 	});
 });
@@ -21,11 +21,11 @@ describe('Type invalid', () => {
 	const mySchema = new NumberSchema();
 	const zodSchema = z.number();
 
-	bench('This', async () => {
+	bench('This', () => {
 		mySchema.safeParse(data);
 	});
 
-	bench('Zod', async () => {
+	bench('Zod', () => {
 		zodSchema.safeParse(data);
 	});
 });
@@ -35,11 +35,11 @@ describe('Greater than or equal valid', () => {
 	const mySchema = new NumberSchema().gte(10);
 	const zodSchema = z.number().gte(10);
 
-	bench('This', async () => {
+	bench('This', () => {
 		mySchema.safeParse(data);
 	});
 
-	bench('Zod', async () => {
+	bench('Zod', () => {
 		zodSchema.safeParse(data);
 	});
 });
@@ -49,11 +49,11 @@ describe('Greater than or equal invalid', () => {
 	const mySchema = new NumberSchema().gte(10);
 	const zodSchema = z.number().gte(10);
 
-	bench('This', async () => {
+	bench('This', () => {
 		mySchema.safeParse(data);
 	});
 
-	bench('Zod', async () => {
+	bench('Zod', () => {
 		zodSchema.safeParse(data);
 	});
 });
@@ -63,11 +63,11 @@ describe('Greater than valid', () => {
 	const mySchema = new NumberSchema().gt(10);
 	const zodSchema = z.number().gt(10);
 
-	bench('This', async () => {
+	bench('This', () => {
 		mySchema.safeParse(data);
 	});
 
-	bench('Zod', async () => {
+	bench('Zod', () => {
 		zodSchema.safeParse(data);
 	});
 });
@@ -77,11 +77,11 @@ describe('Greater than invalid', () => {
 	const mySchema = new NumberSchema().gt(10);
 	const zodSchema = z.number().gt(10);
 
-	bench('This', async () => {
+	bench('This', () => {
 		mySchema.safeParse(data);
 	});
 
-	bench('Zod', async () => {
+	bench('Zod', () => {
 		zodSchema.safeParse(data);
 	});
 });
@@ -91,11 +91,11 @@ describe('Less than or equal valid', () => {
 	const mySchema = new NumberSchema().lte(10);
 	const zodSchema = z.number().lte(10);
 
-	bench('This', async () => {
+	bench('This', () => {
 		mySchema.safeParse(data);
 	});
 
-	bench('Zod', async () => {
+	bench('Zod', () => {
 		zodSchema.safeParse(data);
 	});
 });
@@ -105,11 +105,11 @@ describe('Less than or equal invalid', () => {
 	const mySchema = new NumberSchema().lte(10);
 	const zodSchema = z.number().lte(10);
 
-	bench('This', async () => {
+	bench('This', () => {
 		mySchema.safeParse(data);
 	});
 
-	bench('Zod', async () => {
+	bench('Zod', () => {
 		zodSchema.safeParse(data);
 	});
 });
@@ -119,11 +119,11 @@ describe('Less than valid', () => {
 	const mySchema = new NumberSchema().lt(10);
 	const zodSchema = z.number().lt(10);
 
-	bench('This', async () => {
+	bench('This', () => {
 		mySchema.safeParse(data);
 	});
 
-	bench('Zod', async () => {
+	bench('Zod', () => {
 		zodSchema.safeParse(data);
 	});
 });
@@ -133,11 +133,11 @@ describe('Less than invalid', () => {
 	const mySchema = new NumberSchema().lt(10);
 	const zodSchema = z.number().lt(10);
 
-	bench('This', async () => {
+	bench('This', () => {
 		mySchema.safeParse(data);
 	});
 
-	bench('Zod', async () => {
+	bench('Zod', () => {
 		zodSchema.safeParse(data);
 	});
 });
@@ -147,11 +147,11 @@ describe('Integer valid', () => {
 	const mySchema = new NumberSchema().int();
 	const zodSchema = z.number().int();
 
-	bench('This', async () => {
+	bench('This', () => {
 		mySchema.safeParse(data);
 	});
 
-	bench('Zod', async () => {
+	bench('Zod', () => {
 		zodSchema.safeParse(data);
 	});
 });
@@ -161,11 +161,11 @@ describe('Integer invalid', () => {
 	const mySchema = new NumberSchema().int();
 	const zodSchema = z.number().int();
 
-	bench('This', async () => {
+	bench('This', () => {
 		mySchema.safeParse(data);
 	});
 
-	bench('Zod', async () => {
+	bench('Zod', () => {
 		zodSchema.safeParse(data);
 	});
 });
@@ -175,11 +175,11 @@ describe('Finite valid', () => {
 	const mySchema = new NumberSchema().finite();
 	const zodSchema = z.number().finite();
 
-	bench('This', async () => {
+	bench('This', () => {
 		mySchema.safeParse(data);
 	});
 
-	bench('Zod', async () => {
+	bench('Zod', () => {
 		zodSchema.safeParse(data);
 	});
 });
@@ -189,11 +189,11 @@ describe('Finite invalid', () => {
 	const mySchema = new NumberSchema().finite();
 	const zodSchema = z.number().finite();
 
-	bench('This', async () => {
+	bench('This', () => {
 		mySchema.safeParse(data);
 	});
 
-	bench('Zod', async () => {
+	bench('Zod', () => {
 		zodSchema.safeParse(data);
 	});
 });
@@ -203,11 +203,11 @@ describe('Safe integer valid', () => {
 	const mySchema = new NumberSchema().safe();
 	const zodSchema = z.number().safe();
 
-	bench('This', async () => {
+	bench('This', () => {
 		mySchema.safeParse(data);
 	});
 
-	bench('Zod', async () => {
+	bench('Zod', () => {
 		zodSchema.safeParse(data);
 	});
 });
@@ -217,11 +217,11 @@ describe('Safe integer invalid', () => {
 	const mySchema = new NumberSchema().safe();
 	const zodSchema = z.number().safe();
 
-	bench('This', async () => {
+	bench('This', () => {
 		mySchema.safeParse(data);
 	});
 
-	bench('Zod', async () => {
+	bench('Zod', () => {
 		zodSchema.safeParse(data);
 	});
 });

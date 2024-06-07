@@ -55,7 +55,7 @@ describe('Parse strict', () => {
 		mySchemaStrict.safeParse(data);
 	});
 
-	bench('Zod', async () => {
+	bench('Zod', () => {
 		zodSchemaStrict.safeParse(data);
 	});
 });

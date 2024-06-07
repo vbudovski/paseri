@@ -7,11 +7,11 @@ describe('Type valid', () => {
 	const mySchema = new BooleanSchema();
 	const zodSchema = z.boolean();
 
-	bench('This', async () => {
+	bench('This', () => {
 		mySchema.safeParse(data);
 	});
 
-	bench('Zod', async () => {
+	bench('Zod', () => {
 		zodSchema.safeParse(data);
 	});
 });
@@ -21,11 +21,11 @@ describe('Type invalid', () => {
 	const mySchema = new BooleanSchema();
 	const zodSchema = z.boolean();
 
-	bench('This', async () => {
+	bench('This', () => {
 		mySchema.safeParse(data);
 	});
 
-	bench('Zod', async () => {
+	bench('Zod', () => {
 		zodSchema.safeParse(data);
 	});
 });
