@@ -1,4 +1,4 @@
-import { type CheckResult, Schema, type ValidationError } from './schema';
+import { type CheckResult, Schema, type ValidationError } from './schema.ts';
 
 class NumberSchema extends Schema<number> {
     override _parse(value: unknown): ValidationError[] {

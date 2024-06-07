@@ -1,7 +1,7 @@
 import { bench, describe } from 'vitest';
 import { z } from 'zod';
-import { ObjectSchema } from './object';
-import { StringSchema } from './string';
+import { ObjectSchema } from './object.ts';
+import { StringSchema } from './string.ts';
 
 describe('Type valid', () => {
     const data = {

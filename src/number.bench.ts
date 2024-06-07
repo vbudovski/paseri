@@ -1,6 +1,6 @@
 import { bench, describe } from 'vitest';
 import { z } from 'zod';
-import { NumberSchema } from './number';
+import { NumberSchema } from './number.ts';
 
 describe('Type valid', () => {
     const data = 123;

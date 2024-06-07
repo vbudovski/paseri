@@ -1,9 +1,9 @@
 import { bench, describe } from 'vitest';
 import { z } from 'zod';
-import { BooleanSchema } from './boolean';
-import { NumberSchema } from './number';
-import { ObjectSchema } from './object';
-import { StringSchema } from './string';
+import { BooleanSchema } from './boolean.ts';
+import { NumberSchema } from './number.ts';
+import { ObjectSchema } from './object.ts';
+import { StringSchema } from './string.ts';
 
 const data = Object.freeze({
     number: 1,

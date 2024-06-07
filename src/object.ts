@@ -1,5 +1,5 @@
 import type { NonEmptyObject } from 'type-fest';
-import { Schema, type ValidationError } from './schema';
+import { Schema, type ValidationError } from './schema.ts';
 
 type ChildOutputType<OutputType> = OutputType extends Schema<OutputType> ? OutputType : never;
 type ObjectOutput<ShapeType> = { [Key in keyof ShapeType]: ChildOutputType<ShapeType[Key]> };

@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
-import { ObjectSchema } from './object';
-import type { ParseErrorResult, ParseSuccessResult } from './schema';
-import { StringSchema } from './string';
+import { ObjectSchema } from './object.ts';
+import type { ParseErrorResult, ParseSuccessResult } from './schema.ts';
+import { StringSchema } from './string.ts';
 
 describe('Type', () => {
     const schema = new ObjectSchema({

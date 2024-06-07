@@ -1,6 +1,6 @@
 import { bench, describe } from 'vitest';
 import { z } from 'zod';
-import { StringSchema } from './string';
+import { StringSchema } from './string.ts';
 
 describe('Type valid', () => {
     const data = 'Hello, world!';

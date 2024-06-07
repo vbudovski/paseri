@@ -1,4 +1,4 @@
-import { Schema, type ValidationError } from './schema';
+import { Schema, type ValidationError } from './schema.ts';
 
 class BooleanSchema extends Schema<boolean> {
     override _parse(value: unknown): ValidationError[] {

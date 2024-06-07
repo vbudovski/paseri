@@ -1,6 +1,6 @@
 import { bench, describe } from 'vitest';
 import { z } from 'zod';
-import { BooleanSchema } from './boolean';
+import { BooleanSchema } from './boolean.ts';
 
 describe('Type valid', () => {
     const data = true;

@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
-import { BooleanSchema } from './boolean';
-import type { ParseErrorResult, ParseSuccessResult } from './schema';
+import { BooleanSchema } from './boolean.ts';
+import type { ParseErrorResult, ParseSuccessResult } from './schema.ts';
 
 describe('Type', () => {
     const schema = new BooleanSchema();

@@ -1,4 +1,4 @@
-export { BooleanSchema } from './boolean';
-export { NumberSchema } from './number';
-export { ObjectSchema } from './object';
-export { StringSchema } from './string';
+export { BooleanSchema } from './boolean.ts';
+export { NumberSchema } from './number.ts';
+export { ObjectSchema } from './object.ts';
+export { StringSchema } from './string.ts';

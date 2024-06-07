@@ -1,4 +1,4 @@
-import { type CheckResult, Schema, type ValidationError } from './schema';
+import { type CheckResult, Schema, type ValidationError } from './schema.ts';
 
 const emailRegex = /^(?!\.)(?!.*\.\.)([A-Z0-9_'+\-\.]*)[A-Z0-9_+-]@([A-Z0-9][A-Z0-9\-]*\.)+[A-Z]{2,}$/i;
 const emojiRegex = /^(\p{Extended_Pictographic}|\p{Emoji_Component})+$/u;
