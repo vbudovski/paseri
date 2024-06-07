@@ -1,63 +1,63 @@
 interface ParseSuccessResult<OutputType> {
-	status: 'success';
-	value: OutputType;
+    status: 'success';
+    value: OutputType;
 }
 
 interface ValidationError {
-	path: string[];
-	message: string;
+    path: string[];
+    message: string;
 }
 
 interface ParseErrorResult {
-	status: 'error';
-	errors: ValidationError[];
+    status: 'error';
+    errors: ValidationError[];
 }
 
 type ParseResult<OutputType> = ParseSuccessResult<OutputType> | ParseErrorResult;
 
 interface CheckSuccessResult {
-	status: 'success';
+    status: 'success';
 }
 
 interface CheckErrorResult {
-	status: 'error';
-	message: string;
+    status: 'error';
+    message: string;
 }
 
 type CheckResult = CheckSuccessResult | CheckErrorResult;
 
 abstract class Schema<OutputType> {
-	protected checks: ((value: OutputType) => CheckResult)[] = [];
+    protected checks: ((value: OutputType) => CheckResult)[] = [];
 
-	protected _parse(value: unknown): ValidationError[] {
-		const errors: ValidationError[] = [];
-		for (const check of this.checks) {
-			const result = check(value as OutputType);
-			if (result.status === 'error') {
-				errors.push({ path: [], message: result.message });
-			}
-		}
+    protected _parse(value: unknown): ValidationError[] {
+        const errors: ValidationError[] = [];
+        for (const check of this.checks) {
+            const result = check(value as OutputType);
+            if (result.status === 'error') {
+                errors.push({ path: [], message: result.message });
+            }
+        }
 
-		return errors;
-	}
+        return errors;
+    }
 
-	parse(value: unknown): OutputType {
-		const errors = this._parse(value);
-		if (errors.length) {
-			throw new Error(`Failed to parse ${JSON.stringify(errors)}.`);
-		}
+    parse(value: unknown): OutputType {
+        const errors = this._parse(value);
+        if (errors.length) {
+            throw new Error(`Failed to parse ${JSON.stringify(errors)}.`);
+        }
 
-		return value as OutputType;
-	}
+        return value as OutputType;
+    }
 
-	safeParse(value: unknown): ParseResult<OutputType> {
-		const errors = this._parse(value);
-		if (errors.length) {
-			return { status: 'error', errors: errors };
-		}
+    safeParse(value: unknown): ParseResult<OutputType> {
+        const errors = this._parse(value);
+        if (errors.length) {
+            return { status: 'error', errors: errors };
+        }
 
-		return { status: 'success', value: value as OutputType };
-	}
+        return { status: 'success', value: value as OutputType };
+    }
 }
 
 export { Schema };
