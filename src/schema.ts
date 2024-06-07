@@ -41,6 +41,15 @@ abstract class Schema<OutputType> {
 		return errors;
 	}
 
+	parse(value: unknown): OutputType {
+		const errors = this._parse(value);
+		if (errors.length) {
+			throw new Error(`Failed to parse ${JSON.stringify(errors)}.`);
+		}
+
+		return value as OutputType;
+	}
+
 	safeParse(value: unknown): ParseResult<OutputType> {
 		const errors = this._parse(value);
 		if (errors.length) {
