@@ -1,9 +1,10 @@
-import { bench, describe } from 'vitest';
-import { z } from 'zod';
+import { z } from 'npm:zod';
 import { BooleanSchema } from './boolean.ts';
 import { NumberSchema } from './number.ts';
 import { ObjectSchema } from './object.ts';
 import { StringSchema } from './string.ts';
+
+const { bench } = Deno;
 
 const data = Object.freeze({
     number: 1,
@@ -19,43 +20,43 @@ const data = Object.freeze({
         bool: false,
     },
 });
-const mySchemaStrict = new ObjectSchema({
-    number: new NumberSchema(),
-    negNumber: new NumberSchema(),
-    maxNumber: new NumberSchema(),
-    string: new StringSchema(),
-    longString: new StringSchema(),
-    boolean: new BooleanSchema(),
-    deeplyNested: new ObjectSchema({
-        foo: new StringSchema(),
-        num: new NumberSchema(),
-        bool: new BooleanSchema(),
-    }).strict(),
-}).strict();
-const zodSchemaStrict = z
-    .object({
-        number: z.number(),
-        negNumber: z.number(),
-        maxNumber: z.number(),
-        string: z.string(),
-        longString: z.string(),
-        boolean: z.boolean(),
-        deeplyNested: z
-            .object({
-                foo: z.string(),
-                num: z.number(),
-                bool: z.boolean(),
-            })
-            .strict(),
-    })
-    .strict();
 
-describe('Parse strict', () => {
-    bench('This', () => {
-        mySchemaStrict.safeParse(data);
-    });
+bench('This', { group: 'Parse strict' }, () => {
+    const schema = new ObjectSchema({
+        number: new NumberSchema(),
+        negNumber: new NumberSchema(),
+        maxNumber: new NumberSchema(),
+        string: new StringSchema(),
+        longString: new StringSchema(),
+        boolean: new BooleanSchema(),
+        deeplyNested: new ObjectSchema({
+            foo: new StringSchema(),
+            num: new NumberSchema(),
+            bool: new BooleanSchema(),
+        }).strict(),
+    }).strict();
 
-    bench('Zod', () => {
-        zodSchemaStrict.safeParse(data);
-    });
+    schema.safeParse(data);
+});
+
+bench('Zod', { group: 'Parse strict' }, () => {
+    const schema = z
+        .object({
+            number: z.number(),
+            negNumber: z.number(),
+            maxNumber: z.number(),
+            string: z.string(),
+            longString: z.string(),
+            boolean: z.boolean(),
+            deeplyNested: z
+                .object({
+                    foo: z.string(),
+                    num: z.number(),
+                    bool: z.boolean(),
+                })
+                .strict(),
+        })
+        .strict();
+
+    schema.safeParse(data);
 });

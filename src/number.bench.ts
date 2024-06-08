@@ -1,227 +1,228 @@
-import { bench, describe } from 'vitest';
-import { z } from 'zod';
+import { z } from 'npm:zod';
 import { NumberSchema } from './number.ts';
 
-describe('Type valid', () => {
+const { bench } = Deno;
+
+bench('This', { group: 'Type valid' }, () => {
     const data = 123;
-    const mySchema = new NumberSchema();
-    const zodSchema = z.number();
+    const schema = new NumberSchema();
 
-    bench('This', () => {
-        mySchema.safeParse(data);
-    });
-
-    bench('Zod', () => {
-        zodSchema.safeParse(data);
-    });
+    schema.safeParse(data);
 });
 
-describe('Type invalid', () => {
+bench('Zod', { group: 'Type valid' }, () => {
+    const data = 123;
+    const schema = z.number();
+
+    schema.safeParse(data);
+});
+
+bench('This', { group: 'Type invalid' }, () => {
     const data = null;
-    const mySchema = new NumberSchema();
-    const zodSchema = z.number();
+    const schema = new NumberSchema();
 
-    bench('This', () => {
-        mySchema.safeParse(data);
-    });
-
-    bench('Zod', () => {
-        zodSchema.safeParse(data);
-    });
+    schema.safeParse(data);
 });
 
-describe('Greater than or equal valid', () => {
+bench('Zod', { group: 'Type invalid' }, () => {
+    const data = null;
+    const schema = z.number();
+
+    schema.safeParse(data);
+});
+
+bench('This', { group: 'Greater than or equal valid' }, () => {
     const data = 10;
-    const mySchema = new NumberSchema().gte(10);
-    const zodSchema = z.number().gte(10);
+    const schema = new NumberSchema().gte(10);
 
-    bench('This', () => {
-        mySchema.safeParse(data);
-    });
-
-    bench('Zod', () => {
-        zodSchema.safeParse(data);
-    });
+    schema.safeParse(data);
 });
 
-describe('Greater than or equal invalid', () => {
+bench('Zod', { group: 'Greater than or equal valid' }, () => {
+    const data = 10;
+    const schema = z.number().gte(10);
+
+    schema.safeParse(data);
+});
+
+bench('This', { group: 'Greater than or equal invalid' }, () => {
     const data = 9;
-    const mySchema = new NumberSchema().gte(10);
-    const zodSchema = z.number().gte(10);
+    const schema = new NumberSchema().gte(10);
 
-    bench('This', () => {
-        mySchema.safeParse(data);
-    });
-
-    bench('Zod', () => {
-        zodSchema.safeParse(data);
-    });
+    schema.safeParse(data);
 });
 
-describe('Greater than valid', () => {
-    const data = 11;
-    const mySchema = new NumberSchema().gt(10);
-    const zodSchema = z.number().gt(10);
-
-    bench('This', () => {
-        mySchema.safeParse(data);
-    });
-
-    bench('Zod', () => {
-        zodSchema.safeParse(data);
-    });
-});
-
-describe('Greater than invalid', () => {
-    const data = 10;
-    const mySchema = new NumberSchema().gt(10);
-    const zodSchema = z.number().gt(10);
-
-    bench('This', () => {
-        mySchema.safeParse(data);
-    });
-
-    bench('Zod', () => {
-        zodSchema.safeParse(data);
-    });
-});
-
-describe('Less than or equal valid', () => {
-    const data = 10;
-    const mySchema = new NumberSchema().lte(10);
-    const zodSchema = z.number().lte(10);
-
-    bench('This', () => {
-        mySchema.safeParse(data);
-    });
-
-    bench('Zod', () => {
-        zodSchema.safeParse(data);
-    });
-});
-
-describe('Less than or equal invalid', () => {
-    const data = 11;
-    const mySchema = new NumberSchema().lte(10);
-    const zodSchema = z.number().lte(10);
-
-    bench('This', () => {
-        mySchema.safeParse(data);
-    });
-
-    bench('Zod', () => {
-        zodSchema.safeParse(data);
-    });
-});
-
-describe('Less than valid', () => {
+bench('Zod', { group: 'Greater than or equal invalid' }, () => {
     const data = 9;
-    const mySchema = new NumberSchema().lt(10);
-    const zodSchema = z.number().lt(10);
+    const schema = z.number().gte(10);
 
-    bench('This', () => {
-        mySchema.safeParse(data);
-    });
-
-    bench('Zod', () => {
-        zodSchema.safeParse(data);
-    });
+    schema.safeParse(data);
 });
 
-describe('Less than invalid', () => {
+bench('This', { group: 'Greater than valid' }, () => {
+    const data = 11;
+    const schema = new NumberSchema().gt(10);
+
+    schema.safeParse(data);
+});
+
+bench('Zod', { group: 'Greater than valid' }, () => {
+    const data = 11;
+    const schema = z.number().gt(10);
+
+    schema.safeParse(data);
+});
+
+bench('This', { group: 'Greater than invalid' }, () => {
     const data = 10;
-    const mySchema = new NumberSchema().lt(10);
-    const zodSchema = z.number().lt(10);
+    const schema = new NumberSchema().gt(10);
 
-    bench('This', () => {
-        mySchema.safeParse(data);
-    });
-
-    bench('Zod', () => {
-        zodSchema.safeParse(data);
-    });
+    schema.safeParse(data);
 });
 
-describe('Integer valid', () => {
+bench('Zod', { group: 'Greater than invalid' }, () => {
+    const data = 10;
+    const schema = z.number().gt(10);
+
+    schema.safeParse(data);
+});
+
+bench('This', { group: 'Less than or equal valid' }, () => {
+    const data = 10;
+    const schema = new NumberSchema().lte(10);
+
+    schema.safeParse(data);
+});
+
+bench('Zod', { group: 'Less than or equal valid' }, () => {
+    const data = 10;
+    const schema = z.number().lte(10);
+
+    schema.safeParse(data);
+});
+
+bench('This', { group: 'Less than or equal invalid' }, () => {
+    const data = 11;
+    const schema = new NumberSchema().lte(10);
+
+    schema.safeParse(data);
+});
+
+bench('Zod', { group: 'Less than or equal invalid' }, () => {
+    const data = 11;
+    const schema = z.number().lte(10);
+
+    schema.safeParse(data);
+});
+
+bench('This', { group: 'Less than valid' }, () => {
+    const data = 9;
+    const schema = new NumberSchema().lt(10);
+
+    schema.safeParse(data);
+});
+
+bench('Zod', { group: 'Less than valid' }, () => {
+    const data = 9;
+    const schema = z.number().lt(10);
+
+    schema.safeParse(data);
+});
+
+bench('This', { group: 'Less than invalid' }, () => {
+    const data = 10;
+    const schema = new NumberSchema().lt(10);
+
+    schema.safeParse(data);
+});
+
+bench('Zod', { group: 'Less than invalid' }, () => {
+    const data = 10;
+    const schema = z.number().lt(10);
+
+    schema.safeParse(data);
+});
+
+bench('This', { group: 'Integer valid' }, () => {
     const data = 123;
-    const mySchema = new NumberSchema().int();
-    const zodSchema = z.number().int();
+    const schema = new NumberSchema().int();
 
-    bench('This', () => {
-        mySchema.safeParse(data);
-    });
-
-    bench('Zod', () => {
-        zodSchema.safeParse(data);
-    });
+    schema.safeParse(data);
 });
 
-describe('Integer invalid', () => {
+bench('Zod', { group: 'Integer valid' }, () => {
+    const data = 123;
+    const schema = z.number().int();
+
+    schema.safeParse(data);
+});
+
+bench('This', { group: 'Integer invalid' }, () => {
     const data = 123.4;
-    const mySchema = new NumberSchema().int();
-    const zodSchema = z.number().int();
+    const schema = new NumberSchema().int();
 
-    bench('This', () => {
-        mySchema.safeParse(data);
-    });
-
-    bench('Zod', () => {
-        zodSchema.safeParse(data);
-    });
+    schema.safeParse(data);
 });
 
-describe('Finite valid', () => {
+bench('Zod', { group: 'Integer invalid' }, () => {
+    const data = 123.4;
+    const schema = z.number().int();
+
+    schema.safeParse(data);
+});
+
+bench('This', { group: 'Finite valid' }, () => {
     const data = 123;
-    const mySchema = new NumberSchema().finite();
-    const zodSchema = z.number().finite();
+    const schema = new NumberSchema().finite();
 
-    bench('This', () => {
-        mySchema.safeParse(data);
-    });
-
-    bench('Zod', () => {
-        zodSchema.safeParse(data);
-    });
+    schema.safeParse(data);
 });
 
-describe('Finite invalid', () => {
+bench('Zod', { group: 'Finite valid' }, () => {
+    const data = 123;
+    const schema = z.number().finite();
+
+    schema.safeParse(data);
+});
+
+bench('This', { group: 'Finite invalid' }, () => {
     const data = Number.NEGATIVE_INFINITY;
-    const mySchema = new NumberSchema().finite();
-    const zodSchema = z.number().finite();
+    const schema = new NumberSchema().finite();
 
-    bench('This', () => {
-        mySchema.safeParse(data);
-    });
-
-    bench('Zod', () => {
-        zodSchema.safeParse(data);
-    });
+    schema.safeParse(data);
 });
 
-describe('Safe integer valid', () => {
+bench('Zod', { group: 'Finite invalid' }, () => {
+    const data = Number.NEGATIVE_INFINITY;
+    const schema = z.number().finite();
+
+    schema.safeParse(data);
+});
+
+bench('This', { group: 'Safe integer valid' }, () => {
     const data = 123;
-    const mySchema = new NumberSchema().safe();
-    const zodSchema = z.number().safe();
+    const schema = new NumberSchema().safe();
 
-    bench('This', () => {
-        mySchema.safeParse(data);
-    });
-
-    bench('Zod', () => {
-        zodSchema.safeParse(data);
-    });
+    schema.safeParse(data);
 });
 
-describe('Safe integer invalid', () => {
+bench('Zod', { group: 'Safe integer valid' }, () => {
+    const data = 123;
+    const schema = z.number().safe();
+
+    schema.safeParse(data);
+});
+
+bench('This', { group: 'Safe integer invalid' }, () => {
     const data = Number.MAX_SAFE_INTEGER + 1;
-    const mySchema = new NumberSchema().safe();
-    const zodSchema = z.number().safe();
+    const schema = new NumberSchema().safe();
 
-    bench('This', () => {
-        mySchema.safeParse(data);
-    });
+    schema.safeParse(data);
+});
 
-    bench('Zod', () => {
-        zodSchema.safeParse(data);
-    });
+bench('Zod', { group: 'Safe integer invalid' }, () => {
+    const data = Number.MAX_SAFE_INTEGER + 1;
+    const schema = z.number().safe();
+
+    schema.safeParse(data);
 });

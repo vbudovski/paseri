@@ -1,18 +1,20 @@
-import { describe, expect, test } from 'vitest';
+import { expect } from '@std/expect';
 import { NumberSchema } from './number.ts';
 import type { ParseErrorResult, ParseSuccessResult } from './schema.ts';
 
-describe('Type', () => {
+const { test } = Deno;
+
+test('Type', async (t) => {
     const schema = new NumberSchema();
 
-    test('Valid', async () => {
+    await t.step('Valid', () => {
         const result = schema.safeParse(123);
         expect(result.status).toBe('success');
         const success = result as ParseSuccessResult<number>;
         expect(success.value).toBe(123);
     });
 
-    test('Not a number', async () => {
+    await t.step('Not a number', () => {
         const result = schema.safeParse(null);
         expect(result.status).toBe('error');
         const error = result as ParseErrorResult;
@@ -20,17 +22,17 @@ describe('Type', () => {
     });
 });
 
-describe('Greater than or equal', () => {
+test('Greater than or equal', async (t) => {
     const schema = new NumberSchema().gte(10);
 
-    test('Valid', async () => {
+    await t.step('Valid', () => {
         const result = schema.safeParse(10);
         expect(result.status).toBe('success');
         const success = result as ParseSuccessResult<number>;
         expect(success.value).toBe(10);
     });
 
-    test('Too small', async () => {
+    await t.step('Too small', () => {
         const result = schema.safeParse(9);
         expect(result.status).toBe('error');
         const error = result as ParseErrorResult;
@@ -38,17 +40,17 @@ describe('Greater than or equal', () => {
     });
 });
 
-describe('Greater than', () => {
+test('Greater than', async (t) => {
     const schema = new NumberSchema().gt(10);
 
-    test('Valid', async () => {
+    await t.step('Valid', () => {
         const result = schema.safeParse(11);
         expect(result.status).toBe('success');
         const success = result as ParseSuccessResult<number>;
         expect(success.value).toBe(11);
     });
 
-    test('Too small', async () => {
+    await t.step('Too small', () => {
         const result = schema.safeParse(10);
         expect(result.status).toBe('error');
         const error = result as ParseErrorResult;
@@ -56,17 +58,17 @@ describe('Greater than', () => {
     });
 });
 
-describe('Less than or equal', () => {
+test('Less than or equal', async (t) => {
     const schema = new NumberSchema().lte(10);
 
-    test('Valid', async () => {
+    await t.step('Valid', () => {
         const result = schema.safeParse(10);
         expect(result.status).toBe('success');
         const success = result as ParseSuccessResult<number>;
         expect(success.value).toBe(10);
     });
 
-    test('Too large', async () => {
+    await t.step('Too large', () => {
         const result = schema.safeParse(11);
         expect(result.status).toBe('error');
         const error = result as ParseErrorResult;
@@ -74,17 +76,17 @@ describe('Less than or equal', () => {
     });
 });
 
-describe('Less than', () => {
+test('Less than', async (t) => {
     const schema = new NumberSchema().lt(10);
 
-    test('Valid', async () => {
+    await t.step('Valid', () => {
         const result = schema.safeParse(9);
         expect(result.status).toBe('success');
         const success = result as ParseSuccessResult<number>;
         expect(success.value).toBe(9);
     });
 
-    test('Too large', async () => {
+    await t.step('Too large', () => {
         const result = schema.safeParse(10);
         expect(result.status).toBe('error');
         const error = result as ParseErrorResult;
@@ -92,17 +94,17 @@ describe('Less than', () => {
     });
 });
 
-describe('Integer', () => {
+test('Integer', async (t) => {
     const schema = new NumberSchema().int();
 
-    test('Valid', async () => {
+    await t.step('Valid', () => {
         const result = schema.safeParse(123);
         expect(result.status).toBe('success');
         const success = result as ParseSuccessResult<number>;
         expect(success.value).toBe(123);
     });
 
-    test('Invalid', async () => {
+    await t.step('Invalid', () => {
         const result = schema.safeParse(123.4);
         expect(result.status).toBe('error');
         const error = result as ParseErrorResult;
@@ -110,17 +112,17 @@ describe('Integer', () => {
     });
 });
 
-describe('Finite', () => {
+test('Finite', async (t) => {
     const schema = new NumberSchema().finite();
 
-    test('Valid', async () => {
+    await t.step('Valid', () => {
         const result = schema.safeParse(123);
         expect(result.status).toBe('success');
         const success = result as ParseSuccessResult<number>;
         expect(success.value).toBe(123);
     });
 
-    test('Invalid', async () => {
+    await t.step('Invalid', () => {
         const result = schema.safeParse(Number.NEGATIVE_INFINITY);
         expect(result.status).toBe('error');
         const error = result as ParseErrorResult;
@@ -128,17 +130,17 @@ describe('Finite', () => {
     });
 });
 
-describe('Safe integer', () => {
+test('Safe integer', async (t) => {
     const schema = new NumberSchema().safe();
 
-    test('Valid', async () => {
+    await t.step('Valid', () => {
         const result = schema.safeParse(123);
         expect(result.status).toBe('success');
         const success = result as ParseSuccessResult<number>;
         expect(success.value).toBe(123);
     });
 
-    test('Invalid', async () => {
+    await t.step('Invalid', () => {
         const result = schema.safeParse(Number.MAX_SAFE_INTEGER + 1);
         expect(result.status).toBe('error');
         const error = result as ParseErrorResult;

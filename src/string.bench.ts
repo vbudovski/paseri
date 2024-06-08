@@ -1,241 +1,242 @@
-import { bench, describe } from 'vitest';
-import { z } from 'zod';
+import { z } from 'npm:zod';
 import { StringSchema } from './string.ts';
 
-describe('Type valid', () => {
+const { bench } = Deno;
+
+bench('This', { group: 'Type valid' }, () => {
     const data = 'Hello, world!';
-    const mySchema = new StringSchema();
-    const zodSchema = z.string();
+    const schema = new StringSchema();
 
-    bench('This', () => {
-        mySchema.safeParse(data);
-    });
-
-    bench('Zod', () => {
-        zodSchema.safeParse(data);
-    });
+    schema.safeParse(data);
 });
 
-describe('Type invalid', () => {
+bench('Zod', { group: 'Type valid' }, () => {
+    const data = 'Hello, world!';
+    const schema = z.string();
+
+    schema.safeParse(data);
+});
+
+bench('This', { group: 'Type invalid' }, () => {
     const data = null;
-    const mySchema = new StringSchema();
-    const zodSchema = z.string();
+    const schema = new StringSchema();
 
-    bench('This', () => {
-        mySchema.safeParse(data);
-    });
-
-    bench('Zod', () => {
-        zodSchema.safeParse(data);
-    });
+    schema.safeParse(data);
 });
 
-describe('Min valid', () => {
-    const data = 'Hello, world!';
-    const mySchema = new StringSchema().min(3);
-    const zodSchema = z.string().min(3);
+bench('Zod', { group: 'Type invalid' }, () => {
+    const data = null;
+    const schema = z.string();
 
-    bench('This', () => {
-        mySchema.safeParse(data);
-    });
-
-    bench('Zod', () => {
-        zodSchema.safeParse(data);
-    });
+    schema.safeParse(data);
 });
 
-describe('Min invalid', () => {
-    const data = 'aa';
-    const mySchema = new StringSchema().min(3);
-    const zodSchema = z.string().min(3);
-
-    bench('This', () => {
-        mySchema.safeParse(data);
-    });
-
-    bench('Zod', () => {
-        zodSchema.safeParse(data);
-    });
-});
-
-describe('Max valid', () => {
+bench('This', { group: 'Min valid' }, () => {
     const data = 'aaa';
-    const mySchema = new StringSchema().max(3);
-    const zodSchema = z.string().max(3);
+    const schema = new StringSchema().min(3);
 
-    bench('This', () => {
-        mySchema.safeParse(data);
-    });
-
-    bench('Zod', () => {
-        zodSchema.safeParse(data);
-    });
+    schema.safeParse(data);
 });
 
-describe('Max invalid', () => {
-    const data = 'aaaa';
-    const mySchema = new StringSchema().max(3);
-    const zodSchema = z.string().max(3);
-
-    bench('This', () => {
-        mySchema.safeParse(data);
-    });
-
-    bench('Zod', () => {
-        zodSchema.safeParse(data);
-    });
-});
-
-describe('Length valid', () => {
+bench('Zod', { group: 'Min valid' }, () => {
     const data = 'aaa';
-    const mySchema = new StringSchema().length(3);
-    const zodSchema = z.string().length(3);
+    const schema = z.string().min(3);
 
-    bench('This', () => {
-        mySchema.safeParse(data);
-    });
-
-    bench('Zod', () => {
-        zodSchema.safeParse(data);
-    });
+    schema.safeParse(data);
 });
 
-describe('Length too long', () => {
-    const data = 'aaaa';
-    const mySchema = new StringSchema().length(3);
-    const zodSchema = z.string().length(3);
-
-    bench('This', () => {
-        mySchema.safeParse(data);
-    });
-
-    bench('Zod', () => {
-        zodSchema.safeParse(data);
-    });
-});
-
-describe('Length too short', () => {
+bench('This', { group: 'Min invalid' }, () => {
     const data = 'aa';
-    const mySchema = new StringSchema().length(3);
-    const zodSchema = z.string().length(3);
+    const schema = new StringSchema().min(3);
 
-    bench('This', () => {
-        mySchema.safeParse(data);
-    });
-
-    bench('Zod', () => {
-        zodSchema.safeParse(data);
-    });
+    schema.safeParse(data);
 });
 
-describe('Email valid', () => {
+bench('Zod', { group: 'Min invalid' }, () => {
+    const data = 'aa';
+    const schema = z.string().min(3);
+
+    schema.safeParse(data);
+});
+
+bench('This', { group: 'Max valid' }, () => {
+    const data = 'aaa';
+    const schema = new StringSchema().max(3);
+
+    schema.safeParse(data);
+});
+
+bench('Zod', { group: 'Max valid' }, () => {
+    const data = 'aaa';
+    const schema = z.string().max(3);
+
+    schema.safeParse(data);
+});
+
+bench('This', { group: 'Max invalid' }, () => {
+    const data = 'aaaa';
+    const schema = new StringSchema().max(3);
+
+    schema.safeParse(data);
+});
+
+bench('Zod', { group: 'Max invalid' }, () => {
+    const data = 'aaaa';
+    const schema = z.string().max(3);
+
+    schema.safeParse(data);
+});
+
+bench('This', { group: 'Length valid' }, () => {
+    const data = 'aaa';
+    const schema = new StringSchema().length(3);
+
+    schema.safeParse(data);
+});
+
+bench('Zod', { group: 'Length valid' }, () => {
+    const data = 'aaa';
+    const schema = z.string().length(3);
+
+    schema.safeParse(data);
+});
+
+bench('This', { group: 'Length too long' }, () => {
+    const data = 'aaaa';
+    const schema = new StringSchema().length(3);
+
+    schema.safeParse(data);
+});
+
+bench('Zod', { group: 'Length too long' }, () => {
+    const data = 'aaaa';
+    const schema = z.string().length(3);
+
+    schema.safeParse(data);
+});
+
+bench('This', { group: 'Length too short' }, () => {
+    const data = 'aa';
+    const schema = new StringSchema().length(3);
+
+    schema.safeParse(data);
+});
+
+bench('Zod', { group: 'Length too short' }, () => {
+    const data = 'aa';
+    const schema = z.string().length(3);
+
+    schema.safeParse(data);
+});
+
+bench('This', { group: 'Email valid' }, () => {
     const data = 'hello@example.com';
-    const mySchema = new StringSchema().email();
-    const zodSchema = z.string().email();
+    const schema = new StringSchema().email();
 
-    bench('This', () => {
-        mySchema.safeParse(data);
-    });
-
-    bench('Zod', () => {
-        zodSchema.safeParse(data);
-    });
+    schema.safeParse(data);
 });
 
-describe('Email invalid', () => {
+bench('Zod', { group: 'Email valid' }, () => {
+    const data = 'hello@example.com';
+    const schema = z.string().email();
+
+    schema.safeParse(data);
+});
+
+bench('This', { group: 'Email invalid' }, () => {
     const data = 'not_an_email';
-    const mySchema = new StringSchema().email();
-    const zodSchema = z.string().email();
+    const schema = new StringSchema().email();
 
-    bench('This', () => {
-        mySchema.safeParse(data);
-    });
-
-    bench('Zod', () => {
-        zodSchema.safeParse(data);
-    });
+    schema.safeParse(data);
 });
 
-describe('Emoji valid', () => {
+bench('Zod', { group: 'Email invalid' }, () => {
+    const data = 'not_an_email';
+    const schema = z.string().email();
+
+    schema.safeParse(data);
+});
+
+bench('This', { group: 'Emoji valid' }, () => {
     const data = '🥳';
-    const mySchema = new StringSchema().emoji();
-    const zodSchema = z.string().emoji();
+    const schema = new StringSchema().emoji();
 
-    bench('This', () => {
-        mySchema.safeParse(data);
-    });
-
-    bench('Zod', () => {
-        zodSchema.safeParse(data);
-    });
+    schema.safeParse(data);
 });
 
-describe('Emoji invalid', () => {
+bench('Zod', { group: 'Emoji valid' }, () => {
+    const data = '🥳';
+    const schema = z.string().emoji();
+
+    schema.safeParse(data);
+});
+
+bench('This', { group: 'Emoji invalid' }, () => {
     const data = 'a';
-    const mySchema = new StringSchema().emoji();
-    const zodSchema = z.string().emoji();
+    const schema = new StringSchema().emoji();
 
-    bench('This', () => {
-        mySchema.safeParse(data);
-    });
-
-    bench('Zod', () => {
-        zodSchema.safeParse(data);
-    });
+    schema.safeParse(data);
 });
 
-describe('UUID valid', () => {
+bench('Zod', { group: 'Emoji invalid' }, () => {
+    const data = 'a';
+    const schema = z.string().emoji();
+
+    schema.safeParse(data);
+});
+
+bench('This', { group: 'UUID valid' }, () => {
     const data = 'd98d4b7e-58a5-4e21-839b-2699b94c115b';
-    const mySchema = new StringSchema().uuid();
-    const zodSchema = z.string().uuid();
+    const schema = new StringSchema().uuid();
 
-    bench('This', () => {
-        mySchema.safeParse(data);
-    });
-
-    bench('Zod', () => {
-        zodSchema.safeParse(data);
-    });
+    schema.safeParse(data);
 });
 
-describe('UUID invalid', () => {
+bench('Zod', { group: 'UUID valid' }, () => {
+    const data = 'd98d4b7e-58a5-4e21-839b-2699b94c115b';
+    const schema = z.string().uuid();
+
+    schema.safeParse(data);
+});
+
+bench('This', { group: 'UUID invalid' }, () => {
     const data = 'not_a_uuid';
-    const mySchema = new StringSchema().uuid();
-    const zodSchema = z.string().uuid();
+    const schema = new StringSchema().uuid();
 
-    bench('This', () => {
-        mySchema.safeParse(data);
-    });
-
-    bench('Zod', () => {
-        zodSchema.safeParse(data);
-    });
+    schema.safeParse(data);
 });
 
-describe('Nano ID valid', () => {
+bench('Zod', { group: 'UUID invalid' }, () => {
+    const data = 'not_a_uuid';
+    const schema = z.string().uuid();
+
+    schema.safeParse(data);
+});
+
+bench('This', { group: 'Nano ID valid' }, () => {
     const data = 'V1StGXR8_Z5jdHi6B-myT';
-    const mySchema = new StringSchema().nanoid();
-    const zodSchema = z.string().nanoid();
+    const schema = new StringSchema().nanoid();
 
-    bench('This', () => {
-        mySchema.safeParse(data);
-    });
-
-    bench('Zod', () => {
-        zodSchema.safeParse(data);
-    });
+    schema.safeParse(data);
 });
 
-describe('Nano ID invalid', () => {
+bench('Zod', { group: 'Nano ID valid' }, () => {
+    const data = 'V1StGXR8_Z5jdHi6B-myT';
+    const schema = z.string().nanoid();
+
+    schema.safeParse(data);
+});
+
+bench('This', { group: 'Nano ID invalid' }, () => {
     const data = 'not_a_nano_id';
-    const mySchema = new StringSchema().nanoid();
-    const zodSchema = z.string().nanoid();
+    const schema = new StringSchema().nanoid();
 
-    bench('This', () => {
-        mySchema.safeParse(data);
-    });
+    schema.safeParse(data);
+});
 
-    bench('Zod', () => {
-        zodSchema.safeParse(data);
-    });
+bench('Zod', { group: 'Nano ID invalid' }, () => {
+    const data = 'not_a_nano_id';
+    const schema = z.string().nanoid();
+
+    schema.safeParse(data);
 });

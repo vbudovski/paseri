@@ -1,31 +1,32 @@
-import { bench, describe } from 'vitest';
-import { z } from 'zod';
+import { z } from 'npm:zod';
 import { BooleanSchema } from './boolean.ts';
 
-describe('Type valid', () => {
+const { bench } = Deno;
+
+bench('This', { group: 'Type valid' }, () => {
     const data = true;
-    const mySchema = new BooleanSchema();
-    const zodSchema = z.boolean();
+    const schema = new BooleanSchema();
 
-    bench('This', () => {
-        mySchema.safeParse(data);
-    });
-
-    bench('Zod', () => {
-        zodSchema.safeParse(data);
-    });
+    schema.safeParse(data);
 });
 
-describe('Type invalid', () => {
+bench('Zod', { group: 'Type valid' }, () => {
+    const data = true;
+    const schema = z.boolean();
+
+    schema.safeParse(data);
+});
+
+bench('This', { group: 'Type invalid' }, () => {
     const data = null;
-    const mySchema = new BooleanSchema();
-    const zodSchema = z.boolean();
+    const schema = new BooleanSchema();
 
-    bench('This', () => {
-        mySchema.safeParse(data);
-    });
+    schema.safeParse(data);
+});
 
-    bench('Zod', () => {
-        zodSchema.safeParse(data);
-    });
+bench('Zod', { group: 'Type invalid' }, () => {
+    const data = null;
+    const schema = z.boolean();
+
+    schema.safeParse(data);
 });

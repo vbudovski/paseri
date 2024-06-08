@@ -1,16 +1,18 @@
-import { describe, expect, test } from 'vitest';
+import { expect } from '@std/expect';
 import { ObjectSchema } from './object.ts';
 import type { ParseErrorResult, ParseSuccessResult } from './schema.ts';
 import { StringSchema } from './string.ts';
 
-describe('Type', () => {
+const { test } = Deno;
+
+test('Type', async (t) => {
     const schema = new ObjectSchema({
         string1: new StringSchema(),
         object1: new ObjectSchema({ string2: new StringSchema() }),
         object2: new ObjectSchema({ object3: new ObjectSchema({ string3: new StringSchema() }) }),
     });
 
-    test('Valid', async () => {
+    await t.step('Valid', () => {
         const result = schema.safeParse({
             string1: 'hello',
             object1: { string2: 'world' },
@@ -25,7 +27,7 @@ describe('Type', () => {
         });
     });
 
-    test('Invalid child value', async () => {
+    await t.step('Invalid child value', () => {
         const result = schema.safeParse({
             string1: 123,
             object1: { string2: 'world' },
@@ -36,7 +38,7 @@ describe('Type', () => {
         expect(error.errors).toEqual([{ path: ['string1'], message: 'Not a string.' }]);
     });
 
-    test('Invalid deep child value', async () => {
+    await t.step('Invalid deep child value', () => {
         const result = schema.safeParse({
             string1: 'hello',
             object1: { string2: 456 },
@@ -50,7 +52,7 @@ describe('Type', () => {
         ]);
     });
 
-    test('Not an object', async () => {
+    await t.step('Not an object', () => {
         const result = schema.safeParse(null);
         expect(result.status).toBe('error');
         const error = result as ParseErrorResult;

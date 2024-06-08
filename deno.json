@@ -1,0 +1,16 @@
+{
+  "name": "@vbudovski/schema-validator",
+  "imports": {
+    "@biomejs/biome": "npm:@biomejs/biome@^1.8.0",
+    "@std/expect": "jsr:@std/expect@^0.224.4",
+    "@tsconfig/strictest": "npm:@tsconfig/strictest@^2.0.5",
+    "esbuild": "npm:esbuild@^0.21.4",
+    "type-fest": "npm:type-fest@^4.20.0",
+    "zod": "npm:zod@^3.23.8"
+  },
+  "tasks": {
+    "lint": "deno run --allow-env --allow-read --allow-run npm:@biomejs/biome lint src",
+    "format": "deno run --allow-env --allow-read --allow-run npm:@biomejs/biome format src",
+    "build": "deno run --allow-env --allow-read --allow-run npm:esbuild --format=esm --bundle src/index.ts --outfile=dist/schema-validator.js --minify"
+  }
+}
