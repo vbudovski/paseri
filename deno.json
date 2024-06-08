@@ -1,6 +1,7 @@
 {
   "name": "@vbudovski/schema-validator",
   "imports": {
+    "@badrap/valita": "jsr:@badrap/valita@^0.3.8",
     "@biomejs/biome": "npm:@biomejs/biome@^1.8.0",
     "@std/expect": "jsr:@std/expect@^0.224.4",
     "@tsconfig/strictest": "npm:@tsconfig/strictest@^2.0.5",

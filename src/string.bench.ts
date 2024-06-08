@@ -1,4 +1,5 @@
 import { z } from 'npm:zod';
+import * as v from '@badrap/valita';
 import { StringSchema } from './string.ts';
 
 const { bench } = Deno;
@@ -17,6 +18,13 @@ bench('Zod', { group: 'Type valid' }, () => {
     schema.safeParse(data);
 });
 
+bench('Valita', { group: 'Type valid' }, () => {
+    const data = 'Hello, world!';
+    const schema = v.string();
+
+    schema.try(data);
+});
+
 bench('This', { group: 'Type invalid' }, () => {
     const data = null;
     const schema = new StringSchema();
@@ -29,6 +37,13 @@ bench('Zod', { group: 'Type invalid' }, () => {
     const schema = z.string();
 
     schema.safeParse(data);
+});
+
+bench('Valita', { group: 'Type invalid' }, () => {
+    const data = null;
+    const schema = v.string();
+
+    schema.try(data);
 });
 
 bench('This', { group: 'Min valid' }, () => {

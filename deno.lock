@@ -2,6 +2,7 @@
   "version": "3",
   "packages": {
     "specifiers": {
+      "jsr:@badrap/valita@^0.3.8": "jsr:@badrap/valita@0.3.8",
       "jsr:@std/assert@^0.226.0": "jsr:@std/assert@0.226.0",
       "jsr:@std/expect@^0.224.4": "jsr:@std/expect@0.224.4",
       "jsr:@std/internal@^1.0.0": "jsr:@std/internal@1.0.0",
@@ -11,6 +12,9 @@
       "npm:zod": "npm:zod@3.23.8"
     },
     "jsr": {
+      "@badrap/valita@0.3.8": {
+        "integrity": "c9e308068468e9526d6f151c0b658e09430cc326da4faa6c5844cc09b421cfa3"
+      },
       "@std/assert@0.226.0": {
         "integrity": "0dfb5f7c7723c18cec118e080fec76ce15b4c31154b15ad2bd74822603ef75b3",
         "dependencies": [
@@ -207,6 +211,7 @@
   "remote": {},
   "workspace": {
     "dependencies": [
+      "jsr:@badrap/valita@^0.3.8",
       "jsr:@std/expect@^0.224.4",
       "npm:@biomejs/biome@^1.8.0",
       "npm:@tsconfig/strictest@^2.0.5",
