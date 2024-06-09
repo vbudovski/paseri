@@ -29,7 +29,7 @@ type CheckResult = CheckSuccessResult | CheckErrorResult;
 abstract class Schema<OutputType> {
     protected checks: ((value: OutputType) => CheckResult)[] = [];
 
-    protected _parse(value: unknown): ValidationError[] {
+    protected _parse(value: unknown): ParseResult<OutputType> {
         const errors: ValidationError[] = [];
         for (const check of this.checks) {
             const result = check(value as OutputType);
@@ -38,25 +38,24 @@ abstract class Schema<OutputType> {
             }
         }
 
-        return errors;
-    }
-
-    parse(value: unknown): OutputType {
-        const errors = this._parse(value);
         if (errors.length) {
-            throw new Error(`Failed to parse ${JSON.stringify(errors)}.`);
-        }
-
-        return value as OutputType;
-    }
-
-    safeParse(value: unknown): ParseResult<OutputType> {
-        const errors = this._parse(value);
-        if (errors.length) {
-            return { status: 'error', errors: errors };
+            return { status: 'error', errors };
         }
 
         return { status: 'success', value: value as OutputType };
+    }
+
+    parse(value: unknown): OutputType {
+        const result = this._parse(value);
+        if (result.status === 'error') {
+            throw new Error(`Failed to parse ${JSON.stringify(result.errors)}.`);
+        }
+
+        return result.value;
+    }
+
+    safeParse(value: unknown): ParseResult<OutputType> {
+        return this._parse(value);
     }
 }
 

@@ -1,5 +1,5 @@
 import type { NonEmptyObject, Simplify } from 'type-fest';
-import { Schema, type ValidationError } from './schema.ts';
+import { type ParseResult, Schema, type ValidationError } from './schema.ts';
 
 type ObjectSchemaType<ShapeType> = NonEmptyObject<
     Simplify<{
@@ -43,44 +43,50 @@ class ObjectSchema<ShapeType extends ObjectSchemaType<ShapeType>> extends Schema
         this._shape = new Map(entries(shape) as Generator<readonly [string, Schema<unknown>]>);
     }
 
-    override _parse(value: unknown): ValidationError[] {
+    override _parse(value: unknown): ParseResult<ObjectSchemaOutputType<ShapeType>> {
         if (!isPlainObject(value)) {
-            return [{ path: [], message: 'Not an object.' }];
+            return { status: 'error', errors: [{ path: [], message: 'Not an object.' }] };
         }
 
         const errors: ValidationError[] = [];
         const sanitisedValue: Record<string, unknown> = {};
-        const unknownKeys: string[] = [];
 
-        for (const [key, childValue] of entries(value)) {
-            const schema = this._shape.get(key);
-            if (schema) {
+        for (const [key, schema] of this._shape) {
+            const childValue = value[key];
+            if (childValue !== undefined) {
                 const result = schema.safeParse(childValue);
                 if (result.status === 'success') {
                     sanitisedValue[key] = result.value;
                 } else {
                     errors.push(
                         ...result.errors.map((error) => ({
-                            path: [key as string, ...error.path],
+                            path: [key].concat(error.path),
                             message: error.message,
                         })),
                     );
                 }
             } else {
-                if (this._strict) {
-                    unknownKeys.push(key);
-                }
+                errors.push({ path: [key], message: 'Missing key.' });
             }
         }
 
-        if (this._strict && unknownKeys.length > 0) {
-            errors.push({
-                path: [],
-                message: `Unrecognised key(s) in object: ${unknownKeys.map((key) => `'${key}'`).join(', ')}.`,
-            });
+        if (this._strict) {
+            const unknownKeys = Object.keys(value).filter((key) => !this._shape.has(key));
+            if (unknownKeys.length) {
+                errors.push({
+                    path: [],
+                    message: `Unrecognised key(s) in object: ${Array.from(unknownKeys)
+                        .map((key) => `'${key}'`)
+                        .join(', ')}.`,
+                });
+            }
         }
 
-        return errors.concat(super._parse(sanitisedValue));
+        if (!errors.length) {
+            return super._parse(sanitisedValue);
+        }
+
+        return { status: 'error', errors };
     }
 
     strict(): this {

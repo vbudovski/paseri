@@ -11,29 +11,92 @@ test('Type', async (t) => {
             object3: s.object({ string3: s.string(), number2: s.number() }),
         }),
     });
+    const schemaStrict = s
+        .object({
+            string1: s.string(),
+            object1: s.object({ string2: s.string(), number1: s.number() }).strict(),
+            object2: s
+                .object({
+                    object3: s.object({ string3: s.string(), number2: s.number() }).strict(),
+                })
+                .strict(),
+        })
+        .strict();
 
     await t.step('Valid', () => {
         const result = schema.safeParse({
             string1: 'hello',
-            object1: { string2: 'world' },
-            object2: { object3: { string3: 'abc' } },
+            object1: { string2: 'world', number1: 123 },
+            object2: { object3: { string3: 'abc', number2: 456 } },
         });
         if (result.status === 'success') {
             expect(result.value).toEqual({
                 string1: 'hello',
-                object1: { string2: 'world' },
-                object2: { object3: { string3: 'abc' } },
+                object1: { string2: 'world', number1: 123 },
+                object2: { object3: { string3: 'abc', number2: 456 } },
             });
         } else {
             expect(result.status).toBe('success');
         }
     });
 
+    await t.step('Missing keys', () => {
+        const result = schema.safeParse({
+            object1: { string2: 'world' },
+            object2: { object3: { string3: 'abc' } },
+        });
+        if (result.status === 'error') {
+            expect(result.errors).toEqual([
+                { path: ['string1'], message: 'Missing key.' },
+                { path: ['object1', 'number1'], message: 'Missing key.' },
+                { path: ['object2', 'object3', 'number2'], message: 'Missing key.' },
+            ]);
+        } else {
+            expect(result.status).toBe('error');
+        }
+    });
+
+    await t.step('Extra keys', () => {
+        const result = schema.safeParse({
+            string1: 'hello',
+            bad1: 'BAD',
+            object1: { string2: 'world', number1: 123, bad2: 'BAD' },
+            object2: { object3: { string3: 'abc', number2: 456, bad3: 'BAD' } },
+        });
+        if (result.status === 'success') {
+            expect(result.value).toEqual({
+                string1: 'hello',
+                object1: { string2: 'world', number1: 123 },
+                object2: { object3: { string3: 'abc', number2: 456 } },
+            });
+        } else {
+            expect(result.status).toBe('success');
+        }
+    });
+
+    await t.step('Extra keys strict', () => {
+        const result = schemaStrict.safeParse({
+            string1: 'hello',
+            bad1: 'BAD',
+            object1: { string2: 'world', number1: 123, bad2: 'BAD' },
+            object2: { object3: { string3: 'abc', number2: 456, bad3: 'BAD' } },
+        });
+        if (result.status === 'error') {
+            expect(result.errors).toEqual([
+                { path: ['object1'], message: "Unrecognised key(s) in object: 'bad2'." },
+                { path: ['object2', 'object3'], message: "Unrecognised key(s) in object: 'bad3'." },
+                { path: [], message: "Unrecognised key(s) in object: 'bad1'." },
+            ]);
+        } else {
+            expect(result.status).toBe('error');
+        }
+    });
+
     await t.step('Invalid child value', () => {
         const result = schema.safeParse({
             string1: 123,
-            object1: { string2: 'world' },
-            object2: { object3: { string3: 'abc' } },
+            object1: { string2: 'world', number1: 123 },
+            object2: { object3: { string3: 'abc', number2: 456 } },
         });
         if (result.status === 'error') {
             expect(result.errors).toEqual([{ path: ['string1'], message: 'Not a string.' }]);
@@ -45,8 +108,8 @@ test('Type', async (t) => {
     await t.step('Invalid deep child value', () => {
         const result = schema.safeParse({
             string1: 'hello',
-            object1: { string2: 456 },
-            object2: { object3: { string3: null } },
+            object1: { string2: 456, number1: 123 },
+            object2: { object3: { string3: null, number2: 456 } },
         });
         if (result.status === 'error') {
             expect(result.errors).toEqual([

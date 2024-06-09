@@ -1,9 +1,9 @@
-import { Schema, type ValidationError } from './schema.ts';
+import { type ParseResult, Schema } from './schema.ts';
 
 class NumberSchema extends Schema<number> {
-    override _parse(value: unknown): ValidationError[] {
+    override _parse(value: unknown): ParseResult<number> {
         if (typeof value !== 'number') {
-            return [{ path: [], message: 'Not a number.' }];
+            return { status: 'error', errors: [{ path: [], message: 'Not a number.' }] };
         }
 
         return super._parse(value);

@@ -1,4 +1,4 @@
-import { Schema, type ValidationError } from './schema.ts';
+import { type ParseResult, Schema } from './schema.ts';
 
 const emailRegex = /^(?!\.)(?!.*\.\.)([A-Z0-9_'+\-.]*)[A-Z0-9_+-]@([A-Z0-9][A-Z0-9\-]*\.)+[A-Z]{2,}$/i;
 const emojiRegex = /^(\p{Extended_Pictographic}|\p{Emoji_Component})+$/u;
@@ -6,9 +6,9 @@ const uuidRegex = /^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-
 const nanoidRegex = /^[a-z0-9_-]{21}$/i;
 
 class StringSchema extends Schema<string> {
-    override _parse(value: unknown): ValidationError[] {
+    override _parse(value: unknown): ParseResult<string> {
         if (typeof value !== 'string') {
-            return [{ path: [], message: 'Not a string.' }];
+            return { status: 'error', errors: [{ path: [], message: 'Not a string.' }] };
         }
 
         return super._parse(value);
