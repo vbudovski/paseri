@@ -9,6 +9,7 @@
       "npm:@biomejs/biome": "npm:@biomejs/biome@1.8.0",
       "npm:esbuild": "npm:esbuild@0.21.4",
       "npm:type-fest@^4.20.0": "npm:type-fest@4.20.0",
+      "npm:typescript": "npm:typescript@5.4.5",
       "npm:zod": "npm:zod@3.23.8"
     },
     "jsr": {
@@ -202,6 +203,10 @@
         "integrity": "sha512-MBh+PHUHHisjXf4tlx0CFWoMdjx8zCMLJHOjnV1prABYZFHqtFOyauCIK2/7w4oIfwkF8iNhLtnJEfVY2vn3iw==",
         "dependencies": {}
       },
+      "typescript@5.4.5": {
+        "integrity": "sha512-vcI4UpRgg81oIRUFwR0WSIHKt11nJ7SAVlYNIu+QpqeyXP+gpQJy/Z4+F0aGxSE4MqwjyXvW/TzgkLAx2AGHwQ==",
+        "dependencies": {}
+      },
       "zod@3.23.8": {
         "integrity": "sha512-XBx9AXhXktjUqnepgTiE5flcKIYWi/rme0Eaj+5Y0lftuGBq+jyRu/md4WnuxqgP1ubdpNCsYEYPxrzVHD8d6g==",
         "dependencies": {}
@@ -214,9 +219,9 @@
       "jsr:@badrap/valita@^0.3.8",
       "jsr:@std/expect@^0.224.4",
       "npm:@biomejs/biome@^1.8.0",
-      "npm:@tsconfig/strictest@^2.0.5",
       "npm:esbuild@^0.21.4",
       "npm:type-fest@^4.20.0",
+      "npm:typescript@^5.4.5",
       "npm:zod@^3.23.8"
     ]
   }
