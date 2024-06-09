@@ -1,4 +1,4 @@
-import { type CheckResult, Schema, type ValidationError } from './schema.ts';
+import { Schema, type ValidationError } from './schema.ts';
 
 const emailRegex = /^(?!\.)(?!.*\.\.)([A-Z0-9_'+\-.]*)[A-Z0-9_+-]@([A-Z0-9][A-Z0-9\-]*\.)+[A-Z]{2,}$/i;
 const emojiRegex = /^(\p{Extended_Pictographic}|\p{Emoji_Component})+$/u;
@@ -15,28 +15,24 @@ class StringSchema extends Schema<string> {
     }
 
     min(length: number) {
-        function check(_value: string): CheckResult {
+        this.checks.push((_value) => {
             if (_value.length < length) {
                 return { status: 'error', message: 'Too short.' };
             }
 
             return { status: 'success' };
-        }
-
-        this.checks.push(check);
+        });
 
         return this;
     }
     max(length: number) {
-        function check(_value: string): CheckResult {
+        this.checks.push((_value) => {
             if (_value.length > length) {
                 return { status: 'error', message: 'Too long.' };
             }
 
             return { status: 'success' };
-        }
-
-        this.checks.push(check);
+        });
 
         return this;
     }
@@ -47,54 +43,46 @@ class StringSchema extends Schema<string> {
         return this;
     }
     email() {
-        function check(_value: string): CheckResult {
+        this.checks.push((_value) => {
             if (!emailRegex.test(_value)) {
                 return { status: 'error', message: 'Not an email.' };
             }
 
             return { status: 'success' };
-        }
-
-        this.checks.push(check);
+        });
 
         return this;
     }
     emoji() {
-        function check(_value: string): CheckResult {
+        this.checks.push((_value) => {
             if (!emojiRegex.test(_value)) {
                 return { status: 'error', message: 'Not an emoji.' };
             }
 
             return { status: 'success' };
-        }
-
-        this.checks.push(check);
+        });
 
         return this;
     }
     uuid() {
-        function check(_value: string): CheckResult {
+        this.checks.push((_value) => {
             if (!uuidRegex.test(_value)) {
                 return { status: 'error', message: 'Not a UUID.' };
             }
 
             return { status: 'success' };
-        }
-
-        this.checks.push(check);
+        });
 
         return this;
     }
     nanoid() {
-        function check(_value: string): CheckResult {
+        this.checks.push((_value) => {
             if (!nanoidRegex.test(_value)) {
                 return { status: 'error', message: 'Not a Nano ID.' };
             }
 
             return { status: 'success' };
-        }
-
-        this.checks.push(check);
+        });
 
         return this;
     }
