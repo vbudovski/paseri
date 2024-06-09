@@ -1,10 +1,55 @@
 import { z } from 'npm:zod';
-import { BooleanSchema } from './boolean.ts';
-import { NumberSchema } from './number.ts';
-import { ObjectSchema } from './object.ts';
-import { StringSchema } from './string.ts';
+import * as v from '@badrap/valita';
+import { BooleanSchema } from '../src/boolean.ts';
+import { NumberSchema } from '../src/number.ts';
+import { ObjectSchema } from '../src/object.ts';
+import { StringSchema } from '../src/string.ts';
 
 const { bench } = Deno;
+
+const mySchema = new ObjectSchema({
+    number: new NumberSchema(),
+    negNumber: new NumberSchema(),
+    maxNumber: new NumberSchema(),
+    string: new StringSchema(),
+    longString: new StringSchema(),
+    boolean: new BooleanSchema(),
+    deeplyNested: new ObjectSchema({
+        foo: new StringSchema(),
+        num: new NumberSchema(),
+        bool: new BooleanSchema(),
+    }).strict(),
+}).strict();
+const zodSchema = z
+    .object({
+        number: z.number(),
+        negNumber: z.number(),
+        maxNumber: z.number(),
+        string: z.string(),
+        longString: z.string(),
+        boolean: z.boolean(),
+        deeplyNested: z
+            .object({
+                foo: z.string(),
+                num: z.number(),
+                bool: z.boolean(),
+            })
+            .strict(),
+    })
+    .strict();
+const valitaSchema = v.object({
+    number: v.number(),
+    negNumber: v.number(),
+    maxNumber: v.number(),
+    string: v.string(),
+    longString: v.string(),
+    boolean: v.boolean(),
+    deeplyNested: v.object({
+        foo: v.string(),
+        num: v.number(),
+        bool: v.boolean(),
+    }),
+});
 
 const data = Object.freeze({
     number: 1,
@@ -22,41 +67,13 @@ const data = Object.freeze({
 });
 
 bench('This', { group: 'Parse strict' }, () => {
-    const schema = new ObjectSchema({
-        number: new NumberSchema(),
-        negNumber: new NumberSchema(),
-        maxNumber: new NumberSchema(),
-        string: new StringSchema(),
-        longString: new StringSchema(),
-        boolean: new BooleanSchema(),
-        deeplyNested: new ObjectSchema({
-            foo: new StringSchema(),
-            num: new NumberSchema(),
-            bool: new BooleanSchema(),
-        }).strict(),
-    }).strict();
-
-    schema.safeParse(data);
+    mySchema.safeParse(data);
 });
 
 bench('Zod', { group: 'Parse strict' }, () => {
-    const schema = z
-        .object({
-            number: z.number(),
-            negNumber: z.number(),
-            maxNumber: z.number(),
-            string: z.string(),
-            longString: z.string(),
-            boolean: z.boolean(),
-            deeplyNested: z
-                .object({
-                    foo: z.string(),
-                    num: z.number(),
-                    bool: z.boolean(),
-                })
-                .strict(),
-        })
-        .strict();
+    zodSchema.safeParse(data);
+});
 
-    schema.safeParse(data);
+bench('Zod', { group: 'Parse strict' }, () => {
+    valitaSchema.try(data, { mode: 'strict' });
 });
