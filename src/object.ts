@@ -1,10 +1,16 @@
-import type { NonEmptyObject } from 'type-fest';
+import type { NonEmptyObject, Simplify } from 'type-fest';
 import { Schema, type ValidationError } from './schema.ts';
 
-type ChildOutputType<OutputType> = OutputType extends Schema<OutputType> ? OutputType : never;
-type ObjectOutput<ShapeType> = { [Key in keyof ShapeType]: ChildOutputType<ShapeType[Key]> };
-// biome-ignore lint/suspicious/noExplicitAny: We don't know the output type of the child schemas, and unknown is too restrictive.
-type SchemaType<ShapeType> = NonEmptyObject<{ [Key in keyof ShapeType]: Schema<any> }>;
+type ObjectSchemaType<ShapeType> = NonEmptyObject<
+    Simplify<{
+        [Key in keyof ShapeType]: ShapeType[Key] extends Schema<infer OutputType>
+            ? Schema<OutputType>
+            : Schema<unknown>;
+    }>
+>;
+type ObjectSchemaOutputType<ShapeType> = Simplify<{
+    [Key in keyof ShapeType]: ShapeType[Key] extends Schema<infer OutputType> ? OutputType : never;
+}>;
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
     return !(
@@ -27,7 +33,7 @@ function* entries<T>(obj: T): Generator<readonly [keyof T, T[keyof T]]> {
     }
 }
 
-class ObjectSchema<ShapeType extends SchemaType<ShapeType>> extends Schema<ObjectOutput<ShapeType>> {
+class ObjectSchema<ShapeType extends ObjectSchemaType<ShapeType>> extends Schema<ObjectSchemaOutputType<ShapeType>> {
     private readonly _shape: Map<string, Schema<unknown>>;
     private _strict = false;
 
