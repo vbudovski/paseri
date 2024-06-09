@@ -18,6 +18,15 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
     );
 }
 
+function* entries<T>(obj: T): Generator<readonly [keyof T, T[keyof T]]> {
+    /**
+     * Get entries of an object without constructing a temporary array.
+     */
+    for (const key in obj) {
+        yield [key, obj[key]];
+    }
+}
+
 class ObjectSchema<ShapeType extends SchemaType<ShapeType>> extends Schema<ObjectOutput<ShapeType>> {
     private readonly _shape: Map<string, Schema<unknown>>;
     private _strict = false;
@@ -25,7 +34,7 @@ class ObjectSchema<ShapeType extends SchemaType<ShapeType>> extends Schema<Objec
     constructor(shape: ShapeType) {
         super();
 
-        this._shape = new Map(Object.entries(shape) as [string, Schema<unknown>][]);
+        this._shape = new Map(entries(shape) as Generator<readonly [string, Schema<unknown>]>);
     }
 
     override _parse(value: unknown): ValidationError[] {
@@ -37,7 +46,7 @@ class ObjectSchema<ShapeType extends SchemaType<ShapeType>> extends Schema<Objec
         const sanitisedValue: Record<string, unknown> = {};
         const unknownKeys: string[] = [];
 
-        for (const [key, childValue] of Object.entries(value)) {
+        for (const [key, childValue] of entries(value)) {
             const schema = this._shape.get(key);
             if (schema) {
                 const result = schema.safeParse(childValue);
@@ -65,7 +74,7 @@ class ObjectSchema<ShapeType extends SchemaType<ShapeType>> extends Schema<Objec
             });
         }
 
-        return [...errors, ...super._parse(sanitisedValue)];
+        return errors.concat(super._parse(sanitisedValue));
     }
 
     strict(): this {
