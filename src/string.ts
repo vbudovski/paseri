@@ -88,4 +88,8 @@ class StringSchema extends Schema<string> {
     }
 }
 
-export { StringSchema };
+function string() {
+    return new StringSchema();
+}
+
+export { string };

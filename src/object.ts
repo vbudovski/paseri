@@ -90,4 +90,10 @@ class ObjectSchema<ShapeType extends ObjectSchemaType<ShapeType>> extends Schema
     }
 }
 
-export { ObjectSchema };
+function object<ShapeType extends ObjectSchemaType<ShapeType>>(
+    ...args: ConstructorParameters<typeof ObjectSchema<ShapeType>>
+) {
+    return new ObjectSchema(...args);
+}
+
+export { object };

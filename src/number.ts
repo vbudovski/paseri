@@ -87,4 +87,8 @@ class NumberSchema extends Schema<number> {
     }
 }
 
-export { NumberSchema };
+function number() {
+    return new NumberSchema();
+}
+
+export { number };

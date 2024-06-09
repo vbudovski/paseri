@@ -1,25 +1,26 @@
 import { z } from 'npm:zod';
 import * as v from '@badrap/valita';
-import { BooleanSchema } from '../src/boolean.ts';
-import { NumberSchema } from '../src/number.ts';
-import { ObjectSchema } from '../src/object.ts';
-import { StringSchema } from '../src/string.ts';
+import * as s from '../src/index.ts';
 
 const { bench } = Deno;
 
-const mySchema = new ObjectSchema({
-    number: new NumberSchema(),
-    negNumber: new NumberSchema(),
-    maxNumber: new NumberSchema(),
-    string: new StringSchema(),
-    longString: new StringSchema(),
-    boolean: new BooleanSchema(),
-    deeplyNested: new ObjectSchema({
-        foo: new StringSchema(),
-        num: new NumberSchema(),
-        bool: new BooleanSchema(),
-    }).strict(),
-}).strict();
+const mySchema = s
+    .object({
+        number: s.number(),
+        negNumber: s.number(),
+        maxNumber: s.number(),
+        string: s.string(),
+        longString: s.string(),
+        boolean: s.boolean(),
+        deeplyNested: s
+            .object({
+                foo: s.string(),
+                num: s.number(),
+                bool: s.boolean(),
+            })
+            .strict(),
+    })
+    .strict();
 const zodSchema = z
     .object({
         number: z.number(),

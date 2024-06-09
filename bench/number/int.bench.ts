@@ -1,10 +1,10 @@
 import { z } from 'npm:zod';
 import * as v from '@badrap/valita';
-import { NumberSchema } from '../../src/number.ts';
+import * as s from '../../src/index.ts';
 
 const { bench } = Deno;
 
-const mySchema = new NumberSchema().int();
+const mySchema = s.number().int();
 const zodSchema = z.number().int();
 const valitaSchema = v.number().assert((value) => Number.isInteger(value));
 

@@ -1,10 +1,10 @@
 import { z } from 'npm:zod';
 import * as v from '@badrap/valita';
-import { StringSchema } from '../../src/string.ts';
+import * as s from '../../src/index.ts';
 
 const { bench } = Deno;
 
-const mySchema = new StringSchema().min(3);
+const mySchema = s.string().min(3);
 const zodSchema = z.string().min(3);
 const valitaSchema = v.string().assert((value) => value.length >= 3);
 

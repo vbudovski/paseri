@@ -1,9 +1,9 @@
 import { z } from 'npm:zod';
-import { StringSchema } from '../../src/string.ts';
+import * as s from '../../src/index.ts';
 
 const { bench } = Deno;
 
-const mySchema = new StringSchema().nanoid();
+const mySchema = s.string().nanoid();
 const zodSchema = z.string().nanoid();
 
 const dataValid = 'V1StGXR8_Z5jdHi6B-myT';

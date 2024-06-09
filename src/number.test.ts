@@ -1,11 +1,11 @@
 import { expect } from '@std/expect';
-import { NumberSchema } from './number.ts';
+import * as s from '../src/index.ts';
 import type { ParseErrorResult, ParseSuccessResult } from './schema.ts';
 
 const { test } = Deno;
 
 test('Type', async (t) => {
-    const schema = new NumberSchema();
+    const schema = s.number();
 
     await t.step('Valid', () => {
         const result = schema.safeParse(123);
@@ -23,7 +23,7 @@ test('Type', async (t) => {
 });
 
 test('Greater than or equal', async (t) => {
-    const schema = new NumberSchema().gte(10);
+    const schema = s.number().gte(10);
 
     await t.step('Valid', () => {
         const result = schema.safeParse(10);
@@ -41,7 +41,7 @@ test('Greater than or equal', async (t) => {
 });
 
 test('Greater than', async (t) => {
-    const schema = new NumberSchema().gt(10);
+    const schema = s.number().gt(10);
 
     await t.step('Valid', () => {
         const result = schema.safeParse(11);
@@ -59,7 +59,7 @@ test('Greater than', async (t) => {
 });
 
 test('Less than or equal', async (t) => {
-    const schema = new NumberSchema().lte(10);
+    const schema = s.number().lte(10);
 
     await t.step('Valid', () => {
         const result = schema.safeParse(10);
@@ -77,7 +77,7 @@ test('Less than or equal', async (t) => {
 });
 
 test('Less than', async (t) => {
-    const schema = new NumberSchema().lt(10);
+    const schema = s.number().lt(10);
 
     await t.step('Valid', () => {
         const result = schema.safeParse(9);
@@ -95,7 +95,7 @@ test('Less than', async (t) => {
 });
 
 test('Integer', async (t) => {
-    const schema = new NumberSchema().int();
+    const schema = s.number().int();
 
     await t.step('Valid', () => {
         const result = schema.safeParse(123);
@@ -113,7 +113,7 @@ test('Integer', async (t) => {
 });
 
 test('Finite', async (t) => {
-    const schema = new NumberSchema().finite();
+    const schema = s.number().finite();
 
     await t.step('Valid', () => {
         const result = schema.safeParse(123);
@@ -131,7 +131,7 @@ test('Finite', async (t) => {
 });
 
 test('Safe integer', async (t) => {
-    const schema = new NumberSchema().safe();
+    const schema = s.number().safe();
 
     await t.step('Valid', () => {
         const result = schema.safeParse(123);

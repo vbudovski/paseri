@@ -1,10 +1,10 @@
 import { z } from 'npm:zod';
 import * as v from '@badrap/valita';
-import { BooleanSchema } from '../../src/boolean.ts';
+import * as s from '../../src/index.ts';
 
 const { bench } = Deno;
 
-const mySchema = new BooleanSchema();
+const mySchema = s.boolean();
 const zodSchema = z.boolean();
 const valitaSchema = v.boolean();
 

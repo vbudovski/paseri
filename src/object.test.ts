@@ -1,14 +1,15 @@
 import { expect } from '@std/expect';
-import { ObjectSchema } from './object.ts';
-import { StringSchema } from './string.ts';
+import * as s from '../src/index.ts';
 
 const { test } = Deno;
 
 test('Type', async (t) => {
-    const schema = new ObjectSchema({
-        string1: new StringSchema(),
-        object1: new ObjectSchema({ string2: new StringSchema() }),
-        object2: new ObjectSchema({ object3: new ObjectSchema({ string3: new StringSchema() }) }),
+    const schema = s.object({
+        string1: s.string(),
+        object1: s.object({ string2: s.string(), number1: s.number() }),
+        object2: s.object({
+            object3: s.object({ string3: s.string(), number2: s.number() }),
+        }),
     });
 
     await t.step('Valid', () => {

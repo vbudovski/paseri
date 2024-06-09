@@ -1,9 +1,9 @@
 import { z } from 'npm:zod';
-import { StringSchema } from '../../src/string.ts';
+import * as s from '../../src/index.ts';
 
 const { bench } = Deno;
 
-const mySchema = new StringSchema().emoji();
+const mySchema = s.string().emoji();
 const zodSchema = z.string().emoji();
 
 const dataValid = '🥳';

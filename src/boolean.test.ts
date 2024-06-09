@@ -1,11 +1,11 @@
 import { expect } from '@std/expect';
-import { BooleanSchema } from './boolean.ts';
+import * as s from '../src/index.ts';
 import type { ParseErrorResult, ParseSuccessResult } from './schema.ts';
 
 const { test } = Deno;
 
 test('Type', async (t) => {
-    const schema = new BooleanSchema();
+    const schema = s.boolean();
 
     await t.step('Valid', () => {
         const result = schema.safeParse(true);

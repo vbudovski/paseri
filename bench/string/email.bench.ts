@@ -1,9 +1,9 @@
 import { z } from 'npm:zod';
-import { StringSchema } from '../../src/string.ts';
+import * as s from '../../src/index.ts';
 
 const { bench } = Deno;
 
-const mySchema = new StringSchema().email();
+const mySchema = s.string().email();
 const zodSchema = z.string().email();
 
 const dataValid = 'hello@example.com';

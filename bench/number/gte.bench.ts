@@ -1,10 +1,10 @@
 import { z } from 'npm:zod';
 import * as v from '@badrap/valita';
-import { NumberSchema } from '../../src/number.ts';
+import * as s from '../../src/index.ts';
 
 const { bench } = Deno;
 
-const mySchema = new NumberSchema().gte(10);
+const mySchema = s.number().gte(10);
 const zodSchema = z.number().gte(10);
 const valitaSchema = v.number().assert((value) => value >= 10);
 

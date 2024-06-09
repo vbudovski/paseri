@@ -10,4 +10,8 @@ class BooleanSchema extends Schema<boolean> {
     }
 }
 
-export { BooleanSchema };
+function boolean() {
+    return new BooleanSchema();
+}
+
+export { boolean };
