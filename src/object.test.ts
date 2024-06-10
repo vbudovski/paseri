@@ -129,4 +129,20 @@ test('Type', async (t) => {
             expect(result.status).toBe('error');
         }
     });
+
+    await t.step('Deep not an object', () => {
+        const result = schema.safeParse({
+            string1: 'hello',
+            object1: null,
+            object2: { object3: null },
+        });
+        if (result.status === 'error') {
+            expect(result.errors).toEqual([
+                { path: ['object1'], message: 'Not an object.' },
+                { path: ['object2', 'object3'], message: 'Not an object.' },
+            ]);
+        } else {
+            expect(result.status).toBe('error');
+        }
+    });
 });

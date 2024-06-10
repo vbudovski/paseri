@@ -1,4 +1,4 @@
-import type { NonEmptyObject, Simplify } from 'type-fest';
+import type { NonEmptyObject, Simplify } from 'npm:type-fest';
 import { type ParseResult, Schema, type ValidationError } from './schema.ts';
 
 type ObjectSchemaType<ShapeType> = NonEmptyObject<
@@ -15,37 +15,31 @@ type ObjectSchemaOutputType<ShapeType> = Simplify<{
 function isPlainObject(value: unknown): value is Record<string, unknown> {
     return !(
         typeof value !== 'object' ||
+        value === null ||
         Array.isArray(value) ||
         value instanceof Promise ||
         value instanceof Map ||
         value instanceof Set ||
-        value instanceof Date ||
-        value === null
+        value instanceof Date
     );
-}
-
-function* entries<T>(obj: T): Generator<readonly [keyof T, T[keyof T]]> {
-    /**
-     * Get entries of an object without constructing a temporary array.
-     */
-    for (const key in obj) {
-        yield [key, obj[key]];
-    }
 }
 
 class ObjectSchema<ShapeType extends ObjectSchemaType<ShapeType>> extends Schema<ObjectSchemaOutputType<ShapeType>> {
     private readonly _shape: Map<string, Schema<unknown>>;
     private _strict = false;
+    private readonly issues: Record<string, [ValidationError]> = {
+        INVALID_TYPE: [{ path: [], message: 'Not an object.' }],
+    };
 
     constructor(shape: ShapeType) {
         super();
 
-        this._shape = new Map(entries(shape) as Generator<readonly [string, Schema<unknown>]>);
+        this._shape = new Map(Object.entries(shape));
     }
 
-    override _parse(value: unknown): ParseResult<ObjectSchemaOutputType<ShapeType>> {
+    _parse(value: unknown): ParseResult<ObjectSchemaOutputType<ShapeType>> {
         if (!isPlainObject(value)) {
-            return { status: 'error', errors: [{ path: [], message: 'Not an object.' }] };
+            return { status: 'error', errors: this.issues.INVALID_TYPE };
         }
 
         const errors: ValidationError[] = [];
@@ -54,7 +48,7 @@ class ObjectSchema<ShapeType extends ObjectSchemaType<ShapeType>> extends Schema
         for (const [key, schema] of this._shape) {
             const childValue = value[key];
             if (childValue !== undefined) {
-                const result = schema.safeParse(childValue);
+                const result = schema._parse(childValue);
                 if (result.status === 'success') {
                     sanitisedValue[key] = result.value;
                 } else {
@@ -82,11 +76,11 @@ class ObjectSchema<ShapeType extends ObjectSchemaType<ShapeType>> extends Schema
             }
         }
 
-        if (!errors.length) {
-            return super._parse(sanitisedValue);
+        if (errors.length) {
+            return { status: 'error', errors };
         }
 
-        return { status: 'error', errors };
+        return { status: 'success', value: sanitisedValue as ObjectSchemaOutputType<ShapeType> };
     }
 
     strict(): this {

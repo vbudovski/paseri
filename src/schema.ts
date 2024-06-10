@@ -10,40 +10,15 @@ interface ValidationError {
 
 interface ParseErrorResult {
     status: 'error';
-    errors: ValidationError[];
+    errors: Readonly<ValidationError>[];
 }
 
 type ParseResult<OutputType> = ParseSuccessResult<OutputType> | ParseErrorResult;
 
-interface CheckSuccessResult {
-    status: 'success';
-}
-
-interface CheckErrorResult {
-    status: 'error';
-    message: string;
-}
-
-type CheckResult = CheckSuccessResult | CheckErrorResult;
-
 abstract class Schema<OutputType> {
-    protected checks: ((value: OutputType) => CheckResult)[] = [];
+    protected checks: ((value: OutputType) => ParseErrorResult | undefined)[] = [];
 
-    protected _parse(value: unknown): ParseResult<OutputType> {
-        const errors: ValidationError[] = [];
-        for (const check of this.checks) {
-            const result = check(value as OutputType);
-            if (result.status === 'error') {
-                errors.push({ path: [], message: result.message });
-            }
-        }
-
-        if (errors.length) {
-            return { status: 'error', errors };
-        }
-
-        return { status: 'success', value: value as OutputType };
-    }
+    public abstract _parse(value: unknown): ParseResult<OutputType>;
 
     parse(value: unknown): OutputType {
         const result = this._parse(value);
@@ -60,4 +35,4 @@ abstract class Schema<OutputType> {
 }
 
 export { Schema };
-export type { ParseResult, ParseSuccessResult, ParseErrorResult, CheckResult, ValidationError };
+export type { ParseResult, ParseSuccessResult, ParseErrorResult, ValidationError };

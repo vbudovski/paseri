@@ -1,4 +1,4 @@
-import { type ParseResult, Schema } from './schema.ts';
+import { type ParseResult, Schema, type ValidationError } from './schema.ts';
 
 const emailRegex = /^(?!\.)(?!.*\.\.)([A-Z0-9_'+\-.]*)[A-Z0-9_+-]@([A-Z0-9][A-Z0-9\-]*\.)+[A-Z]{2,}$/i;
 const emojiRegex = /^(\p{Extended_Pictographic}|\p{Emoji_Component})+$/u;
@@ -6,21 +6,36 @@ const uuidRegex = /^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-
 const nanoidRegex = /^[a-z0-9_-]{21}$/i;
 
 class StringSchema extends Schema<string> {
-    override _parse(value: unknown): ParseResult<string> {
+    private readonly issues: Record<string, [ValidationError]> = {
+        INVALID_TYPE: [{ path: [], message: 'Not a string.' }],
+        TOO_SHORT: [{ path: [], message: 'Too short.' }],
+        TOO_LONG: [{ path: [], message: 'Too long.' }],
+        INVALID_EMAIL: [{ path: [], message: 'Not an email.' }],
+        INVALID_EMOJI: [{ path: [], message: 'Not an emoji.' }],
+        INVALID_UUID: [{ path: [], message: 'Not a UUID.' }],
+        INVALID_NANOID: [{ path: [], message: 'Not a Nano ID.' }],
+    };
+
+    _parse(value: unknown): ParseResult<string> {
         if (typeof value !== 'string') {
-            return { status: 'error', errors: [{ path: [], message: 'Not a string.' }] };
+            return { status: 'error', errors: this.issues.INVALID_TYPE };
+        }
+        for (const check of this.checks) {
+            const result = check(value);
+            if (result) {
+                return result;
+            }
         }
 
-        return super._parse(value);
+        return { status: 'success', value: value as string };
     }
-
     min(length: number) {
         this.checks.push((_value) => {
             if (_value.length < length) {
-                return { status: 'error', message: 'Too short.' };
+                return { status: 'error', errors: this.issues.TOO_SHORT };
             }
 
-            return { status: 'success' };
+            return undefined;
         });
 
         return this;
@@ -28,27 +43,35 @@ class StringSchema extends Schema<string> {
     max(length: number) {
         this.checks.push((_value) => {
             if (_value.length > length) {
-                return { status: 'error', message: 'Too long.' };
+                return { status: 'error', errors: this.issues.TOO_LONG };
             }
 
-            return { status: 'success' };
+            return undefined;
         });
 
         return this;
     }
     length(length: number) {
-        this.max(length);
-        this.min(length);
+        this.checks.push((_value) => {
+            if (_value.length > length) {
+                return { status: 'error', errors: this.issues.TOO_LONG };
+            }
+            if (_value.length < length) {
+                return { status: 'error', errors: this.issues.TOO_SHORT };
+            }
+
+            return undefined;
+        });
 
         return this;
     }
     email() {
         this.checks.push((_value) => {
             if (!emailRegex.test(_value)) {
-                return { status: 'error', message: 'Not an email.' };
+                return { status: 'error', errors: this.issues.INVALID_EMAIL };
             }
 
-            return { status: 'success' };
+            return undefined;
         });
 
         return this;
@@ -56,10 +79,10 @@ class StringSchema extends Schema<string> {
     emoji() {
         this.checks.push((_value) => {
             if (!emojiRegex.test(_value)) {
-                return { status: 'error', message: 'Not an emoji.' };
+                return { status: 'error', errors: this.issues.INVALID_EMOJI };
             }
 
-            return { status: 'success' };
+            return undefined;
         });
 
         return this;
@@ -67,10 +90,10 @@ class StringSchema extends Schema<string> {
     uuid() {
         this.checks.push((_value) => {
             if (!uuidRegex.test(_value)) {
-                return { status: 'error', message: 'Not a UUID.' };
+                return { status: 'error', errors: this.issues.INVALID_UUID };
             }
 
-            return { status: 'success' };
+            return undefined;
         });
 
         return this;
@@ -78,10 +101,10 @@ class StringSchema extends Schema<string> {
     nanoid() {
         this.checks.push((_value) => {
             if (!nanoidRegex.test(_value)) {
-                return { status: 'error', message: 'Not a Nano ID.' };
+                return { status: 'error', errors: this.issues.INVALID_NANOID };
             }
 
-            return { status: 'success' };
+            return undefined;
         });
 
         return this;

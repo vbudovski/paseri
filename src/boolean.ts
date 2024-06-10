@@ -1,12 +1,16 @@
-import { type ParseResult, Schema } from './schema.ts';
+import { type ParseResult, Schema, type ValidationError } from './schema.ts';
 
 class BooleanSchema extends Schema<boolean> {
-    override _parse(value: unknown): ParseResult<boolean> {
+    private readonly issues: Record<string, [ValidationError]> = {
+        INVALID_TYPE: [{ path: [], message: 'Not a boolean.' }],
+    };
+
+    _parse(value: unknown): ParseResult<boolean> {
         if (typeof value !== 'boolean') {
-            return { status: 'error', errors: [{ path: [], message: 'Not a boolean.' }] };
+            return { status: 'error', errors: this.issues.INVALID_TYPE };
         }
 
-        return super._parse(value);
+        return { status: 'success', value: value as boolean };
     }
 }
 

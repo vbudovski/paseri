@@ -75,6 +75,6 @@ bench('Zod', { group: 'Parse strict' }, () => {
     zodSchema.safeParse(data);
 });
 
-bench('Zod', { group: 'Parse strict' }, () => {
+bench('Valita', { group: 'Parse strict' }, () => {
     valitaSchema.try(data, { mode: 'strict' });
 });
