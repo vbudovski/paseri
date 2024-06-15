@@ -1,6 +1,5 @@
 import { expect } from '@std/expect';
 import * as s from '../src/index.ts';
-import type { ParseErrorResult, ParseSuccessResult } from './schema.ts';
 
 const { test } = Deno;
 
@@ -9,15 +8,19 @@ test('Type', async (t) => {
 
     await t.step('Valid', () => {
         const result = schema.safeParse(true);
-        expect(result.ok).toBeTruthy();
-        const success = result as ParseSuccessResult<boolean>;
-        expect(success.value).toBe(true);
+        if (result.ok) {
+            expect(result.value).toBe(true);
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
     });
 
     await t.step('Not a number', () => {
         const result = schema.safeParse(null);
-        expect(result.ok).toBeFalsy();
-        const error = result as ParseErrorResult;
-        expect(error.errors).toEqual([{ path: [], message: 'Not a boolean.' }]);
+        if (!result.ok) {
+            expect(result.errors).toEqual([{ path: [], message: 'Not a boolean.' }]);
+        } else {
+            expect(result.ok).toBeFalsy();
+        }
     });
 });

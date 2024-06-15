@@ -1,6 +1,5 @@
 import { expect } from '@std/expect';
 import * as s from '../src/index.ts';
-import type { ParseErrorResult, ParseSuccessResult } from './schema.ts';
 
 const { test } = Deno;
 
@@ -9,16 +8,20 @@ test('Type', async (t) => {
 
     await t.step('Valid', () => {
         const result = schema.safeParse(123);
-        expect(result.ok).toBeTruthy();
-        const success = result as ParseSuccessResult<number>;
-        expect(success.value).toBe(123);
+        if (result.ok) {
+            expect(result.value).toBe(123);
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
     });
 
     await t.step('Not a number', () => {
         const result = schema.safeParse(null);
-        expect(result.ok).toBeFalsy();
-        const error = result as ParseErrorResult;
-        expect(error.errors).toEqual([{ path: [], message: 'Not a number.' }]);
+        if (!result.ok) {
+            expect(result.errors).toEqual([{ path: [], message: 'Not a number.' }]);
+        } else {
+            expect(result.ok).toBeFalsy();
+        }
     });
 });
 
@@ -27,16 +30,20 @@ test('Greater than or equal', async (t) => {
 
     await t.step('Valid', () => {
         const result = schema.safeParse(10);
-        expect(result.ok).toBeTruthy();
-        const success = result as ParseSuccessResult<number>;
-        expect(success.value).toBe(10);
+        if (result.ok) {
+            expect(result.value).toBe(10);
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
     });
 
     await t.step('Too small', () => {
         const result = schema.safeParse(9);
-        expect(result.ok).toBeFalsy();
-        const error = result as ParseErrorResult;
-        expect(error.errors).toEqual([{ path: [], message: 'Too small.' }]);
+        if (!result.ok) {
+            expect(result.errors).toEqual([{ path: [], message: 'Too small.' }]);
+        } else {
+            expect(result.ok).toBeFalsy();
+        }
     });
 });
 
@@ -45,16 +52,20 @@ test('Greater than', async (t) => {
 
     await t.step('Valid', () => {
         const result = schema.safeParse(11);
-        expect(result.ok).toBeTruthy();
-        const success = result as ParseSuccessResult<number>;
-        expect(success.value).toBe(11);
+        if (result.ok) {
+            expect(result.value).toBe(11);
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
     });
 
     await t.step('Too small', () => {
         const result = schema.safeParse(10);
-        expect(result.ok).toBeFalsy();
-        const error = result as ParseErrorResult;
-        expect(error.errors).toEqual([{ path: [], message: 'Too small.' }]);
+        if (!result.ok) {
+            expect(result.errors).toEqual([{ path: [], message: 'Too small.' }]);
+        } else {
+            expect(result.ok).toBeFalsy();
+        }
     });
 });
 
@@ -63,16 +74,20 @@ test('Less than or equal', async (t) => {
 
     await t.step('Valid', () => {
         const result = schema.safeParse(10);
-        expect(result.ok).toBeTruthy();
-        const success = result as ParseSuccessResult<number>;
-        expect(success.value).toBe(10);
+        if (result.ok) {
+            expect(result.value).toBe(10);
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
     });
 
     await t.step('Too large', () => {
         const result = schema.safeParse(11);
-        expect(result.ok).toBeFalsy();
-        const error = result as ParseErrorResult;
-        expect(error.errors).toEqual([{ path: [], message: 'Too large.' }]);
+        if (!result.ok) {
+            expect(result.errors).toEqual([{ path: [], message: 'Too large.' }]);
+        } else {
+            expect(result.ok).toBeFalsy();
+        }
     });
 });
 
@@ -81,16 +96,20 @@ test('Less than', async (t) => {
 
     await t.step('Valid', () => {
         const result = schema.safeParse(9);
-        expect(result.ok).toBeTruthy();
-        const success = result as ParseSuccessResult<number>;
-        expect(success.value).toBe(9);
+        if (result.ok) {
+            expect(result.value).toBe(9);
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
     });
 
     await t.step('Too large', () => {
         const result = schema.safeParse(10);
-        expect(result.ok).toBeFalsy();
-        const error = result as ParseErrorResult;
-        expect(error.errors).toEqual([{ path: [], message: 'Too large.' }]);
+        if (!result.ok) {
+            expect(result.errors).toEqual([{ path: [], message: 'Too large.' }]);
+        } else {
+            expect(result.ok).toBeFalsy();
+        }
     });
 });
 
@@ -99,16 +118,20 @@ test('Integer', async (t) => {
 
     await t.step('Valid', () => {
         const result = schema.safeParse(123);
-        expect(result.ok).toBeTruthy();
-        const success = result as ParseSuccessResult<number>;
-        expect(success.value).toBe(123);
+        if (result.ok) {
+            expect(result.value).toBe(123);
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
     });
 
     await t.step('Invalid', () => {
         const result = schema.safeParse(123.4);
-        expect(result.ok).toBeFalsy();
-        const error = result as ParseErrorResult;
-        expect(error.errors).toEqual([{ path: [], message: 'Not an integer.' }]);
+        if (!result.ok) {
+            expect(result.errors).toEqual([{ path: [], message: 'Not an integer.' }]);
+        } else {
+            expect(result.ok).toBeFalsy();
+        }
     });
 });
 
@@ -117,16 +140,20 @@ test('Finite', async (t) => {
 
     await t.step('Valid', () => {
         const result = schema.safeParse(123);
-        expect(result.ok).toBeTruthy();
-        const success = result as ParseSuccessResult<number>;
-        expect(success.value).toBe(123);
+        if (result.ok) {
+            expect(result.value).toBe(123);
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
     });
 
     await t.step('Invalid', () => {
         const result = schema.safeParse(Number.NEGATIVE_INFINITY);
-        expect(result.ok).toBeFalsy();
-        const error = result as ParseErrorResult;
-        expect(error.errors).toEqual([{ path: [], message: 'Not finite.' }]);
+        if (!result.ok) {
+            expect(result.errors).toEqual([{ path: [], message: 'Not finite.' }]);
+        } else {
+            expect(result.ok).toBeFalsy();
+        }
     });
 });
 
@@ -135,15 +162,19 @@ test('Safe integer', async (t) => {
 
     await t.step('Valid', () => {
         const result = schema.safeParse(123);
-        expect(result.ok).toBeTruthy();
-        const success = result as ParseSuccessResult<number>;
-        expect(success.value).toBe(123);
+        if (result.ok) {
+            expect(result.value).toBe(123);
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
     });
 
     await t.step('Invalid', () => {
         const result = schema.safeParse(Number.MAX_SAFE_INTEGER + 1);
-        expect(result.ok).toBeFalsy();
-        const error = result as ParseErrorResult;
-        expect(error.errors).toEqual([{ path: [], message: 'Not safe integer.' }]);
+        if (!result.ok) {
+            expect(result.errors).toEqual([{ path: [], message: 'Not safe integer.' }]);
+        } else {
+            expect(result.ok).toBeFalsy();
+        }
     });
 });

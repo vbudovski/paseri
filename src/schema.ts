@@ -35,4 +35,4 @@ abstract class Schema<OutputType> {
 }
 
 export { Schema };
-export type { ParseResult, ParseSuccessResult, ParseErrorResult, ValidationError };
+export type { ParseResult, ValidationError };

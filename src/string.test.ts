@@ -1,6 +1,5 @@
 import { expect } from '@std/expect';
 import * as s from '../src/index.ts';
-import type { ParseErrorResult, ParseSuccessResult } from './schema.ts';
 
 const { test } = Deno;
 
@@ -9,16 +8,20 @@ test('Type', async (t) => {
 
     await t.step('Valid', () => {
         const result = schema.safeParse('Hello, world!');
-        expect(result.ok).toBeTruthy();
-        const success = result as ParseSuccessResult<string>;
-        expect(success.value).toBe('Hello, world!');
+        if (result.ok) {
+            expect(result.value).toBe('Hello, world!');
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
     });
 
     await t.step('Not a string', () => {
         const result = schema.safeParse(null);
-        expect(result.ok).toBeFalsy();
-        const error = result as ParseErrorResult;
-        expect(error.errors).toEqual([{ path: [], message: 'Not a string.' }]);
+        if (!result.ok) {
+            expect(result.errors).toEqual([{ path: [], message: 'Not a string.' }]);
+        } else {
+            expect(result.ok).toBeFalsy();
+        }
     });
 });
 
@@ -27,16 +30,20 @@ test('Min', async (t) => {
 
     await t.step('Valid', () => {
         const result = schema.safeParse('aaa');
-        expect(result.ok).toBeTruthy();
-        const success = result as ParseSuccessResult<string>;
-        expect(success.value).toBe('aaa');
+        if (result.ok) {
+            expect(result.value).toBe('aaa');
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
     });
 
     await t.step('Too short', () => {
         const result = schema.safeParse('aa');
-        expect(result.ok).toBeFalsy();
-        const error = result as ParseErrorResult;
-        expect(error.errors).toEqual([{ path: [], message: 'Too short.' }]);
+        if (!result.ok) {
+            expect(result.errors).toEqual([{ path: [], message: 'Too short.' }]);
+        } else {
+            expect(result.ok).toBeFalsy();
+        }
     });
 });
 
@@ -45,16 +52,20 @@ test('Max', async (t) => {
 
     await t.step('Valid', () => {
         const result = schema.safeParse('aaa');
-        expect(result.ok).toBeTruthy();
-        const success = result as ParseSuccessResult<string>;
-        expect(success.value).toBe('aaa');
+        if (result.ok) {
+            expect(result.value).toBe('aaa');
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
     });
 
     await t.step('Too long', () => {
         const result = schema.safeParse('aaaa');
-        expect(result.ok).toBeFalsy();
-        const error = result as ParseErrorResult;
-        expect(error.errors).toEqual([{ path: [], message: 'Too long.' }]);
+        if (!result.ok) {
+            expect(result.errors).toEqual([{ path: [], message: 'Too long.' }]);
+        } else {
+            expect(result.ok).toBeFalsy();
+        }
     });
 });
 
@@ -63,23 +74,29 @@ test('Length', async (t) => {
 
     await t.step('Valid', () => {
         const result = schema.safeParse('aaa');
-        expect(result.ok).toBeTruthy();
-        const success = result as ParseSuccessResult<string>;
-        expect(success.value).toBe('aaa');
+        if (result.ok) {
+            expect(result.value).toBe('aaa');
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
     });
 
     await t.step('Too long', () => {
         const result = schema.safeParse('aaaa');
-        expect(result.ok).toBeFalsy();
-        const error = result as ParseErrorResult;
-        expect(error.errors).toEqual([{ path: [], message: 'Too long.' }]);
+        if (!result.ok) {
+            expect(result.errors).toEqual([{ path: [], message: 'Too long.' }]);
+        } else {
+            expect(result.ok).toBeFalsy();
+        }
     });
 
     await t.step('Too short', () => {
         const result = schema.safeParse('aa');
-        expect(result.ok).toBeFalsy();
-        const error = result as ParseErrorResult;
-        expect(error.errors).toEqual([{ path: [], message: 'Too short.' }]);
+        if (!result.ok) {
+            expect(result.errors).toEqual([{ path: [], message: 'Too short.' }]);
+        } else {
+            expect(result.ok).toBeFalsy();
+        }
     });
 });
 
@@ -88,16 +105,20 @@ test('Email', async (t) => {
 
     await t.step('Valid', () => {
         const result = schema.safeParse('hello@example.com');
-        expect(result.ok).toBeTruthy();
-        const success = result as ParseSuccessResult<string>;
-        expect(success.value).toBe('hello@example.com');
+        if (result.ok) {
+            expect(result.value).toBe('hello@example.com');
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
     });
 
     await t.step('Invalid', () => {
         const result = schema.safeParse('not_an_email');
-        expect(result.ok).toBeFalsy();
-        const error = result as ParseErrorResult;
-        expect(error.errors).toEqual([{ path: [], message: 'Not an email.' }]);
+        if (!result.ok) {
+            expect(result.errors).toEqual([{ path: [], message: 'Not an email.' }]);
+        } else {
+            expect(result.ok).toBeFalsy();
+        }
     });
 });
 
@@ -106,16 +127,20 @@ test('Emoji', async (t) => {
 
     await t.step('Valid', () => {
         const result = schema.safeParse('🥳');
-        expect(result.ok).toBeTruthy();
-        const success = result as ParseSuccessResult<string>;
-        expect(success.value).toBe('🥳');
+        if (result.ok) {
+            expect(result.value).toBe('🥳');
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
     });
 
     await t.step('Invalid', () => {
         const result = schema.safeParse('a');
-        expect(result.ok).toBeFalsy();
-        const error = result as ParseErrorResult;
-        expect(error.errors).toEqual([{ path: [], message: 'Not an emoji.' }]);
+        if (!result.ok) {
+            expect(result.errors).toEqual([{ path: [], message: 'Not an emoji.' }]);
+        } else {
+            expect(result.ok).toBeFalsy();
+        }
     });
 });
 
@@ -124,16 +149,20 @@ test('UUID', async (t) => {
 
     await t.step('Valid', () => {
         const result = schema.safeParse('d98d4b7e-58a5-4e21-839b-2699b94c115b');
-        expect(result.ok).toBeTruthy();
-        const success = result as ParseSuccessResult<string>;
-        expect(success.value).toBe('d98d4b7e-58a5-4e21-839b-2699b94c115b');
+        if (result.ok) {
+            expect(result.value).toBe('d98d4b7e-58a5-4e21-839b-2699b94c115b');
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
     });
 
     await t.step('Invalid', () => {
         const result = schema.safeParse('not_a_uuid');
-        expect(result.ok).toBeFalsy();
-        const error = result as ParseErrorResult;
-        expect(error.errors).toEqual([{ path: [], message: 'Not a UUID.' }]);
+        if (!result.ok) {
+            expect(result.errors).toEqual([{ path: [], message: 'Not a UUID.' }]);
+        } else {
+            expect(result.ok).toBeFalsy();
+        }
     });
 });
 
@@ -142,15 +171,19 @@ test('Nano ID', async (t) => {
 
     await t.step('Valid', () => {
         const result = schema.safeParse('V1StGXR8_Z5jdHi6B-myT');
-        expect(result.ok).toBeTruthy();
-        const success = result as ParseSuccessResult<string>;
-        expect(success.value).toBe('V1StGXR8_Z5jdHi6B-myT');
+        if (result.ok) {
+            expect(result.value).toBe('V1StGXR8_Z5jdHi6B-myT');
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
     });
 
     await t.step('Invalid', () => {
         const result = schema.safeParse('not_a_nano_id');
-        expect(result.ok).toBeFalsy();
-        const error = result as ParseErrorResult;
-        expect(error.errors).toEqual([{ path: [], message: 'Not a Nano ID.' }]);
+        if (!result.ok) {
+            expect(result.errors).toEqual([{ path: [], message: 'Not a Nano ID.' }]);
+        } else {
+            expect(result.ok).toBeFalsy();
+        }
     });
 });
