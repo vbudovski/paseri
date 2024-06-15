@@ -9,14 +9,14 @@ test('Type', async (t) => {
 
     await t.step('Valid', () => {
         const result = schema.safeParse(true);
-        expect(result.status).toBe('success');
+        expect(result.ok).toBeTruthy();
         const success = result as ParseSuccessResult<boolean>;
         expect(success.value).toBe(true);
     });
 
     await t.step('Not a number', () => {
         const result = schema.safeParse(null);
-        expect(result.status).toBe('error');
+        expect(result.ok).toBeFalsy();
         const error = result as ParseErrorResult;
         expect(error.errors).toEqual([{ path: [], message: 'Not a boolean.' }]);
     });

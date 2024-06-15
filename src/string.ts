@@ -18,7 +18,7 @@ class StringSchema extends Schema<string> {
 
     _parse(value: unknown): ParseResult<string> {
         if (typeof value !== 'string') {
-            return { status: 'error', errors: this.issues.INVALID_TYPE };
+            return { ok: false, errors: this.issues.INVALID_TYPE };
         }
         for (const check of this.checks) {
             const result = check(value);
@@ -27,12 +27,12 @@ class StringSchema extends Schema<string> {
             }
         }
 
-        return { status: 'success', value: value as string };
+        return { ok: true, value: value as string };
     }
     min(length: number) {
         this.checks.push((_value) => {
             if (_value.length < length) {
-                return { status: 'error', errors: this.issues.TOO_SHORT };
+                return { ok: false, errors: this.issues.TOO_SHORT };
             }
 
             return undefined;
@@ -43,7 +43,7 @@ class StringSchema extends Schema<string> {
     max(length: number) {
         this.checks.push((_value) => {
             if (_value.length > length) {
-                return { status: 'error', errors: this.issues.TOO_LONG };
+                return { ok: false, errors: this.issues.TOO_LONG };
             }
 
             return undefined;
@@ -54,10 +54,10 @@ class StringSchema extends Schema<string> {
     length(length: number) {
         this.checks.push((_value) => {
             if (_value.length > length) {
-                return { status: 'error', errors: this.issues.TOO_LONG };
+                return { ok: false, errors: this.issues.TOO_LONG };
             }
             if (_value.length < length) {
-                return { status: 'error', errors: this.issues.TOO_SHORT };
+                return { ok: false, errors: this.issues.TOO_SHORT };
             }
 
             return undefined;
@@ -68,7 +68,7 @@ class StringSchema extends Schema<string> {
     email() {
         this.checks.push((_value) => {
             if (!emailRegex.test(_value)) {
-                return { status: 'error', errors: this.issues.INVALID_EMAIL };
+                return { ok: false, errors: this.issues.INVALID_EMAIL };
             }
 
             return undefined;
@@ -79,7 +79,7 @@ class StringSchema extends Schema<string> {
     emoji() {
         this.checks.push((_value) => {
             if (!emojiRegex.test(_value)) {
-                return { status: 'error', errors: this.issues.INVALID_EMOJI };
+                return { ok: false, errors: this.issues.INVALID_EMOJI };
             }
 
             return undefined;
@@ -90,7 +90,7 @@ class StringSchema extends Schema<string> {
     uuid() {
         this.checks.push((_value) => {
             if (!uuidRegex.test(_value)) {
-                return { status: 'error', errors: this.issues.INVALID_UUID };
+                return { ok: false, errors: this.issues.INVALID_UUID };
             }
 
             return undefined;
@@ -101,7 +101,7 @@ class StringSchema extends Schema<string> {
     nanoid() {
         this.checks.push((_value) => {
             if (!nanoidRegex.test(_value)) {
-                return { status: 'error', errors: this.issues.INVALID_NANOID };
+                return { ok: false, errors: this.issues.INVALID_NANOID };
             }
 
             return undefined;

@@ -1,5 +1,5 @@
 interface ParseSuccessResult<OutputType> {
-    status: 'success';
+    ok: true;
     value: OutputType;
 }
 
@@ -9,7 +9,7 @@ interface ValidationError {
 }
 
 interface ParseErrorResult {
-    status: 'error';
+    ok: false;
     errors: Readonly<ValidationError>[];
 }
 
@@ -22,7 +22,7 @@ abstract class Schema<OutputType> {
 
     parse(value: unknown): OutputType {
         const result = this._parse(value);
-        if (result.status === 'error') {
+        if (!result.ok) {
             throw new Error(`Failed to parse ${JSON.stringify(result.errors)}.`);
         }
 

@@ -29,14 +29,14 @@ test('Type', async (t) => {
             object1: { string2: 'world', number1: 123 },
             object2: { object3: { string3: 'abc', number2: 456 } },
         });
-        if (result.status === 'success') {
+        if (result.ok) {
             expect(result.value).toEqual({
                 string1: 'hello',
                 object1: { string2: 'world', number1: 123 },
                 object2: { object3: { string3: 'abc', number2: 456 } },
             });
         } else {
-            expect(result.status).toBe('success');
+            expect(result.ok).toBeTruthy();
         }
     });
 
@@ -45,14 +45,14 @@ test('Type', async (t) => {
             object1: { string2: 'world' },
             object2: { object3: { string3: 'abc' } },
         });
-        if (result.status === 'error') {
+        if (!result.ok) {
             expect(result.errors).toEqual([
                 { path: ['string1'], message: 'Missing key.' },
                 { path: ['object1', 'number1'], message: 'Missing key.' },
                 { path: ['object2', 'object3', 'number2'], message: 'Missing key.' },
             ]);
         } else {
-            expect(result.status).toBe('error');
+            expect(result.ok).toBeFalsy();
         }
     });
 
@@ -63,14 +63,14 @@ test('Type', async (t) => {
             object1: { string2: 'world', number1: 123, bad2: 'BAD' },
             object2: { object3: { string3: 'abc', number2: 456, bad3: 'BAD' } },
         });
-        if (result.status === 'success') {
+        if (result.ok) {
             expect(result.value).toEqual({
                 string1: 'hello',
                 object1: { string2: 'world', number1: 123 },
                 object2: { object3: { string3: 'abc', number2: 456 } },
             });
         } else {
-            expect(result.status).toBe('success');
+            expect(result.ok).toBeTruthy();
         }
     });
 
@@ -81,14 +81,14 @@ test('Type', async (t) => {
             object1: { string2: 'world', number1: 123, bad2: 'BAD' },
             object2: { object3: { string3: 'abc', number2: 456, bad3: 'BAD' } },
         });
-        if (result.status === 'error') {
+        if (!result.ok) {
             expect(result.errors).toEqual([
                 { path: ['object1'], message: "Unrecognised key(s) in object: 'bad2'." },
                 { path: ['object2', 'object3'], message: "Unrecognised key(s) in object: 'bad3'." },
                 { path: [], message: "Unrecognised key(s) in object: 'bad1'." },
             ]);
         } else {
-            expect(result.status).toBe('error');
+            expect(result.ok).toBeFalsy();
         }
     });
 
@@ -98,10 +98,10 @@ test('Type', async (t) => {
             object1: { string2: 'world', number1: 123 },
             object2: { object3: { string3: 'abc', number2: 456 } },
         });
-        if (result.status === 'error') {
+        if (!result.ok) {
             expect(result.errors).toEqual([{ path: ['string1'], message: 'Not a string.' }]);
         } else {
-            expect(result.status).toBe('error');
+            expect(result.ok).toBeFalsy();
         }
     });
 
@@ -111,22 +111,22 @@ test('Type', async (t) => {
             object1: { string2: 456, number1: 123 },
             object2: { object3: { string3: null, number2: 456 } },
         });
-        if (result.status === 'error') {
+        if (!result.ok) {
             expect(result.errors).toEqual([
                 { path: ['object1', 'string2'], message: 'Not a string.' },
                 { path: ['object2', 'object3', 'string3'], message: 'Not a string.' },
             ]);
         } else {
-            expect(result.status).toBe('error');
+            expect(result.ok).toBeFalsy();
         }
     });
 
     await t.step('Not an object', () => {
         const result = schema.safeParse(null);
-        if (result.status === 'error') {
+        if (!result.ok) {
             expect(result.errors).toEqual([{ path: [], message: 'Not an object.' }]);
         } else {
-            expect(result.status).toBe('error');
+            expect(result.ok).toBeFalsy();
         }
     });
 
@@ -136,13 +136,13 @@ test('Type', async (t) => {
             object1: null,
             object2: { object3: null },
         });
-        if (result.status === 'error') {
+        if (!result.ok) {
             expect(result.errors).toEqual([
                 { path: ['object1'], message: 'Not an object.' },
                 { path: ['object2', 'object3'], message: 'Not an object.' },
             ]);
         } else {
-            expect(result.status).toBe('error');
+            expect(result.ok).toBeFalsy();
         }
     });
 });

@@ -7,10 +7,10 @@ class BooleanSchema extends Schema<boolean> {
 
     _parse(value: unknown): ParseResult<boolean> {
         if (typeof value !== 'boolean') {
-            return { status: 'error', errors: this.issues.INVALID_TYPE };
+            return { ok: false, errors: this.issues.INVALID_TYPE };
         }
 
-        return { status: 'success', value: value as boolean };
+        return { ok: true, value: value as boolean };
     }
 }
 

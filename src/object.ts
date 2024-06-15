@@ -39,7 +39,7 @@ class ObjectSchema<ShapeType extends ObjectSchemaType<ShapeType>> extends Schema
 
     _parse(value: unknown): ParseResult<ObjectSchemaOutputType<ShapeType>> {
         if (!isPlainObject(value)) {
-            return { status: 'error', errors: this.issues.INVALID_TYPE };
+            return { ok: false, errors: this.issues.INVALID_TYPE };
         }
 
         const errors: ValidationError[] = [];
@@ -49,7 +49,7 @@ class ObjectSchema<ShapeType extends ObjectSchemaType<ShapeType>> extends Schema
             const childValue = value[key];
             if (childValue !== undefined) {
                 const result = schema._parse(childValue);
-                if (result.status === 'success') {
+                if (result.ok) {
                     sanitisedValue[key] = result.value;
                 } else {
                     errors.push(
@@ -77,10 +77,10 @@ class ObjectSchema<ShapeType extends ObjectSchemaType<ShapeType>> extends Schema
         }
 
         if (errors.length) {
-            return { status: 'error', errors };
+            return { ok: false, errors };
         }
 
-        return { status: 'success', value: sanitisedValue as ObjectSchemaOutputType<ShapeType> };
+        return { ok: true, value: sanitisedValue as ObjectSchemaOutputType<ShapeType> };
     }
 
     strict(): this {
