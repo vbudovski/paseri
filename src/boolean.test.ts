@@ -18,7 +18,7 @@ test('Type', async (t) => {
     await t.step('Not a number', () => {
         const result = schema.safeParse(null);
         if (!result.ok) {
-            expect(result.errors).toEqual([{ path: [], message: 'Not a boolean.' }]);
+            expect(result.issue).toEqual({ type: 'leaf', code: 'invalid_type' });
         } else {
             expect(result.ok).toBeFalsy();
         }

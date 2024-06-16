@@ -18,7 +18,7 @@ test('Type', async (t) => {
     await t.step('Not a string', () => {
         const result = schema.safeParse(null);
         if (!result.ok) {
-            expect(result.errors).toEqual([{ path: [], message: 'Not a string.' }]);
+            expect(result.issue).toEqual({ type: 'leaf', code: 'invalid_type' });
         } else {
             expect(result.ok).toBeFalsy();
         }
@@ -40,7 +40,7 @@ test('Min', async (t) => {
     await t.step('Too short', () => {
         const result = schema.safeParse('aa');
         if (!result.ok) {
-            expect(result.errors).toEqual([{ path: [], message: 'Too short.' }]);
+            expect(result.issue).toEqual({ type: 'leaf', code: 'too_short' });
         } else {
             expect(result.ok).toBeFalsy();
         }
@@ -62,7 +62,7 @@ test('Max', async (t) => {
     await t.step('Too long', () => {
         const result = schema.safeParse('aaaa');
         if (!result.ok) {
-            expect(result.errors).toEqual([{ path: [], message: 'Too long.' }]);
+            expect(result.issue).toEqual({ type: 'leaf', code: 'too_long' });
         } else {
             expect(result.ok).toBeFalsy();
         }
@@ -84,7 +84,7 @@ test('Length', async (t) => {
     await t.step('Too long', () => {
         const result = schema.safeParse('aaaa');
         if (!result.ok) {
-            expect(result.errors).toEqual([{ path: [], message: 'Too long.' }]);
+            expect(result.issue).toEqual({ type: 'leaf', code: 'too_long' });
         } else {
             expect(result.ok).toBeFalsy();
         }
@@ -93,7 +93,7 @@ test('Length', async (t) => {
     await t.step('Too short', () => {
         const result = schema.safeParse('aa');
         if (!result.ok) {
-            expect(result.errors).toEqual([{ path: [], message: 'Too short.' }]);
+            expect(result.issue).toEqual({ type: 'leaf', code: 'too_short' });
         } else {
             expect(result.ok).toBeFalsy();
         }
@@ -115,7 +115,7 @@ test('Email', async (t) => {
     await t.step('Invalid', () => {
         const result = schema.safeParse('not_an_email');
         if (!result.ok) {
-            expect(result.errors).toEqual([{ path: [], message: 'Not an email.' }]);
+            expect(result.issue).toEqual({ type: 'leaf', code: 'invalid_email' });
         } else {
             expect(result.ok).toBeFalsy();
         }
@@ -137,7 +137,7 @@ test('Emoji', async (t) => {
     await t.step('Invalid', () => {
         const result = schema.safeParse('a');
         if (!result.ok) {
-            expect(result.errors).toEqual([{ path: [], message: 'Not an emoji.' }]);
+            expect(result.issue).toEqual({ type: 'leaf', code: 'invalid_emoji' });
         } else {
             expect(result.ok).toBeFalsy();
         }
@@ -159,7 +159,7 @@ test('UUID', async (t) => {
     await t.step('Invalid', () => {
         const result = schema.safeParse('not_a_uuid');
         if (!result.ok) {
-            expect(result.errors).toEqual([{ path: [], message: 'Not a UUID.' }]);
+            expect(result.issue).toEqual({ type: 'leaf', code: 'invalid_uuid' });
         } else {
             expect(result.ok).toBeFalsy();
         }
@@ -181,7 +181,7 @@ test('Nano ID', async (t) => {
     await t.step('Invalid', () => {
         const result = schema.safeParse('not_a_nano_id');
         if (!result.ok) {
-            expect(result.errors).toEqual([{ path: [], message: 'Not a Nano ID.' }]);
+            expect(result.issue).toEqual({ type: 'leaf', code: 'invalid_nanoid' });
         } else {
             expect(result.ok).toBeFalsy();
         }

@@ -1,5 +1,7 @@
 import type { NonEmptyObject, Simplify } from 'npm:type-fest';
-import { type ParseResult, Schema, type ValidationError } from './schema.ts';
+import type { TreeNode } from './issue.ts';
+import { addIssue } from './issue.ts';
+import { type ParseResult, Schema } from './schema.ts';
 
 type ObjectSchemaType<ShapeType> = NonEmptyObject<
     Simplify<{
@@ -25,59 +27,64 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
 }
 
 class ObjectSchema<ShapeType extends ObjectSchemaType<ShapeType>> extends Schema<ObjectSchemaOutputType<ShapeType>> {
-    private readonly _shape: Map<string, Schema<unknown>>;
+    private readonly _shape: ShapeType;
     private _strict = false;
-    private readonly issues: Record<string, [ValidationError]> = {
-        INVALID_TYPE: [{ path: [], message: 'Not an object.' }],
-    };
+
+    private readonly INVALID_TYPE = 'invalid_type';
+    private readonly MISSING_VALUE = 'missing_value';
+    private readonly UNRECOGNIZED_KEY = 'unrecognized_key';
 
     constructor(shape: ShapeType) {
         super();
 
-        this._shape = new Map(Object.entries(shape));
+        this._shape = shape;
     }
 
     _parse(value: unknown): ParseResult<ObjectSchemaOutputType<ShapeType>> {
         if (!isPlainObject(value)) {
-            return { ok: false, errors: this.issues.INVALID_TYPE };
+            return { ok: false, issue: { type: 'leaf', code: this.INVALID_TYPE } };
         }
 
-        const errors: ValidationError[] = [];
         const sanitisedValue: Record<string, unknown> = {};
 
-        for (const [key, schema] of this._shape) {
+        let issue: TreeNode | undefined = undefined;
+        for (const key in this._shape) {
+            const schema = this._shape[key];
             const childValue = value[key];
             if (childValue !== undefined) {
                 const result = schema._parse(childValue);
                 if (result.ok) {
                     sanitisedValue[key] = result.value;
                 } else {
-                    errors.push(
-                        ...result.errors.map((error) => ({
-                            path: [key].concat(error.path),
-                            message: error.message,
-                        })),
-                    );
+                    issue = addIssue(issue, {
+                        type: 'nest',
+                        key,
+                        child: result.issue,
+                    });
                 }
             } else {
-                errors.push({ path: [key], message: 'Missing key.' });
-            }
-        }
-
-        if (this._strict) {
-            const unknownKeys = Object.keys(value).filter((key) => !this._shape.has(key));
-            if (unknownKeys.length) {
-                errors.push({
-                    path: [],
-                    message: `Unrecognised key(s) in object: ${Array.from(unknownKeys)
-                        .map((key) => `'${key}'`)
-                        .join(', ')}.`,
+                issue = addIssue(issue, {
+                    type: 'nest',
+                    key,
+                    child: { type: 'leaf', code: this.MISSING_VALUE },
                 });
             }
         }
 
-        if (errors.length) {
-            return { ok: false, errors };
+        if (this._strict) {
+            for (const key in value) {
+                if (this._shape[key as keyof ShapeType] === undefined) {
+                    issue = addIssue(issue, {
+                        type: 'nest',
+                        key,
+                        child: { type: 'leaf', code: this.UNRECOGNIZED_KEY },
+                    });
+                }
+            }
+        }
+
+        if (issue) {
+            return { ok: false, issue };
         }
 
         return { ok: true, value: sanitisedValue as ObjectSchemaOutputType<ShapeType> };

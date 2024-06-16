@@ -1,5 +1,6 @@
 import { expect } from '@std/expect';
 import * as s from '../src/index.ts';
+import type { TreeNode } from './issue.ts';
 
 const { test } = Deno;
 
@@ -46,11 +47,41 @@ test('Type', async (t) => {
             object2: { object3: { string3: 'abc' } },
         });
         if (!result.ok) {
-            expect(result.errors).toEqual([
-                { path: ['string1'], message: 'Missing key.' },
-                { path: ['object1', 'number1'], message: 'Missing key.' },
-                { path: ['object2', 'object3', 'number2'], message: 'Missing key.' },
-            ]);
+            const expectedResult: TreeNode = {
+                type: 'join',
+                left: {
+                    type: 'join',
+                    left: {
+                        type: 'nest',
+                        key: 'string1',
+                        child: { type: 'leaf', code: 'missing_value' },
+                    },
+                    right: {
+                        type: 'nest',
+                        key: 'object1',
+                        child: {
+                            type: 'nest',
+                            key: 'number1',
+                            child: { type: 'leaf', code: 'missing_value' },
+                        },
+                    },
+                },
+                right: {
+                    type: 'nest',
+                    key: 'object2',
+                    child: {
+                        type: 'nest',
+                        key: 'object3',
+                        child: {
+                            type: 'nest',
+                            key: 'number2',
+                            child: { type: 'leaf', code: 'missing_value' },
+                        },
+                    },
+                },
+            };
+
+            expect(result.issue).toEqual(expectedResult);
         } else {
             expect(result.ok).toBeFalsy();
         }
@@ -82,11 +113,50 @@ test('Type', async (t) => {
             object2: { object3: { string3: 'abc', number2: 456, bad3: 'BAD' } },
         });
         if (!result.ok) {
-            expect(result.errors).toEqual([
-                { path: ['object1'], message: "Unrecognised key(s) in object: 'bad2'." },
-                { path: ['object2', 'object3'], message: "Unrecognised key(s) in object: 'bad3'." },
-                { path: [], message: "Unrecognised key(s) in object: 'bad1'." },
-            ]);
+            const expectedResult: TreeNode = {
+                type: 'join',
+                left: {
+                    type: 'join',
+                    left: {
+                        type: 'nest',
+                        key: 'object1',
+                        child: {
+                            type: 'nest',
+                            key: 'bad2',
+                            child: {
+                                type: 'leaf',
+                                code: 'unrecognized_key',
+                            },
+                        },
+                    },
+                    right: {
+                        type: 'nest',
+                        key: 'object2',
+                        child: {
+                            type: 'nest',
+                            key: 'object3',
+                            child: {
+                                type: 'nest',
+                                key: 'bad3',
+                                child: {
+                                    type: 'leaf',
+                                    code: 'unrecognized_key',
+                                },
+                            },
+                        },
+                    },
+                },
+                right: {
+                    type: 'nest',
+                    key: 'bad1',
+                    child: {
+                        type: 'leaf',
+                        code: 'unrecognized_key',
+                    },
+                },
+            };
+
+            expect(result.issue).toEqual(expectedResult);
         } else {
             expect(result.ok).toBeFalsy();
         }
@@ -99,7 +169,16 @@ test('Type', async (t) => {
             object2: { object3: { string3: 'abc', number2: 456 } },
         });
         if (!result.ok) {
-            expect(result.errors).toEqual([{ path: ['string1'], message: 'Not a string.' }]);
+            const expectedResult: TreeNode = {
+                type: 'nest',
+                key: 'string1',
+                child: {
+                    type: 'leaf',
+                    code: 'invalid_type',
+                },
+            };
+
+            expect(result.issue).toEqual(expectedResult);
         } else {
             expect(result.ok).toBeFalsy();
         }
@@ -112,10 +191,39 @@ test('Type', async (t) => {
             object2: { object3: { string3: null, number2: 456 } },
         });
         if (!result.ok) {
-            expect(result.errors).toEqual([
-                { path: ['object1', 'string2'], message: 'Not a string.' },
-                { path: ['object2', 'object3', 'string3'], message: 'Not a string.' },
-            ]);
+            const expectedResult: TreeNode = {
+                type: 'join',
+                left: {
+                    type: 'nest',
+                    key: 'object1',
+                    child: {
+                        type: 'nest',
+                        key: 'string2',
+                        child: {
+                            type: 'leaf',
+                            code: 'invalid_type',
+                        },
+                    },
+                },
+                right: {
+                    type: 'nest',
+                    key: 'object2',
+                    child: {
+                        type: 'nest',
+                        key: 'object3',
+                        child: {
+                            type: 'nest',
+                            key: 'string3',
+                            child: {
+                                type: 'leaf',
+                                code: 'invalid_type',
+                            },
+                        },
+                    },
+                },
+            };
+
+            expect(result.issue).toEqual(expectedResult);
         } else {
             expect(result.ok).toBeFalsy();
         }
@@ -124,7 +232,9 @@ test('Type', async (t) => {
     await t.step('Not an object', () => {
         const result = schema.safeParse(null);
         if (!result.ok) {
-            expect(result.errors).toEqual([{ path: [], message: 'Not an object.' }]);
+            const expectedResult: TreeNode = { type: 'leaf', code: 'invalid_type' };
+
+            expect(result.issue).toEqual(expectedResult);
         } else {
             expect(result.ok).toBeFalsy();
         }
@@ -137,10 +247,31 @@ test('Type', async (t) => {
             object2: { object3: null },
         });
         if (!result.ok) {
-            expect(result.errors).toEqual([
-                { path: ['object1'], message: 'Not an object.' },
-                { path: ['object2', 'object3'], message: 'Not an object.' },
-            ]);
+            const expectedResult: TreeNode = {
+                type: 'join',
+                left: {
+                    type: 'nest',
+                    key: 'object1',
+                    child: {
+                        type: 'leaf',
+                        code: 'invalid_type',
+                    },
+                },
+                right: {
+                    type: 'nest',
+                    key: 'object2',
+                    child: {
+                        type: 'nest',
+                        key: 'object3',
+                        child: {
+                            type: 'leaf',
+                            code: 'invalid_type',
+                        },
+                    },
+                },
+            };
+
+            expect(result.issue).toEqual(expectedResult);
         } else {
             expect(result.ok).toBeFalsy();
         }

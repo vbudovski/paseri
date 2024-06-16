@@ -18,7 +18,7 @@ test('Type', async (t) => {
     await t.step('Not a number', () => {
         const result = schema.safeParse(null);
         if (!result.ok) {
-            expect(result.errors).toEqual([{ path: [], message: 'Not a number.' }]);
+            expect(result.issue).toEqual({ type: 'leaf', code: 'invalid_type' });
         } else {
             expect(result.ok).toBeFalsy();
         }
@@ -40,7 +40,7 @@ test('Greater than or equal', async (t) => {
     await t.step('Too small', () => {
         const result = schema.safeParse(9);
         if (!result.ok) {
-            expect(result.errors).toEqual([{ path: [], message: 'Too small.' }]);
+            expect(result.issue).toEqual({ type: 'leaf', code: 'too_small' });
         } else {
             expect(result.ok).toBeFalsy();
         }
@@ -62,7 +62,7 @@ test('Greater than', async (t) => {
     await t.step('Too small', () => {
         const result = schema.safeParse(10);
         if (!result.ok) {
-            expect(result.errors).toEqual([{ path: [], message: 'Too small.' }]);
+            expect(result.issue).toEqual({ type: 'leaf', code: 'too_small' });
         } else {
             expect(result.ok).toBeFalsy();
         }
@@ -84,7 +84,7 @@ test('Less than or equal', async (t) => {
     await t.step('Too large', () => {
         const result = schema.safeParse(11);
         if (!result.ok) {
-            expect(result.errors).toEqual([{ path: [], message: 'Too large.' }]);
+            expect(result.issue).toEqual({ type: 'leaf', code: 'too_large' });
         } else {
             expect(result.ok).toBeFalsy();
         }
@@ -106,7 +106,7 @@ test('Less than', async (t) => {
     await t.step('Too large', () => {
         const result = schema.safeParse(10);
         if (!result.ok) {
-            expect(result.errors).toEqual([{ path: [], message: 'Too large.' }]);
+            expect(result.issue).toEqual({ type: 'leaf', code: 'too_large' });
         } else {
             expect(result.ok).toBeFalsy();
         }
@@ -128,7 +128,7 @@ test('Integer', async (t) => {
     await t.step('Invalid', () => {
         const result = schema.safeParse(123.4);
         if (!result.ok) {
-            expect(result.errors).toEqual([{ path: [], message: 'Not an integer.' }]);
+            expect(result.issue).toEqual({ type: 'leaf', code: 'invalid_integer' });
         } else {
             expect(result.ok).toBeFalsy();
         }
@@ -150,7 +150,7 @@ test('Finite', async (t) => {
     await t.step('Invalid', () => {
         const result = schema.safeParse(Number.NEGATIVE_INFINITY);
         if (!result.ok) {
-            expect(result.errors).toEqual([{ path: [], message: 'Not finite.' }]);
+            expect(result.issue).toEqual({ type: 'leaf', code: 'invalid_finite' });
         } else {
             expect(result.ok).toBeFalsy();
         }
@@ -172,7 +172,7 @@ test('Safe integer', async (t) => {
     await t.step('Invalid', () => {
         const result = schema.safeParse(Number.MAX_SAFE_INTEGER + 1);
         if (!result.ok) {
-            expect(result.errors).toEqual([{ path: [], message: 'Not safe integer.' }]);
+            expect(result.issue).toEqual({ type: 'leaf', code: 'invalid_safe_integer' });
         } else {
             expect(result.ok).toBeFalsy();
         }
