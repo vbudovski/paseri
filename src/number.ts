@@ -1,9 +1,18 @@
 import { type ParseResult, Schema } from './schema.ts';
 
 class NumberSchema extends Schema<number> {
+    readonly issues = {
+        INVALID_TYPE: { type: 'leaf', code: 'invalid_type' },
+        TOO_SMALL: { type: 'leaf', code: 'too_small' },
+        TOO_LARGE: { type: 'leaf', code: 'too_large' },
+        INVALID_INTEGER: { type: 'leaf', code: 'invalid_integer' },
+        INVALID_FINITE: { type: 'leaf', code: 'invalid_finite' },
+        INVALID_SAFE_INTEGER: { type: 'leaf', code: 'invalid_safe_integer' },
+    } as const;
+
     _parse(value: unknown): ParseResult<number> {
         if (typeof value !== 'number') {
-            return { ok: false, issue: { type: 'leaf', code: 'invalid_type' } };
+            return { ok: false, issue: this.issues.INVALID_TYPE };
         }
         for (const check of this.checks) {
             const issue = check(value);
@@ -17,7 +26,7 @@ class NumberSchema extends Schema<number> {
     gte(value: number) {
         this.checks.push((_value) => {
             if (_value < value) {
-                return { type: 'leaf', code: 'too_small' };
+                return this.issues.TOO_SMALL;
             }
 
             return undefined;
@@ -28,7 +37,7 @@ class NumberSchema extends Schema<number> {
     gt(value: number) {
         this.checks.push((_value) => {
             if (_value <= value) {
-                return { type: 'leaf', code: 'too_small' };
+                return this.issues.TOO_SMALL;
             }
 
             return undefined;
@@ -39,7 +48,7 @@ class NumberSchema extends Schema<number> {
     lte(value: number) {
         this.checks.push((_value) => {
             if (_value > value) {
-                return { type: 'leaf', code: 'too_large' };
+                return this.issues.TOO_LARGE;
             }
 
             return undefined;
@@ -50,7 +59,7 @@ class NumberSchema extends Schema<number> {
     lt(value: number) {
         this.checks.push((_value) => {
             if (_value >= value) {
-                return { type: 'leaf', code: 'too_large' };
+                return this.issues.TOO_LARGE;
             }
 
             return undefined;
@@ -61,7 +70,7 @@ class NumberSchema extends Schema<number> {
     int() {
         this.checks.push((_value) => {
             if (!Number.isInteger(_value)) {
-                return { type: 'leaf', code: 'invalid_integer' };
+                return this.issues.INVALID_INTEGER;
             }
 
             return undefined;
@@ -72,7 +81,7 @@ class NumberSchema extends Schema<number> {
     finite() {
         this.checks.push((_value) => {
             if (!Number.isFinite(_value)) {
-                return { type: 'leaf', code: 'invalid_finite' };
+                return this.issues.INVALID_FINITE;
             }
 
             return undefined;
@@ -83,7 +92,7 @@ class NumberSchema extends Schema<number> {
     safe() {
         this.checks.push((_value) => {
             if (!Number.isSafeInteger(_value)) {
-                return { type: 'leaf', code: 'invalid_safe_integer' };
+                return this.issues.INVALID_SAFE_INTEGER;
             }
 
             return undefined;
