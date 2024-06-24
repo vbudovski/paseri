@@ -26,58 +26,76 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
     );
 }
 
-class ObjectSchema<ShapeType extends ObjectSchemaType<ShapeType>> extends Schema<ObjectSchemaOutputType<ShapeType>> {
-    private readonly _shape: ShapeType;
-    private _strict = false;
+type Mode = 'strip' | 'strict' | 'passthrough';
 
-    private readonly INVALID_TYPE = 'invalid_type';
-    private readonly MISSING_VALUE = 'missing_value';
-    private readonly UNRECOGNIZED_KEY = 'unrecognized_key';
+class ObjectSchema<ShapeType extends ObjectSchemaType<ShapeType>> extends Schema<ObjectSchemaOutputType<ShapeType>> {
+    private readonly _shape: Map<string, Schema<unknown>>;
+    private _mode: Mode = 'strip';
+
+    readonly issues = {
+        INVALID_TYPE: { type: 'leaf', code: 'invalid_type' },
+        UNRECOGNIZED_KEY: { type: 'leaf', code: 'unrecognized_key' },
+        MISSING_VALUE: { type: 'leaf', code: 'missing_value' },
+    } as const;
 
     constructor(shape: ShapeType) {
         super();
 
-        this._shape = shape;
+        this._shape = new Map(Object.entries(shape));
     }
-
     _parse(value: unknown): ParseResult<ObjectSchemaOutputType<ShapeType>> {
         if (!isPlainObject(value)) {
-            return { ok: false, issue: { type: 'leaf', code: this.INVALID_TYPE } };
+            return { ok: false, issue: this.issues.INVALID_TYPE };
         }
 
-        const sanitisedValue: Record<string, unknown> = {};
+        let sanitisedValue: Record<string, unknown> = value;
+        let seen = 0;
 
         let issue: TreeNode | undefined = undefined;
-        for (const key in this._shape) {
-            const schema = this._shape[key];
-            const childValue = value[key];
-            if (childValue !== undefined) {
+        for (const key in value) {
+            const schema = this._shape.get(key);
+            if (schema) {
+                ++seen;
+
+                const childValue = value[key];
                 const result = schema._parse(childValue);
-                if (result.ok) {
-                    sanitisedValue[key] = result.value;
-                } else {
+                if (!result.ok) {
                     issue = addIssue(issue, {
                         type: 'nest',
                         key,
                         child: result.issue,
                     });
+                } else {
+                    if (schema instanceof ObjectSchema && schema._mode === 'strip') {
+                        if (sanitisedValue === value) {
+                            sanitisedValue = { ...value };
+                        }
+                        sanitisedValue[key] = result.value;
+                    }
                 }
             } else {
-                issue = addIssue(issue, {
-                    type: 'nest',
-                    key,
-                    child: { type: 'leaf', code: this.MISSING_VALUE },
-                });
-            }
-        }
-
-        if (this._strict) {
-            for (const key in value) {
-                if (this._shape[key as keyof ShapeType] === undefined) {
+                if (this._mode === 'strict') {
                     issue = addIssue(issue, {
                         type: 'nest',
                         key,
-                        child: { type: 'leaf', code: this.UNRECOGNIZED_KEY },
+                        child: this.issues.UNRECOGNIZED_KEY,
+                    });
+                } else if (this._mode === 'strip') {
+                    if (sanitisedValue === value) {
+                        sanitisedValue = { ...value };
+                    }
+                    delete sanitisedValue[key];
+                }
+            }
+        }
+
+        if (seen < this._shape.size) {
+            for (const key of this._shape.keys()) {
+                if (value[key] === undefined) {
+                    issue = addIssue(issue, {
+                        type: 'nest',
+                        key,
+                        child: this.issues.MISSING_VALUE,
                     });
                 }
             }
@@ -89,9 +107,13 @@ class ObjectSchema<ShapeType extends ObjectSchemaType<ShapeType>> extends Schema
 
         return { ok: true, value: sanitisedValue as ObjectSchemaOutputType<ShapeType> };
     }
-
     strict(): this {
-        this._strict = true;
+        this._mode = 'strict';
+
+        return this;
+    }
+    passthrough(): this {
+        this._mode = 'passthrough';
 
         return this;
     }

@@ -30,7 +30,6 @@ abstract class Schema<OutputType> {
 
         return result.value;
     }
-
     safeParse(value: unknown): ParseResult<OutputType> {
         return this._parse(value);
     }
