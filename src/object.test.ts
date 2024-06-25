@@ -10,7 +10,9 @@ test('Type', async (t) => {
     });
 
     await t.step('Valid', () => {
-        const result = schema.safeParse({ child: 'hello' });
+        const data = Object.freeze({ child: 'hello' });
+
+        const result = schema.safeParse(data);
         if (result.ok) {
             const expectedResult = { child: 'hello' };
             expect(result.value).toEqual(expectedResult);
@@ -19,8 +21,10 @@ test('Type', async (t) => {
         }
     });
 
-    await t.step('Invalid', () => {
-        const result = schema.safeParse(null);
+    await t.step('Not an object', () => {
+        const data = null;
+
+        const result = schema.safeParse(data);
         if (!result.ok) {
             const expectedResult: TreeNode = { type: 'leaf', code: 'invalid_type' };
             expect(result.issue).toEqual(expectedResult);
@@ -167,10 +171,10 @@ test('Deep missing keys', () => {
             object3: s.object({ string3: s.string(), number2: s.number() }),
         }),
     });
-    const data = {
+    const data = Object.freeze({
         object1: { string2: 'world' },
         object2: { object3: { string3: 'abc' } },
-    };
+    });
 
     const result = schema.safeParse(data);
     if (!result.ok) {
@@ -209,5 +213,29 @@ test('Deep missing keys', () => {
         expect(result.issue).toEqual(expectedResult);
     } else {
         expect(result.ok).toBeFalsy();
+    }
+});
+
+test('Optional', () => {
+    const schema = s.object({ child: s.string() }).optional();
+    const data = undefined;
+
+    const result = schema.safeParse(data);
+    if (result.ok) {
+        expect(result.value).toBe(undefined);
+    } else {
+        expect(result.ok).toBeTruthy();
+    }
+});
+
+test('Deep optional', () => {
+    const schema = s.object({ child: s.string().optional() }).optional();
+    const data = Object.freeze({ child: undefined });
+
+    const result = schema.safeParse(data);
+    if (result.ok) {
+        expect(result.value).toEqual({ child: undefined });
+    } else {
+        expect(result.ok).toBeTruthy();
     }
 });

@@ -187,3 +187,13 @@ test('Nano ID', async (t) => {
         }
     });
 });
+
+test('Optional', () => {
+    const schema = s.string().optional();
+    const result = schema.safeParse(undefined);
+    if (result.ok) {
+        expect(result.value).toBe(undefined);
+    } else {
+        expect(result.ok).toBeTruthy();
+    }
+});

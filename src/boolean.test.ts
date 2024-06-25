@@ -15,7 +15,7 @@ test('Type', async (t) => {
         }
     });
 
-    await t.step('Not a number', () => {
+    await t.step('Not a boolean', () => {
         const result = schema.safeParse(null);
         if (!result.ok) {
             expect(result.issue).toEqual({ type: 'leaf', code: 'invalid_type' });
@@ -23,4 +23,14 @@ test('Type', async (t) => {
             expect(result.ok).toBeFalsy();
         }
     });
+});
+
+test('Optional', () => {
+    const schema = s.boolean().optional();
+    const result = schema.safeParse(undefined);
+    if (result.ok) {
+        expect(result.value).toBe(undefined);
+    } else {
+        expect(result.ok).toBeTruthy();
+    }
 });

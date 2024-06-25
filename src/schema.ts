@@ -21,7 +21,6 @@ abstract class Schema<OutputType> {
     protected checks: ((value: OutputType) => TreeNode | undefined)[] = [];
 
     public abstract _parse(value: unknown): ParseResult<OutputType>;
-
     parse(value: unknown): OutputType {
         const result = this._parse(value);
         if (!result.ok) {
@@ -32,6 +31,26 @@ abstract class Schema<OutputType> {
     }
     safeParse(value: unknown): ParseResult<OutputType> {
         return this._parse(value);
+    }
+    optional() {
+        return new OptionalSchema(this);
+    }
+}
+
+class OptionalSchema<OutputType> extends Schema<OutputType | undefined> {
+    private readonly _schema: Schema<OutputType>;
+
+    constructor(schema: Schema<OutputType>) {
+        super();
+
+        this._schema = schema;
+    }
+    _parse(value: unknown): ParseResult<OutputType | undefined> {
+        if (value === undefined) {
+            return { ok: true, value };
+        }
+
+        return this._schema._parse(value);
     }
 }
 
