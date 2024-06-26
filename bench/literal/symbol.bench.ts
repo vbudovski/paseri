@@ -1,4 +1,3 @@
-import * as v from '@badrap/valita';
 import { z } from 'zod';
 import * as p from '../../src/index.ts';
 

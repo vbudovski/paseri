@@ -54,5 +54,7 @@ class OptionalSchema<OutputType> extends Schema<OutputType | undefined> {
     }
 }
 
+type Infer<SchemaType> = SchemaType extends Schema<infer OutputType> ? OutputType : never;
+
 export { Schema };
-export type { ParseResult, ValidationError };
+export type { ParseResult, ValidationError, Infer };
