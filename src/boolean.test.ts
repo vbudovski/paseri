@@ -1,4 +1,5 @@
 import { expect } from '@std/expect';
+import { expectTypeOf } from 'expect-type';
 import * as p from '../src/index.ts';
 
 const { test } = Deno;
@@ -9,6 +10,7 @@ test('Type', async (t) => {
     await t.step('Valid', () => {
         const result = schema.safeParse(true);
         if (result.ok) {
+            expectTypeOf(result.value).toEqualTypeOf<boolean>;
             expect(result.value).toBe(true);
         } else {
             expect(result.ok).toBeTruthy();
@@ -29,6 +31,7 @@ test('Optional', () => {
     const schema = p.boolean().optional();
     const result = schema.safeParse(undefined);
     if (result.ok) {
+        expectTypeOf(result.value).toEqualTypeOf<boolean | undefined>;
         expect(result.value).toBe(undefined);
     } else {
         expect(result.ok).toBeTruthy();

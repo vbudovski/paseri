@@ -1,4 +1,5 @@
 import { expect } from '@std/expect';
+import { expectTypeOf } from 'expect-type';
 import * as p from '../src/index.ts';
 
 const { test } = Deno;
@@ -9,6 +10,7 @@ test('Type', async (t) => {
     await t.step('Valid', () => {
         const result = schema.safeParse(123);
         if (result.ok) {
+            expectTypeOf(result.value).toEqualTypeOf<number>;
             expect(result.value).toBe(123);
         } else {
             expect(result.ok).toBeTruthy();
@@ -31,6 +33,7 @@ test('Greater than or equal', async (t) => {
     await t.step('Valid', () => {
         const result = schema.safeParse(10);
         if (result.ok) {
+            expectTypeOf(result.value).toEqualTypeOf<number>;
             expect(result.value).toBe(10);
         } else {
             expect(result.ok).toBeTruthy();
@@ -53,6 +56,7 @@ test('Greater than', async (t) => {
     await t.step('Valid', () => {
         const result = schema.safeParse(11);
         if (result.ok) {
+            expectTypeOf(result.value).toEqualTypeOf<number>;
             expect(result.value).toBe(11);
         } else {
             expect(result.ok).toBeTruthy();
@@ -75,6 +79,7 @@ test('Less than or equal', async (t) => {
     await t.step('Valid', () => {
         const result = schema.safeParse(10);
         if (result.ok) {
+            expectTypeOf(result.value).toEqualTypeOf<number>;
             expect(result.value).toBe(10);
         } else {
             expect(result.ok).toBeTruthy();
@@ -97,6 +102,7 @@ test('Less than', async (t) => {
     await t.step('Valid', () => {
         const result = schema.safeParse(9);
         if (result.ok) {
+            expectTypeOf(result.value).toEqualTypeOf<number>;
             expect(result.value).toBe(9);
         } else {
             expect(result.ok).toBeTruthy();
@@ -119,6 +125,7 @@ test('Integer', async (t) => {
     await t.step('Valid', () => {
         const result = schema.safeParse(123);
         if (result.ok) {
+            expectTypeOf(result.value).toEqualTypeOf<number>;
             expect(result.value).toBe(123);
         } else {
             expect(result.ok).toBeTruthy();
@@ -141,6 +148,7 @@ test('Finite', async (t) => {
     await t.step('Valid', () => {
         const result = schema.safeParse(123);
         if (result.ok) {
+            expectTypeOf(result.value).toEqualTypeOf<number>;
             expect(result.value).toBe(123);
         } else {
             expect(result.ok).toBeTruthy();
@@ -163,6 +171,7 @@ test('Safe integer', async (t) => {
     await t.step('Valid', () => {
         const result = schema.safeParse(123);
         if (result.ok) {
+            expectTypeOf(result.value).toEqualTypeOf<number>;
             expect(result.value).toBe(123);
         } else {
             expect(result.ok).toBeTruthy();
@@ -183,6 +192,7 @@ test('Optional', () => {
     const schema = p.number().optional();
     const result = schema.safeParse(undefined);
     if (result.ok) {
+        expectTypeOf(result.value).toEqualTypeOf<number | undefined>;
         expect(result.value).toBe(undefined);
     } else {
         expect(result.ok).toBeTruthy();

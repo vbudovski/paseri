@@ -8,6 +8,7 @@
       "jsr:@std/internal@^1.0.0": "jsr:@std/internal@1.0.0",
       "npm:@biomejs/biome": "npm:@biomejs/biome@1.8.0",
       "npm:esbuild@^0.21.4": "npm:esbuild@0.21.4",
+      "npm:expect-type@^0.19.0": "npm:expect-type@0.19.0",
       "npm:type-fest": "npm:type-fest@4.20.0",
       "npm:type-fest@^4.20.0": "npm:type-fest@4.20.0",
       "npm:typescript@^5.4.5": "npm:typescript@5.4.5",
@@ -201,6 +202,10 @@
           "@esbuild/win32-x64": "@esbuild/win32-x64@0.21.4"
         }
       },
+      "expect-type@0.19.0": {
+        "integrity": "sha512-piv9wz3IrAG4Wnk2A+n2VRCHieAyOSxrRLU872Xo6nyn39kYXKDALk4OcqnvLRnFvkz659CnWC8MWZLuuQnoqg==",
+        "dependencies": {}
+      },
       "type-fest@4.20.0": {
         "integrity": "sha512-MBh+PHUHHisjXf4tlx0CFWoMdjx8zCMLJHOjnV1prABYZFHqtFOyauCIK2/7w4oIfwkF8iNhLtnJEfVY2vn3iw==",
         "dependencies": {}
@@ -222,6 +227,7 @@
       "jsr:@std/expect@^0.224.4",
       "npm:@biomejs/biome@^1.8.0",
       "npm:esbuild@^0.21.4",
+      "npm:expect-type@^0.19.0",
       "npm:type-fest@^4.20.0",
       "npm:typescript@^5.4.5",
       "npm:zod@^3.23.8"

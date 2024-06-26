@@ -1,4 +1,5 @@
 import { expect } from '@std/expect';
+import { expectTypeOf } from 'expect-type';
 import * as p from '../src/index.ts';
 
 const { test } = Deno;
@@ -9,6 +10,7 @@ test('Type', async (t) => {
     await t.step('Valid', () => {
         const result = schema.safeParse('Hello, world!');
         if (result.ok) {
+            expectTypeOf(result.value).toEqualTypeOf<string>;
             expect(result.value).toBe('Hello, world!');
         } else {
             expect(result.ok).toBeTruthy();
@@ -31,6 +33,7 @@ test('Min', async (t) => {
     await t.step('Valid', () => {
         const result = schema.safeParse('aaa');
         if (result.ok) {
+            expectTypeOf(result.value).toEqualTypeOf<string>;
             expect(result.value).toBe('aaa');
         } else {
             expect(result.ok).toBeTruthy();
@@ -53,6 +56,7 @@ test('Max', async (t) => {
     await t.step('Valid', () => {
         const result = schema.safeParse('aaa');
         if (result.ok) {
+            expectTypeOf(result.value).toEqualTypeOf<string>;
             expect(result.value).toBe('aaa');
         } else {
             expect(result.ok).toBeTruthy();
@@ -75,6 +79,7 @@ test('Length', async (t) => {
     await t.step('Valid', () => {
         const result = schema.safeParse('aaa');
         if (result.ok) {
+            expectTypeOf(result.value).toEqualTypeOf<string>;
             expect(result.value).toBe('aaa');
         } else {
             expect(result.ok).toBeTruthy();
@@ -106,6 +111,7 @@ test('Email', async (t) => {
     await t.step('Valid', () => {
         const result = schema.safeParse('hello@example.com');
         if (result.ok) {
+            expectTypeOf(result.value).toEqualTypeOf<string>;
             expect(result.value).toBe('hello@example.com');
         } else {
             expect(result.ok).toBeTruthy();
@@ -128,6 +134,7 @@ test('Emoji', async (t) => {
     await t.step('Valid', () => {
         const result = schema.safeParse('🥳');
         if (result.ok) {
+            expectTypeOf(result.value).toEqualTypeOf<string>;
             expect(result.value).toBe('🥳');
         } else {
             expect(result.ok).toBeTruthy();
@@ -150,6 +157,7 @@ test('UUID', async (t) => {
     await t.step('Valid', () => {
         const result = schema.safeParse('d98d4b7e-58a5-4e21-839b-2699b94c115b');
         if (result.ok) {
+            expectTypeOf(result.value).toEqualTypeOf<string>;
             expect(result.value).toBe('d98d4b7e-58a5-4e21-839b-2699b94c115b');
         } else {
             expect(result.ok).toBeTruthy();
@@ -172,6 +180,7 @@ test('Nano ID', async (t) => {
     await t.step('Valid', () => {
         const result = schema.safeParse('V1StGXR8_Z5jdHi6B-myT');
         if (result.ok) {
+            expectTypeOf(result.value).toEqualTypeOf<string>;
             expect(result.value).toBe('V1StGXR8_Z5jdHi6B-myT');
         } else {
             expect(result.ok).toBeTruthy();
@@ -192,6 +201,7 @@ test('Optional', () => {
     const schema = p.string().optional();
     const result = schema.safeParse(undefined);
     if (result.ok) {
+        expectTypeOf(result.value).toEqualTypeOf<string | undefined>;
         expect(result.value).toBe(undefined);
     } else {
         expect(result.ok).toBeTruthy();

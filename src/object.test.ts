@@ -1,4 +1,5 @@
 import { expect } from '@std/expect';
+import { expectTypeOf } from 'expect-type';
 import * as p from '../src/index.ts';
 import type { TreeNode } from './issue.ts';
 
@@ -14,6 +15,7 @@ test('Type', async (t) => {
 
         const result = schema.safeParse(data);
         if (result.ok) {
+            expectTypeOf(result.value).toEqualTypeOf<{ child: string }>;
             const expectedResult = { child: 'hello' };
             expect(result.value).toEqual(expectedResult);
         } else {
@@ -42,6 +44,7 @@ test('Flat, strip', () => {
 
     const result = schema.safeParse(data);
     if (result.ok) {
+        expectTypeOf(result.value).toEqualTypeOf<{ child: string }>;
         const expectedResult = { child: 'hello' };
         expect(result.value).toEqual(expectedResult);
     } else {
@@ -59,6 +62,7 @@ test('Deep, strip', () => {
 
     const result = schema.safeParse(data);
     if (result.ok) {
+        expectTypeOf(result.value).toEqualTypeOf<{ child: { expected: string } }>;
         const expectedResult = { child: { expected: 'hello' } };
         expect(result.value).toEqual(expectedResult);
     } else {
@@ -120,6 +124,8 @@ test('Flat, passthrough', () => {
 
     const result = schema.safeParse(data);
     if (result.ok) {
+        // FIXME: Output type for passthrough.
+        // expectTypeOf(result.value).toEqualTypeOf<{ extra1: string; child: string; extra2: string }>;
         const expectedResult = { extra1: 'foo', child: 'hello', extra2: 'bar' };
         expect(result.value).toEqual(expectedResult);
     } else {
@@ -135,6 +141,8 @@ test('Deep, passthrough', () => {
 
     const result = schema.safeParse(data);
     if (result.ok) {
+        // FIXME: Output type for passthrough.
+        // expectTypeOf(result.value).toEqualTypeOf<{ child: { extra1: string; expected: string; extra2: string } }>;
         const expectedResult = { child: { extra1: 'foo', expected: 'hello', extra2: 'bar' } };
         expect(result.value).toEqual(expectedResult);
     } else {
@@ -222,6 +230,7 @@ test('Optional', () => {
 
     const result = schema.safeParse(data);
     if (result.ok) {
+        expectTypeOf(result.value).toEqualTypeOf<{ child: string } | undefined>;
         expect(result.value).toBe(undefined);
     } else {
         expect(result.ok).toBeTruthy();
@@ -229,11 +238,12 @@ test('Optional', () => {
 });
 
 test('Deep optional', () => {
-    const schema = p.object({ child: p.string().optional() }).optional();
+    const schema = p.object({ child: p.string().optional() });
     const data = Object.freeze({ child: undefined });
 
     const result = schema.safeParse(data);
     if (result.ok) {
+        expectTypeOf(result.value).toEqualTypeOf<{ child: string | undefined }>;
         expect(result.value).toEqual({ child: undefined });
     } else {
         expect(result.ok).toBeTruthy();

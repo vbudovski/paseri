@@ -1,4 +1,5 @@
 import { expect } from '@std/expect';
+import { expectTypeOf } from 'expect-type';
 import * as p from '../src/index.ts';
 
 const { test } = Deno;
@@ -9,6 +10,7 @@ test('String', async (t) => {
     await t.step('Valid', () => {
         const result = schema.safeParse('apple');
         if (result.ok) {
+            expectTypeOf(result.value).toEqualTypeOf<'apple'>;
             expect(result.value).toBe('apple');
         } else {
             expect(result.ok).toBeTruthy();
@@ -31,6 +33,7 @@ test('Number', async (t) => {
     await t.step('Valid', () => {
         const result = schema.safeParse(123);
         if (result.ok) {
+            expectTypeOf(result.value).toEqualTypeOf<123>;
             expect(result.value).toBe(123);
         } else {
             expect(result.ok).toBeTruthy();
@@ -53,6 +56,7 @@ test('BigInt', async (t) => {
     await t.step('Valid', () => {
         const result = schema.safeParse(123n);
         if (result.ok) {
+            expectTypeOf(result.value).toEqualTypeOf<123n>;
             expect(result.value).toBe(123n);
         } else {
             expect(result.ok).toBeTruthy();
@@ -75,6 +79,7 @@ test('Boolean', async (t) => {
     await t.step('Valid', () => {
         const result = schema.safeParse(true);
         if (result.ok) {
+            expectTypeOf(result.value).toEqualTypeOf<true>;
             expect(result.value).toBe(true);
         } else {
             expect(result.ok).toBeTruthy();
@@ -123,6 +128,7 @@ test('Optional', () => {
     const schema = p.literal('apple').optional();
     const result = schema.safeParse(undefined);
     if (result.ok) {
+        expectTypeOf(result.value).toEqualTypeOf<'apple' | undefined>;
         expect(result.value).toBe(undefined);
     } else {
         expect(result.ok).toBeTruthy();

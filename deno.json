@@ -5,6 +5,7 @@
     "@biomejs/biome": "npm:@biomejs/biome@^1.8.0",
     "@std/expect": "jsr:@std/expect@^0.224.4",
     "esbuild": "npm:esbuild@^0.21.4",
+    "expect-type": "npm:expect-type@^0.19.0",
     "type-fest": "npm:type-fest@^4.20.0",
     "typescript": "npm:typescript@^5.4.5",
     "zod": "npm:zod@^3.23.8"
