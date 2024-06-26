@@ -1,12 +1,12 @@
 import { expect } from '@std/expect';
-import * as s from '../src/index.ts';
+import * as p from '../src/index.ts';
 import type { TreeNode } from './issue.ts';
 
 const { test } = Deno;
 
 test('Type', async (t) => {
-    const schema = s.object({
-        child: s.string(),
+    const schema = p.object({
+        child: p.string(),
     });
 
     await t.step('Valid', () => {
@@ -35,8 +35,8 @@ test('Type', async (t) => {
 });
 
 test('Flat, strip', () => {
-    const schema = s.object({
-        child: s.string(),
+    const schema = p.object({
+        child: p.string(),
     });
     const data = Object.freeze({ extra1: 'foo', child: 'hello', extra2: 'bar' });
 
@@ -50,9 +50,9 @@ test('Flat, strip', () => {
 });
 
 test('Deep, strip', () => {
-    const schema = s.object({
-        child: s.object({
-            expected: s.string(),
+    const schema = p.object({
+        child: p.object({
+            expected: p.string(),
         }),
     });
     const data = Object.freeze({ child: { extra1: 'foo', expected: 'hello', extra2: 'bar' } });
@@ -67,9 +67,9 @@ test('Deep, strip', () => {
 });
 
 test('Flat, strict', () => {
-    const schema = s
+    const schema = p
         .object({
-            child: s.string(),
+            child: p.string(),
         })
         .strict();
     const data = Object.freeze({ extra1: 'foo', child: 'hello', extra2: 'bar' });
@@ -88,8 +88,8 @@ test('Flat, strict', () => {
 });
 
 test('Deep, strict', () => {
-    const schema = s.object({
-        child: s.object({ expected: s.string() }).strict(),
+    const schema = p.object({
+        child: p.object({ expected: p.string() }).strict(),
     });
     const data = Object.freeze({ child: { extra1: 'foo', expected: 'hello', extra2: 'bar' } });
 
@@ -111,9 +111,9 @@ test('Deep, strict', () => {
 });
 
 test('Flat, passthrough', () => {
-    const schema = s
+    const schema = p
         .object({
-            child: s.string(),
+            child: p.string(),
         })
         .passthrough();
     const data = Object.freeze({ extra1: 'foo', child: 'hello', extra2: 'bar' });
@@ -128,8 +128,8 @@ test('Flat, passthrough', () => {
 });
 
 test('Deep, passthrough', () => {
-    const schema = s.object({
-        child: s.object({ expected: s.string() }).passthrough(),
+    const schema = p.object({
+        child: p.object({ expected: p.string() }).passthrough(),
     });
     const data = Object.freeze({ child: { extra1: 'foo', expected: 'hello', extra2: 'bar' } });
 
@@ -143,10 +143,10 @@ test('Deep, passthrough', () => {
 });
 
 test('Missing keys', () => {
-    const schema = s.object({
-        child1: s.string(),
-        child2: s.string(),
-        child3: s.string(),
+    const schema = p.object({
+        child1: p.string(),
+        child2: p.string(),
+        child3: p.string(),
     });
     const data = Object.freeze({ child2: 'hello' });
 
@@ -164,11 +164,11 @@ test('Missing keys', () => {
 });
 
 test('Deep missing keys', () => {
-    const schema = s.object({
-        string1: s.string(),
-        object1: s.object({ string2: s.string(), number1: s.number() }),
-        object2: s.object({
-            object3: s.object({ string3: s.string(), number2: s.number() }),
+    const schema = p.object({
+        string1: p.string(),
+        object1: p.object({ string2: p.string(), number1: p.number() }),
+        object2: p.object({
+            object3: p.object({ string3: p.string(), number2: p.number() }),
         }),
     });
     const data = Object.freeze({
@@ -217,7 +217,7 @@ test('Deep missing keys', () => {
 });
 
 test('Optional', () => {
-    const schema = s.object({ child: s.string() }).optional();
+    const schema = p.object({ child: p.string() }).optional();
     const data = undefined;
 
     const result = schema.safeParse(data);
@@ -229,7 +229,7 @@ test('Optional', () => {
 });
 
 test('Deep optional', () => {
-    const schema = s.object({ child: s.string().optional() }).optional();
+    const schema = p.object({ child: p.string().optional() }).optional();
     const data = Object.freeze({ child: undefined });
 
     const result = schema.safeParse(data);

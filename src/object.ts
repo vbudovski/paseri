@@ -1,4 +1,4 @@
-import type { NonEmptyObject, Simplify } from 'npm:type-fest';
+import type { NonEmptyObject, Simplify } from 'type-fest';
 import type { TreeNode } from './issue.ts';
 import { addIssue } from './issue.ts';
 import { type ParseResult, Schema } from './schema.ts';

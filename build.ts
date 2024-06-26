@@ -1,5 +1,5 @@
-import { build } from 'npm:esbuild';
-import ts from 'npm:typescript';
+import { build } from 'esbuild';
+import ts from 'typescript';
 
 await build({
     entryPoints: ['src/index.ts'],

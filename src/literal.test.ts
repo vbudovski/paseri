@@ -1,10 +1,10 @@
 import { expect } from '@std/expect';
-import * as s from '../src/index.ts';
+import * as p from '../src/index.ts';
 
 const { test } = Deno;
 
 test('String', async (t) => {
-    const schema = s.literal('apple');
+    const schema = p.literal('apple');
 
     await t.step('Valid', () => {
         const result = schema.safeParse('apple');
@@ -26,7 +26,7 @@ test('String', async (t) => {
 });
 
 test('Number', async (t) => {
-    const schema = s.literal(123);
+    const schema = p.literal(123);
 
     await t.step('Valid', () => {
         const result = schema.safeParse(123);
@@ -48,7 +48,7 @@ test('Number', async (t) => {
 });
 
 test('BigInt', async (t) => {
-    const schema = s.literal(123n);
+    const schema = p.literal(123n);
 
     await t.step('Valid', () => {
         const result = schema.safeParse(123n);
@@ -70,7 +70,7 @@ test('BigInt', async (t) => {
 });
 
 test('Boolean', async (t) => {
-    const schema = s.literal(true);
+    const schema = p.literal(true);
 
     await t.step('Valid', () => {
         const result = schema.safeParse(true);
@@ -93,7 +93,7 @@ test('Boolean', async (t) => {
 
 test('Symbol', async (t) => {
     const symbolLiteral = Symbol.for('test');
-    const schema = s.literal(symbolLiteral);
+    const schema = p.literal(symbolLiteral);
 
     await t.step('Valid', () => {
         const data = Symbol.for('test');
@@ -120,7 +120,7 @@ test('Symbol', async (t) => {
 });
 
 test('Optional', () => {
-    const schema = s.literal('apple').optional();
+    const schema = p.literal('apple').optional();
     const result = schema.safeParse(undefined);
     if (result.ok) {
         expect(result.value).toBe(undefined);

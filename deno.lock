@@ -7,11 +7,12 @@
       "jsr:@std/expect@^0.224.4": "jsr:@std/expect@0.224.4",
       "jsr:@std/internal@^1.0.0": "jsr:@std/internal@1.0.0",
       "npm:@biomejs/biome": "npm:@biomejs/biome@1.8.0",
-      "npm:esbuild": "npm:esbuild@0.21.4",
+      "npm:esbuild@^0.21.4": "npm:esbuild@0.21.4",
       "npm:type-fest": "npm:type-fest@4.20.0",
       "npm:type-fest@^4.20.0": "npm:type-fest@4.20.0",
-      "npm:typescript": "npm:typescript@5.4.5",
-      "npm:zod": "npm:zod@3.23.8"
+      "npm:typescript@^5.4.5": "npm:typescript@5.4.5",
+      "npm:zod": "npm:zod@3.23.8",
+      "npm:zod@^3.23.8": "npm:zod@3.23.8"
     },
     "jsr": {
       "@badrap/valita@0.3.8": {

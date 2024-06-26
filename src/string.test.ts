@@ -1,10 +1,10 @@
 import { expect } from '@std/expect';
-import * as s from '../src/index.ts';
+import * as p from '../src/index.ts';
 
 const { test } = Deno;
 
 test('Type', async (t) => {
-    const schema = s.string();
+    const schema = p.string();
 
     await t.step('Valid', () => {
         const result = schema.safeParse('Hello, world!');
@@ -26,7 +26,7 @@ test('Type', async (t) => {
 });
 
 test('Min', async (t) => {
-    const schema = s.string().min(3);
+    const schema = p.string().min(3);
 
     await t.step('Valid', () => {
         const result = schema.safeParse('aaa');
@@ -48,7 +48,7 @@ test('Min', async (t) => {
 });
 
 test('Max', async (t) => {
-    const schema = s.string().max(3);
+    const schema = p.string().max(3);
 
     await t.step('Valid', () => {
         const result = schema.safeParse('aaa');
@@ -70,7 +70,7 @@ test('Max', async (t) => {
 });
 
 test('Length', async (t) => {
-    const schema = s.string().length(3);
+    const schema = p.string().length(3);
 
     await t.step('Valid', () => {
         const result = schema.safeParse('aaa');
@@ -101,7 +101,7 @@ test('Length', async (t) => {
 });
 
 test('Email', async (t) => {
-    const schema = s.string().email();
+    const schema = p.string().email();
 
     await t.step('Valid', () => {
         const result = schema.safeParse('hello@example.com');
@@ -123,7 +123,7 @@ test('Email', async (t) => {
 });
 
 test('Emoji', async (t) => {
-    const schema = s.string().emoji();
+    const schema = p.string().emoji();
 
     await t.step('Valid', () => {
         const result = schema.safeParse('🥳');
@@ -145,7 +145,7 @@ test('Emoji', async (t) => {
 });
 
 test('UUID', async (t) => {
-    const schema = s.string().uuid();
+    const schema = p.string().uuid();
 
     await t.step('Valid', () => {
         const result = schema.safeParse('d98d4b7e-58a5-4e21-839b-2699b94c115b');
@@ -167,7 +167,7 @@ test('UUID', async (t) => {
 });
 
 test('Nano ID', async (t) => {
-    const schema = s.string().nanoid();
+    const schema = p.string().nanoid();
 
     await t.step('Valid', () => {
         const result = schema.safeParse('V1StGXR8_Z5jdHi6B-myT');
@@ -189,7 +189,7 @@ test('Nano ID', async (t) => {
 });
 
 test('Optional', () => {
-    const schema = s.string().optional();
+    const schema = p.string().optional();
     const result = schema.safeParse(undefined);
     if (result.ok) {
         expect(result.value).toBe(undefined);

@@ -1,10 +1,10 @@
 import { expect } from '@std/expect';
-import * as s from '../src/index.ts';
+import * as p from '../src/index.ts';
 
 const { test } = Deno;
 
 test('Type', async (t) => {
-    const schema = s.boolean();
+    const schema = p.boolean();
 
     await t.step('Valid', () => {
         const result = schema.safeParse(true);
@@ -26,7 +26,7 @@ test('Type', async (t) => {
 });
 
 test('Optional', () => {
-    const schema = s.boolean().optional();
+    const schema = p.boolean().optional();
     const result = schema.safeParse(undefined);
     if (result.ok) {
         expect(result.value).toBe(undefined);

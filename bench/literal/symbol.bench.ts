@@ -1,12 +1,12 @@
-import { z } from 'npm:zod';
 import * as v from '@badrap/valita';
-import * as s from '../../src/index.ts';
+import { z } from 'zod';
+import * as p from '../../src/index.ts';
 
 const { bench } = Deno;
 
 const symbolLiteral = Symbol.for('test');
 
-const mySchema = s.literal(symbolLiteral);
+const mySchema = p.literal(symbolLiteral);
 const zodSchema = z.literal(symbolLiteral);
 
 const dataValid = Symbol.for('test');

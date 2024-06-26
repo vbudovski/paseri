@@ -1,11 +1,11 @@
-import { z } from 'npm:zod';
 import * as v from '@badrap/valita';
-import * as s from '../../src/index.ts';
+import { z } from 'zod';
+import * as p from '../../src/index.ts';
 
 const { bench } = Deno;
 
-const mySchema = s.object({
-    string1: s.string(),
+const mySchema = p.object({
+    string1: p.string(),
 });
 const zodSchema = z.object({
     string1: z.string(),
