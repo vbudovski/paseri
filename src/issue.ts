@@ -1,4 +1,4 @@
-type Key = string;
+type Key = string | number;
 
 interface LeafNode {
     type: 'leaf';
@@ -52,7 +52,7 @@ function issueList(node: TreeNode): readonly Issue[] {
     return issues;
 }
 
-function addIssue(node: TreeNode | undefined, newNode: LeafNode | NestNode): TreeNode {
+function addIssue(node: TreeNode | undefined, newNode: TreeNode): TreeNode {
     let tree: TreeNode | undefined = node;
     if (!tree) {
         tree = newNode;

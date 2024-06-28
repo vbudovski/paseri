@@ -1,3 +1,4 @@
+export { array } from './array.ts';
 export { boolean } from './boolean.ts';
 export { literal } from './literal.ts';
 export { null_ as null } from './null.ts';
