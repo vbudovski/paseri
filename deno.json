@@ -14,5 +14,10 @@
     "lint": "deno run --allow-env --allow-read --allow-run npm:@biomejs/biome lint src",
     "format": "deno run --allow-env --allow-read --allow-run npm:@biomejs/biome format src",
     "build": "deno run --allow-env --allow-read --allow-run --allow-write build.ts"
+  },
+  "lint": {
+    "rules": {
+      "exclude": ["no-explicit-any"]
+    }
   }
 }
