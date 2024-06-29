@@ -1,6 +1,7 @@
 export { array } from './array.ts';
 export { boolean } from './boolean.ts';
 export { literal } from './literal.ts';
+export { never } from './never.ts';
 export { null_ as null } from './null.ts';
 export { number } from './number.ts';
 export { object } from './object.ts';
