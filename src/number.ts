@@ -14,14 +14,17 @@ class NumberSchema extends Schema<number> {
         if (typeof value !== 'number') {
             return { ok: false, issue: this.issues.INVALID_TYPE };
         }
-        for (const check of this.checks) {
+
+        const length = this.checks.length;
+        for (let i = 0; i < length; ++i) {
+            const check = this.checks[i];
             const issue = check(value);
             if (issue) {
                 return { ok: false, issue };
             }
         }
 
-        return { ok: true, value: value as number };
+        return { ok: true, value };
     }
     gte(value: number) {
         this.checks.push((_value) => {
