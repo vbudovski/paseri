@@ -5,7 +5,7 @@ import { type Infer, type InternalParseResult, Schema, isIssue } from './schema.
 // biome-ignore lint/suspicious/noExplicitAny: Required to accept any Schema variant.
 type ValidElementSchemaType = Schema<any>;
 
-class ArraySchema<ElementSchemaType extends ValidElementSchemaType> extends Schema<Infer<ElementSchemaType>[]> {
+class ArraySchema<ElementSchemaType extends ValidElementSchemaType> extends Schema<Infer<ElementSchemaType[]>> {
     private readonly _element: ElementSchemaType;
     private _minLength = 0;
     private _maxLength = Number.POSITIVE_INFINITY;
@@ -21,7 +21,7 @@ class ArraySchema<ElementSchemaType extends ValidElementSchemaType> extends Sche
 
         this._element = element;
     }
-    _parse(value: unknown): InternalParseResult<Infer<ElementSchemaType>[]> {
+    _parse(value: unknown): InternalParseResult<Infer<ElementSchemaType[]>> {
         if (!Array.isArray(value)) {
             return this.issues.INVALID_TYPE;
         }
@@ -53,7 +53,7 @@ class ArraySchema<ElementSchemaType extends ValidElementSchemaType> extends Sche
             return issue;
         }
 
-        return { ok: true, value };
+        return { ok: true, value: value as Infer<ElementSchemaType[]> };
     }
     min(length: number) {
         this._minLength = length;

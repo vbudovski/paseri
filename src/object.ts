@@ -1,17 +1,10 @@
-import type { NonEmptyObject, Simplify } from 'type-fest';
+import type { NonEmptyObject } from 'type-fest';
 import type { TreeNode } from './issue.ts';
 import { addIssue } from './issue.ts';
-import { type InternalParseResult, Schema, isParseSuccess } from './schema.ts';
+import { type Infer, type InternalParseResult, Schema, isParseSuccess } from './schema.ts';
 
-type ObjectSchemaType<ShapeType> = NonEmptyObject<
-    Simplify<{
-        [Key in keyof ShapeType]: ShapeType[Key] extends Schema<infer OutputType>
-            ? Schema<OutputType>
-            : Schema<unknown>;
-    }>
->;
-type ObjectSchemaOutputType<ShapeType> = Simplify<{
-    [Key in keyof ShapeType]: ShapeType[Key] extends Schema<infer OutputType> ? OutputType : never;
+type ValidShapeType<ShapeType> = NonEmptyObject<{
+    [Key in keyof ShapeType]: ShapeType[Key] extends Schema<infer OutputType> ? Schema<OutputType> : never;
 }>;
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
@@ -28,7 +21,7 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
 
 type Mode = 'strip' | 'strict' | 'passthrough';
 
-class ObjectSchema<ShapeType extends ObjectSchemaType<ShapeType>> extends Schema<ObjectSchemaOutputType<ShapeType>> {
+class ObjectSchema<ShapeType extends ValidShapeType<ShapeType>> extends Schema<Infer<ShapeType>> {
     private readonly _shape: Map<string, Schema<unknown>>;
     private _mode: Mode = 'strip';
 
@@ -43,7 +36,7 @@ class ObjectSchema<ShapeType extends ObjectSchemaType<ShapeType>> extends Schema
 
         this._shape = new Map(Object.entries(shape));
     }
-    _parse(value: unknown): InternalParseResult<ObjectSchemaOutputType<ShapeType>> {
+    _parse(value: unknown): InternalParseResult<Infer<ShapeType>> {
         if (!isPlainObject(value)) {
             return this.issues.INVALID_TYPE;
         }
@@ -112,7 +105,7 @@ class ObjectSchema<ShapeType extends ObjectSchemaType<ShapeType>> extends Schema
             return issue;
         }
 
-        return { ok: true, value: sanitisedValue as ObjectSchemaOutputType<ShapeType> };
+        return { ok: true, value: sanitisedValue as Infer<ShapeType> };
     }
     strict(): this {
         this._mode = 'strict';
@@ -126,7 +119,7 @@ class ObjectSchema<ShapeType extends ObjectSchemaType<ShapeType>> extends Schema
     }
 }
 
-function object<ShapeType extends ObjectSchemaType<ShapeType>>(
+function object<ShapeType extends ValidShapeType<ShapeType>>(
     ...args: ConstructorParameters<typeof ObjectSchema<ShapeType>>
 ) {
     return new ObjectSchema(...args);
