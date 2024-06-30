@@ -1,5 +1,5 @@
 import type { TupleToUnion } from 'type-fest';
-import { type Infer, type ParseResult, Schema } from './schema.ts';
+import { type Infer, type InternalParseResult, Schema, isParseSuccess } from './schema.ts';
 
 // biome-ignore lint/suspicious/noExplicitAny: Required to accept any Schema variant.
 type ValidTupleType<T = any> = [Schema<T>, Schema<T>, ...Schema<T>[]];
@@ -16,16 +16,19 @@ class UnionSchema<TupleType extends ValidTupleType> extends Schema<Infer<TupleTo
 
         this._elements = elements;
     }
-    _parse(value: unknown): ParseResult<Infer<TupleToUnion<TupleType>>> {
+    _parse(value: unknown): InternalParseResult<Infer<TupleToUnion<TupleType>>> {
         for (let i = 0; i < this._elements.length; i++) {
             const schema = this._elements[i];
             const result = schema._parse(value);
-            if (result.ok) {
+            if (result === undefined) {
+                return undefined;
+            }
+            if (isParseSuccess<Infer<TupleToUnion<TupleType>>>(result)) {
                 return result;
             }
         }
 
-        return { ok: false, issue: this.issues.INVALID_VALUE };
+        return this.issues.INVALID_VALUE;
     }
 }
 

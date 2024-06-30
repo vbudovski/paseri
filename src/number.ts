@@ -1,4 +1,4 @@
-import { type ParseResult, Schema } from './schema.ts';
+import { type InternalParseResult, Schema } from './schema.ts';
 
 class NumberSchema extends Schema<number> {
     readonly issues = {
@@ -10,9 +10,9 @@ class NumberSchema extends Schema<number> {
         INVALID_SAFE_INTEGER: { type: 'leaf', code: 'invalid_safe_integer' },
     } as const;
 
-    _parse(value: unknown): ParseResult<number> {
+    _parse(value: unknown): InternalParseResult<number> {
         if (typeof value !== 'number') {
-            return { ok: false, issue: this.issues.INVALID_TYPE };
+            return this.issues.INVALID_TYPE;
         }
 
         if (this.checks !== undefined) {
@@ -21,12 +21,12 @@ class NumberSchema extends Schema<number> {
                 const check = this.checks[i];
                 const issue = check(value);
                 if (issue) {
-                    return { ok: false, issue };
+                    return issue;
                 }
             }
         }
 
-        return { ok: true, value };
+        return undefined;
     }
     gte(value: number) {
         this.addCheck((_value) => {

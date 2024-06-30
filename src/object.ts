@@ -1,7 +1,7 @@
 import type { NonEmptyObject, Simplify } from 'type-fest';
 import type { TreeNode } from './issue.ts';
 import { addIssue } from './issue.ts';
-import { type ParseResult, Schema } from './schema.ts';
+import { type InternalParseResult, Schema, isParseSuccess } from './schema.ts';
 
 type ObjectSchemaType<ShapeType> = NonEmptyObject<
     Simplify<{
@@ -43,9 +43,9 @@ class ObjectSchema<ShapeType extends ObjectSchemaType<ShapeType>> extends Schema
 
         this._shape = new Map(Object.entries(shape));
     }
-    _parse(value: unknown): ParseResult<ObjectSchemaOutputType<ShapeType>> {
+    _parse(value: unknown): InternalParseResult<ObjectSchemaOutputType<ShapeType>> {
         if (!isPlainObject(value)) {
-            return { ok: false, issue: this.issues.INVALID_TYPE };
+            return this.issues.INVALID_TYPE;
         }
 
         let sanitisedValue: Record<string, unknown> = value;
@@ -58,20 +58,27 @@ class ObjectSchema<ShapeType extends ObjectSchemaType<ShapeType>> extends Schema
                 seen++;
 
                 const childValue = value[key];
-                const result = schema._parse(childValue);
-                if (!result.ok) {
-                    issue = addIssue(issue, {
-                        type: 'nest',
-                        key,
-                        child: result.issue,
-                    });
-                } else {
+                const issueOrSuccess = schema._parse(childValue);
+                if (issueOrSuccess === undefined) {
                     if (schema instanceof ObjectSchema && schema._mode === 'strip') {
                         if (sanitisedValue === value) {
                             sanitisedValue = { ...value };
                         }
-                        sanitisedValue[key] = result.value;
+                        sanitisedValue[key] = childValue;
                     }
+                } else if (isParseSuccess(issueOrSuccess)) {
+                    if (schema instanceof ObjectSchema && schema._mode === 'strip') {
+                        if (sanitisedValue === value) {
+                            sanitisedValue = { ...value };
+                        }
+                        sanitisedValue[key] = issueOrSuccess.value;
+                    }
+                } else {
+                    issue = addIssue(issue, {
+                        type: 'nest',
+                        key,
+                        child: issueOrSuccess,
+                    });
                 }
             } else {
                 if (this._mode === 'strict') {
@@ -102,7 +109,7 @@ class ObjectSchema<ShapeType extends ObjectSchemaType<ShapeType>> extends Schema
         }
 
         if (issue) {
-            return { ok: false, issue };
+            return issue;
         }
 
         return { ok: true, value: sanitisedValue as ObjectSchemaOutputType<ShapeType> };

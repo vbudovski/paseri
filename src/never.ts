@@ -1,12 +1,12 @@
-import { type ParseResult, Schema } from './schema.ts';
+import { type InternalParseResult, Schema } from './schema.ts';
 
 class NeverSchema extends Schema<never> {
     readonly issues = {
         INVALID_TYPE: { type: 'leaf', code: 'invalid_type' },
     } as const;
 
-    _parse(value: unknown): ParseResult<never> {
-        return { ok: false, issue: this.issues.INVALID_TYPE };
+    _parse(value: unknown): InternalParseResult<never> {
+        return this.issues.INVALID_TYPE;
     }
 }
 

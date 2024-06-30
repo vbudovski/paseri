@@ -1,5 +1,5 @@
 import type { IsLiteral } from 'type-fest';
-import { type ParseResult, Schema } from './schema.ts';
+import { type InternalParseResult, Schema } from './schema.ts';
 
 type LiteralType = string | number | bigint | boolean | symbol;
 
@@ -15,12 +15,12 @@ class LiteralSchema<OutputType extends LiteralType> extends Schema<OutputType> {
 
         this._value = value;
     }
-    _parse(value: unknown): ParseResult<OutputType> {
+    _parse(value: unknown): InternalParseResult<OutputType> {
         if (value !== this._value) {
-            return { ok: false, issue: this.issues.INVALID_VALUE };
+            return this.issues.INVALID_VALUE;
         }
 
-        return { ok: true, value: value as OutputType };
+        return undefined;
     }
 }
 

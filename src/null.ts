@@ -1,16 +1,16 @@
-import { type ParseResult, Schema } from './schema.ts';
+import { type InternalParseResult, Schema } from './schema.ts';
 
 class NullSchema extends Schema<null> {
     readonly issues = {
         INVALID_VALUE: { type: 'leaf', code: 'invalid_value' },
     } as const;
 
-    _parse(value: unknown): ParseResult<null> {
+    _parse(value: unknown): InternalParseResult<null> {
         if (value !== null) {
-            return { ok: false, issue: this.issues.INVALID_VALUE };
+            return this.issues.INVALID_VALUE;
         }
 
-        return { ok: true, value };
+        return undefined;
     }
 }
 

@@ -1,4 +1,4 @@
-import { type ParseResult, Schema } from './schema.ts';
+import { type InternalParseResult, Schema } from './schema.ts';
 
 const emailRegex = /^(?!\.)(?!.*\.\.)([A-Z0-9_'+\-.]*)[A-Z0-9_+-]@([A-Z0-9][A-Z0-9\-]*\.)+[A-Z]{2,}$/i;
 const emojiRegex = /^(\p{Extended_Pictographic}|\p{Emoji_Component})+$/u;
@@ -16,9 +16,9 @@ class StringSchema extends Schema<string> {
         INVALID_NANOID: { type: 'leaf', code: 'invalid_nanoid' },
     } as const;
 
-    _parse(value: unknown): ParseResult<string> {
+    _parse(value: unknown): InternalParseResult<string> {
         if (typeof value !== 'string') {
-            return { ok: false, issue: this.issues.INVALID_TYPE };
+            return this.issues.INVALID_TYPE;
         }
 
         if (this.checks !== undefined) {
@@ -27,12 +27,12 @@ class StringSchema extends Schema<string> {
                 const check = this.checks[i];
                 const issue = check(value);
                 if (issue) {
-                    return { ok: false, issue };
+                    return issue;
                 }
             }
         }
 
-        return { ok: true, value };
+        return undefined;
     }
     min(length: number) {
         this.addCheck((_value) => {

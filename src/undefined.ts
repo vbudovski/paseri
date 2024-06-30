@@ -1,16 +1,16 @@
-import { type ParseResult, Schema } from './schema.ts';
+import { type InternalParseResult, Schema } from './schema.ts';
 
 class UndefinedSchema extends Schema<undefined> {
     readonly issues = {
         INVALID_VALUE: { type: 'leaf', code: 'invalid_value' },
     } as const;
 
-    _parse(value: unknown): ParseResult<undefined> {
+    _parse(value: unknown): InternalParseResult<undefined> {
         if (value !== undefined) {
-            return { ok: false, issue: this.issues.INVALID_VALUE };
+            return this.issues.INVALID_VALUE;
         }
 
-        return { ok: true, value };
+        return undefined;
     }
 }
 
