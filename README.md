@@ -34,7 +34,7 @@ The list may be expanded in time, but for now the objectives are the following:
 
 > TODO
 
-[^1]: An [excellent article](https://lexi-lambda.github.io/blog/2019/11/05/parse-don-t-validate/) on the concept
+[^1]: An [excellent article](https://lexi-lambda.github.io/blog/2019/11/05/parse-don-t-validate/) on the concept of
 type-driven design.
 
 [^2]: It's certainly possible to create much faster parsers using dynamic code execution or ahead-of-time compilation,
