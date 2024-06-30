@@ -5,11 +5,6 @@ interface ParseSuccessResult<OutputType> {
     value: OutputType;
 }
 
-interface ValidationError {
-    path: string[];
-    message: string;
-}
-
 interface ParseErrorResult {
     ok: false;
     issue: TreeNode;
@@ -66,4 +61,4 @@ class OptionalSchema<OutputType> extends Schema<OutputType | undefined> {
 type Infer<SchemaType> = SchemaType extends Schema<infer OutputType> ? OutputType : never;
 
 export { Schema };
-export type { ParseResult, ValidationError, Infer };
+export type { ParseResult, Infer };
