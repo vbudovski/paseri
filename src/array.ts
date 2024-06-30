@@ -41,7 +41,7 @@ class ArraySchema<ElementSchemaType extends ValidElementSchemaType> extends Sche
         const schema = this._element;
 
         let issue: TreeNode | undefined = undefined;
-        for (let i = 0; i < length; ++i) {
+        for (let i = 0; i < length; i++) {
             const childValue = value[i];
             const result = schema._parse(childValue);
             if (!result.ok) {

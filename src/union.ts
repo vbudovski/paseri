@@ -17,7 +17,7 @@ class UnionSchema<TupleType extends ValidTupleType> extends Schema<Infer<TupleTo
         this._elements = elements;
     }
     _parse(value: unknown): ParseResult<Infer<TupleToUnion<TupleType>>> {
-        for (let i = 0; i < this._elements.length; ++i) {
+        for (let i = 0; i < this._elements.length; i++) {
             const schema = this._elements[i];
             const result = schema._parse(value);
             if (result.ok) {

@@ -55,7 +55,7 @@ class ObjectSchema<ShapeType extends ObjectSchemaType<ShapeType>> extends Schema
         for (const key in value) {
             const schema = this._shape.get(key);
             if (schema) {
-                ++seen;
+                seen++;
 
                 const childValue = value[key];
                 const result = schema._parse(childValue);

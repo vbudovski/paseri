@@ -21,19 +21,21 @@ class StringSchema extends Schema<string> {
             return { ok: false, issue: this.issues.INVALID_TYPE };
         }
 
-        const length = this.checks.length;
-        for (let i = 0; i < length; ++i) {
-            const check = this.checks[i];
-            const issue = check(value);
-            if (issue) {
-                return { ok: false, issue };
+        if (this.checks !== undefined) {
+            const length = this.checks.length;
+            for (let i = 0; i < length; i++) {
+                const check = this.checks[i];
+                const issue = check(value);
+                if (issue) {
+                    return { ok: false, issue };
+                }
             }
         }
 
         return { ok: true, value };
     }
     min(length: number) {
-        this.checks.push((_value) => {
+        this.addCheck((_value) => {
             if (_value.length < length) {
                 return this.issues.TOO_SHORT;
             }
@@ -44,7 +46,7 @@ class StringSchema extends Schema<string> {
         return this;
     }
     max(length: number) {
-        this.checks.push((_value) => {
+        this.addCheck((_value) => {
             if (_value.length > length) {
                 return this.issues.TOO_LONG;
             }
@@ -55,7 +57,7 @@ class StringSchema extends Schema<string> {
         return this;
     }
     length(length: number) {
-        this.checks.push((_value) => {
+        this.addCheck((_value) => {
             if (_value.length > length) {
                 return this.issues.TOO_LONG;
             }
@@ -69,7 +71,7 @@ class StringSchema extends Schema<string> {
         return this;
     }
     email() {
-        this.checks.push((_value) => {
+        this.addCheck((_value) => {
             if (!emailRegex.test(_value)) {
                 return this.issues.INVALID_EMAIL;
             }
@@ -80,7 +82,7 @@ class StringSchema extends Schema<string> {
         return this;
     }
     emoji() {
-        this.checks.push((_value) => {
+        this.addCheck((_value) => {
             if (!emojiRegex.test(_value)) {
                 return this.issues.INVALID_EMOJI;
             }
@@ -91,7 +93,7 @@ class StringSchema extends Schema<string> {
         return this;
     }
     uuid() {
-        this.checks.push((_value) => {
+        this.addCheck((_value) => {
             if (!uuidRegex.test(_value)) {
                 return this.issues.INVALID_UUID;
             }
@@ -102,7 +104,7 @@ class StringSchema extends Schema<string> {
         return this;
     }
     nanoid() {
-        this.checks.push((_value) => {
+        this.addCheck((_value) => {
             if (!nanoidRegex.test(_value)) {
                 return this.issues.INVALID_NANOID;
             }

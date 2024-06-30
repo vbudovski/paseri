@@ -17,9 +17,18 @@ interface ParseErrorResult {
 
 type ParseResult<OutputType> = ParseSuccessResult<OutputType> | ParseErrorResult;
 
-abstract class Schema<OutputType> {
-    protected checks: ((value: OutputType) => TreeNode | undefined)[] = [];
+type CheckFunction<OutputType> = (value: OutputType) => TreeNode | undefined;
 
+abstract class Schema<OutputType> {
+    protected checks: CheckFunction<OutputType>[] | undefined = undefined;
+
+    protected addCheck(check: CheckFunction<OutputType>) {
+        if (this.checks === undefined) {
+            this.checks = [check];
+        } else {
+            this.checks.push(check);
+        }
+    }
     public abstract _parse(value: unknown): ParseResult<OutputType>;
     parse(value: unknown): OutputType {
         const result = this._parse(value);
