@@ -1,7 +1,7 @@
 import { expect } from '@std/expect';
 import { expectTypeOf } from 'expect-type';
-import * as p from '../src/index.ts';
-import type { TreeNode } from './issue.ts';
+import * as p from '../index.ts';
+import type { TreeNode } from '../issue.ts';
 
 const { test } = Deno;
 

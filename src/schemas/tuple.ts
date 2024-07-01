@@ -1,5 +1,6 @@
-import { type TreeNode, addIssue } from './issue.ts';
-import { type Infer, type InternalParseResult, Schema, isIssue } from './schema.ts';
+import type { Infer } from '../infer.ts';
+import { type TreeNode, addIssue } from '../issue.ts';
+import { type InternalParseResult, Schema, isIssue } from './schema.ts';
 
 // biome-ignore lint/suspicious/noExplicitAny: Required to accept any Schema variant.
 type ValidTupleSchemaType<T = any> = [Schema<T>, ...Schema<T>[]];
