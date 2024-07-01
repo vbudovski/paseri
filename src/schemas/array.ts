@@ -54,7 +54,7 @@ class ArraySchema<ElementSchemaType extends ValidElementSchemaType> extends Sche
             return issue;
         }
 
-        return { ok: true, value: value as Infer<ElementSchemaType[]> };
+        return undefined;
     }
     min(length: number) {
         this._minLength = length;

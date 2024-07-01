@@ -1,17 +1,18 @@
 export {
     array,
-    boolean,
-    string,
-    unknown,
-    null_ as null,
-    never,
-    union,
-    number,
-    tuple,
-    literal,
     bigint,
+    boolean,
+    literal,
+    never,
+    null_ as null,
+    number,
     object,
+    record,
+    string,
+    tuple,
     undefined_ as undefined,
+    union,
+    unknown,
 } from './schemas/index.ts';
 
 export type { Infer } from './infer.ts';

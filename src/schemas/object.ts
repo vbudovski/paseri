@@ -2,23 +2,12 @@ import type { NonEmptyObject } from 'type-fest';
 import type { Infer } from '../infer.ts';
 import type { TreeNode } from '../issue.ts';
 import { addIssue } from '../issue.ts';
+import { isPlainObject } from '../utils.ts';
 import { type InternalParseResult, Schema, isParseSuccess } from './schema.ts';
 
 type ValidShapeType<ShapeType> = NonEmptyObject<{
     [Key in keyof ShapeType]: ShapeType[Key] extends Schema<infer OutputType> ? Schema<OutputType> : never;
 }>;
-
-function isPlainObject(value: unknown): value is Record<string, unknown> {
-    return !(
-        typeof value !== 'object' ||
-        value === null ||
-        Array.isArray(value) ||
-        value instanceof Promise ||
-        value instanceof Map ||
-        value instanceof Set ||
-        value instanceof Date
-    );
-}
 
 type Mode = 'strip' | 'strict' | 'passthrough';
 
