@@ -45,3 +45,14 @@ test('Invalid elements', () => {
         expect(result.ok).toBeFalsy();
     }
 });
+
+test('Optional', () => {
+    const schema = p.record(p.number()).optional();
+    const result = schema.safeParse(undefined);
+    if (result.ok) {
+        expectTypeOf(result.value).toEqualTypeOf<Record<string, number> | undefined>;
+        expect(result.value).toBe(undefined);
+    } else {
+        expect(result.ok).toBeTruthy();
+    }
+});

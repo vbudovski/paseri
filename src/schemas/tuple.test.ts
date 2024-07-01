@@ -77,3 +77,14 @@ test('Invalid elements', () => {
         expect(result.ok).toBeFalsy();
     }
 });
+
+test('Optional', () => {
+    const schema = p.tuple(p.number(), p.string(), p.literal(123n)).optional();
+    const result = schema.safeParse(undefined);
+    if (result.ok) {
+        expectTypeOf(result.value).toEqualTypeOf<[number, string, 123n] | undefined>;
+        expect(result.value).toBe(undefined);
+    } else {
+        expect(result.ok).toBeTruthy();
+    }
+});

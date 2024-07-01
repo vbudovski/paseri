@@ -48,3 +48,14 @@ test('Type', async (t) => {
         }
     });
 });
+
+test('Optional', () => {
+    const schema = p.union(p.string(), p.number(), p.literal(123n)).optional();
+    const result = schema.safeParse(undefined);
+    if (result.ok) {
+        expectTypeOf(result.value).toEqualTypeOf<string | number | 123n | undefined>;
+        expect(result.value).toBe(undefined);
+    } else {
+        expect(result.ok).toBeTruthy();
+    }
+});

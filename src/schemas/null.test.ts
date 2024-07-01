@@ -28,3 +28,14 @@ test('Type', async (t) => {
         }
     });
 });
+
+test('Optional', () => {
+    const schema = p.null().optional();
+    const result = schema.safeParse(undefined);
+    if (result.ok) {
+        expectTypeOf(result.value).toEqualTypeOf<null | undefined>;
+        expect(result.value).toBe(undefined);
+    } else {
+        expect(result.ok).toBeTruthy();
+    }
+});
