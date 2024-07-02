@@ -1,5 +1,6 @@
 import type { IsLiteral } from 'type-fest';
-import { type InternalParseResult, Schema } from './schema.ts';
+import type { InternalParseResult } from '../result.ts';
+import { Schema } from './schema.ts';
 
 type LiteralType = string | number | bigint | boolean | symbol;
 

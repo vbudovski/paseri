@@ -2,8 +2,9 @@ import type { NonEmptyObject } from 'type-fest';
 import type { Infer } from '../infer.ts';
 import type { TreeNode } from '../issue.ts';
 import { addIssue } from '../issue.ts';
+import { type InternalParseResult, isParseSuccess } from '../result.ts';
 import { isPlainObject } from '../utils.ts';
-import { type InternalParseResult, Schema, isParseSuccess } from './schema.ts';
+import { Schema } from './schema.ts';
 
 type ValidShapeType<ShapeType> = NonEmptyObject<{
     [Key in keyof ShapeType]: ShapeType[Key] extends Schema<infer OutputType> ? Schema<OutputType> : never;

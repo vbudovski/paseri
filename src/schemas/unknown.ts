@@ -1,4 +1,5 @@
-import { type InternalParseResult, Schema } from './schema.ts';
+import type { InternalParseResult } from '../result.ts';
+import { Schema } from './schema.ts';
 
 class UnknownSchema extends Schema<unknown> {
     _parse(value: unknown): InternalParseResult<unknown> {

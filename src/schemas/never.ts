@@ -1,4 +1,5 @@
-import { type InternalParseResult, Schema } from './schema.ts';
+import type { InternalParseResult } from '../result.ts';
+import { Schema } from './schema.ts';
 
 class NeverSchema extends Schema<never> {
     readonly issues = {
