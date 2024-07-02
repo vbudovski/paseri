@@ -2,12 +2,9 @@ import type { Infer } from '../index.ts';
 import type { TreeNode } from '../issue.ts';
 import { addIssue } from '../issue.ts';
 import { type InternalParseResult, isIssue } from '../result.ts';
-import { Schema } from './schema.ts';
+import { type AnySchemaType, Schema } from './schema.ts';
 
-// biome-ignore lint/suspicious/noExplicitAny: Required to accept any Schema variant.
-type ValidElementSchemaType = Schema<any>;
-
-class ArraySchema<ElementSchemaType extends ValidElementSchemaType> extends Schema<Infer<ElementSchemaType[]>> {
+class ArraySchema<ElementSchemaType extends AnySchemaType> extends Schema<Infer<ElementSchemaType[]>> {
     private readonly _element: ElementSchemaType;
     private _minLength = 0;
     private _maxLength = Number.POSITIVE_INFINITY;
@@ -75,7 +72,7 @@ class ArraySchema<ElementSchemaType extends ValidElementSchemaType> extends Sche
     }
 }
 
-function array<ElementSchemaType extends ValidElementSchemaType>(
+function array<ElementSchemaType extends AnySchemaType>(
     ...args: ConstructorParameters<typeof ArraySchema<ElementSchemaType>>
 ) {
     return new ArraySchema(...args);

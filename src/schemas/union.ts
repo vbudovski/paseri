@@ -1,10 +1,9 @@
 import type { TupleToUnion } from 'type-fest';
 import type { Infer } from '../infer.ts';
 import { type InternalParseResult, isParseSuccess } from '../result.ts';
-import { Schema } from './schema.ts';
+import { type AnySchemaType, Schema } from './schema.ts';
 
-// biome-ignore lint/suspicious/noExplicitAny: Required to accept any Schema variant.
-type ValidTupleType<T = any> = [Schema<T>, Schema<T>, ...Schema<T>[]];
+type ValidTupleType = [AnySchemaType, AnySchemaType, ...AnySchemaType[]];
 
 class UnionSchema<TupleType extends ValidTupleType> extends Schema<Infer<TupleToUnion<TupleType>>> {
     private readonly _elements: TupleType;

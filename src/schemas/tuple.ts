@@ -1,10 +1,9 @@
 import type { Infer } from '../infer.ts';
 import { type TreeNode, addIssue } from '../issue.ts';
 import { type InternalParseResult, isIssue } from '../result.ts';
-import { Schema } from './schema.ts';
+import { type AnySchemaType, Schema } from './schema.ts';
 
-// biome-ignore lint/suspicious/noExplicitAny: Required to accept any Schema variant.
-type ValidTupleSchemaType<T = any> = [Schema<T>, ...Schema<T>[]];
+type ValidTupleSchemaType = [AnySchemaType, ...AnySchemaType[]];
 
 class TupleSchema<TupleSchemaType extends ValidTupleSchemaType> extends Schema<Infer<TupleSchemaType>> {
     private readonly _schemas: TupleSchemaType;

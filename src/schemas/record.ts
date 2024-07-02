@@ -2,14 +2,9 @@ import type { Infer } from '../infer.ts';
 import { type TreeNode, addIssue } from '../issue.ts';
 import { type InternalParseResult, isIssue } from '../result.ts';
 import { isPlainObject } from '../utils.ts';
-import { Schema } from './schema.ts';
+import { type AnySchemaType, Schema } from './schema.ts';
 
-// biome-ignore lint/suspicious/noExplicitAny: Required to accept any Schema variant.
-type ValidElementSchemaType = Schema<any>;
-
-class RecordSchema<ElementSchemaType extends ValidElementSchemaType> extends Schema<
-    Infer<Record<string, ElementSchemaType>>
-> {
+class RecordSchema<ElementSchemaType extends AnySchemaType> extends Schema<Infer<Record<string, ElementSchemaType>>> {
     private readonly _element: ElementSchemaType;
 
     readonly issues = {
@@ -45,7 +40,7 @@ class RecordSchema<ElementSchemaType extends ValidElementSchemaType> extends Sch
     }
 }
 
-function record<ElementSchemaType extends ValidElementSchemaType>(
+function record<ElementSchemaType extends AnySchemaType>(
     ...args: ConstructorParameters<typeof RecordSchema<ElementSchemaType>>
 ) {
     return new RecordSchema(...args);
