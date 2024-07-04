@@ -32,8 +32,11 @@ class ObjectSchema<ShapeType extends ValidShapeType<ShapeType>> extends Schema<I
             return this.issues.INVALID_TYPE;
         }
 
-        let sanitisedValue: Record<string, unknown> = value;
         let seen = 0;
+        const modifiedValues: Record<string, unknown> = {};
+        const unrecognisedKeys: Record<string, boolean> = {};
+        let hasUnrecognisedKey = false;
+        let hasModifiedChildValue = false;
 
         let issue: TreeNode | undefined = undefined;
         for (const key in value) {
@@ -44,19 +47,14 @@ class ObjectSchema<ShapeType extends ValidShapeType<ShapeType>> extends Schema<I
                 const childValue = value[key];
                 const issueOrSuccess = schema._parse(childValue);
                 if (issueOrSuccess === undefined) {
-                    if (schema instanceof ObjectSchema && schema._mode === 'strip') {
-                        if (sanitisedValue === value) {
-                            sanitisedValue = { ...value };
-                        }
-                        sanitisedValue[key] = childValue;
-                    }
-                } else if (isParseSuccess(issueOrSuccess)) {
-                    if (schema instanceof ObjectSchema && schema._mode === 'strip') {
-                        if (sanitisedValue === value) {
-                            sanitisedValue = { ...value };
-                        }
-                        sanitisedValue[key] = issueOrSuccess.value;
-                    }
+                    // Value is unmodified, so we can take the fast path.
+                    continue;
+                }
+
+                if (isParseSuccess(issueOrSuccess)) {
+                    // Success, but childValue was modified.
+                    hasModifiedChildValue = true;
+                    modifiedValues[key] = issueOrSuccess.value;
                 } else {
                     issue = addIssue(issue, {
                         type: 'nest',
@@ -65,18 +63,8 @@ class ObjectSchema<ShapeType extends ValidShapeType<ShapeType>> extends Schema<I
                     });
                 }
             } else {
-                if (this._mode === 'strict') {
-                    issue = addIssue(issue, {
-                        type: 'nest',
-                        key,
-                        child: this.issues.UNRECOGNIZED_KEY,
-                    });
-                } else if (this._mode === 'strip') {
-                    if (sanitisedValue === value) {
-                        sanitisedValue = { ...value };
-                    }
-                    delete sanitisedValue[key];
-                }
+                hasUnrecognisedKey = true;
+                unrecognisedKeys[key] = true;
             }
         }
 
@@ -92,12 +80,62 @@ class ObjectSchema<ShapeType extends ValidShapeType<ShapeType>> extends Schema<I
             }
         }
 
+        // Collect any unrecognised key issues, if operating in strict mode.
+        if (hasUnrecognisedKey && this._mode === 'strict') {
+            for (const key in value) {
+                if (unrecognisedKeys[key]) {
+                    issue = addIssue(issue, {
+                        type: 'nest',
+                        key,
+                        child: this.issues.UNRECOGNIZED_KEY,
+                    });
+                }
+            }
+        }
+
+        // We have collected all possible errors in the steps above. We either return them, or sanitise the value if
+        // there are none.
         if (issue) {
             return issue;
         }
 
-        return { ok: true, value: sanitisedValue as Infer<ShapeType> };
+        if (hasUnrecognisedKey && this._mode === 'strip' && hasModifiedChildValue) {
+            const sanitizedValue: Record<string, unknown> = {};
+            for (const key in value) {
+                if (unrecognisedKeys[key]) {
+                    continue;
+                }
+
+                if (modifiedValues[key] === undefined) {
+                    sanitizedValue[key] = value[key];
+                } else {
+                    sanitizedValue[key] = modifiedValues[key];
+                }
+            }
+
+            return { ok: true, value: sanitizedValue as Infer<ShapeType> };
+        }
+
+        if (hasUnrecognisedKey && this._mode === 'strip' && !hasModifiedChildValue) {
+            const sanitizedValue: Record<string, unknown> = {};
+            for (const key in value) {
+                if (unrecognisedKeys[key]) {
+                    continue;
+                }
+
+                sanitizedValue[key] = value[key];
+            }
+
+            return { ok: true, value: sanitizedValue as Infer<ShapeType> };
+        }
+
+        if (hasModifiedChildValue) {
+            return { ok: true, value: { ...value, ...modifiedValues } as Infer<ShapeType> };
+        }
+
+        return undefined;
     }
+
     strict(): this {
         this._mode = 'strict';
 
