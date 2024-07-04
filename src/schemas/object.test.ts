@@ -249,3 +249,37 @@ test('Deep optional', () => {
         expect(result.ok).toBeTruthy();
     }
 });
+
+test('White-box', async (t) => {
+    await t.step('Strip success returns undefined', () => {
+        const schema = p.object({ foo: p.string() });
+        const data = Object.freeze({ foo: 'bar' });
+
+        const issueOrSuccess = schema._parse(data);
+        expect(issueOrSuccess).toBe(undefined);
+    });
+
+    await t.step('Strict success returns undefined', () => {
+        const schema = p.object({ foo: p.string() }).strict();
+        const data = Object.freeze({ foo: 'bar' });
+
+        const issueOrSuccess = schema._parse(data);
+        expect(issueOrSuccess).toBe(undefined);
+    });
+
+    await t.step('Passthrough success returns undefined', () => {
+        const schema = p.object({ foo: p.string() }).passthrough();
+        const data = Object.freeze({ foo: 'bar' });
+
+        const issueOrSuccess = schema._parse(data);
+        expect(issueOrSuccess).toBe(undefined);
+    });
+
+    await t.step('Modified child returns new value', () => {
+        const schema = p.object({ child: p.object({ foo: p.string() }) });
+        const data = Object.freeze({ child: { foo: 'bar', extra: 'baz' } });
+
+        const issueOrSuccess = schema._parse(data);
+        expect(issueOrSuccess).toEqual({ ok: true, value: { child: { foo: 'bar' } } });
+    });
+});
