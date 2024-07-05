@@ -124,8 +124,7 @@ test('Flat, passthrough', () => {
 
     const result = schema.safeParse(data);
     if (result.ok) {
-        // FIXME: Output type for passthrough.
-        // expectTypeOf(result.value).toEqualTypeOf<{ extra1: string; child: string; extra2: string }>;
+        expectTypeOf(result.value).toEqualTypeOf<{ child: string }>;
         const expectedResult = { extra1: 'foo', child: 'hello', extra2: 'bar' };
         expect(result.value).toEqual(expectedResult);
     } else {
@@ -141,8 +140,7 @@ test('Deep, passthrough', () => {
 
     const result = schema.safeParse(data);
     if (result.ok) {
-        // FIXME: Output type for passthrough.
-        // expectTypeOf(result.value).toEqualTypeOf<{ child: { extra1: string; expected: string; extra2: string } }>;
+        expectTypeOf(result.value).toEqualTypeOf<{ child: { expected: string } }>;
         const expectedResult = { child: { extra1: 'foo', expected: 'hello', extra2: 'bar' } };
         expect(result.value).toEqual(expectedResult);
     } else {
@@ -216,6 +214,26 @@ test('Deep missing keys', () => {
                 type: 'nest',
                 key: 'string1',
                 child: { type: 'leaf', code: 'missing_value' },
+            },
+        };
+        expect(result.issue).toEqual(expectedResult);
+    } else {
+        expect(result.ok).toBeFalsy();
+    }
+});
+
+test('Optional key is not flagged as missing', () => {
+    const schema = p.object({ optional: p.string().optional(), required: p.string() });
+    const data = Object.freeze({});
+
+    const result = schema.safeParse(data);
+    if (!result.ok) {
+        const expectedResult: TreeNode = {
+            type: 'nest',
+            key: 'required',
+            child: {
+                type: 'leaf',
+                code: 'missing_value',
             },
         };
         expect(result.issue).toEqual(expectedResult);

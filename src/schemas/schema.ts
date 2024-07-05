@@ -61,5 +61,5 @@ class OptionalSchema<OutputType> extends Schema<OutputType | undefined> {
 // biome-ignore lint/suspicious/noExplicitAny: Required to accept any Schema variant.
 type AnySchemaType = Schema<any>;
 
-export { Schema };
+export { Schema, OptionalSchema };
 export type { AnySchemaType };

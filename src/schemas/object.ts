@@ -4,7 +4,7 @@ import type { TreeNode } from '../issue.ts';
 import { addIssue } from '../issue.ts';
 import { type InternalParseResult, isParseSuccess } from '../result.ts';
 import { isPlainObject } from '../utils.ts';
-import { Schema } from './schema.ts';
+import { OptionalSchema, Schema } from './schema.ts';
 
 type ValidShapeType<ShapeType> = NonEmptyObject<{
     [Key in keyof ShapeType]: ShapeType[Key] extends Schema<infer OutputType> ? Schema<OutputType> : never;
@@ -69,7 +69,11 @@ class ObjectSchema<ShapeType extends ValidShapeType<ShapeType>> extends Schema<I
         }
 
         if (seen < this._shape.size) {
-            for (const key of this._shape.keys()) {
+            for (const [key, schema] of this._shape.entries()) {
+                if (schema instanceof OptionalSchema) {
+                    continue;
+                }
+
                 if (value[key] === undefined) {
                     issue = addIssue(issue, {
                         type: 'nest',
