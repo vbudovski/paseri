@@ -4,15 +4,15 @@ import * as p from '../../src/index.ts';
 
 const { bench } = Deno;
 
-const mySchema = p.literal(true);
+const paseriSchema = p.literal(true);
 const zodSchema = z.literal(true);
 const valitaSchema = v.literal(true);
 
 const dataValid = true;
 const dataInvalid = false;
 
-bench('This', { group: 'Boolean valid' }, () => {
-    mySchema.safeParse(dataValid);
+bench('Paseri', { group: 'Boolean valid' }, () => {
+    paseriSchema.safeParse(dataValid);
 });
 
 bench('Zod', { group: 'Boolean valid' }, () => {
@@ -23,8 +23,8 @@ bench('Valita', { group: 'Boolean valid' }, () => {
     valitaSchema.try(dataValid);
 });
 
-bench('This', { group: 'Boolean invalid' }, () => {
-    mySchema.safeParse(dataInvalid);
+bench('Paseri', { group: 'Boolean invalid' }, () => {
+    paseriSchema.safeParse(dataInvalid);
 });
 
 bench('Zod', { group: 'Boolean invalid' }, () => {

@@ -1,5 +1,5 @@
 {
-  "name": "@vbudovski/schema-validator",
+  "name": "@vbudovski/paseri",
   "imports": {
     "@badrap/valita": "jsr:@badrap/valita@^0.3.8",
     "@biomejs/biome": "npm:@biomejs/biome@^1.8.0",

@@ -4,15 +4,15 @@ import * as p from '../../src/index.ts';
 
 const { bench } = Deno;
 
-const mySchema = p.string().max(3);
+const paseriSchema = p.string().max(3);
 const zodSchema = z.string().max(3);
 const valitaSchema = v.string().assert((value) => value.length <= 3);
 
 const dataValid = 'aaa';
 const dataInvalid = 'aaaa';
 
-bench('This', { group: 'Max valid' }, () => {
-    mySchema.safeParse(dataValid);
+bench('Paseri', { group: 'Max valid' }, () => {
+    paseriSchema.safeParse(dataValid);
 });
 
 bench('Zod', { group: 'Max valid' }, () => {
@@ -23,8 +23,8 @@ bench('Valita', { group: 'Max valid' }, () => {
     valitaSchema.try(dataValid);
 });
 
-bench('This', { group: 'Max invalid' }, () => {
-    mySchema.safeParse(dataInvalid);
+bench('Paseri', { group: 'Max invalid' }, () => {
+    paseriSchema.safeParse(dataInvalid);
 });
 
 bench('Zod', { group: 'Max invalid' }, () => {

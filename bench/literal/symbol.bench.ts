@@ -5,22 +5,22 @@ const { bench } = Deno;
 
 const symbolLiteral = Symbol.for('test');
 
-const mySchema = p.literal(symbolLiteral);
+const paseriSchema = p.literal(symbolLiteral);
 const zodSchema = z.literal(symbolLiteral);
 
 const dataValid = Symbol.for('test');
 const dataInvalid = Symbol.for('other');
 
-bench('This', { group: 'Symbol valid' }, () => {
-    mySchema.safeParse(dataValid);
+bench('Paseri', { group: 'Symbol valid' }, () => {
+    paseriSchema.safeParse(dataValid);
 });
 
 bench('Zod', { group: 'Symbol valid' }, () => {
     zodSchema.safeParse(dataValid);
 });
 
-bench('This', { group: 'Symbol invalid' }, () => {
-    mySchema.safeParse(dataInvalid);
+bench('Paseri', { group: 'Symbol invalid' }, () => {
+    paseriSchema.safeParse(dataInvalid);
 });
 
 bench('Zod', { group: 'Symbol invalid' }, () => {

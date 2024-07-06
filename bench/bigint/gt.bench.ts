@@ -4,15 +4,15 @@ import * as p from '../../src/index.ts';
 
 const { bench } = Deno;
 
-const mySchema = p.bigint().gt(10n);
+const paseriSchema = p.bigint().gt(10n);
 const zodSchema = z.bigint().gt(10n);
 const valitaSchema = v.bigint().assert((value) => value > 10n);
 
 const dataValid = 11n;
 const dataInvalid = 10n;
 
-bench('This', { group: 'Greater than valid' }, () => {
-    mySchema.safeParse(dataValid);
+bench('Paseri', { group: 'Greater than valid' }, () => {
+    paseriSchema.safeParse(dataValid);
 });
 
 bench('Zod', { group: 'Greater than valid' }, () => {
@@ -23,8 +23,8 @@ bench('Valita', { group: 'Greater than valid' }, () => {
     valitaSchema.try(dataValid);
 });
 
-bench('This', { group: 'Greater than invalid' }, () => {
-    mySchema.safeParse(dataInvalid);
+bench('Paseri', { group: 'Greater than invalid' }, () => {
+    paseriSchema.safeParse(dataInvalid);
 });
 
 bench('Zod', { group: 'Greater than invalid' }, () => {

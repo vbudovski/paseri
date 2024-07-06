@@ -4,7 +4,7 @@ import * as p from '../../src/index.ts';
 
 const { bench } = Deno;
 
-const mySchema = p.string().length(3);
+const paseriSchema = p.string().length(3);
 const zodSchema = z.string().length(3);
 const valitaSchema = v.string().assert((value) => value.length === 3);
 
@@ -12,8 +12,8 @@ const dataValid = 'aaa';
 const dataTooLong = 'aaaa';
 const dataTooShort = 'aa';
 
-bench('This', { group: 'Length valid' }, () => {
-    mySchema.safeParse(dataValid);
+bench('Paseri', { group: 'Length valid' }, () => {
+    paseriSchema.safeParse(dataValid);
 });
 
 bench('Zod', { group: 'Length valid' }, () => {
@@ -24,8 +24,8 @@ bench('Valita', { group: 'Length valid' }, () => {
     valitaSchema.try(dataValid);
 });
 
-bench('This', { group: 'Length too long' }, () => {
-    mySchema.safeParse(dataTooLong);
+bench('Paseri', { group: 'Length too long' }, () => {
+    paseriSchema.safeParse(dataTooLong);
 });
 
 bench('Zod', { group: 'Length too long' }, () => {
@@ -36,8 +36,8 @@ bench('Valita', { group: 'Length too long' }, () => {
     valitaSchema.try(dataTooLong);
 });
 
-bench('This', { group: 'Length too short' }, () => {
-    mySchema.safeParse(dataTooShort);
+bench('Paseri', { group: 'Length too short' }, () => {
+    paseriSchema.safeParse(dataTooShort);
 });
 
 bench('Zod', { group: 'Length too short' }, () => {

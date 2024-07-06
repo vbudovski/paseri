@@ -4,7 +4,7 @@ import * as p from '../../src/index.ts';
 
 const { bench } = Deno;
 
-const mySchema = p.object({
+const paseriSchema = p.object({
     string1: p.string(),
     string2: p.string(),
     string3: p.string(),
@@ -50,8 +50,8 @@ const data = {
     string9: 'lorem',
 };
 
-bench('This', { group: 'Flat, large' }, () => {
-    mySchema.safeParse(data);
+bench('Paseri', { group: 'Flat, large' }, () => {
+    paseriSchema.safeParse(data);
 });
 
 bench('Zod', { group: 'Flat, large' }, () => {

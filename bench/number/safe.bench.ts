@@ -4,15 +4,15 @@ import * as p from '../../src/index.ts';
 
 const { bench } = Deno;
 
-const mySchema = p.number().safe();
+const paseriSchema = p.number().safe();
 const zodSchema = z.number().safe();
 const valitaSchema = v.number().assert((value) => Number.isSafeInteger(value));
 
 const dataValid = 123;
 const dataInvalid = Number.MAX_SAFE_INTEGER + 1;
 
-bench('This', { group: 'Safe integer valid' }, () => {
-    mySchema.safeParse(dataValid);
+bench('Paseri', { group: 'Safe integer valid' }, () => {
+    paseriSchema.safeParse(dataValid);
 });
 
 bench('Zod', { group: 'Safe integer valid' }, () => {
@@ -23,8 +23,8 @@ bench('Valita', { group: 'Safe integer valid' }, () => {
     valitaSchema.try(dataValid);
 });
 
-bench('This', { group: 'Safe integer invalid' }, () => {
-    mySchema.safeParse(dataInvalid);
+bench('Paseri', { group: 'Safe integer invalid' }, () => {
+    paseriSchema.safeParse(dataInvalid);
 });
 
 bench('Zod', { group: 'Safe integer invalid' }, () => {

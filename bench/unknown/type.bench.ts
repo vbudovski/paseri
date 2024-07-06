@@ -4,14 +4,14 @@ import * as p from '../../src/index.ts';
 
 const { bench } = Deno;
 
-const mySchema = p.unknown();
+const paseriSchema = p.unknown();
 const zodSchema = z.unknown();
 const valitaSchema = v.unknown();
 
 const data = 'Hello, world!';
 
-bench('This', { group: 'Type valid' }, () => {
-    mySchema.safeParse(data);
+bench('Paseri', { group: 'Type valid' }, () => {
+    paseriSchema.safeParse(data);
 });
 
 bench('Zod', { group: 'Type valid' }, () => {

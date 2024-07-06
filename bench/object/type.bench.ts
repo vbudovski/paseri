@@ -4,7 +4,7 @@ import * as p from '../../src/index.ts';
 
 const { bench } = Deno;
 
-const mySchema = p.object({
+const paseriSchema = p.object({
     string1: p.string(),
     object1: p.object({ string2: p.string() }),
     object2: p.object({ object3: p.object({ string3: p.string() }) }),
@@ -27,8 +27,8 @@ const dataValid = {
 };
 const dataInvalid = null;
 
-bench('This', { group: 'Type valid' }, () => {
-    mySchema.safeParse(dataValid);
+bench('Paseri', { group: 'Type valid' }, () => {
+    paseriSchema.safeParse(dataValid);
 });
 
 bench('Zod', { group: 'Type valid' }, () => {
@@ -39,8 +39,8 @@ bench('Valita', { group: 'Type valid' }, () => {
     valitaSchema.try(dataValid);
 });
 
-bench('This', { group: 'Type invalid' }, () => {
-    mySchema.safeParse(dataInvalid);
+bench('Paseri', { group: 'Type invalid' }, () => {
+    paseriSchema.safeParse(dataInvalid);
 });
 
 bench('Zod', { group: 'Type invalid' }, () => {

@@ -4,7 +4,7 @@ import * as p from '../../src/index.ts';
 
 const { bench } = Deno;
 
-const mySchema = p.record(p.string());
+const paseriSchema = p.record(p.string());
 const zodSchema = z.record(z.string());
 const valitaSchema = v.record(v.string());
 
@@ -18,8 +18,8 @@ const dataValid = {
 };
 const dataInvalid = null;
 
-bench('This', { group: 'Type' }, () => {
-    mySchema.safeParse(dataValid);
+bench('Paseri', { group: 'Type' }, () => {
+    paseriSchema.safeParse(dataValid);
 });
 
 bench('Zod', { group: 'Type' }, () => {
@@ -30,8 +30,8 @@ bench('Valita', { group: 'Type' }, () => {
     valitaSchema.try(dataValid);
 });
 
-bench('This', { group: 'Type invalid' }, () => {
-    mySchema.safeParse(dataInvalid);
+bench('Paseri', { group: 'Type invalid' }, () => {
+    paseriSchema.safeParse(dataInvalid);
 });
 
 bench('Zod', { group: 'Type invalid' }, () => {
