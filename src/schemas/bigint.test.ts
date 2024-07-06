@@ -129,3 +129,14 @@ test('Optional', () => {
         expect(result.ok).toBeTruthy();
     }
 });
+
+test('Nullable', () => {
+    const schema = p.bigint().nullable();
+    const result = schema.safeParse(null);
+    if (result.ok) {
+        expectTypeOf(result.value).toEqualTypeOf<bigint | null>;
+        expect(result.value).toBe(null);
+    } else {
+        expect(result.ok).toBeTruthy();
+    }
+});

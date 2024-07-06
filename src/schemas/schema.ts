@@ -39,6 +39,9 @@ abstract class Schema<OutputType> {
     optional() {
         return new OptionalSchema(this);
     }
+    nullable() {
+        return new NullableSchema(this);
+    }
 }
 
 class OptionalSchema<OutputType> extends Schema<OutputType | undefined> {
@@ -51,7 +54,24 @@ class OptionalSchema<OutputType> extends Schema<OutputType | undefined> {
     }
     _parse(value: unknown): InternalParseResult<OutputType | undefined> {
         if (value === undefined) {
-            return value;
+            return undefined;
+        }
+
+        return this._schema._parse(value);
+    }
+}
+
+class NullableSchema<OutputType> extends Schema<OutputType | null> {
+    private readonly _schema: Schema<OutputType>;
+
+    constructor(schema: Schema<OutputType>) {
+        super();
+
+        this._schema = schema;
+    }
+    _parse(value: unknown): InternalParseResult<OutputType | null> {
+        if (value === null) {
+            return undefined;
         }
 
         return this._schema._parse(value);

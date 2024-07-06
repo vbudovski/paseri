@@ -28,3 +28,14 @@ test('Type', async (t) => {
         }
     });
 });
+
+test('Nullable', () => {
+    const schema = p.undefined().nullable();
+    const result = schema.safeParse(null);
+    if (result.ok) {
+        expectTypeOf(result.value).toEqualTypeOf<undefined | null>;
+        expect(result.value).toBe(null);
+    } else {
+        expect(result.ok).toBeTruthy();
+    }
+});

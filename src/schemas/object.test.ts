@@ -268,6 +268,32 @@ test('Deep optional', () => {
     }
 });
 
+test('Nullable', () => {
+    const schema = p.object({ child: p.string() }).nullable();
+    const data = null;
+
+    const result = schema.safeParse(data);
+    if (result.ok) {
+        expectTypeOf(result.value).toEqualTypeOf<{ child: string } | null>;
+        expect(result.value).toBe(null);
+    } else {
+        expect(result.ok).toBeTruthy();
+    }
+});
+
+test('Deep nullable', () => {
+    const schema = p.object({ child: p.string().nullable() });
+    const data = Object.freeze({ child: null });
+
+    const result = schema.safeParse(data);
+    if (result.ok) {
+        expectTypeOf(result.value).toEqualTypeOf<{ child: string | null }>;
+        expect(result.value).toEqual({ child: null });
+    } else {
+        expect(result.ok).toBeTruthy();
+    }
+});
+
 test('White-box', async (t) => {
     await t.step('Strip success returns undefined', () => {
         const schema = p.object({ foo: p.string() });

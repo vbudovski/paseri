@@ -59,3 +59,14 @@ test('Optional', () => {
         expect(result.ok).toBeTruthy();
     }
 });
+
+test('Nullable', () => {
+    const schema = p.union(p.string(), p.number(), p.literal(123n)).nullable();
+    const result = schema.safeParse(null);
+    if (result.ok) {
+        expectTypeOf(result.value).toEqualTypeOf<string | number | 123n | null>;
+        expect(result.value).toBe(null);
+    } else {
+        expect(result.ok).toBeTruthy();
+    }
+});

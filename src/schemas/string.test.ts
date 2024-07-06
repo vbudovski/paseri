@@ -207,3 +207,14 @@ test('Optional', () => {
         expect(result.ok).toBeTruthy();
     }
 });
+
+test('Nullable', () => {
+    const schema = p.string().nullable();
+    const result = schema.safeParse(null);
+    if (result.ok) {
+        expectTypeOf(result.value).toEqualTypeOf<string | null>;
+        expect(result.value).toBe(null);
+    } else {
+        expect(result.ok).toBeTruthy();
+    }
+});
