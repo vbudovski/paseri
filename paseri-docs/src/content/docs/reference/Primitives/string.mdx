@@ -1,0 +1,75 @@
+---
+title: "String"
+sidebar:
+    order: 1
+---
+
+```typescript
+import * as p from '@vbudovski/paseri';
+
+const schema = p.string();
+const data = 'foo';
+
+const result = schema.safeParse(data);
+if (result.ok) {
+    // result.value typed as `string`.
+}
+```
+
+## Validators
+
+### `min`
+
+Consists of at least `length` characters.
+
+```typescript
+p.string().min(3);
+```
+
+### `max`
+
+Consists of at most `length` characters.
+
+```typescript
+p.string().max(3);
+```
+
+### `length`
+
+Consists of exactly `length` characters.
+
+```typescript
+p.string().length(3);
+```
+
+### `email`
+
+A valid email address.
+
+```typescript
+p.string().email();
+```
+
+### `emoji`
+
+A valid emoji character.
+
+```typescript
+p.string().emoji();
+```
+
+### `uuid`
+
+A valid [UUID](https://en.wikipedia.org/wiki/Universally_unique_identifier).
+
+```typescript
+p.string().uuid();
+```
+
+### `nanoid`
+
+A valid [Nano ID](https://github.com/ai/nanoid).
+
+```typescript
+p.string().nanoid();
+```

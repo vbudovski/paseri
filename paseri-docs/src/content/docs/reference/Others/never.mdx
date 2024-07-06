@@ -1,0 +1,19 @@
+---
+title: "Never"
+sidebar:
+    order: 44
+---
+
+This schema rejects all values, and corresponds to the `never` TypeScript type.
+
+```typescript
+import * as p from '@vbudovski/paseri';
+
+const schema = p.never();
+const data = 'foo';
+
+const result = schema.safeParse(data);
+if (!result.ok) {
+    // result.issue flags value as invalid.
+}
+```

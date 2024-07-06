@@ -1,0 +1,17 @@
+---
+title: "Tuple"
+sidebar:
+    order: 22
+---
+
+```typescript
+import * as p from '@vbudovski/paseri';
+
+const schema = p.tuple(p.number(), p.string());
+const data = [1, 'foo'];
+
+const result = schema.safeParse(data);
+if (result.ok) {
+    // result.value typed as `[number, string]`.
+}
+```

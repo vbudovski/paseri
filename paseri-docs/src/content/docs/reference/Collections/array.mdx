@@ -1,0 +1,43 @@
+---
+title: "Array"
+sidebar:
+    order: 21
+---
+
+```typescript
+import * as p from '@vbudovski/paseri';
+
+const schema = p.array(p.number());
+const data = [1, 2, 3];
+
+const result = schema.safeParse(data);
+if (result.ok) {
+    // result.value typed as `number[]`.
+}
+```
+
+## Validators
+
+### `min`
+
+Consists of at least `length` elements.
+
+```typescript
+p.array(p.number()).min(3);
+```
+
+### `max`
+
+Consists of at most `length` elements.
+
+```typescript
+p.array(p.number()).max(3);
+```
+
+### `length`
+
+Consists of exactly `length` elements.
+
+```typescript
+p.array(p.number()).length(3);
+```

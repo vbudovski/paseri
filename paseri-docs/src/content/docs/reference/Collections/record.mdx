@@ -1,0 +1,19 @@
+---
+title: "Record"
+sidebar:
+    order: 24
+---
+
+Corresponds to the TypeScript `Record` type.
+
+```typescript
+import * as p from '@vbudovski/paseri';
+
+const schema = p.record(p.number());
+const data = { foo: 1, bar: 2 };
+
+const result = schema.safeParse(data);
+if (result.ok) {
+    // result.value typed as `Record<string, number>`.
+}
+```

@@ -1,0 +1,19 @@
+---
+title: "Unknown"
+sidebar:
+    order: 43
+---
+
+This is a catch-all schema that allows any value, and corresponds to the `unknown` TypeScript type.
+
+```typescript
+import * as p from '@vbudovski/paseri';
+
+const schema = p.unknown();
+const data = 'foo';
+
+const result = schema.safeParse(data);
+if (result.ok) {
+    // result.value typed as `unknown`.
+}
+```

@@ -1,0 +1,51 @@
+---
+title: "BigInt"
+sidebar:
+    order: 3
+---
+
+```typescript
+import * as p from '@vbudovski/paseri';
+
+const schema = p.bigint();
+const data = 456n;
+
+const result = schema.safeParse(data);
+if (result.ok) {
+    // result.value typed as `bigint`.
+}
+```
+
+## Validators
+
+### `gte`
+
+Greater than or equal to `value`.
+
+```typescript
+p.string().gte(5);
+```
+
+### `gt`
+
+Greater than `value`.
+
+```typescript
+p.string().gt(5);
+```
+
+### `lte`
+
+Less than or equal to `value`.
+
+```typescript
+p.string().lte(5);
+```
+
+### `lt`
+
+Less than `value`.
+
+```typescript
+p.string().lt(5);
+```

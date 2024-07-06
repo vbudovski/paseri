@@ -1,0 +1,75 @@
+---
+title: "Number"
+sidebar:
+    order: 2
+---
+
+```typescript
+import * as p from '@vbudovski/paseri';
+
+const schema = p.number();
+const data = 123;
+
+const result = schema.safeParse(data);
+if (result.ok) {
+    // result.value typed as `number`.
+}
+```
+
+## Validators
+
+### `gte`
+
+Greater than or equal to `value`.
+
+```typescript
+p.string().gte(5);
+```
+
+### `gt`
+
+Greater than `value`.
+
+```typescript
+p.string().gt(5);
+```
+
+### `lte`
+
+Less than or equal to `value`.
+
+```typescript
+p.string().lte(5);
+```
+
+### `lt`
+
+Less than `value`.
+
+```typescript
+p.string().lt(5);
+```
+
+### `int`
+
+A valid integer.
+
+```typescript
+p.string().int();
+```
+
+### `finite`
+
+A finite number, excluding `Number.NEGATIVE_INFINITY` and `Number.POSITIVE_INFINITY`.
+
+```typescript
+p.string().int();
+```
+
+### `safe`
+
+A valid integer between `Number.MIN_SAFE_INTEGER` and `Number.MAX_SAFE_INTEGER`.
+
+```typescript
+p.string().int();
+```

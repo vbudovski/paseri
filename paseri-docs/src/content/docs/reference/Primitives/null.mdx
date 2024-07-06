@@ -1,0 +1,17 @@
+---
+title: "Null"
+sidebar:
+    order: 7
+---
+
+```typescript
+import * as p from '@vbudovski/paseri';
+
+const schema = p.null();
+const data = null;
+
+const result = schema.safeParse(data);
+if (result.ok) {
+    // result.value typed as `null`.
+}
+```
