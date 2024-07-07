@@ -9,6 +9,7 @@ export {
     object,
     record,
     string,
+    symbol,
     tuple,
     undefined_ as undefined,
     union,
