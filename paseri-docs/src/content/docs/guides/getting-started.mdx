@@ -1,0 +1,44 @@
+---
+title: "Getting Started"
+---
+
+import {Tabs, TabItem} from '@astrojs/starlight/components';
+
+## Installation
+
+<Tabs syncKey="packageManager">
+    <TabItem label="pnpm">
+        ```shell
+        pnpm add @vbudovski/paseri
+        ```
+    </TabItem>
+    <TabItem label="yarn">
+        ```shell
+        yarn add @vbudovski/paseri
+        ```
+    </TabItem>
+    <TabItem label="npm">
+        ```shell
+        npm install @vbudovski/paseri
+        ```
+    </TabItem>
+</Tabs>
+
+
+## Creating your first schema
+
+```typescript
+import * as p from '@vbudovski/paseri';
+
+const schema = p.object({
+    hello: p.string(),
+})
+
+const data = Object.freeze({ hello: 'world' });
+const result = schema.safeParse(data);
+if (result.ok) {
+    console.log(`Hello ${result.value.hello}!`);
+} else {
+    throw new Error('issues parsing data.');
+}
+```

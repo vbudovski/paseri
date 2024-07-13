@@ -1,0 +1,17 @@
+---
+title: "Boolean"
+sidebar:
+    order: 4
+---
+
+```typescript
+import * as p from '@vbudovski/paseri';
+
+const schema = p.boolean();
+const data = true;
+
+const result = schema.safeParse(data);
+if (result.ok) {
+    // result.value typed as `boolean`.
+}
+```

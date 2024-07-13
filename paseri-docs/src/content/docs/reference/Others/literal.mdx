@@ -1,0 +1,81 @@
+---
+title: "Literal"
+sidebar:
+    order: 41
+---
+
+Primitive values are all well and good, but sometimes we want a specific value of type `string`, rather than *any*
+`string`. All primitive types &mdash; except `null` and `undefined`, as they can only ever have one value &mdash; are
+compatible with the `literal` schema.
+
+## String literal
+
+```typescript
+import * as p from '@vbudovski/paseri';
+
+const schema = p.literal('foo');
+const data = 'foo';
+
+const result = schema.safeParse(data);
+if (result.ok) {
+    // result.value typed as `'foo'`.
+}
+```
+
+## Number literal
+
+```typescript
+import * as p from '@vbudovski/paseri';
+
+const schema = p.literal(123);
+const data = 123;
+
+const result = schema.safeParse(data);
+if (result.ok) {
+    // result.value typed as `123`.
+}
+```
+
+## BigInt literal
+
+```typescript
+import * as p from '@vbudovski/paseri';
+
+const schema = p.literal(456n);
+const data = 456n;
+
+const result = schema.safeParse(data);
+if (result.ok) {
+    // result.value typed as `456n`.
+}
+```
+
+## Boolean literal
+
+```typescript
+import * as p from '@vbudovski/paseri';
+
+const schema = p.literal(true);
+const data = true;
+
+const result = schema.safeParse(data);
+if (result.ok) {
+    // result.value typed as `true`.
+}
+```
+
+## Symbol literal
+
+```typescript
+import * as p from '@vbudovski/paseri';
+
+
+const symbolLiteral = Symbol.for('bar');
+const schema = p.literal(symbolLiteral);
+const data = Symbol.for('bar');
+
+const result = schema.safeParse(data);
+if (result.ok) {
+    // result.value typed as `unique symbol`.
+}
+```

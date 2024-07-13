@@ -3,32 +3,30 @@
   "packages": {
     "specifiers": {
       "jsr:@badrap/valita@^0.3.8": "jsr:@badrap/valita@0.3.8",
-      "jsr:@std/assert@^0.226.0": "jsr:@std/assert@0.226.0",
-      "jsr:@std/expect@^0.224.4": "jsr:@std/expect@0.224.4",
+      "jsr:@std/assert@1.0.0-rc.2": "jsr:@std/assert@1.0.0-rc.2",
+      "jsr:@std/expect@^0.224.4": "jsr:@std/expect@0.224.5",
       "jsr:@std/internal@^1.0.0": "jsr:@std/internal@1.0.0",
       "npm:@biomejs/biome": "npm:@biomejs/biome@1.8.0",
       "npm:esbuild@^0.21.4": "npm:esbuild@0.21.4",
       "npm:expect-type@^0.19.0": "npm:expect-type@0.19.0",
-      "npm:type-fest": "npm:type-fest@4.20.0",
-      "npm:type-fest@^4.20.0": "npm:type-fest@4.20.0",
+      "npm:type-fest@^4.20.0": "npm:type-fest@4.20.1",
       "npm:typescript@^5.4.5": "npm:typescript@5.4.5",
-      "npm:zod": "npm:zod@3.23.8",
       "npm:zod@^3.23.8": "npm:zod@3.23.8"
     },
     "jsr": {
       "@badrap/valita@0.3.8": {
         "integrity": "c9e308068468e9526d6f151c0b658e09430cc326da4faa6c5844cc09b421cfa3"
       },
-      "@std/assert@0.226.0": {
-        "integrity": "0dfb5f7c7723c18cec118e080fec76ce15b4c31154b15ad2bd74822603ef75b3",
+      "@std/assert@1.0.0-rc.2": {
+        "integrity": "0484eab1d76b55fca1c3beaff485a274e67dd3b9f065edcbe70030dfc0b964d3",
         "dependencies": [
           "jsr:@std/internal@^1.0.0"
         ]
       },
-      "@std/expect@0.224.4": {
-        "integrity": "36c89c4ef0ea051b97c9d34fc6dc469b2f3d1345fea5887bacc7875689d2fc19",
+      "@std/expect@0.224.5": {
+        "integrity": "ae6e57ee6f23a2fd5ae130cb84448eef182354cb902e1a2a98d64c72ac3a5a1c",
         "dependencies": [
-          "jsr:@std/assert@^0.226.0",
+          "jsr:@std/assert@1.0.0-rc.2",
           "jsr:@std/internal@^1.0.0"
         ]
       },
@@ -206,8 +204,8 @@
         "integrity": "sha512-piv9wz3IrAG4Wnk2A+n2VRCHieAyOSxrRLU872Xo6nyn39kYXKDALk4OcqnvLRnFvkz659CnWC8MWZLuuQnoqg==",
         "dependencies": {}
       },
-      "type-fest@4.20.0": {
-        "integrity": "sha512-MBh+PHUHHisjXf4tlx0CFWoMdjx8zCMLJHOjnV1prABYZFHqtFOyauCIK2/7w4oIfwkF8iNhLtnJEfVY2vn3iw==",
+      "type-fest@4.20.1": {
+        "integrity": "sha512-R6wDsVsoS9xYOpy8vgeBlqpdOyzJ12HNfQhC/aAKWM3YoCV9TtunJzh/QpkMgeDhkoynDcw5f1y+qF9yc/HHyg==",
         "dependencies": {}
       },
       "typescript@5.4.5": {

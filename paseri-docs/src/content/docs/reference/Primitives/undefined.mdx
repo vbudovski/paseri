@@ -1,0 +1,17 @@
+---
+title: "Undefined"
+sidebar:
+    order: 5
+---
+
+```typescript
+import * as p from '@vbudovski/paseri';
+
+const schema = p.undefined();
+const data = undefined;
+
+const result = schema.safeParse(data);
+if (result.ok) {
+    // result.value typed as `undefined`.
+}
+```

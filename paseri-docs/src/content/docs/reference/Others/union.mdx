@@ -1,0 +1,17 @@
+---
+title: "Union"
+sidebar:
+    order: 42
+---
+
+```typescript
+import * as p from '@vbudovski/paseri';
+
+const schema = p.union(p.number(), p.string());
+const data = 'foo';
+
+const result = schema.safeParse(data);
+if (result.ok) {
+    // result.value typed as `number | string`.
+}
+```
