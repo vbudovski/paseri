@@ -1,0 +1,54 @@
+name: Test
+
+on:
+  workflow_call:
+    secrets:
+      GIST_SECRET:
+        required: true
+
+jobs:
+  unit:
+    name: Run unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Deno
+        uses: denoland/setup-deno@v1
+        with:
+          deno-version: "^1.45"
+
+      - name: Get pnpm store directory
+        id: deno-cache
+        shell: bash
+        run: |
+          echo "DENO_DIR=$(deno info | grep DENO_DIR | sed 's/\x1B\[[0-9;]\{1,\}[A-Za-z]//g' | cut -d ':' -f 2 | xargs)" >> $GITHUB_OUTPUT
+
+      - uses: actions/cache@v4
+        name: Setup Deno cache
+        with:
+          path: ${{ steps.deno-cache.outputs.DENO_DIR }}
+          key: ${{ runner.os }}-deno-cache
+          restore-keys: |
+            ${{ runner.os }}-deno-cache
+
+      - name: Run tests
+        id: tests
+        run: |
+          cd paseri-lib && deno test --coverage
+          echo "CODE_COVERAGE=$(deno coverage | grep "All files" | sed 's/\x1B\[[0-9;]\{1,\}[A-Za-z]//g' | cut -d '|' -f 2 | xargs)" >> $GITHUB_OUTPUT
+          echo "GIST_PATH=$(echo "${{ github.repository }}/${{ github.ref_name }}" | sed 's/\//_/g')-coverage.svg" >> $GITHUB_OUTPUT
+
+      - name: Create coverage badge
+        uses: schneegans/dynamic-badges-action@v1.7.0
+        with:
+          auth: ${{ secrets.GIST_SECRET }}
+          gistID: 80548a1b87f9f00fe1ae426ca6a2a517
+          filename: ${{ steps.tests.outputs.GIST_PATH }}
+          label: coverage
+          message: ${{ steps.tests.outputs.CODE_COVERAGE }}%
+          valColorRange: ${{ steps.tests.outputs.CODE_COVERAGE }}
+          minColorRange: 50
+          maxColorRange: 90

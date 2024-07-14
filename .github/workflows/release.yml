@@ -1,0 +1,14 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+
+jobs:
+  test:
+    uses: ./.github/workflows/test.yml
+    secrets:
+      GIST_SECRET: ${{ secrets.GIST_SECRET }}
