@@ -1,0 +1,13 @@
+name: Pull request
+
+on:
+  pull_request:
+    types: [ opened, synchronize, reopened ]
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+
+jobs:
+  test:
+    uses: ./.github/workflows/test.yml
+    secrets:
+      GIST_SECRET: ${{ secrets.GIST_SECRET }}
