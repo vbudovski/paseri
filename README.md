@@ -1,3 +1,8 @@
+[![Release](https://github.com/vbudovski/paseri/actions/workflows/release.yml/badge.svg)](https://github.com/vbudovski/paseri/actions/workflows/release.yml)
+[![Coverage](https://gist.githubusercontent.com/vbudovski/80548a1b87f9f00fe1ae426ca6a2a517/raw/08de21da87fc157c68c348340f7bbd20875774d3/vbudovski_paseri_main-coverage.svg)](https://github.com/vbudovski/paseri/actions/workflows/release.yml)
+
+---
+
 # Paseri
 
 A TypeScript parsing, and validation library for structured data. Ensure that untrusted input from users or external
