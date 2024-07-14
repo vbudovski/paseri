@@ -12,9 +12,9 @@ of this library.
 
 ### Zod
 
-This library wouldn't exist without [Zod](https://github.com/colinhacks/zod) as a source of inspiration, with its incredibly expressive, and straightforward
-API. Zod is an excellent, and very mature library, and if the highest possible performance isn't a key requirement,
-then it is a great choice.
+This library wouldn't exist without [Zod](https://github.com/colinhacks/zod) as a source of inspiration, with its incredibly expressive, and
+straightforward API. Zod is an excellent, and very mature library, and if the highest possible performance isn't a key
+requirement, then it is a great choice.
 
 ### Valita
 
@@ -31,6 +31,7 @@ The list may be expanded in time, but for now the objectives are the following:
 * High performance[^2], and usability in a strict
   [Content Security Policy (CSP)](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP) environment.
 * An API that is *reasonably* close to that of Zod. One-to-one compatibility is not the intention.
+* Immutability of schemas. This avoids a lot of bugs caused by mutating references to non-primitive types.
 
 ---
 

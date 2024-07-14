@@ -17,6 +17,9 @@ class UnionSchema<TupleType extends ValidTupleType> extends Schema<Infer<TupleTo
 
         this._elements = elements;
     }
+    protected _clone() {
+        return new UnionSchema(...this._elements);
+    }
     _parse(value: unknown): InternalParseResult<Infer<TupleToUnion<TupleType>>> {
         for (let i = 0; i < this._elements.length; i++) {
             const schema = this._elements[i];

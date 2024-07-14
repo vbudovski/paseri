@@ -218,3 +218,47 @@ test('Nullable', () => {
         expect(result.ok).toBeTruthy();
     }
 });
+
+test('Immutable', async (t) => {
+    await t.step('min', () => {
+        const original = p.string();
+        const modified = original.min(3);
+        expect(modified).not.toEqual(original);
+    });
+
+    await t.step('max', () => {
+        const original = p.string();
+        const modified = original.max(3);
+        expect(modified).not.toEqual(original);
+    });
+
+    await t.step('length', () => {
+        const original = p.string();
+        const modified = original.length(3);
+        expect(modified).not.toEqual(original);
+    });
+
+    await t.step('email', () => {
+        const original = p.string();
+        const modified = original.email();
+        expect(modified).not.toEqual(original);
+    });
+
+    await t.step('emoji', () => {
+        const original = p.string();
+        const modified = original.emoji();
+        expect(modified).not.toEqual(original);
+    });
+
+    await t.step('uuid', () => {
+        const original = p.string();
+        const modified = original.uuid();
+        expect(modified).not.toEqual(original);
+    });
+
+    await t.step('nanoid', () => {
+        const original = p.string();
+        const modified = original.nanoid();
+        expect(modified).not.toEqual(original);
+    });
+});

@@ -6,6 +6,9 @@ class BooleanSchema extends Schema<boolean> {
         INVALID_TYPE: { type: 'leaf', code: 'invalid_type' },
     } as const;
 
+    protected _clone() {
+        return new BooleanSchema();
+    }
     _parse(value: unknown): InternalParseResult<boolean> {
         if (typeof value !== 'boolean') {
             return this.issues.INVALID_TYPE;
@@ -15,8 +18,10 @@ class BooleanSchema extends Schema<boolean> {
     }
 }
 
+const singleton = new BooleanSchema();
+
 function boolean() {
-    return new BooleanSchema();
+    return singleton;
 }
 
 export { boolean };

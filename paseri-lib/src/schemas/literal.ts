@@ -5,7 +5,7 @@ import { Schema } from './schema.ts';
 type LiteralType = string | number | bigint | boolean | symbol;
 
 class LiteralSchema<OutputType extends LiteralType> extends Schema<OutputType> {
-    private readonly _value: LiteralType;
+    private readonly _value: OutputType;
 
     readonly issues = {
         INVALID_VALUE: { type: 'leaf', code: 'invalid_value' },
@@ -15,6 +15,9 @@ class LiteralSchema<OutputType extends LiteralType> extends Schema<OutputType> {
         super();
 
         this._value = value;
+    }
+    protected _clone() {
+        return new LiteralSchema(this._value as IsLiteral<OutputType> extends true ? OutputType : never);
     }
     _parse(value: unknown): InternalParseResult<OutputType> {
         if (value !== this._value) {

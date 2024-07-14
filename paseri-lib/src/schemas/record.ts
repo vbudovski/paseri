@@ -16,6 +16,9 @@ class RecordSchema<ElementSchemaType extends AnySchemaType> extends Schema<Infer
 
         this._element = element;
     }
+    protected _clone() {
+        return new RecordSchema(this._element);
+    }
     _parse(value: unknown): InternalParseResult<Infer<Record<string, ElementSchemaType>>> {
         if (!isPlainObject(value)) {
             return this.issues.INVALID_TYPE;

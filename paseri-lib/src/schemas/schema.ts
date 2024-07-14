@@ -1,19 +1,8 @@
-import type { TreeNode } from '../issue.ts';
 import { isParseSuccess } from '../result.ts';
 import type { InternalParseResult, ParseResult } from '../result.ts';
 
-type CheckFunction<OutputType> = (value: OutputType) => TreeNode | undefined;
-
 abstract class Schema<OutputType> {
-    protected checks: CheckFunction<OutputType>[] | undefined = undefined;
-
-    protected addCheck(check: CheckFunction<OutputType>) {
-        if (this.checks === undefined) {
-            this.checks = [check];
-        } else {
-            this.checks.push(check);
-        }
-    }
+    protected abstract _clone(): Schema<OutputType>;
     public abstract _parse(value: unknown): InternalParseResult<OutputType>;
     parse(value: unknown): OutputType {
         const result = this.safeParse(value);
@@ -52,6 +41,9 @@ class OptionalSchema<OutputType> extends Schema<OutputType | undefined> {
 
         this._schema = schema;
     }
+    protected _clone(): OptionalSchema<OutputType> {
+        return new OptionalSchema(this._schema);
+    }
     _parse(value: unknown): InternalParseResult<OutputType | undefined> {
         if (value === undefined) {
             return undefined;
@@ -68,6 +60,9 @@ class NullableSchema<OutputType> extends Schema<OutputType | null> {
         super();
 
         this._schema = schema;
+    }
+    protected _clone(): NullableSchema<OutputType> {
+        return new NullableSchema(this._schema);
     }
     _parse(value: unknown): InternalParseResult<OutputType | null> {
         if (value === null) {

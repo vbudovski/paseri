@@ -20,6 +20,13 @@ class ArraySchema<ElementSchemaType extends AnySchemaType> extends Schema<Infer<
 
         this._element = element;
     }
+    protected _clone() {
+        const cloned = new ArraySchema(this._element);
+        cloned._minLength = this._minLength;
+        cloned._maxLength = this._maxLength;
+
+        return cloned;
+    }
     _parse(value: unknown): InternalParseResult<Infer<ElementSchemaType[]>> {
         if (!Array.isArray(value)) {
             return this.issues.INVALID_TYPE;
@@ -55,20 +62,23 @@ class ArraySchema<ElementSchemaType extends AnySchemaType> extends Schema<Infer<
         return undefined;
     }
     min(length: number) {
-        this._minLength = length;
+        const cloned = this._clone();
+        cloned._minLength = length;
 
-        return this;
+        return cloned;
     }
     max(length: number) {
-        this._maxLength = length;
+        const cloned = this._clone();
+        cloned._maxLength = length;
 
-        return this;
+        return cloned;
     }
     length(length: number) {
-        this._minLength = length;
-        this._maxLength = length;
+        const cloned = this._clone();
+        cloned._minLength = length;
+        cloned._maxLength = length;
 
-        return this;
+        return cloned;
     }
 }
 

@@ -140,3 +140,29 @@ test('Nullable', () => {
         expect(result.ok).toBeTruthy();
     }
 });
+
+test('Immutable', async (t) => {
+    await t.step('gte', () => {
+        const original = p.bigint();
+        const modified = original.gte(3n);
+        expect(modified).not.toEqual(original);
+    });
+
+    await t.step('gt', () => {
+        const original = p.bigint();
+        const modified = original.gt(3n);
+        expect(modified).not.toEqual(original);
+    });
+
+    await t.step('lte', () => {
+        const original = p.bigint();
+        const modified = original.lte(3n);
+        expect(modified).not.toEqual(original);
+    });
+
+    await t.step('lt', () => {
+        const original = p.bigint();
+        const modified = original.lt(3n);
+        expect(modified).not.toEqual(original);
+    });
+});

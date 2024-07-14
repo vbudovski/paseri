@@ -327,3 +327,17 @@ test('White-box', async (t) => {
         expect(issueOrSuccess).toEqual({ ok: true, value: { child: { foo: 'bar' } } });
     });
 });
+
+test('Immutable', async (t) => {
+    await t.step('strict', () => {
+        const original = p.object({ foo: p.string() });
+        const modified = original.strict();
+        expect(modified).not.toEqual(original);
+    });
+
+    await t.step('passthrough', () => {
+        const original = p.object({ foo: p.string() });
+        const modified = original.passthrough();
+        expect(modified).not.toEqual(original);
+    });
+});

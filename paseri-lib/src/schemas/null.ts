@@ -6,6 +6,9 @@ class NullSchema extends Schema<null> {
         INVALID_VALUE: { type: 'leaf', code: 'invalid_value' },
     } as const;
 
+    protected _clone() {
+        return new NullSchema();
+    }
     _parse(value: unknown): InternalParseResult<null> {
         if (value !== null) {
             return this.issues.INVALID_VALUE;
@@ -15,9 +18,11 @@ class NullSchema extends Schema<null> {
     }
 }
 
+const singleton = new NullSchema();
+
 // `null` is a reserved word.
 function null_() {
-    return new NullSchema();
+    return singleton;
 }
 
 export { null_ };

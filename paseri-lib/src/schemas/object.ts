@@ -27,6 +27,12 @@ class ObjectSchema<ShapeType extends ValidShapeType<ShapeType>> extends Schema<I
 
         this._shape = new Map(Object.entries(shape));
     }
+    protected _clone() {
+        const cloned = new ObjectSchema(Object.fromEntries(this._shape.entries()) as ShapeType);
+        cloned._mode = this._mode;
+
+        return cloned;
+    }
     _parse(value: unknown): InternalParseResult<Infer<ShapeType>> {
         if (!isPlainObject(value)) {
             return this.issues.INVALID_TYPE;
@@ -140,15 +146,17 @@ class ObjectSchema<ShapeType extends ValidShapeType<ShapeType>> extends Schema<I
         return undefined;
     }
 
-    strict(): this {
-        this._mode = 'strict';
+    strict() {
+        const cloned = this._clone();
+        cloned._mode = 'strict';
 
-        return this;
+        return cloned;
     }
-    passthrough(): this {
-        this._mode = 'passthrough';
+    passthrough() {
+        const cloned = this._clone();
+        cloned._mode = 'passthrough';
 
-        return this;
+        return cloned;
     }
 }
 

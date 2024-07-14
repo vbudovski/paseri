@@ -21,6 +21,9 @@ class TupleSchema<TupleSchemaType extends ValidTupleSchemaType> extends Schema<I
         this._schemas = schemas;
         this._length = schemas.length;
     }
+    protected _clone() {
+        return new TupleSchema(...this._schemas);
+    }
     _parse(value: unknown): InternalParseResult<Infer<TupleSchemaType>> {
         if (!Array.isArray(value)) {
             return this.issues.INVALID_TYPE;

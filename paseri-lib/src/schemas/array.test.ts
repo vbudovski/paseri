@@ -145,3 +145,23 @@ test('Nullable', () => {
         expect(result.ok).toBeTruthy();
     }
 });
+
+test('Immutable', async (t) => {
+    await t.step('min', () => {
+        const original = p.array(p.string());
+        const modified = original.min(3);
+        expect(modified).not.toEqual(original);
+    });
+
+    await t.step('max', () => {
+        const original = p.array(p.string());
+        const modified = original.max(3);
+        expect(modified).not.toEqual(original);
+    });
+
+    await t.step('length', () => {
+        const original = p.array(p.string());
+        const modified = original.length(3);
+        expect(modified).not.toEqual(original);
+    });
+});

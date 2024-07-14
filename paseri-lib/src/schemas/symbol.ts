@@ -6,6 +6,9 @@ class SymbolSchema extends Schema<symbol> {
         INVALID_TYPE: { type: 'leaf', code: 'invalid_type' },
     } as const;
 
+    protected _clone() {
+        return new SymbolSchema();
+    }
     _parse(value: unknown): InternalParseResult<symbol> {
         if (typeof value !== 'symbol') {
             return this.issues.INVALID_TYPE;
@@ -15,8 +18,10 @@ class SymbolSchema extends Schema<symbol> {
     }
 }
 
+const singleton = new SymbolSchema();
+
 function symbol() {
-    return new SymbolSchema();
+    return singleton;
 }
 
 export { symbol };

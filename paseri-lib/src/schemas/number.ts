@@ -1,7 +1,12 @@
+import type { TreeNode } from '../issue.ts';
 import type { InternalParseResult } from '../result.ts';
 import { Schema } from './schema.ts';
 
+type CheckFunction = (value: number) => TreeNode | undefined;
+
 class NumberSchema extends Schema<number> {
+    private _checks: CheckFunction[] | undefined = undefined;
+
     readonly issues = {
         INVALID_TYPE: { type: 'leaf', code: 'invalid_type' },
         TOO_SMALL: { type: 'leaf', code: 'too_small' },
@@ -11,15 +16,19 @@ class NumberSchema extends Schema<number> {
         INVALID_SAFE_INTEGER: { type: 'leaf', code: 'invalid_safe_integer' },
     } as const;
 
+    protected _clone() {
+        const cloned = new NumberSchema();
+        cloned._checks = this._checks?.slice();
+
+        return cloned;
+    }
     _parse(value: unknown): InternalParseResult<number> {
         if (typeof value !== 'number') {
             return this.issues.INVALID_TYPE;
         }
 
-        if (this.checks !== undefined) {
-            const length = this.checks.length;
-            for (let i = 0; i < length; i++) {
-                const check = this.checks[i];
+        if (this._checks !== undefined) {
+            for (const check of this._checks) {
                 const issue = check(value);
                 if (issue) {
                     return issue;
@@ -30,86 +39,88 @@ class NumberSchema extends Schema<number> {
         return undefined;
     }
     gte(value: number) {
-        this.addCheck((_value) => {
+        const cloned = this._clone();
+        cloned._checks = this._checks || [];
+        cloned._checks.push((_value) => {
             if (_value < value) {
                 return this.issues.TOO_SMALL;
             }
-
-            return undefined;
         });
 
-        return this;
+        return cloned;
     }
     gt(value: number) {
-        this.addCheck((_value) => {
+        const cloned = this._clone();
+        cloned._checks = this._checks || [];
+        cloned._checks.push((_value) => {
             if (_value <= value) {
                 return this.issues.TOO_SMALL;
             }
-
-            return undefined;
         });
 
-        return this;
+        return cloned;
     }
     lte(value: number) {
-        this.addCheck((_value) => {
+        const cloned = this._clone();
+        cloned._checks = this._checks || [];
+        cloned._checks.push((_value) => {
             if (_value > value) {
                 return this.issues.TOO_LARGE;
             }
-
-            return undefined;
         });
 
-        return this;
+        return cloned;
     }
     lt(value: number) {
-        this.addCheck((_value) => {
+        const cloned = this._clone();
+        cloned._checks = this._checks || [];
+        cloned._checks.push((_value) => {
             if (_value >= value) {
                 return this.issues.TOO_LARGE;
             }
-
-            return undefined;
         });
 
-        return this;
+        return cloned;
     }
     int() {
-        this.addCheck((_value) => {
+        const cloned = this._clone();
+        cloned._checks = this._checks || [];
+        cloned._checks.push((_value) => {
             if (!Number.isInteger(_value)) {
                 return this.issues.INVALID_INTEGER;
             }
-
-            return undefined;
         });
 
-        return this;
+        return cloned;
     }
     finite() {
-        this.addCheck((_value) => {
+        const cloned = this._clone();
+        cloned._checks = this._checks || [];
+        cloned._checks.push((_value) => {
             if (!Number.isFinite(_value)) {
                 return this.issues.INVALID_FINITE;
             }
-
-            return undefined;
         });
 
-        return this;
+        return cloned;
     }
     safe() {
-        this.addCheck((_value) => {
+        const cloned = this._clone();
+        cloned._checks = this._checks || [];
+        cloned._checks.push((_value) => {
             if (!Number.isSafeInteger(_value)) {
                 return this.issues.INVALID_SAFE_INTEGER;
             }
-
-            return undefined;
         });
 
-        return this;
+        return cloned;
     }
 }
 
+const singleton = new NumberSchema();
+
 function number() {
-    return new NumberSchema();
+    return singleton;
 }
 
 export { number };

@@ -13,16 +13,16 @@ of this library.
 
 ## Acknowledgements
 
-### [Zod](https://github.com/colinhacks/zod)
+### Zod
 
-This library wouldn't exist without Zod as a source of inspiration, with its incredibly expressive, and straightforward
-API. Zod is an excellent, and very mature library, and if the highest possible performance isn't a key requirement,
-then it is a great choice.
+This library wouldn't exist without [Zod](https://github.com/colinhacks/zod) as a source of inspiration, with its incredibly expressive, and
+straightforward API. Zod is an excellent, and very mature library, and if the highest possible performance isn't a key
+requirement, then it is a great choice.
 
-### [Valita](https://github.com/badrap/valita)
+### Valita
 
 It sets an incredibly high bar for parsing performance, and is the current benchmark for this implementation. Some of
-the goals of this library differ from the goals of Valita, but it is nonetheless an excellent project.
+the goals of this library differ from the goals of [Valita](https://github.com/badrap/valita), but it is nonetheless an excellent project.
 
 ## Goals
 
@@ -34,6 +34,7 @@ The list may be expanded in time, but for now the objectives are the following:
 * High performance[^2], and usability in a strict
   [Content Security Policy (CSP)](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP) environment.
 * An API that is *reasonably* close to that of Zod. One-to-one compatibility is not the intention.
+* Immutability of schemas. This avoids a lot of bugs caused by mutating references to non-primitive types.
 
 ## Documentation
 

@@ -6,6 +6,9 @@ class NeverSchema extends Schema<never> {
         INVALID_TYPE: { type: 'leaf', code: 'invalid_type' },
     } as const;
 
+    protected _clone() {
+        return new NeverSchema();
+    }
     _parse(value: unknown): InternalParseResult<never> {
         return this.issues.INVALID_TYPE;
     }
