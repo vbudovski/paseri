@@ -133,4 +133,4 @@ function string() {
     return singleton;
 }
 
-export { string };
+export { string, emailRegex, emojiRegex, uuidRegex, nanoidRegex };

@@ -1,110 +1,151 @@
 import { expect } from '@std/expect';
 import { expectTypeOf } from 'expect-type';
+import fc from 'fast-check';
 import * as p from '../index.ts';
 import type { TreeNode } from '../issue.ts';
 
 const { test } = Deno;
 
-test('Type', async (t) => {
+test('Valid type', () => {
     const schema = p.array(p.number());
 
-    await t.step('Valid', () => {
-        const result = schema.safeParse([1, 2, 3]);
-        if (result.ok) {
-            expectTypeOf(result.value).toEqualTypeOf<number[]>;
-            expect(result.value).toEqual([1, 2, 3]);
-        } else {
-            expect(result.ok).toBeTruthy();
-        }
-    });
-
-    await t.step('Invalid', () => {
-        const result = schema.safeParse(null);
-        if (!result.ok) {
-            const expectedResult: TreeNode = { type: 'leaf', code: 'invalid_type' };
-            expect(result.issue).toEqual(expectedResult);
-        } else {
-            expect(result.ok).toBeFalsy();
-        }
-    });
+    fc.assert(
+        fc.property(fc.array(fc.float()), (data) => {
+            const result = schema.safeParse(data);
+            if (result.ok) {
+                expectTypeOf(result.value).toEqualTypeOf<number[]>;
+                expect(result.value).toEqual(data);
+            } else {
+                expect(result.ok).toBeTruthy();
+            }
+        }),
+    );
 });
 
-test('Min', async (t) => {
+test('Invalid type', () => {
+    const schema = p.string();
+
+    fc.assert(
+        fc.property(
+            fc.anything().filter((value) => Array.isArray(value)),
+            (data) => {
+                const result = schema.safeParse(data);
+                if (!result.ok) {
+                    expect(result.issue).toEqual({ type: 'leaf', code: 'invalid_type' });
+                } else {
+                    expect(result.ok).toBeFalsy();
+                }
+            },
+        ),
+    );
+});
+
+test('Valid min', () => {
     const schema = p.array(p.number()).min(3);
 
-    await t.step('Valid', () => {
-        const result = schema.safeParse([1, 2, 3]);
-        if (result.ok) {
-            expectTypeOf(result.value).toEqualTypeOf<number[]>;
-            expect(result.value).toEqual([1, 2, 3]);
-        } else {
-            expect(result.ok).toBeTruthy();
-        }
-    });
-
-    await t.step('Too short', () => {
-        const result = schema.safeParse([1, 2]);
-        if (!result.ok) {
-            expect(result.issue).toEqual({ type: 'leaf', code: 'too_short' });
-        } else {
-            expect(result.ok).toBeFalsy();
-        }
-    });
+    fc.assert(
+        fc.property(fc.array(fc.float(), { minLength: 3 }), (data) => {
+            const result = schema.safeParse(data);
+            if (result.ok) {
+                expectTypeOf(result.value).toEqualTypeOf<number[]>;
+                expect(result.value).toBe(data);
+            } else {
+                expect(result.ok).toBeTruthy();
+            }
+        }),
+    );
 });
 
-test('Max', async (t) => {
+test('Invalid min', () => {
+    const schema = p.array(p.number()).min(3);
+
+    fc.assert(
+        fc.property(fc.array(fc.float(), { maxLength: 2 }), (data) => {
+            const result = schema.safeParse(data);
+            if (!result.ok) {
+                expect(result.issue).toEqual({ type: 'leaf', code: 'too_short' });
+            } else {
+                expect(result.ok).toBeFalsy();
+            }
+        }),
+    );
+});
+
+test('Valid max', () => {
     const schema = p.array(p.number()).max(3);
 
-    await t.step('Valid', () => {
-        const result = schema.safeParse([1, 2, 3]);
-        if (result.ok) {
-            expectTypeOf(result.value).toEqualTypeOf<number[]>;
-            expect(result.value).toEqual([1, 2, 3]);
-        } else {
-            expect(result.ok).toBeTruthy();
-        }
-    });
-
-    await t.step('Too long', () => {
-        const result = schema.safeParse([1, 2, 3, 4]);
-        if (!result.ok) {
-            expect(result.issue).toEqual({ type: 'leaf', code: 'too_long' });
-        } else {
-            expect(result.ok).toBeFalsy();
-        }
-    });
+    fc.assert(
+        fc.property(fc.array(fc.float(), { maxLength: 3 }), (data) => {
+            const result = schema.safeParse(data);
+            if (result.ok) {
+                expectTypeOf(result.value).toEqualTypeOf<number[]>;
+                expect(result.value).toBe(data);
+            } else {
+                expect(result.ok).toBeTruthy();
+            }
+        }),
+    );
 });
 
-test('Length', async (t) => {
+test('Invalid max', () => {
+    const schema = p.array(p.number()).max(3);
+
+    fc.assert(
+        fc.property(fc.array(fc.float(), { minLength: 4 }), (data) => {
+            const result = schema.safeParse(data);
+            if (!result.ok) {
+                expect(result.issue).toEqual({ type: 'leaf', code: 'too_long' });
+            } else {
+                expect(result.ok).toBeFalsy();
+            }
+        }),
+    );
+});
+
+test('Valid length', () => {
     const schema = p.array(p.number()).length(3);
 
-    await t.step('Valid', () => {
-        const result = schema.safeParse([1, 2, 3]);
-        if (result.ok) {
-            expectTypeOf(result.value).toEqualTypeOf<number[]>;
-            expect(result.value).toEqual([1, 2, 3]);
-        } else {
-            expect(result.ok).toBeTruthy();
-        }
-    });
+    fc.assert(
+        fc.property(fc.array(fc.float(), { minLength: 3, maxLength: 3 }), (data) => {
+            const result = schema.safeParse(data);
+            if (result.ok) {
+                expectTypeOf(result.value).toEqualTypeOf<number[]>;
+                expect(result.value).toBe(data);
+            } else {
+                expect(result.ok).toBeTruthy();
+            }
+        }),
+    );
+});
 
-    await t.step('Too long', () => {
-        const result = schema.safeParse([1, 2, 3, 4]);
-        if (!result.ok) {
-            expect(result.issue).toEqual({ type: 'leaf', code: 'too_long' });
-        } else {
-            expect(result.ok).toBeFalsy();
-        }
-    });
+test('Invalid length (too long)', () => {
+    const schema = p.array(p.number()).length(3);
 
-    await t.step('Too short', () => {
-        const result = schema.safeParse([1, 2]);
-        if (!result.ok) {
-            expect(result.issue).toEqual({ type: 'leaf', code: 'too_short' });
-        } else {
-            expect(result.ok).toBeFalsy();
-        }
-    });
+    fc.assert(
+        fc.property(fc.array(fc.float(), { minLength: 4 }), (data) => {
+            const result = schema.safeParse(data);
+            if (!result.ok) {
+                expect(result.issue).toEqual({ type: 'leaf', code: 'too_long' });
+            } else {
+                expect(result.ok).toBeFalsy();
+            }
+        }),
+    );
+});
+
+test('Invalid length (too short)', () => {
+    const schema = p.array(p.number()).length(3);
+
+    fc.assert(
+        fc.property(fc.array(fc.float(), { maxLength: 2 }), (data) => {
+            const result = schema.safeParse(data);
+            if (!result.ok) {
+                expect(result.issue).toEqual({ type: 'leaf', code: 'too_short' });
+            } else {
+                expect(result.ok).toBeFalsy();
+            }
+        }),
+    );
 });
 
 test('Invalid elements', () => {
@@ -126,24 +167,34 @@ test('Invalid elements', () => {
 
 test('Optional', () => {
     const schema = p.array(p.number()).optional();
-    const result = schema.safeParse(undefined);
-    if (result.ok) {
-        expectTypeOf(result.value).toEqualTypeOf<number[] | undefined>;
-        expect(result.value).toBe(undefined);
-    } else {
-        expect(result.ok).toBeTruthy();
-    }
+
+    fc.assert(
+        fc.property(fc.option(fc.array(fc.float()), { nil: undefined }), (data) => {
+            const result = schema.safeParse(data);
+            if (result.ok) {
+                expectTypeOf(result.value).toEqualTypeOf<number[] | undefined>;
+                expect(result.value).toEqual(data);
+            } else {
+                expect(result.ok).toBeTruthy();
+            }
+        }),
+    );
 });
 
 test('Nullable', () => {
     const schema = p.array(p.number()).nullable();
-    const result = schema.safeParse(null);
-    if (result.ok) {
-        expectTypeOf(result.value).toEqualTypeOf<number[] | null>;
-        expect(result.value).toBe(null);
-    } else {
-        expect(result.ok).toBeTruthy();
-    }
+
+    fc.assert(
+        fc.property(fc.option(fc.array(fc.float()), { nil: null }), (data) => {
+            const result = schema.safeParse(data);
+            if (result.ok) {
+                expectTypeOf(result.value).toEqualTypeOf<number[] | null>;
+                expect(result.value).toEqual(data);
+            } else {
+                expect(result.ok).toBeTruthy();
+            }
+        }),
+    );
 });
 
 test('Immutable', async (t) => {

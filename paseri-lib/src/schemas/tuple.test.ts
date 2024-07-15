@@ -1,32 +1,43 @@
 import { expect } from '@std/expect';
 import { expectTypeOf } from 'expect-type';
+import fc from 'fast-check';
 import * as p from '../index.ts';
 import type { TreeNode } from '../issue.ts';
 
 const { test } = Deno;
 
-test('Type', async (t) => {
+test('Valid type', () => {
     const schema = p.tuple(p.number(), p.string(), p.literal(123n));
 
-    await t.step('Valid', () => {
-        const result = schema.safeParse([1, 'foo', 123n]);
-        if (result.ok) {
-            expectTypeOf(result.value).toEqualTypeOf<[number, string, 123n]>;
-            expect(result.value).toEqual([1, 'foo', 123n]);
-        } else {
-            expect(result.ok).toBeTruthy();
-        }
-    });
+    fc.assert(
+        fc.property(fc.tuple(fc.float(), fc.string(), fc.constant(123n)), (data) => {
+            const result = schema.safeParse(data);
+            if (result.ok) {
+                expectTypeOf(result.value).toEqualTypeOf<[number, string, 123n]>;
+                expect(result.value).toBe(data);
+            } else {
+                expect(result.ok).toBeTruthy();
+            }
+        }),
+    );
+});
 
-    await t.step('Invalid', () => {
-        const result = schema.safeParse(null);
-        if (!result.ok) {
-            const expectedResult: TreeNode = { type: 'leaf', code: 'invalid_type' };
-            expect(result.issue).toEqual(expectedResult);
-        } else {
-            expect(result.ok).toBeFalsy();
-        }
-    });
+test('Invalid type', () => {
+    const schema = p.tuple(p.number(), p.string(), p.literal(123n));
+
+    fc.assert(
+        fc.property(
+            fc.anything().filter((value) => !Array.isArray(value)),
+            (data) => {
+                const result = schema.safeParse(data);
+                if (!result.ok) {
+                    expect(result.issue).toEqual({ type: 'leaf', code: 'invalid_type' });
+                } else {
+                    expect(result.ok).toBeFalsy();
+                }
+            },
+        ),
+    );
 });
 
 test('Too long', () => {
@@ -80,22 +91,32 @@ test('Invalid elements', () => {
 
 test('Optional', () => {
     const schema = p.tuple(p.number(), p.string(), p.literal(123n)).optional();
-    const result = schema.safeParse(undefined);
-    if (result.ok) {
-        expectTypeOf(result.value).toEqualTypeOf<[number, string, 123n] | undefined>;
-        expect(result.value).toBe(undefined);
-    } else {
-        expect(result.ok).toBeTruthy();
-    }
+
+    fc.assert(
+        fc.property(fc.option(fc.tuple(fc.float(), fc.string(), fc.constant(123n)), { nil: undefined }), (data) => {
+            const result = schema.safeParse(data);
+            if (result.ok) {
+                expectTypeOf(result.value).toEqualTypeOf<[number, string, 123n] | undefined>;
+                expect(result.value).toEqual(data);
+            } else {
+                expect(result.ok).toBeTruthy();
+            }
+        }),
+    );
 });
 
 test('Nullable', () => {
     const schema = p.tuple(p.number(), p.string(), p.literal(123n)).nullable();
-    const result = schema.safeParse(null);
-    if (result.ok) {
-        expectTypeOf(result.value).toEqualTypeOf<[number, string, 123n] | null>;
-        expect(result.value).toBe(null);
-    } else {
-        expect(result.ok).toBeTruthy();
-    }
+
+    fc.assert(
+        fc.property(fc.option(fc.tuple(fc.float(), fc.string(), fc.constant(123n)), { nil: null }), (data) => {
+            const result = schema.safeParse(data);
+            if (result.ok) {
+                expectTypeOf(result.value).toEqualTypeOf<[number, string, 123n] | null>;
+                expect(result.value).toEqual(data);
+            } else {
+                expect(result.ok).toBeTruthy();
+            }
+        }),
+    );
 });

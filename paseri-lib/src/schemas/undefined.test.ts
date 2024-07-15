@@ -1,41 +1,67 @@
 import { expect } from '@std/expect';
 import { expectTypeOf } from 'expect-type';
+import fc from 'fast-check';
 import * as p from '../index.ts';
-import type { TreeNode } from '../issue.ts';
 
 const { test } = Deno;
 
-test('Type', async (t) => {
+test('Valid value', () => {
+    const schema = p.undefined();
+    const result = schema.safeParse(undefined);
+    if (result.ok) {
+        expectTypeOf(result.value).toEqualTypeOf<undefined>;
+        expect(result.value).toBe(undefined);
+    } else {
+        expect(result.ok).toBeTruthy();
+    }
+});
+
+test('Invalid value', () => {
     const schema = p.undefined();
 
-    await t.step('Valid', () => {
-        const result = schema.safeParse(undefined);
-        if (result.ok) {
-            expectTypeOf(result.value).toEqualTypeOf<undefined>;
-            expect(result.value).toBe(undefined);
-        } else {
-            expect(result.ok).toBeTruthy();
-        }
-    });
+    fc.assert(
+        fc.property(
+            fc.anything().filter((value) => value !== undefined),
+            (data) => {
+                const result = schema.safeParse(data);
+                if (!result.ok) {
+                    expect(result.issue).toEqual({ type: 'leaf', code: 'invalid_value' });
+                } else {
+                    expect(result.ok).toBeFalsy();
+                }
+            },
+        ),
+    );
+});
 
-    await t.step('Not null', () => {
-        const result = schema.safeParse(null);
-        if (!result.ok) {
-            const expectedResult: TreeNode = { type: 'leaf', code: 'invalid_value' };
-            expect(result.issue).toEqual(expectedResult);
-        } else {
-            expect(result.ok).toBeFalsy();
-        }
-    });
+test('Optional', () => {
+    const schema = p.undefined().optional();
+
+    fc.assert(
+        fc.property(fc.option(fc.constant(undefined), { nil: undefined }), (data) => {
+            const result = schema.safeParse(data);
+            if (result.ok) {
+                expectTypeOf(result.value).toEqualTypeOf<undefined>;
+                expect(result.value).toEqual(data);
+            } else {
+                expect(result.ok).toBeTruthy();
+            }
+        }),
+    );
 });
 
 test('Nullable', () => {
     const schema = p.undefined().nullable();
-    const result = schema.safeParse(null);
-    if (result.ok) {
-        expectTypeOf(result.value).toEqualTypeOf<undefined | null>;
-        expect(result.value).toBe(null);
-    } else {
-        expect(result.ok).toBeTruthy();
-    }
+
+    fc.assert(
+        fc.property(fc.option(fc.constant(undefined), { nil: null }), (data) => {
+            const result = schema.safeParse(data);
+            if (result.ok) {
+                expectTypeOf(result.value).toEqualTypeOf<undefined | null>;
+                expect(result.value).toEqual(data);
+            } else {
+                expect(result.ok).toBeTruthy();
+            }
+        }),
+    );
 });

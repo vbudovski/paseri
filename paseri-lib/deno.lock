@@ -9,6 +9,7 @@
       "npm:@biomejs/biome": "npm:@biomejs/biome@1.8.0",
       "npm:esbuild@^0.21.4": "npm:esbuild@0.21.4",
       "npm:expect-type@^0.19.0": "npm:expect-type@0.19.0",
+      "npm:fast-check@^3.20.0": "npm:fast-check@3.20.0",
       "npm:type-fest@^4.20.0": "npm:type-fest@4.20.1",
       "npm:typescript@^5.4.5": "npm:typescript@5.4.5",
       "npm:zod@^3.23.8": "npm:zod@3.23.8"
@@ -204,6 +205,16 @@
         "integrity": "sha512-piv9wz3IrAG4Wnk2A+n2VRCHieAyOSxrRLU872Xo6nyn39kYXKDALk4OcqnvLRnFvkz659CnWC8MWZLuuQnoqg==",
         "dependencies": {}
       },
+      "fast-check@3.20.0": {
+        "integrity": "sha512-pZIjqLpOZgdSLecec4GKC3Zq5702MZ34upMKxojnNVSWA0K64V3pXOBT1Wdsrc3AphLtzRBbsi8bRWF4TUGmUg==",
+        "dependencies": {
+          "pure-rand": "pure-rand@6.1.0"
+        }
+      },
+      "pure-rand@6.1.0": {
+        "integrity": "sha512-bVWawvoZoBYpp6yIoQtQXHZjmz35RSVHnUOTefl8Vcjr8snTPY1wnpSPMWekcFwbxI6gtmT7rSYPFvz71ldiOA==",
+        "dependencies": {}
+      },
       "type-fest@4.20.1": {
         "integrity": "sha512-R6wDsVsoS9xYOpy8vgeBlqpdOyzJ12HNfQhC/aAKWM3YoCV9TtunJzh/QpkMgeDhkoynDcw5f1y+qF9yc/HHyg==",
         "dependencies": {}
@@ -226,6 +237,7 @@
       "npm:@biomejs/biome@^1.8.0",
       "npm:esbuild@^0.21.4",
       "npm:expect-type@^0.19.0",
+      "npm:fast-check@^3.20.0",
       "npm:type-fest@^4.20.0",
       "npm:typescript@^5.4.5",
       "npm:zod@^3.23.8"

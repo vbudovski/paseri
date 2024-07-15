@@ -1,151 +1,144 @@
 import { expect } from '@std/expect';
 import { expectTypeOf } from 'expect-type';
+import fc from 'fast-check';
 import * as p from '../index.ts';
 import type { TreeNode } from '../issue.ts';
 
 const { test } = Deno;
 
-test('Type', async (t) => {
-    const schema = p.object({
-        child: p.string(),
-    });
+test('Valid type', () => {
+    const schema = p.object({ foo: p.string() });
 
-    await t.step('Valid', () => {
-        const data = Object.freeze({ child: 'hello' });
-
-        const result = schema.safeParse(data);
-        if (result.ok) {
-            expectTypeOf(result.value).toEqualTypeOf<{ child: string }>;
-            const expectedResult = { child: 'hello' };
-            expect(result.value).toEqual(expectedResult);
-        } else {
-            expect(result.ok).toBeTruthy();
-        }
-    });
-
-    await t.step('Not an object', () => {
-        const data = null;
-
-        const result = schema.safeParse(data);
-        if (!result.ok) {
-            const expectedResult: TreeNode = { type: 'leaf', code: 'invalid_type' };
-            expect(result.issue).toEqual(expectedResult);
-        } else {
-            expect(result.ok).toBeFalsy();
-        }
-    });
+    fc.assert(
+        fc.property(fc.record({ foo: fc.string() }), (data) => {
+            const result = schema.safeParse(data);
+            if (result.ok) {
+                expectTypeOf(result.value).toEqualTypeOf<{ foo: string }>;
+                expect(result.value).toEqual(data);
+            } else {
+                expect(result.ok).toBeTruthy();
+            }
+        }),
+    );
 });
 
-test('Flat, strip', () => {
-    const schema = p.object({
-        child: p.string(),
-    });
-    const data = Object.freeze({ extra1: 'foo', child: 'hello', extra2: 'bar' });
+test('Invalid type', () => {
+    const schema = p.object({ foo: p.string() });
 
-    const result = schema.safeParse(data);
-    if (result.ok) {
-        expectTypeOf(result.value).toEqualTypeOf<{ child: string }>;
-        const expectedResult = { child: 'hello' };
-        expect(result.value).toEqual(expectedResult);
-    } else {
-        expect(result.ok).toBeTruthy();
-    }
+    fc.assert(
+        fc.property(
+            fc.anything().filter((value) => !(typeof value === 'object' && value !== null)),
+            (data) => {
+                const result = schema.safeParse(data);
+                if (!result.ok) {
+                    expect(result.issue).toEqual({ type: 'leaf', code: 'invalid_type' });
+                } else {
+                    expect(result.ok).toBeFalsy();
+                }
+            },
+        ),
+    );
 });
 
-test('Deep, strip', () => {
+test('Strip', () => {
     const schema = p.object({
-        child: p.object({
-            expected: p.string(),
+        foo: p.string(),
+        bar: p.object({
+            baz: p.number(),
         }),
     });
-    const data = Object.freeze({ child: { extra1: 'foo', expected: 'hello', extra2: 'bar' } });
 
-    const result = schema.safeParse(data);
-    if (result.ok) {
-        expectTypeOf(result.value).toEqualTypeOf<{ child: { expected: string } }>;
-        const expectedResult = { child: { expected: 'hello' } };
-        expect(result.value).toEqual(expectedResult);
-    } else {
-        expect(result.ok).toBeTruthy();
-    }
+    fc.assert(
+        fc.property(
+            fc.record({
+                foo: fc.string(),
+                bar: fc.record({ baz: fc.float(), extra2: fc.anything() }),
+                extra1: fc.anything(),
+            }),
+            (data) => {
+                const result = schema.safeParse(data);
+                if (result.ok) {
+                    expectTypeOf(result.value).toEqualTypeOf<{ foo: string; bar: { baz: number } }>;
+                    const expectedResult = { foo: data.foo, bar: { baz: data.bar.baz } };
+                    expect(result.value).toEqual(expectedResult);
+                } else {
+                    expect(result.ok).toBeTruthy();
+                }
+            },
+        ),
+    );
 });
 
-test('Flat, strict', () => {
+test('Strict', () => {
     const schema = p
         .object({
-            child: p.string(),
+            foo: p.string(),
+            bar: p
+                .object({
+                    baz: p.number(),
+                })
+                .strict(),
         })
         .strict();
-    const data = Object.freeze({ extra1: 'foo', child: 'hello', extra2: 'bar' });
 
-    const result = schema.safeParse(data);
-    if (!result.ok) {
-        const expectedResult: TreeNode = {
-            type: 'join',
-            left: { type: 'nest', key: 'extra1', child: { type: 'leaf', code: 'unrecognized_key' } },
-            right: { type: 'nest', key: 'extra2', child: { type: 'leaf', code: 'unrecognized_key' } },
-        };
-        expect(result.issue).toEqual(expectedResult);
-    } else {
-        expect(result.ok).toBeFalsy();
-    }
-});
-
-test('Deep, strict', () => {
-    const schema = p.object({
-        child: p.object({ expected: p.string() }).strict(),
-    });
-    const data = Object.freeze({ child: { extra1: 'foo', expected: 'hello', extra2: 'bar' } });
-
-    const result = schema.safeParse(data);
-    if (!result.ok) {
-        const expectedResult: TreeNode = {
-            type: 'nest',
-            key: 'child',
-            child: {
-                type: 'join',
-                left: { type: 'nest', key: 'extra1', child: { type: 'leaf', code: 'unrecognized_key' } },
-                right: { type: 'nest', key: 'extra2', child: { type: 'leaf', code: 'unrecognized_key' } },
+    fc.assert(
+        fc.property(
+            fc.record({
+                foo: fc.string(),
+                bar: fc.record({ baz: fc.float(), extra2: fc.anything() }),
+                extra1: fc.anything(),
+            }),
+            (data) => {
+                const result = schema.safeParse(data);
+                if (!result.ok) {
+                    const expectedResult: TreeNode = {
+                        type: 'join',
+                        left: {
+                            type: 'nest',
+                            key: 'bar',
+                            child: { type: 'nest', key: 'extra2', child: { type: 'leaf', code: 'unrecognized_key' } },
+                        },
+                        right: { type: 'nest', key: 'extra1', child: { type: 'leaf', code: 'unrecognized_key' } },
+                    };
+                    expect(result.issue).toEqual(expectedResult);
+                } else {
+                    expect(result.ok).toBeFalsy();
+                }
             },
-        };
-        expect(result.issue).toEqual(expectedResult);
-    } else {
-        expect(result.ok).toBeFalsy();
-    }
+        ),
+    );
 });
 
-test('Flat, passthrough', () => {
+test('Passthrough', () => {
     const schema = p
         .object({
-            child: p.string(),
+            foo: p.string(),
+            bar: p
+                .object({
+                    baz: p.number(),
+                })
+                .passthrough(),
         })
         .passthrough();
-    const data = Object.freeze({ extra1: 'foo', child: 'hello', extra2: 'bar' });
 
-    const result = schema.safeParse(data);
-    if (result.ok) {
-        expectTypeOf(result.value).toEqualTypeOf<{ child: string }>;
-        const expectedResult = { extra1: 'foo', child: 'hello', extra2: 'bar' };
-        expect(result.value).toEqual(expectedResult);
-    } else {
-        expect(result.ok).toBeTruthy();
-    }
-});
-
-test('Deep, passthrough', () => {
-    const schema = p.object({
-        child: p.object({ expected: p.string() }).passthrough(),
-    });
-    const data = Object.freeze({ child: { extra1: 'foo', expected: 'hello', extra2: 'bar' } });
-
-    const result = schema.safeParse(data);
-    if (result.ok) {
-        expectTypeOf(result.value).toEqualTypeOf<{ child: { expected: string } }>;
-        const expectedResult = { child: { extra1: 'foo', expected: 'hello', extra2: 'bar' } };
-        expect(result.value).toEqual(expectedResult);
-    } else {
-        expect(result.ok).toBeTruthy();
-    }
+    fc.assert(
+        fc.property(
+            fc.record({
+                foo: fc.string(),
+                bar: fc.record({ baz: fc.float(), extra2: fc.anything() }),
+                extra1: fc.anything(),
+            }),
+            (data) => {
+                const result = schema.safeParse(data);
+                if (result.ok) {
+                    expectTypeOf(result.value).toEqualTypeOf<{ foo: string; bar: { baz: number } }>;
+                    expect(result.value).toEqual(data);
+                } else {
+                    expect(result.ok).toBeTruthy();
+                }
+            },
+        ),
+    );
 });
 
 test('Missing keys', () => {
@@ -243,55 +236,73 @@ test('Optional key is not flagged as missing', () => {
 });
 
 test('Optional', () => {
-    const schema = p.object({ child: p.string() }).optional();
-    const data = undefined;
+    const schema = p
+        .object({
+            foo: p.string(),
+            bar: p
+                .object({
+                    baz: p.number(),
+                })
+                .optional(),
+        })
+        .optional();
 
-    const result = schema.safeParse(data);
-    if (result.ok) {
-        expectTypeOf(result.value).toEqualTypeOf<{ child: string } | undefined>;
-        expect(result.value).toBe(undefined);
-    } else {
-        expect(result.ok).toBeTruthy();
-    }
-});
-
-test('Deep optional', () => {
-    const schema = p.object({ child: p.string().optional() });
-    const data = Object.freeze({ child: undefined });
-
-    const result = schema.safeParse(data);
-    if (result.ok) {
-        expectTypeOf(result.value).toEqualTypeOf<{ child: string | undefined }>;
-        expect(result.value).toEqual({ child: undefined });
-    } else {
-        expect(result.ok).toBeTruthy();
-    }
+    fc.assert(
+        fc.property(
+            fc.option(
+                fc.record({
+                    foo: fc.string(),
+                    bar: fc.option(fc.record({ baz: fc.float() }), { nil: undefined }),
+                }),
+                { nil: undefined },
+            ),
+            (data) => {
+                const result = schema.safeParse(data);
+                if (result.ok) {
+                    expectTypeOf(result.value).toEqualTypeOf<
+                        { foo: string; bar: { baz: number } | undefined } | undefined
+                    >;
+                    expect(result.value).toEqual(data);
+                } else {
+                    expect(result.ok).toBeTruthy();
+                }
+            },
+        ),
+    );
 });
 
 test('Nullable', () => {
-    const schema = p.object({ child: p.string() }).nullable();
-    const data = null;
+    const schema = p
+        .object({
+            foo: p.string(),
+            bar: p
+                .object({
+                    baz: p.number(),
+                })
+                .nullable(),
+        })
+        .nullable();
 
-    const result = schema.safeParse(data);
-    if (result.ok) {
-        expectTypeOf(result.value).toEqualTypeOf<{ child: string } | null>;
-        expect(result.value).toBe(null);
-    } else {
-        expect(result.ok).toBeTruthy();
-    }
-});
-
-test('Deep nullable', () => {
-    const schema = p.object({ child: p.string().nullable() });
-    const data = Object.freeze({ child: null });
-
-    const result = schema.safeParse(data);
-    if (result.ok) {
-        expectTypeOf(result.value).toEqualTypeOf<{ child: string | null }>;
-        expect(result.value).toEqual({ child: null });
-    } else {
-        expect(result.ok).toBeTruthy();
-    }
+    fc.assert(
+        fc.property(
+            fc.option(
+                fc.record({
+                    foo: fc.string(),
+                    bar: fc.option(fc.record({ baz: fc.float() }), { nil: null }),
+                }),
+                { nil: null },
+            ),
+            (data) => {
+                const result = schema.safeParse(data);
+                if (result.ok) {
+                    expectTypeOf(result.value).toEqualTypeOf<{ foo: string; bar: { baz: number } | null } | null>;
+                    expect(result.value).toEqual(data);
+                } else {
+                    expect(result.ok).toBeTruthy();
+                }
+            },
+        ),
+    );
 });
 
 test('White-box', async (t) => {

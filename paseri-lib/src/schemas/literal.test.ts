@@ -1,5 +1,6 @@
 import { expect } from '@std/expect';
 import { expectTypeOf } from 'expect-type';
+import fc from 'fast-check';
 import * as p from '../index.ts';
 
 const { test } = Deno;
@@ -126,22 +127,32 @@ test('Symbol', async (t) => {
 
 test('Optional', () => {
     const schema = p.literal('apple').optional();
-    const result = schema.safeParse(undefined);
-    if (result.ok) {
-        expectTypeOf(result.value).toEqualTypeOf<'apple' | undefined>;
-        expect(result.value).toBe(undefined);
-    } else {
-        expect(result.ok).toBeTruthy();
-    }
+
+    fc.assert(
+        fc.property(fc.option(fc.constant('apple'), { nil: undefined }), (data) => {
+            const result = schema.safeParse(data);
+            if (result.ok) {
+                expectTypeOf(result.value).toEqualTypeOf<'apple' | undefined>;
+                expect(result.value).toEqual(data);
+            } else {
+                expect(result.ok).toBeTruthy();
+            }
+        }),
+    );
 });
 
 test('Nullable', () => {
     const schema = p.literal('apple').nullable();
-    const result = schema.safeParse(null);
-    if (result.ok) {
-        expectTypeOf(result.value).toEqualTypeOf<'apple' | null>;
-        expect(result.value).toBe(null);
-    } else {
-        expect(result.ok).toBeTruthy();
-    }
+
+    fc.assert(
+        fc.property(fc.option(fc.constant('apple'), { nil: null }), (data) => {
+            const result = schema.safeParse(data);
+            if (result.ok) {
+                expectTypeOf(result.value).toEqualTypeOf<'apple' | null>;
+                expect(result.value).toEqual(data);
+            } else {
+                expect(result.ok).toBeTruthy();
+            }
+        }),
+    );
 });
