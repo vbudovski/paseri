@@ -6,7 +6,7 @@ class UndefinedSchema extends Schema<undefined> {
         INVALID_VALUE: { type: 'leaf', code: 'invalid_value' },
     } as const;
 
-    protected _clone() {
+    protected _clone(): UndefinedSchema {
         return new UndefinedSchema();
     }
     _parse(value: unknown): InternalParseResult<undefined> {
@@ -21,7 +21,7 @@ class UndefinedSchema extends Schema<undefined> {
 const singleton = new UndefinedSchema();
 
 // `undefined` is a reserved word.
-function undefined_() {
+function undefined_(): UndefinedSchema {
     return singleton;
 }
 

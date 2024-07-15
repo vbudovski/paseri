@@ -27,7 +27,7 @@ class ObjectSchema<ShapeType extends ValidShapeType<ShapeType>> extends Schema<I
 
         this._shape = new Map(Object.entries(shape));
     }
-    protected _clone() {
+    protected _clone(): ObjectSchema<ShapeType> {
         const cloned = new ObjectSchema(Object.fromEntries(this._shape.entries()) as ShapeType);
         cloned._mode = this._mode;
 
@@ -146,13 +146,13 @@ class ObjectSchema<ShapeType extends ValidShapeType<ShapeType>> extends Schema<I
         return undefined;
     }
 
-    strict() {
+    strict(): ObjectSchema<ShapeType> {
         const cloned = this._clone();
         cloned._mode = 'strict';
 
         return cloned;
     }
-    passthrough() {
+    passthrough(): ObjectSchema<ShapeType> {
         const cloned = this._clone();
         cloned._mode = 'passthrough';
 
@@ -162,7 +162,7 @@ class ObjectSchema<ShapeType extends ValidShapeType<ShapeType>> extends Schema<I
 
 function object<ShapeType extends ValidShapeType<ShapeType>>(
     ...args: ConstructorParameters<typeof ObjectSchema<ShapeType>>
-) {
+): ObjectSchema<ShapeType> {
     return new ObjectSchema(...args);
 }
 

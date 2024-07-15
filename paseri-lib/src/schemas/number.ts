@@ -16,7 +16,7 @@ class NumberSchema extends Schema<number> {
         INVALID_SAFE_INTEGER: { type: 'leaf', code: 'invalid_safe_integer' },
     } as const;
 
-    protected _clone() {
+    protected _clone(): NumberSchema {
         const cloned = new NumberSchema();
         cloned._checks = this._checks?.slice();
 
@@ -38,7 +38,7 @@ class NumberSchema extends Schema<number> {
 
         return undefined;
     }
-    gte(value: number) {
+    gte(value: number): NumberSchema {
         const cloned = this._clone();
         cloned._checks = this._checks || [];
         cloned._checks.push((_value) => {
@@ -49,7 +49,7 @@ class NumberSchema extends Schema<number> {
 
         return cloned;
     }
-    gt(value: number) {
+    gt(value: number): NumberSchema {
         const cloned = this._clone();
         cloned._checks = this._checks || [];
         cloned._checks.push((_value) => {
@@ -60,7 +60,7 @@ class NumberSchema extends Schema<number> {
 
         return cloned;
     }
-    lte(value: number) {
+    lte(value: number): NumberSchema {
         const cloned = this._clone();
         cloned._checks = this._checks || [];
         cloned._checks.push((_value) => {
@@ -71,7 +71,7 @@ class NumberSchema extends Schema<number> {
 
         return cloned;
     }
-    lt(value: number) {
+    lt(value: number): NumberSchema {
         const cloned = this._clone();
         cloned._checks = this._checks || [];
         cloned._checks.push((_value) => {
@@ -82,7 +82,7 @@ class NumberSchema extends Schema<number> {
 
         return cloned;
     }
-    int() {
+    int(): NumberSchema {
         const cloned = this._clone();
         cloned._checks = this._checks || [];
         cloned._checks.push((_value) => {
@@ -93,7 +93,7 @@ class NumberSchema extends Schema<number> {
 
         return cloned;
     }
-    finite() {
+    finite(): NumberSchema {
         const cloned = this._clone();
         cloned._checks = this._checks || [];
         cloned._checks.push((_value) => {
@@ -104,7 +104,7 @@ class NumberSchema extends Schema<number> {
 
         return cloned;
     }
-    safe() {
+    safe(): NumberSchema {
         const cloned = this._clone();
         cloned._checks = this._checks || [];
         cloned._checks.push((_value) => {
@@ -119,7 +119,7 @@ class NumberSchema extends Schema<number> {
 
 const singleton = new NumberSchema();
 
-function number() {
+function number(): NumberSchema {
     return singleton;
 }
 

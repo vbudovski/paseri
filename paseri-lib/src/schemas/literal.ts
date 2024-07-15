@@ -16,7 +16,7 @@ class LiteralSchema<OutputType extends LiteralType> extends Schema<OutputType> {
 
         this._value = value;
     }
-    protected _clone() {
+    protected _clone(): LiteralSchema<OutputType> {
         return new LiteralSchema(this._value as IsLiteral<OutputType> extends true ? OutputType : never);
     }
     _parse(value: unknown): InternalParseResult<OutputType> {
@@ -28,7 +28,9 @@ class LiteralSchema<OutputType extends LiteralType> extends Schema<OutputType> {
     }
 }
 
-function literal<OutputType extends LiteralType>(...args: ConstructorParameters<typeof LiteralSchema<OutputType>>) {
+function literal<OutputType extends LiteralType>(
+    ...args: ConstructorParameters<typeof LiteralSchema<OutputType>>
+): LiteralSchema<OutputType> {
     return new LiteralSchema(...args);
 }
 

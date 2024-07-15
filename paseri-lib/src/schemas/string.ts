@@ -22,7 +22,7 @@ class StringSchema extends Schema<string> {
         INVALID_NANOID: { type: 'leaf', code: 'invalid_nanoid' },
     } as const;
 
-    protected _clone() {
+    protected _clone(): StringSchema {
         const cloned = new StringSchema();
         cloned._checks = this._checks?.slice();
 
@@ -44,7 +44,7 @@ class StringSchema extends Schema<string> {
 
         return undefined;
     }
-    min(length: number) {
+    min(length: number): StringSchema {
         const cloned = this._clone();
         cloned._checks = this._checks || [];
         cloned._checks.push((_value) => {
@@ -55,7 +55,7 @@ class StringSchema extends Schema<string> {
 
         return cloned;
     }
-    max(length: number) {
+    max(length: number): StringSchema {
         const cloned = this._clone();
         cloned._checks = this._checks || [];
         cloned._checks.push((_value) => {
@@ -66,7 +66,7 @@ class StringSchema extends Schema<string> {
 
         return cloned;
     }
-    length(length: number) {
+    length(length: number): StringSchema {
         const cloned = this._clone();
         cloned._checks = this._checks || [];
         cloned._checks.push((_value) => {
@@ -81,7 +81,7 @@ class StringSchema extends Schema<string> {
 
         return cloned;
     }
-    email() {
+    email(): StringSchema {
         const cloned = this._clone();
         cloned._checks = this._checks || [];
         cloned._checks.push((_value) => {
@@ -92,7 +92,7 @@ class StringSchema extends Schema<string> {
 
         return cloned;
     }
-    emoji() {
+    emoji(): StringSchema {
         const cloned = this._clone();
         cloned._checks = this._checks || [];
         cloned._checks.push((_value) => {
@@ -103,7 +103,7 @@ class StringSchema extends Schema<string> {
 
         return cloned;
     }
-    uuid() {
+    uuid(): StringSchema {
         const cloned = this._clone();
         cloned._checks = this._checks || [];
         cloned._checks.push((_value) => {
@@ -114,7 +114,7 @@ class StringSchema extends Schema<string> {
 
         return cloned;
     }
-    nanoid() {
+    nanoid(): StringSchema {
         const cloned = this._clone();
         cloned._checks = this._checks || [];
         cloned._checks.push((_value) => {
@@ -129,7 +129,7 @@ class StringSchema extends Schema<string> {
 
 const singleton = new StringSchema();
 
-function string() {
+function string(): StringSchema {
     return singleton;
 }
 

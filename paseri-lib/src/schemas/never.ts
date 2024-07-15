@@ -6,7 +6,7 @@ class NeverSchema extends Schema<never> {
         INVALID_TYPE: { type: 'leaf', code: 'invalid_type' },
     } as const;
 
-    protected _clone() {
+    protected _clone(): NeverSchema {
         return new NeverSchema();
     }
     _parse(value: unknown): InternalParseResult<never> {
@@ -16,7 +16,7 @@ class NeverSchema extends Schema<never> {
 
 const singleton = new NeverSchema();
 
-function never() {
+function never(): NeverSchema {
     return singleton;
 }
 

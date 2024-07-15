@@ -16,7 +16,7 @@ class RecordSchema<ElementSchemaType extends AnySchemaType> extends Schema<Infer
 
         this._element = element;
     }
-    protected _clone() {
+    protected _clone(): RecordSchema<ElementSchemaType> {
         return new RecordSchema(this._element);
     }
     _parse(value: unknown): InternalParseResult<Infer<Record<string, ElementSchemaType>>> {
@@ -45,7 +45,7 @@ class RecordSchema<ElementSchemaType extends AnySchemaType> extends Schema<Infer
 
 function record<ElementSchemaType extends AnySchemaType>(
     ...args: ConstructorParameters<typeof RecordSchema<ElementSchemaType>>
-) {
+): RecordSchema<ElementSchemaType> {
     return new RecordSchema(...args);
 }
 

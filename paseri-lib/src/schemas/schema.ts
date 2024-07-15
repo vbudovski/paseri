@@ -25,10 +25,10 @@ abstract class Schema<OutputType> {
 
         return { ok: false, issue: issueOrSuccess };
     }
-    optional() {
+    optional(): OptionalSchema<OutputType> {
         return new OptionalSchema(this);
     }
-    nullable() {
+    nullable(): NullableSchema<OutputType> {
         return new NullableSchema(this);
     }
 }

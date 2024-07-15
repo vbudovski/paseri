@@ -2,7 +2,7 @@ import type { InternalParseResult } from '../result.ts';
 import { Schema } from './schema.ts';
 
 class UnknownSchema extends Schema<unknown> {
-    protected _clone() {
+    protected _clone(): UnknownSchema {
         return new UnknownSchema();
     }
     _parse(value: unknown): InternalParseResult<unknown> {
@@ -12,7 +12,7 @@ class UnknownSchema extends Schema<unknown> {
 
 const singleton = new UnknownSchema();
 
-function unknown() {
+function unknown(): UnknownSchema {
     return singleton;
 }
 

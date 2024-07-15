@@ -21,7 +21,7 @@ class TupleSchema<TupleSchemaType extends ValidTupleSchemaType> extends Schema<I
         this._schemas = schemas;
         this._length = schemas.length;
     }
-    protected _clone() {
+    protected _clone(): TupleSchema<TupleSchemaType> {
         return new TupleSchema(...this._schemas);
     }
     _parse(value: unknown): InternalParseResult<Infer<TupleSchemaType>> {
@@ -59,7 +59,7 @@ class TupleSchema<TupleSchemaType extends ValidTupleSchemaType> extends Schema<I
 
 function tuple<TupleSchemaType extends ValidTupleSchemaType>(
     ...args: ConstructorParameters<typeof TupleSchema<TupleSchemaType>>
-) {
+): TupleSchema<TupleSchemaType> {
     return new TupleSchema(...args);
 }
 

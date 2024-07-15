@@ -20,7 +20,7 @@ class ArraySchema<ElementSchemaType extends AnySchemaType> extends Schema<Infer<
 
         this._element = element;
     }
-    protected _clone() {
+    protected _clone(): ArraySchema<ElementSchemaType> {
         const cloned = new ArraySchema(this._element);
         cloned._minLength = this._minLength;
         cloned._maxLength = this._maxLength;
@@ -61,19 +61,19 @@ class ArraySchema<ElementSchemaType extends AnySchemaType> extends Schema<Infer<
 
         return undefined;
     }
-    min(length: number) {
+    min(length: number): ArraySchema<ElementSchemaType> {
         const cloned = this._clone();
         cloned._minLength = length;
 
         return cloned;
     }
-    max(length: number) {
+    max(length: number): ArraySchema<ElementSchemaType> {
         const cloned = this._clone();
         cloned._maxLength = length;
 
         return cloned;
     }
-    length(length: number) {
+    length(length: number): ArraySchema<ElementSchemaType> {
         const cloned = this._clone();
         cloned._minLength = length;
         cloned._maxLength = length;
@@ -84,7 +84,7 @@ class ArraySchema<ElementSchemaType extends AnySchemaType> extends Schema<Infer<
 
 function array<ElementSchemaType extends AnySchemaType>(
     ...args: ConstructorParameters<typeof ArraySchema<ElementSchemaType>>
-) {
+): ArraySchema<ElementSchemaType> {
     return new ArraySchema(...args);
 }
 

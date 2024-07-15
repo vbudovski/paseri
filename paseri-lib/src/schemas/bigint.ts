@@ -13,7 +13,7 @@ class BigIntSchema extends Schema<bigint> {
         TOO_LARGE: { type: 'leaf', code: 'too_large' },
     } as const;
 
-    protected _clone() {
+    protected _clone(): BigIntSchema {
         const cloned = new BigIntSchema();
         cloned._checks = this._checks?.slice();
 
@@ -35,7 +35,7 @@ class BigIntSchema extends Schema<bigint> {
 
         return undefined;
     }
-    gte(value: bigint) {
+    gte(value: bigint): BigIntSchema {
         const cloned = this._clone();
         cloned._checks = this._checks || [];
         cloned._checks.push((_value) => {
@@ -46,7 +46,7 @@ class BigIntSchema extends Schema<bigint> {
 
         return cloned;
     }
-    gt(value: bigint) {
+    gt(value: bigint): BigIntSchema {
         const cloned = this._clone();
         cloned._checks = this._checks || [];
         cloned._checks.push((_value) => {
@@ -57,7 +57,7 @@ class BigIntSchema extends Schema<bigint> {
 
         return cloned;
     }
-    lte(value: bigint) {
+    lte(value: bigint): BigIntSchema {
         const cloned = this._clone();
         cloned._checks = this._checks || [];
         cloned._checks.push((_value) => {
@@ -68,7 +68,7 @@ class BigIntSchema extends Schema<bigint> {
 
         return cloned;
     }
-    lt(value: bigint) {
+    lt(value: bigint): BigIntSchema {
         const cloned = this._clone();
         cloned._checks = this._checks || [];
         cloned._checks.push((_value) => {
@@ -83,7 +83,7 @@ class BigIntSchema extends Schema<bigint> {
 
 const singleton = new BigIntSchema();
 
-function bigint() {
+function bigint(): BigIntSchema {
     return singleton;
 }
 

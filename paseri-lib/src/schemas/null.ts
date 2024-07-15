@@ -6,7 +6,7 @@ class NullSchema extends Schema<null> {
         INVALID_VALUE: { type: 'leaf', code: 'invalid_value' },
     } as const;
 
-    protected _clone() {
+    protected _clone(): NullSchema {
         return new NullSchema();
     }
     _parse(value: unknown): InternalParseResult<null> {
@@ -21,7 +21,7 @@ class NullSchema extends Schema<null> {
 const singleton = new NullSchema();
 
 // `null` is a reserved word.
-function null_() {
+function null_(): NullSchema {
     return singleton;
 }
 

@@ -17,7 +17,7 @@ class UnionSchema<TupleType extends ValidTupleType> extends Schema<Infer<TupleTo
 
         this._elements = elements;
     }
-    protected _clone() {
+    protected _clone(): UnionSchema<TupleType> {
         return new UnionSchema(...this._elements);
     }
     _parse(value: unknown): InternalParseResult<Infer<TupleToUnion<TupleType>>> {
@@ -36,7 +36,9 @@ class UnionSchema<TupleType extends ValidTupleType> extends Schema<Infer<TupleTo
     }
 }
 
-function union<TupleType extends ValidTupleType>(...args: ConstructorParameters<typeof UnionSchema<TupleType>>) {
+function union<TupleType extends ValidTupleType>(
+    ...args: ConstructorParameters<typeof UnionSchema<TupleType>>
+): UnionSchema<TupleType> {
     return new UnionSchema(...args);
 }
 
