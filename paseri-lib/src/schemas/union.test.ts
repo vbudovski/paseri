@@ -72,3 +72,34 @@ test('Nullable', () => {
         }),
     );
 });
+
+test('Discriminated union', () => {
+    const schema = p.union(
+        p.object({ shape: p.literal('circle'), radius: p.number() }),
+        p.object({ shape: p.literal('rectangle'), width: p.number(), height: p.number() }),
+    );
+
+    fc.assert(
+        fc.property(
+            fc.oneof(
+                fc.record({ shape: fc.constant('circle'), radius: fc.float() }),
+                fc.record({
+                    shape: fc.constant('rectangle'),
+                    width: fc.float(),
+                    height: fc.float(),
+                }),
+            ),
+            (data) => {
+                const result = schema.safeParse(data);
+                if (result.ok) {
+                    expectTypeOf(result.value).toEqualTypeOf<
+                        { shape: 'circle'; radius: number } | { shape: 'rectangle'; width: number; height: number }
+                    >;
+                    expect(result.value).toEqual(data);
+                } else {
+                    expect(result.ok).toBeTruthy();
+                }
+            },
+        ),
+    );
+});
