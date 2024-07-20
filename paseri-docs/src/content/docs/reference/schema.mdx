@@ -1,0 +1,71 @@
+---
+title: "Schema"
+sidebar:
+    order: 0
+---
+
+All schemas contain some common methods.
+
+## Methods
+
+### `parse`
+
+The `parse` method takes a `value` parameter as input. If the `value` conforms to the schema, then the parsed value is
+returned with the appropriate type, otherwise an exception is thrown.
+
+```typescript
+import * as p from '@vbudovski/paseri';
+
+const schema = p.string();
+try {
+    const parsedValue = schema.parse('foo');
+    // Do something with the `string`.
+} catch (e) {
+    // Do something with the exception.
+}
+```
+
+### `safeParse`
+
+The `safeParse` method takes a `value` parameter as input. The result is a discriminated union with a `boolean` member
+`ok`. You can use it to extract the parsed value on success, or a list of issues on failure.
+
+```typescript
+import * as p from '@vbudovski/paseri';
+
+const schema = p.string();
+const result = schema.safeParse('foo');
+if (result.ok) {
+    // Do something with the `result.value`.
+} else {
+    // Do something with the `result.issue`.
+}
+```
+
+### `optional`
+
+Allow any schema to accept `undefined` as a valid value.
+
+```typescript
+import * as p from '@vbudovski/paseri';
+
+const schema = p.string().optional();
+const result = schema.safeParse(undefined)
+if (result.ok) {
+    // result.value is of type `string | undefined`.
+}
+```
+
+### `nullable`
+
+Allow any schema to accept `null` as a valid value.
+
+```typescript
+import * as p from '@vbudovski/paseri';
+
+const schema = p.string().optional();
+const result = schema.safeParse(null)
+if (result.ok) {
+    // result.value is of type `string | null`.
+}
+```
