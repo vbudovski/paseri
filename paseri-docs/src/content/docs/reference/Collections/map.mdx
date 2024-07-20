@@ -1,0 +1,43 @@
+---
+title: "Map"
+sidebar:
+    order: 26
+---
+
+```typescript
+import * as p from '@vbudovski/paseri';
+
+const schema = p.map(p.number(), p.string());
+const data = new Map([[1, 'foo'], [2, 'bar'], [3, 'baz']]);
+
+const result = schema.safeParse(data);
+if (result.ok) {
+    // result.value typed as `Map<number, string>`.
+}
+```
+
+## Validators
+
+### `min`
+
+Consists of at least `size` elements.
+
+```typescript
+p.map(p.number(), p.string()).min(3);
+```
+
+### `max`
+
+Consists of at most `size` elements.
+
+```typescript
+p.map(p.number(), p.string()).max(3);
+```
+
+### `length`
+
+Consists of exactly `size` elements.
+
+```typescript
+p.map(p.number(), p.string()).size(3);
+```
