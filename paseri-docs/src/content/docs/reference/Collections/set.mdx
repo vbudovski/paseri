@@ -1,0 +1,43 @@
+---
+title: "Set"
+sidebar:
+    order: 25
+---
+
+```typescript
+import * as p from '@vbudovski/paseri';
+
+const schema = p.set(p.number());
+const data = new Set([1, 2, 3]);
+
+const result = schema.safeParse(data);
+if (result.ok) {
+    // result.value typed as `Set<number>`.
+}
+```
+
+## Validators
+
+### `min`
+
+Consists of at least `size` elements.
+
+```typescript
+p.set(p.number()).min(3);
+```
+
+### `max`
+
+Consists of at most `size` elements.
+
+```typescript
+p.set(p.number()).max(3);
+```
+
+### `length`
+
+Consists of exactly `size` elements.
+
+```typescript
+p.set(p.number()).size(3);
+```

@@ -7,6 +7,7 @@ export { null_ } from './null.ts';
 export { number } from './number.ts';
 export { object } from './object.ts';
 export { record } from './record.ts';
+export { set } from './set.ts';
 export { string } from './string.ts';
 export { symbol } from './symbol.ts';
 export { tuple } from './tuple.ts';
