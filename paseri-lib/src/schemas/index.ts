@@ -2,6 +2,7 @@ export { array } from './array.ts';
 export { bigint } from './bigint.ts';
 export { boolean } from './boolean.ts';
 export { literal } from './literal.ts';
+export { map } from './map.ts';
 export { never } from './never.ts';
 export { null_ } from './null.ts';
 export { number } from './number.ts';

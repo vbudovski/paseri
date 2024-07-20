@@ -3,6 +3,7 @@ export {
     bigint,
     boolean,
     literal,
+    map,
     never,
     null_ as null,
     number,

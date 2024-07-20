@@ -12,9 +12,11 @@ type Infer<SchemaType> = Simplify<
           ? InferMapped<SchemaType>
           : SchemaType extends Set<Schema<infer OutputType>>
             ? Set<OutputType>
-            : SchemaType extends Schema<infer OutputType>
-              ? OutputType
-              : never
+            : SchemaType extends Map<Schema<infer OutputKeyType>, Schema<infer OutputValueType>>
+              ? Map<OutputKeyType, OutputValueType>
+              : SchemaType extends Schema<infer OutputType>
+                ? OutputType
+                : never
 >;
 
 export type { Infer };
