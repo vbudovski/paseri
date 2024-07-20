@@ -63,7 +63,7 @@ Allow any schema to accept `null` as a valid value.
 ```typescript
 import * as p from '@vbudovski/paseri';
 
-const schema = p.string().optional();
+const schema = p.string().nullable();
 const result = schema.safeParse(null)
 if (result.ok) {
     // result.value is of type `string | null`.
