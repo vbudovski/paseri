@@ -23,11 +23,11 @@ test('Valid type', () => {
 });
 
 test('Invalid type', () => {
-    const schema = p.string();
+    const schema = p.array(p.number());
 
     fc.assert(
         fc.property(
-            fc.anything().filter((value) => Array.isArray(value)),
+            fc.anything().filter((value) => !Array.isArray(value)),
             (data) => {
                 const result = schema.safeParse(data);
                 if (!result.ok) {

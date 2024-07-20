@@ -10,9 +10,11 @@ type Infer<SchemaType> = Simplify<
         ? InferMapped<SchemaType>
         : SchemaType extends Readonly<Record<string | number | symbol, AnySchemaType>>
           ? InferMapped<SchemaType>
-          : SchemaType extends Schema<infer OutputType>
-            ? OutputType
-            : never
+          : SchemaType extends Set<Schema<infer OutputType>>
+            ? Set<OutputType>
+            : SchemaType extends Schema<infer OutputType>
+              ? OutputType
+              : never
 >;
 
 export type { Infer };

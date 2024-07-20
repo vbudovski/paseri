@@ -8,6 +8,7 @@ export {
     number,
     object,
     record,
+    set,
     string,
     symbol,
     tuple,
