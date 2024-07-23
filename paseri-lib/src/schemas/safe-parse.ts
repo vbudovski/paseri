@@ -1,16 +1,21 @@
 import { expect } from '@std/expect';
+import { expectTypeOf } from 'expect-type';
 import * as p from '../index.ts';
 
 const { test } = Deno;
 
-test('Parse fail', () => {
+test('Success', () => {
     const schema = p.string();
-    expect(() => {
-        schema.parse(123);
-    }).toThrow('Failed to parse {"type":"leaf","code":"invalid_type"}.');
+    const result = schema.safeParse('foo');
+    if (result.ok) {
+        expectTypeOf(result.value).toEqualTypeOf<string>;
+        expect(result.value).toBe('foo');
+    } else {
+        expect(result.ok).toBeTruthy();
+    }
 });
 
-test('Safe parse fail', () => {
+test('Failure', () => {
     const schema = p.string();
     const result = schema.safeParse(123);
     if (!result.ok) {

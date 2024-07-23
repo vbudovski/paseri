@@ -2,7 +2,7 @@ import type { NonEmptyObject } from 'type-fest';
 import type { Infer } from '../infer.ts';
 import type { TreeNode } from '../issue.ts';
 import { addIssue } from '../issue.ts';
-import { type InternalParseResult, isParseSuccess } from '../result.ts';
+import { type InternalParseResult, isParseSuccess, ok } from '../result.ts';
 import { isPlainObject } from '../utils.ts';
 import { OptionalSchema, Schema } from './schema.ts';
 
@@ -123,7 +123,7 @@ class ObjectSchema<ShapeType extends ValidShapeType<ShapeType>> extends Schema<I
                 }
             }
 
-            return { ok: true, value: sanitizedValue as Infer<ShapeType> };
+            return ok(sanitizedValue as Infer<ShapeType>);
         }
 
         if (hasUnrecognisedKey && this._mode === 'strip' && !hasModifiedChildValue) {
@@ -136,11 +136,11 @@ class ObjectSchema<ShapeType extends ValidShapeType<ShapeType>> extends Schema<I
                 sanitizedValue[key] = value[key];
             }
 
-            return { ok: true, value: sanitizedValue as Infer<ShapeType> };
+            return ok(sanitizedValue as Infer<ShapeType>);
         }
 
         if (hasModifiedChildValue) {
-            return { ok: true, value: { ...value, ...modifiedValues } as Infer<ShapeType> };
+            return ok({ ...value, ...modifiedValues } as Infer<ShapeType>);
         }
 
         return undefined;

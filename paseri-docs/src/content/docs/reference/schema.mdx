@@ -69,3 +69,29 @@ if (result.ok) {
     // result.value is of type `string | null`.
 }
 ```
+
+### `chain`
+
+Chain schemas to convert data types. The chain method takes the target schema as the first argument, and a transformer
+function as the second argument.
+
+:::caution
+The transformer function must *not* throw! Instead, return an error code using the `err` helper function.
+:::
+
+```typescript
+import * as p from '@vbudovski/paseri';
+
+const schema = p.string().chain(p.bigint(), (value) => {
+    try {
+        return p.ok(BigInt(value));
+    } catch {
+        return p.err('invalid_bigint');
+    }
+});
+// Number.MAX_SAFE_INTEGER + 1 as a string.
+const result = schema.safeParse('9007199254740992')
+if (result.ok) {
+    // result.value is of type `bigint`.
+}
+```

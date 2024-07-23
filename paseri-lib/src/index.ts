@@ -17,5 +17,6 @@ export {
     union,
     unknown,
 } from './schemas/index.ts';
+export { ok, err } from './result.ts';
 
 export type { Infer } from './infer.ts';
