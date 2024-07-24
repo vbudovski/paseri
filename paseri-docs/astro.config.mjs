@@ -18,6 +18,7 @@ export default defineConfig({
                         // Each item here is one entry in the navigation menu.
                         { label: 'Introduction', slug: 'guides/introduction' },
                         { label: 'Getting Started', slug: 'guides/getting-started' },
+                        { label: 'Tutorial: Pokémon API', slug: 'guides/tutorial-pokemon-api' },
                     ],
                 },
                 {
