@@ -10,12 +10,13 @@
     "preview": "astro preview",
     "astro": "astro"
   },
-  "dependencies": {
+  "devDependencies": {
     "@astrojs/check": "^0.8.1",
     "@astrojs/starlight": "^0.25.1",
     "astro": "^4.10.2",
     "rehype-external-links": "^3.0.0",
     "sharp": "^0.32.5",
     "typescript": "^5.5.3"
-  }
+  },
+  "packageManager": "pnpm@9.6.0+sha256.dae0f7e822c56b20979bb5965e3b73b8bdabb6b8b8ef121da6d857508599ca35"
 }

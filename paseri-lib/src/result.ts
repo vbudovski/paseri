@@ -12,6 +12,14 @@ interface ParseErrorResult {
 
 type ParseResult<OutputType> = ParseSuccessResult<OutputType> | ParseErrorResult;
 
+function ok<OutputType>(value: OutputType): ParseSuccessResult<OutputType> {
+    return { ok: true, value };
+}
+
+function err(code: string): ParseErrorResult {
+    return { ok: false, issue: { type: 'leaf', code } };
+}
+
 // To avoid creating intermediate objects, we return `undefined` when the input value does not need to be sanitised.
 // Primitive values can just be passed straight through in the `parse` and `safeParse` functions, and `undefined`
 // signals this.
@@ -27,5 +35,5 @@ function isIssue(value: Record<string, any>): value is TreeNode {
     return typeof value.type === 'string';
 }
 
-export { isIssue, isParseSuccess };
+export { isIssue, isParseSuccess, ok, err };
 export type { InternalParseResult, ParseResult };
