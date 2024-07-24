@@ -14,7 +14,7 @@ type Mode = 'strip' | 'strict' | 'passthrough';
 
 class ObjectSchema<ShapeType extends ValidShapeType<ShapeType>> extends Schema<Infer<ShapeType>> {
     private readonly _shape: Map<string, Schema<unknown>>;
-    private _mode: Mode = 'strip';
+    private _mode: Mode = 'strict';
 
     readonly issues = {
         INVALID_TYPE: { type: 'leaf', code: 'invalid_type' },
@@ -145,7 +145,12 @@ class ObjectSchema<ShapeType extends ValidShapeType<ShapeType>> extends Schema<I
 
         return undefined;
     }
+    strip(): ObjectSchema<ShapeType> {
+        const cloned = this._clone();
+        cloned._mode = 'strip';
 
+        return cloned;
+    }
     strict(): ObjectSchema<ShapeType> {
         const cloned = this._clone();
         cloned._mode = 'strict';
