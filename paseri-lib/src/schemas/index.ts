@@ -1,6 +1,7 @@
 export { array } from './array.ts';
 export { bigint } from './bigint.ts';
 export { boolean } from './boolean.ts';
+export { lazy } from './lazy.ts';
 export { literal } from './literal.ts';
 export { map } from './map.ts';
 export { never } from './never.ts';
@@ -15,3 +16,5 @@ export { tuple } from './tuple.ts';
 export { undefined_ } from './undefined.ts';
 export { union } from './union.ts';
 export { unknown } from './unknown.ts';
+
+export { Schema } from './schema.ts';
