@@ -2,6 +2,7 @@ export {
     array,
     bigint,
     boolean,
+    lazy,
     literal,
     map,
     never,
@@ -16,6 +17,7 @@ export {
     undefined_ as undefined,
     union,
     unknown,
+    Schema,
 } from './schemas/index.ts';
 export { ok, err } from './result.ts';
 

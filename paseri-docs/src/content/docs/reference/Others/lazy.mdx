@@ -1,0 +1,54 @@
+---
+title: "Lazy"
+sidebar:
+    order: 45
+---
+
+It's possible to define a recursive schema using lazy evaluation. Unfortunately, due to a limitation of TypeScript, its
+type cannot be automatically inferred.
+
+```typescript
+import * as p from '@vbudovski/paseri';
+
+type Node =
+    | { type: 'file'; name: string }
+    | { type: 'directory'; name: string; nodes: Node[] };
+
+// Give TypeScript a hint about the recursive structure.
+const schema: p.Schema<Node> = p.lazy(() =>
+    p.union(
+        p.object({
+            type: p.literal('file'),
+            name: p.string(),
+        }),
+        p.object({
+            type: p.literal('directory'),
+            name: p.string(),
+            nodes: p.array(schema),
+        }),
+    ),
+);
+const data: Node = {
+    type: 'directory',
+    name: 'Documents',
+    nodes: [
+        {
+            type: 'file',
+            name: 'shopping_list.txt',
+        },
+        {
+            type: 'directory',
+            name: 'Pictures',
+            nodes: [
+                { type: 'file', name: 'cat.jpg' },
+                { type: 'file', name: 'dog.jpg' },
+            ],
+        },
+    ],
+};
+
+const result = schema.safeParse(data);
+if (result.ok) {
+    // result.value typed as `Node`.
+}
+```
