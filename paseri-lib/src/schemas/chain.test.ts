@@ -128,7 +128,7 @@ test('Chain Array to primitive', () => {
 });
 
 test('Chain primitive to Object with unrecognised keys', () => {
-    const schema = p.string().chain(p.object({ foo: p.number(), bar: p.number() }), (value) => {
+    const schema = p.string().chain(p.object({ foo: p.number(), bar: p.number() }).strip(), (value) => {
         const [foo, bar, ...other] = value.split(',');
         const extra = Object.fromEntries(other.map((o) => [o, Number(o)]));
 
@@ -151,9 +151,12 @@ test('Chain primitive to Object with unrecognised keys', () => {
 });
 
 test('Chain Object with unrecognised keys to primitive', () => {
-    const schema = p.object({ foo: p.number(), bar: p.number() }).chain(p.string(), ({ foo, bar }) => {
-        return p.ok(`${numberToString(foo)},${numberToString(bar)}`);
-    });
+    const schema = p
+        .object({ foo: p.number(), bar: p.number() })
+        .strip()
+        .chain(p.string(), ({ foo, bar }) => {
+            return p.ok(`${numberToString(foo)},${numberToString(bar)}`);
+        });
 
     fc.assert(
         fc.property(fc.record({ foo: fc.float(), bar: fc.float(), extra: fc.anything() }), (data) => {

@@ -4,8 +4,8 @@ sidebar:
     order: 23
 ---
 
-By default, the `object` schema will strip any unrecognised keys during parsing. This behaviour can be changed with
-`strict` and `passthrough`.
+By default, the `object` schema will raise errors if it comes across unrecognised keys during parsing. This behaviour
+can be changed with `strip` and `passthrough`.
 
 ```typescript
 import * as p from '@vbudovski/paseri';
@@ -21,8 +21,8 @@ const data = {
 };
 
 const result = schema.safeParse(data);
-if (result.ok) {
-    // result.value typed as `{foo: string; bar: number}`.
+if (!result.ok) {
+    // result.issue flags `other` as unrecognised.
 }
 ```
 
@@ -30,34 +30,77 @@ if (result.ok) {
 
 ### `strict`
 
-If we were to modify the schema above to be:
+This is the default behaviour. Errors are raised for any unrecognised keys in the data.
+
 ```typescript
-const schema = p.object({
-    foo: p.string(),
-    bar: p.number(),
-}).strict();
-```
-then an error would be raised during validation:
-```typescript
+import * as p from '@vbudovski/paseri';
+
+const schema = p
+    .object({
+        foo: p.string(),
+        bar: p.number(),
+    })
+    .strict();
+const data = {
+    foo: 'baz',
+    bar: 123,
+    other: 'something'
+};
+
 const result = schema.safeParse(data);
 if (!result.ok) {
     // result.issue flags `other` as unrecognised.
 }
 ```
 
-### `passthrough`
+### `strip`
 
-If we were to modify the schema above to be:
+Unrecognised keys are stripped from the parsed value.
+
 ```typescript
-const schema = p.object({
-    foo: p.string(),
-    bar: p.number(),
-}).passthrough();
-```
-then validation would succeed:
-```typescript
+import * as p from '@vbudovski/paseri';
+
+const schema = p
+    .object({
+        foo: p.string(),
+        bar: p.number(),
+    })
+    .strip();
+const data = {
+    foo: 'baz',
+    bar: 123,
+    other: 'something'
+};
+
 const result = schema.safeParse(data);
 if (result.ok) {
-    // result.value typed as `{foo: string; bar: number}`, but the value still contains the unrecognised key `other`. 
+    // result.value typed as `{foo: string; bar: number}`.
+    // `other` is stripped from `result.value`.
+}
+```
+
+### `passthrough`
+
+Unrecognised keys are preserved in the parsed value.
+
+```typescript
+import * as p from '@vbudovski/paseri';
+
+const schema = p
+    .object({
+        foo: p.string(),
+        bar: p.number(),
+    })
+    .passthrough();
+const data = {
+    foo: 'baz',
+    bar: 123,
+    other: 'something'
+};
+
+const result = schema.safeParse(data);
+if (result.ok) {
+    // result.value typed as `{foo: string; bar: number}`.
+    // `other` is preserved in `result.value`.
 }
 ```

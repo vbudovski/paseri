@@ -41,12 +41,16 @@ test('Invalid type', () => {
 });
 
 test('Strip', () => {
-    const schema = p.object({
-        foo: p.string(),
-        bar: p.object({
-            baz: p.number(),
-        }),
-    });
+    const schema = p
+        .object({
+            foo: p.string(),
+            bar: p
+                .object({
+                    baz: p.number(),
+                })
+                .strip(),
+        })
+        .strip();
 
     fc.assert(
         fc.property(
@@ -70,16 +74,12 @@ test('Strip', () => {
 });
 
 test('Strict', () => {
-    const schema = p
-        .object({
-            foo: p.string(),
-            bar: p
-                .object({
-                    baz: p.number(),
-                })
-                .strict(),
-        })
-        .strict();
+    const schema = p.object({
+        foo: p.string(),
+        bar: p.object({
+            baz: p.number(),
+        }),
+    });
 
     fc.assert(
         fc.property(
@@ -307,7 +307,7 @@ test('Nullable', () => {
 
 test('White-box', async (t) => {
     await t.step('Strip success returns undefined', () => {
-        const schema = p.object({ foo: p.string() });
+        const schema = p.object({ foo: p.string() }).strip();
         const data = Object.freeze({ foo: 'bar' });
 
         const issueOrSuccess = schema._parse(data);
@@ -315,7 +315,7 @@ test('White-box', async (t) => {
     });
 
     await t.step('Strict success returns undefined', () => {
-        const schema = p.object({ foo: p.string() }).strict();
+        const schema = p.object({ foo: p.string() });
         const data = Object.freeze({ foo: 'bar' });
 
         const issueOrSuccess = schema._parse(data);
@@ -331,7 +331,7 @@ test('White-box', async (t) => {
     });
 
     await t.step('Modified child returns new value', () => {
-        const schema = p.object({ child: p.object({ foo: p.string() }) });
+        const schema = p.object({ child: p.object({ foo: p.string() }).strip() }).strip();
         const data = Object.freeze({ child: { foo: 'bar', extra: 'baz' } });
 
         const issueOrSuccess = schema._parse(data);
@@ -340,15 +340,21 @@ test('White-box', async (t) => {
 });
 
 test('Immutable', async (t) => {
+    await t.step('strip', () => {
+        const original = p.object({ foo: p.string() });
+        const modified = original.strip();
+        expect(modified).not.toBe(original);
+    });
+
     await t.step('strict', () => {
         const original = p.object({ foo: p.string() });
         const modified = original.strict();
-        expect(modified).not.toEqual(original);
+        expect(modified).not.toBe(original);
     });
 
     await t.step('passthrough', () => {
         const original = p.object({ foo: p.string() });
         const modified = original.passthrough();
-        expect(modified).not.toEqual(original);
+        expect(modified).not.toBe(original);
     });
 });

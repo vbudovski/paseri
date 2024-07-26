@@ -1,0 +1,104 @@
+---
+title: "Tutorial: Pokémon API"
+---
+
+## The usual way
+
+Before we get into using the Paseri library, let's try to fetch some [Pokémon data](https://pokeapi.co/docs/v2#pokemon)
+using a typical TypeScript approach.
+
+```typescript
+interface Pokemon {
+    name: string;
+    height: number;
+    weight: number;
+}
+
+async function getPokemon(name: string): Promise<Pokemon> {
+    const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${name}`);
+    if (!response.ok) {
+        throw new Error(`Failed fetching ${name}.`);
+    }
+
+    return response.json();
+}
+
+const bulbasaur = await getPokemon('bulbasaur');
+console.log(bulbasaur.name, bulbasaur.height, bulbasaur.weight); // OK.
+```
+
+This isn't bad. We've asserted that the fetch response contains `Pokemon` data, so we can use it without any extra type
+assertions, and with the benefit of auto-completion in the editor. In a perfect world, this might be fine, but APIs
+change, and developers make mistakes.
+
+## The better way
+
+Rather than assume that the data we get from the endpoint is what we expect, we're far better off validating that it is.
+We can create a schema that will guarantee that the data we receive from the endpoint has the exact structure we need,
+and have it generate the TypeScript type for us!
+
+```typescript
+import * as p from '@vbudovski/paseri';
+
+const pokemonSchema = p.object({
+    name: p.string(),
+    height: p.number(),
+    weight: p.number(),
+});
+
+interface Pokemon extends p.Infer<typeof pokemonSchema> {
+    // Identical to the interface we created above.
+}
+```
+
+Now that we have our schema, we can make the `getPokemon` function validate the response.
+
+```typescript
+async function getPokemon(name: string): Promise<Pokemon> {
+    const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${name}`);
+    if (!response.ok) {
+        throw new Error(`Failed fetching ${name}.`);
+    }
+
+    const data = await response.json(); // `any` type.
+
+    return pokemonSchema.parse(data); // Now it's `Pokemon` type.
+}
+
+const bulbasaur = await getPokemon('bulbasaur');
+```
+
+Run the code above. Does it work?
+
+:::note
+Objects are validated in strict mode by default. This means that unrecognised keys will result in a parsing error, and
+helps to catch unexpected changes to an API.
+:::
+
+You'll see a long list of unrecognised keys in the error message. This tells us that our assumption about the endpoint
+response is incorrect. We can fix the error by modifying our schema to include the missing keys. For now though, let's
+just strip them. Update the `pokemonSchema` above to look as follows:
+
+```typescript
+const pokemonSchema = p
+    .object({
+        name: p.string(),
+        height: p.number(),
+        weight: p.number(),
+    })
+    .strip(); // This will sanitise our data.
+
+const bulbasaur = await getPokemon('bulbasaur');
+console.log(bulbasaur); // { height: 7, name: "bulbasaur", weight: 69 }
+```
+
+Our data is parsed successfully, and all the other keys have been removed. We can now access the data with confidence,
+knowing that the structure is exactly as we expect it to be.
+
+:::tip
+It's generally better to parse objects in strict mode, as it catches errors that might otherwise have been missed. The
+full list of options can be found in the [reference](/reference/collections/object/).
+:::
+
+Now that you've had a taste of what Paseri can do, you can explore the full [API documentation](/reference/schema/).
+Happy parsing!
