@@ -1,4 +1,4 @@
-import { isParseSuccess, ok } from '../result.ts';
+import { isParseSuccess } from '../result.ts';
 import type { InternalParseResult, ParseResult } from '../result.ts';
 
 abstract class Schema<OutputType> {
@@ -16,7 +16,7 @@ abstract class Schema<OutputType> {
         const issueOrSuccess = this._parse(value);
         if (issueOrSuccess === undefined) {
             // We're dealing with a primitive value, and no issue was found, so just assert type and pass it through.
-            return ok(value as OutputType);
+            return { ok: true, value: value as OutputType };
         }
 
         if (isParseSuccess(issueOrSuccess)) {
@@ -116,7 +116,7 @@ class ChainSchema<FromOutputType, ToOutputType> extends Schema<ToOutputType> {
 
         const issueOrSuccessTo = this._toSchema._parse(transformedResult.value);
         if (issueOrSuccessTo === undefined) {
-            return ok(transformedResult.value);
+            return { ok: true, value: transformedResult.value };
         }
 
         return issueOrSuccessTo;
