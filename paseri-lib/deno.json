@@ -3,15 +3,15 @@
   "version": "0.1.0",
   "exports": "./src/index.ts",
   "imports": {
-    "@badrap/valita": "jsr:@badrap/valita@^0.3.8",
-    "@biomejs/biome": "npm:@biomejs/biome@^1.8.0",
-    "@std/expect": "jsr:@std/expect@^0.224.4",
-    "esbuild": "npm:esbuild@^0.21.4",
-    "expect-type": "npm:expect-type@^0.19.0",
-    "fast-check": "npm:fast-check@^3.20.0",
-    "type-fest": "npm:type-fest@^4.20.0",
-    "typescript": "npm:typescript@^5.4.5",
-    "zod": "npm:zod@^3.23.8"
+    "@badrap/valita": "jsr:@badrap/valita",
+    "@biomejs/biome": "npm:@biomejs/biome",
+    "@std/expect": "jsr:@std/expect",
+    "esbuild": "npm:esbuild",
+    "expect-type": "npm:expect-type",
+    "fast-check": "npm:fast-check",
+    "type-fest": "npm:type-fest",
+    "typescript": "npm:typescript",
+    "zod": "npm:zod"
   },
   "tasks": {
     "lint": "deno run --allow-env --allow-read --allow-run npm:@biomejs/biome lint src",
