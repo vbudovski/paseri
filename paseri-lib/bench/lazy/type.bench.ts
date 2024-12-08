@@ -8,6 +8,7 @@ type T = string | T[];
 
 const paseriSchema: p.Schema<T> = p.lazy(() => p.union(p.string(), p.array(paseriSchema)));
 const zodSchema: z.ZodType<T> = z.lazy(() => z.union([z.string(), z.array(zodSchema)]));
+// @ts-ignore TS2322 FIXME: Fails in TypeScript 5.6+.
 const valitaSchema: v.Type<T> = v.lazy(() => v.union(v.string(), v.array(valitaSchema)));
 
 const dataValid1 = 'Hello, world!';
