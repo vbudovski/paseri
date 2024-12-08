@@ -1,4 +1,4 @@
-import type { TreeNode } from '../issue.ts';
+import { type LeafNode, type TreeNode, issueCodes } from '../issue.ts';
 import type { InternalParseResult } from '../result.ts';
 import { Schema } from './schema.ts';
 
@@ -7,10 +7,10 @@ type CheckFunction = (value: bigint) => TreeNode | undefined;
 class BigIntSchema extends Schema<bigint> {
     private _checks: CheckFunction[] | undefined = undefined;
 
-    readonly issues = {
-        INVALID_TYPE: { type: 'leaf', code: 'invalid_type' },
-        TOO_SMALL: { type: 'leaf', code: 'too_small' },
-        TOO_LARGE: { type: 'leaf', code: 'too_large' },
+    readonly issues: Record<string, LeafNode> = {
+        INVALID_TYPE: { type: 'leaf', code: issueCodes.INVALID_TYPE, expected: 'bigint' },
+        TOO_SMALL: { type: 'leaf', code: issueCodes.TOO_SMALL },
+        TOO_LARGE: { type: 'leaf', code: issueCodes.TOO_LARGE },
     } as const;
 
     protected _clone(): BigIntSchema {

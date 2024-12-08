@@ -30,7 +30,7 @@ test('Invalid type', () => {
             (data) => {
                 const result = schema.safeParse(data);
                 if (!result.ok) {
-                    expect(result.issue).toEqual({ type: 'leaf', code: 'invalid_type' });
+                    expect(result.messages()).toEqual([{ path: [], message: 'Invalid type. Expected bigint.' }]);
                 } else {
                     expect(result.ok).toBeFalsy();
                 }
@@ -62,7 +62,7 @@ test('Invalid gte', () => {
         fc.property(fc.bigInt({ max: 9n }), (data) => {
             const result = schema.safeParse(data);
             if (!result.ok) {
-                expect(result.issue).toEqual({ type: 'leaf', code: 'too_small' });
+                expect(result.messages()).toEqual([{ path: [], message: 'Too small.' }]);
             } else {
                 expect(result.ok).toBeFalsy();
             }
@@ -93,7 +93,7 @@ test('Invalid gt', () => {
         fc.property(fc.bigInt({ max: 10n }), (data) => {
             const result = schema.safeParse(data);
             if (!result.ok) {
-                expect(result.issue).toEqual({ type: 'leaf', code: 'too_small' });
+                expect(result.messages()).toEqual([{ path: [], message: 'Too small.' }]);
             } else {
                 expect(result.ok).toBeFalsy();
             }
@@ -124,7 +124,7 @@ test('Invalid lte', () => {
         fc.property(fc.bigInt({ min: 11n }), (data) => {
             const result = schema.safeParse(data);
             if (!result.ok) {
-                expect(result.issue).toEqual({ type: 'leaf', code: 'too_large' });
+                expect(result.messages()).toEqual([{ path: [], message: 'Too large.' }]);
             } else {
                 expect(result.ok).toBeFalsy();
             }
@@ -155,7 +155,7 @@ test('Invalid lt', () => {
         fc.property(fc.bigInt({ min: 10n }), (data) => {
             const result = schema.safeParse(data);
             if (!result.ok) {
-                expect(result.issue).toEqual({ type: 'leaf', code: 'too_large' });
+                expect(result.messages()).toEqual([{ path: [], message: 'Too large.' }]);
             } else {
                 expect(result.ok).toBeFalsy();
             }

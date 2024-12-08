@@ -2,6 +2,7 @@ import { expect } from '@std/expect';
 import { expectTypeOf } from 'expect-type';
 import fc from 'fast-check';
 import * as p from '../index.ts';
+import { en } from '../locales/index.ts';
 
 const { test } = Deno;
 
@@ -24,7 +25,7 @@ test('Chain from schema fail', () => {
             (data) => {
                 const result = schema.safeParse(data);
                 if (!result.ok) {
-                    expect(result.issue).toEqual({ type: 'leaf', code: 'invalid_type' });
+                    expect(result.messages()).toEqual([{ path: [], message: 'Invalid type. Expected string.' }]);
                 } else {
                     expect(result.ok).toBeFalsy();
                 }
@@ -43,7 +44,7 @@ test('Chain to schema fail', () => {
         fc.property(fc.string(), (data) => {
             const result = schema.safeParse(data);
             if (!result.ok) {
-                expect(result.issue).toEqual({ type: 'leaf', code: 'invalid_type' });
+                expect(result.messages()).toEqual([{ path: [], message: 'Invalid type. Expected number.' }]);
             } else {
                 expect(result.ok).toBeFalsy();
             }
@@ -60,7 +61,8 @@ test('Chain transform fail', () => {
         fc.property(fc.string(), (data) => {
             const result = schema.safeParse(data);
             if (!result.ok) {
-                expect(result.issue).toEqual({ type: 'leaf', code: 'foo' });
+                const custom = { ...en, ...{ foo: 'Custom foo error.' } };
+                expect(result.messages(custom)).toEqual([{ path: [], message: 'Custom foo error.' }]);
             } else {
                 expect(result.ok).toBeFalsy();
             }

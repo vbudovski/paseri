@@ -1,4 +1,4 @@
-import type { TreeNode } from '../issue.ts';
+import { type LeafNode, type TreeNode, issueCodes } from '../issue.ts';
 import type { InternalParseResult } from '../result.ts';
 import { Schema } from './schema.ts';
 
@@ -7,13 +7,13 @@ type CheckFunction = (value: number) => TreeNode | undefined;
 class NumberSchema extends Schema<number> {
     private _checks: CheckFunction[] | undefined = undefined;
 
-    readonly issues = {
-        INVALID_TYPE: { type: 'leaf', code: 'invalid_type' },
-        TOO_SMALL: { type: 'leaf', code: 'too_small' },
-        TOO_LARGE: { type: 'leaf', code: 'too_large' },
-        INVALID_INTEGER: { type: 'leaf', code: 'invalid_integer' },
-        INVALID_FINITE: { type: 'leaf', code: 'invalid_finite' },
-        INVALID_SAFE_INTEGER: { type: 'leaf', code: 'invalid_safe_integer' },
+    readonly issues: Record<string, LeafNode> = {
+        INVALID_TYPE: { type: 'leaf', code: issueCodes.INVALID_TYPE, expected: 'number' },
+        TOO_SMALL: { type: 'leaf', code: issueCodes.TOO_SMALL },
+        TOO_LARGE: { type: 'leaf', code: issueCodes.TOO_LARGE },
+        INVALID_INTEGER: { type: 'leaf', code: issueCodes.INVALID_INTEGER },
+        INVALID_FINITE: { type: 'leaf', code: issueCodes.INVALID_FINITE },
+        INVALID_SAFE_INTEGER: { type: 'leaf', code: issueCodes.INVALID_SAFE_INTEGER },
     } as const;
 
     protected _clone(): NumberSchema {

@@ -2,7 +2,7 @@ import { expect } from '@std/expect';
 import { expectTypeOf } from 'expect-type';
 import fc from 'fast-check';
 import * as p from '../index.ts';
-import type { TreeNode } from '../issue.ts';
+import { type TreeNode, issueCodes } from '../issue.ts';
 
 const { test } = Deno;
 
@@ -31,7 +31,7 @@ test('Invalid type', () => {
             (data) => {
                 const result = schema.safeParse(data);
                 if (!result.ok) {
-                    expect(result.issue).toEqual({ type: 'leaf', code: 'invalid_type' });
+                    expect(result.messages()).toEqual([{ path: [], message: 'Invalid type. Expected Record.' }]);
                 } else {
                     expect(result.ok).toBeFalsy();
                 }
@@ -46,12 +46,10 @@ test('Invalid elements', () => {
 
     const result = schema.safeParse(data);
     if (!result.ok) {
-        const expectedResult: TreeNode = {
-            type: 'join',
-            left: { type: 'nest', key: 'bad1', child: { type: 'leaf', code: 'invalid_type' } },
-            right: { type: 'nest', key: 'bad2', child: { type: 'leaf', code: 'invalid_type' } },
-        };
-        expect(result.issue).toEqual(expectedResult);
+        expect(result.messages()).toEqual([
+            { path: ['bad1'], message: 'Invalid type. Expected number.' },
+            { path: ['bad2'], message: 'Invalid type. Expected number.' },
+        ]);
     } else {
         expect(result.ok).toBeFalsy();
     }

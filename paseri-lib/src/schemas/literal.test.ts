@@ -21,7 +21,7 @@ test('String', async (t) => {
     await t.step('Invalid', () => {
         const result = schema.safeParse('banana');
         if (!result.ok) {
-            expect(result.issue).toEqual({ type: 'leaf', code: 'invalid_value' });
+            expect(result.messages()).toEqual([{ path: [], message: 'Invalid value. Expected apple.' }]);
         } else {
             expect(result.ok).toBeFalsy();
         }
@@ -44,7 +44,7 @@ test('Number', async (t) => {
     await t.step('Invalid', () => {
         const result = schema.safeParse(456);
         if (!result.ok) {
-            expect(result.issue).toEqual({ type: 'leaf', code: 'invalid_value' });
+            expect(result.messages()).toEqual([{ path: [], message: 'Invalid value. Expected 123.' }]);
         } else {
             expect(result.ok).toBeFalsy();
         }
@@ -67,7 +67,7 @@ test('BigInt', async (t) => {
     await t.step('Invalid', () => {
         const result = schema.safeParse(456n);
         if (!result.ok) {
-            expect(result.issue).toEqual({ type: 'leaf', code: 'invalid_value' });
+            expect(result.messages()).toEqual([{ path: [], message: 'Invalid value. Expected 123n.' }]);
         } else {
             expect(result.ok).toBeFalsy();
         }
@@ -90,7 +90,7 @@ test('Boolean', async (t) => {
     await t.step('Invalid', () => {
         const result = schema.safeParse(false);
         if (!result.ok) {
-            expect(result.issue).toEqual({ type: 'leaf', code: 'invalid_value' });
+            expect(result.messages()).toEqual([{ path: [], message: 'Invalid value. Expected true.' }]);
         } else {
             expect(result.ok).toBeFalsy();
         }
@@ -118,7 +118,7 @@ test('Symbol', async (t) => {
 
         const result = schema.safeParse(data);
         if (!result.ok) {
-            expect(result.issue).toEqual({ type: 'leaf', code: 'invalid_value' });
+            expect(result.messages()).toEqual([{ path: [], message: 'Invalid value. Expected Symbol(test).' }]);
         } else {
             expect(result.ok).toBeFalsy();
         }

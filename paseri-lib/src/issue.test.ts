@@ -1,4 +1,5 @@
 import { expect } from '@std/expect';
+import type { Tagged } from 'type-fest';
 import { type Issue, type TreeNode, addIssue, issueList } from './issue.ts';
 
 const { test } = Deno;
@@ -6,7 +7,7 @@ const { test } = Deno;
 test('Leaf', () => {
     const issues = issueList({
         type: 'leaf',
-        code: 'bad_leaf',
+        code: 'bad_leaf' as Tagged<string, 'CustomIssueCode'>,
     });
     expect(issues).toEqual([{ path: [], code: 'bad_leaf' }] satisfies Issue[]);
 });
@@ -14,8 +15,8 @@ test('Leaf', () => {
 test('Join leaves', () => {
     const issues = issueList({
         type: 'join',
-        left: { type: 'leaf', code: 'bad_leaf1' },
-        right: { type: 'leaf', code: 'bad_leaf2' },
+        left: { type: 'leaf', code: 'bad_leaf1' as Tagged<string, 'CustomIssueCode'> },
+        right: { type: 'leaf', code: 'bad_leaf2' as Tagged<string, 'CustomIssueCode'> },
     });
 
     expect(issues).toEqual([
@@ -28,7 +29,7 @@ test('Nest single level', () => {
     const issues = issueList({
         type: 'nest',
         key: 'level1',
-        child: { type: 'leaf', code: 'bad_leaf' },
+        child: { type: 'leaf', code: 'bad_leaf' as Tagged<string, 'CustomIssueCode'> },
     });
 
     expect(issues).toEqual([{ path: ['level1'], code: 'bad_leaf' }] satisfies Issue[]);
@@ -46,7 +47,7 @@ test('Nest multiple levels', () => {
                 key: 'level3',
                 child: {
                     type: 'leaf',
-                    code: 'bad_leaf',
+                    code: 'bad_leaf' as Tagged<string, 'CustomIssueCode'>,
                 },
             },
         },
@@ -60,14 +61,14 @@ test('Join leaf left nested right', () => {
         type: 'join',
         left: {
             type: 'leaf',
-            code: 'bad_leaf',
+            code: 'bad_leaf' as Tagged<string, 'CustomIssueCode'>,
         },
         right: {
             type: 'nest',
             key: 'right',
             child: {
                 type: 'leaf',
-                code: 'bad_leaf',
+                code: 'bad_leaf' as Tagged<string, 'CustomIssueCode'>,
             },
         },
     });
@@ -86,12 +87,12 @@ test('Join nested left leaf right', () => {
             key: 'left',
             child: {
                 type: 'leaf',
-                code: 'bad_leaf',
+                code: 'bad_leaf' as Tagged<string, 'CustomIssueCode'>,
             },
         },
         right: {
             type: 'leaf',
-            code: 'bad_leaf',
+            code: 'bad_leaf' as Tagged<string, 'CustomIssueCode'>,
         },
     });
 
@@ -109,7 +110,7 @@ test('Join nested left nested right', () => {
             key: 'left',
             child: {
                 type: 'leaf',
-                code: 'bad_leaf',
+                code: 'bad_leaf' as Tagged<string, 'CustomIssueCode'>,
             },
         },
         right: {
@@ -117,7 +118,7 @@ test('Join nested left nested right', () => {
             key: 'right',
             child: {
                 type: 'leaf',
-                code: 'bad_leaf',
+                code: 'bad_leaf' as Tagged<string, 'CustomIssueCode'>,
             },
         },
     });
@@ -130,19 +131,19 @@ test('Join nested left nested right', () => {
 
 test('Add leaf node to empty', () => {
     let tree: TreeNode | undefined = undefined;
-    tree = addIssue(tree, { type: 'leaf', code: 'bad_leaf' });
+    tree = addIssue(tree, { type: 'leaf', code: 'bad_leaf' as Tagged<string, 'CustomIssueCode'> });
 
-    expect(tree).toEqual({ type: 'leaf', code: 'bad_leaf' } satisfies TreeNode);
+    expect(tree).toEqual({ type: 'leaf', code: 'bad_leaf' as Tagged<string, 'CustomIssueCode'> } satisfies TreeNode);
 });
 
 test('Add leaf node to existing leaf node', () => {
-    let tree: TreeNode = { type: 'leaf', code: 'bad_leaf1' };
-    tree = addIssue(tree, { type: 'leaf', code: 'bad_leaf2' });
+    let tree: TreeNode = { type: 'leaf', code: 'bad_leaf1' as Tagged<string, 'CustomIssueCode'> };
+    tree = addIssue(tree, { type: 'leaf', code: 'bad_leaf2' as Tagged<string, 'CustomIssueCode'> });
 
     expect(tree).toEqual({
         type: 'join',
-        left: { type: 'leaf', code: 'bad_leaf1' },
-        right: { type: 'leaf', code: 'bad_leaf2' },
+        left: { type: 'leaf', code: 'bad_leaf1' as Tagged<string, 'CustomIssueCode'> },
+        right: { type: 'leaf', code: 'bad_leaf2' as Tagged<string, 'CustomIssueCode'> },
     } satisfies TreeNode);
 });
 
@@ -153,7 +154,7 @@ test('Add nest node to empty', () => {
         key: 'child',
         child: {
             type: 'leaf',
-            code: 'bad_leaf',
+            code: 'bad_leaf' as Tagged<string, 'CustomIssueCode'>,
         },
     });
 
@@ -162,25 +163,29 @@ test('Add nest node to empty', () => {
         key: 'child',
         child: {
             type: 'leaf',
-            code: 'bad_leaf',
+            code: 'bad_leaf' as Tagged<string, 'CustomIssueCode'>,
         },
     } satisfies TreeNode);
 });
 
 test('Add nest node to leaf node', () => {
-    let tree: TreeNode = { type: 'leaf', code: 'bad_leaf' };
+    let tree: TreeNode = { type: 'leaf', code: 'bad_leaf' as Tagged<string, 'CustomIssueCode'> };
     tree = addIssue(tree, {
         type: 'nest',
         key: 'child',
         child: {
             type: 'leaf',
-            code: 'bad_leaf',
+            code: 'bad_leaf' as Tagged<string, 'CustomIssueCode'>,
         },
     });
 
     expect(tree).toEqual({
         type: 'join',
-        left: { type: 'leaf', code: 'bad_leaf' },
-        right: { type: 'nest', key: 'child', child: { type: 'leaf', code: 'bad_leaf' } },
+        left: { type: 'leaf', code: 'bad_leaf' as Tagged<string, 'CustomIssueCode'> },
+        right: {
+            type: 'nest',
+            key: 'child',
+            child: { type: 'leaf', code: 'bad_leaf' as Tagged<string, 'CustomIssueCode'> },
+        },
     } satisfies TreeNode);
 });

@@ -29,7 +29,7 @@ class UnionSchema<TupleType extends ValidTupleType> extends Schema<Infer<TupleTo
                 return issueOrSuccess as InternalParseResult<Infer<TupleToUnion<TupleType>>>;
             }
 
-            issue = addIssue(issue, { type: 'nest', key: i, child: issueOrSuccess });
+            issue = addIssue(issue, issueOrSuccess);
         }
 
         return issue;

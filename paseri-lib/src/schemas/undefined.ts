@@ -1,9 +1,10 @@
+import { type LeafNode, issueCodes } from '../issue.ts';
 import type { InternalParseResult } from '../result.ts';
 import { Schema } from './schema.ts';
 
 class UndefinedSchema extends Schema<undefined> {
-    readonly issues = {
-        INVALID_VALUE: { type: 'leaf', code: 'invalid_value' },
+    readonly issues: Record<string, LeafNode> = {
+        INVALID_VALUE: { type: 'leaf', code: issueCodes.INVALID_VALUE, expected: 'undefined' },
     } as const;
 
     protected _clone(): UndefinedSchema {

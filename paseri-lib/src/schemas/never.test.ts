@@ -11,7 +11,7 @@ test('Everything fails', () => {
         fc.property(fc.anything(), (data) => {
             const result = schema.safeParse(data);
             if (!result.ok) {
-                expect(result.issue).toEqual({ type: 'leaf', code: 'invalid_type' });
+                expect(result.messages()).toEqual([{ path: [], message: 'Invalid type. Expected never.' }]);
             } else {
                 expect(result.ok).toBeFalsy();
             }

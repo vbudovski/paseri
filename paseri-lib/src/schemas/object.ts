@@ -1,6 +1,6 @@
 import type { NonEmptyObject } from 'type-fest';
 import type { Infer } from '../infer.ts';
-import type { TreeNode } from '../issue.ts';
+import { type LeafNode, type TreeNode, issueCodes } from '../issue.ts';
 import { addIssue } from '../issue.ts';
 import { type InternalParseResult, isParseSuccess } from '../result.ts';
 import { isPlainObject } from '../utils.ts';
@@ -16,10 +16,10 @@ class ObjectSchema<ShapeType extends ValidShapeType<ShapeType>> extends Schema<I
     private readonly _shape: Map<string, Schema<unknown>>;
     private _mode: Mode = 'strict';
 
-    readonly issues = {
-        INVALID_TYPE: { type: 'leaf', code: 'invalid_type' },
-        UNRECOGNIZED_KEY: { type: 'leaf', code: 'unrecognized_key' },
-        MISSING_VALUE: { type: 'leaf', code: 'missing_value' },
+    readonly issues: Record<string, LeafNode> = {
+        INVALID_TYPE: { type: 'leaf', code: issueCodes.INVALID_TYPE, expected: 'object' },
+        UNRECOGNIZED_KEY: { type: 'leaf', code: issueCodes.UNRECOGNIZED_KEY },
+        MISSING_VALUE: { type: 'leaf', code: issueCodes.MISSING_VALUE },
     } as const;
 
     constructor(shape: ShapeType) {

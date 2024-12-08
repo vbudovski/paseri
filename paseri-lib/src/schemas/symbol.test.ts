@@ -24,7 +24,7 @@ test('Type', async (t) => {
 
         const result = schema.safeParse(data);
         if (!result.ok) {
-            expect(result.issue).toEqual({ type: 'leaf', code: 'invalid_type' });
+            expect(result.messages()).toEqual([{ path: [], message: 'Invalid type. Expected Symbol.' }]);
         } else {
             expect(result.ok).toBeFalsy();
         }
