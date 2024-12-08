@@ -123,8 +123,7 @@ class ChainSchema<FromOutputType, ToOutputType> extends Schema<ToOutputType> {
     }
 }
 
-// biome-ignore lint/suspicious/noExplicitAny: Required to accept any Schema variant.
-type AnySchemaType = Schema<any>;
+type AnySchemaType = Schema<unknown>;
 
 export { Schema, OptionalSchema };
 export type { AnySchemaType };

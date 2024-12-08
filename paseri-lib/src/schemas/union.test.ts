@@ -32,7 +32,15 @@ test('Invalid type', () => {
             (data) => {
                 const result = schema.safeParse(data);
                 if (!result.ok) {
-                    expect(result.issue).toEqual({ type: 'leaf', code: 'invalid_value' });
+                    expect(result.issue).toEqual({
+                        type: 'join',
+                        left: {
+                            type: 'join',
+                            left: { type: 'nest', key: 0, child: { type: 'leaf', code: 'invalid_type' } },
+                            right: { type: 'nest', key: 1, child: { type: 'leaf', code: 'invalid_type' } },
+                        },
+                        right: { type: 'nest', key: 2, child: { type: 'leaf', code: 'invalid_value' } },
+                    });
                 } else {
                     expect(result.ok).toBeFalsy();
                 }
