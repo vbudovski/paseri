@@ -16,9 +16,7 @@ jobs:
           fetch-depth: 0
 
       - name: Set up Deno
-        uses: denoland/setup-deno@v1
-        with:
-          deno-version: "^1.45"
+        uses: denoland/setup-deno@v2
 
       - name: Get pnpm store directory
         id: deno-cache
