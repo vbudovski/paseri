@@ -1,4 +1,4 @@
-import type { Translations } from './index.ts';
+import type { Translations } from '../message.ts';
 
 const en = {
     invalid_type: 'Invalid type. Expected {expected}.',

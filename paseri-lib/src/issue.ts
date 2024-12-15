@@ -1,8 +1,4 @@
 import type { Tagged } from 'type-fest';
-import type { Translations } from './locales/index.ts';
-import { message } from './locales/message.ts';
-
-type Key = string | number;
 
 const issueCodes = {
     // Common.
@@ -31,6 +27,8 @@ const issueCodes = {
 
 type IssueCode = (typeof issueCodes)[keyof typeof issueCodes];
 type CustomIssueCode = Tagged<string, 'CustomIssueCode'>;
+
+type Key = string | number;
 
 type LeafNode =
     | {
@@ -66,8 +64,6 @@ interface NestNode {
 
 type TreeNode = LeafNode | JoinNode | NestNode;
 
-type StackItem = [TreeNode, Key[]];
-
 interface Issue {
     path: Key[];
     code: string;
@@ -76,63 +72,6 @@ interface Issue {
 interface Message {
     path: Key[];
     message: string;
-}
-
-function messageList(node: TreeNode, locale: Translations): readonly Message[] {
-    const messages: Message[] = [];
-
-    const stack: StackItem[] = [];
-    let current: StackItem | undefined = [node, []];
-    while (current) {
-        const [currentNode, currentPath] = current;
-
-        switch (currentNode.type) {
-            case 'leaf': {
-                const { code, type, ...placeholders } = currentNode;
-
-                messages.push({ path: currentPath, message: message(locale, currentNode.code, placeholders) });
-                break;
-            }
-            case 'join': {
-                stack.push([currentNode.right, currentPath], [currentNode.left, currentPath]);
-                break;
-            }
-            case 'nest': {
-                stack.push([currentNode.child, [...currentPath, currentNode.key]]);
-                break;
-            }
-        }
-
-        current = stack.pop();
-    }
-
-    return messages;
-}
-
-function issueList(node: TreeNode): readonly Issue[] {
-    const issues: Issue[] = [];
-
-    const stack: StackItem[] = [];
-    let current: StackItem | undefined = [node, []];
-    while (current) {
-        const [currentNode, currentPath] = current;
-
-        switch (currentNode.type) {
-            case 'leaf':
-                issues.push({ path: currentPath, code: currentNode.code });
-                break;
-            case 'join':
-                stack.push([currentNode.right, currentPath], [currentNode.left, currentPath]);
-                break;
-            case 'nest':
-                stack.push([currentNode.child, [...currentPath, currentNode.key]]);
-                break;
-        }
-
-        current = stack.pop();
-    }
-
-    return issues;
 }
 
 function addIssue(node: TreeNode | undefined, newNode: TreeNode): TreeNode {
@@ -146,5 +85,5 @@ function addIssue(node: TreeNode | undefined, newNode: TreeNode): TreeNode {
     return tree;
 }
 
-export { issueList, addIssue, issueCodes, messageList };
-export type { TreeNode, LeafNode, JoinNode, Issue, IssueCode, CustomIssueCode, Message };
+export { addIssue, issueCodes };
+export type { TreeNode, LeafNode, JoinNode, Issue, IssueCode, CustomIssueCode, Message, Key };
