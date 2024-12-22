@@ -26,5 +26,6 @@
   },
   "publish": {
     "include": ["src"]
-  }
+  },
+  "nodeModulesDir": "auto"
 }
