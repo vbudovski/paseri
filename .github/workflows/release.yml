@@ -14,10 +14,11 @@ jobs:
       GIST_SECRET: ${{ secrets.GIST_SECRET }}
 
   publish:
+    needs: test
     runs-on: ubuntu-latest
     permissions:
       contents: read
       id-token: write # The OIDC ID token is used for authentication with JSR.
     steps:
       - uses: actions/checkout@v4
-      - run: npx jsr publish
+      - run: cd paseri-lib && npx jsr publish
