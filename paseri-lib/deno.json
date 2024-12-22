@@ -10,17 +10,14 @@
     "@badrap/valita": "jsr:@badrap/valita",
     "@biomejs/biome": "npm:@biomejs/biome",
     "@std/expect": "jsr:@std/expect",
-    "esbuild": "npm:esbuild",
     "expect-type": "npm:expect-type",
     "fast-check": "npm:fast-check",
     "type-fest": "npm:type-fest@4.30.0",
-    "typescript": "npm:typescript",
     "zod": "npm:zod"
   },
   "tasks": {
     "lint": "deno run --allow-env --allow-read --allow-run npm:@biomejs/biome lint src",
-    "format": "deno run --allow-env --allow-read --allow-run npm:@biomejs/biome format src",
-    "build": "deno run --allow-env --allow-read --allow-run --allow-write build.ts"
+    "format": "deno run --allow-env --allow-read --allow-run npm:@biomejs/biome format src"
   },
   "lint": {
     "rules": {
@@ -28,7 +25,7 @@
     }
   },
   "publish": {
-    "include": ["src", "README.md"]
+    "exclude": ["bench"]
   },
   "nodeModulesDir": "auto"
 }
