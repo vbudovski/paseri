@@ -1,0 +1,33 @@
+---
+title: "Messages"
+---
+
+In order to support localised error messages, each parsing error produces a unique error code. This is then looked up in
+the messages object for the selected locale. When calling the `messages` method on either the `safeParse` result or the
+exception thrown from `parse`, you can pass the desired messages object as the parameter. The default messages can be
+found in `locales/en.ts`.
+
+## Contributing new translations
+
+You can copy the definition of the closest language to the one you are targeting as a starting point, if one exists.
+If there isn't a suitable starting point, please create a new file. Be sure to follow the TypeScript type `Translations`
+to ensure all standard messages are handled. The naming of the file should follow the pattern `<language>-<country>`,
+where the language is a 2-letter [ISO 639](https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes) code, and the
+country is a 2-letter [ISO 3166](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) code. For example, `en-GB` or
+`pt-BR`.
+
+# Custom error codes
+
+You can extend the messages object to add your custom error codes and corresponding translations.
+
+```typescript
+import { en } from '@vbudovski/paseri/locales';
+
+const enCustom = {
+    ...en,
+    ...{
+        foo: 'This is a `foo` error.',
+        bar: 'This is a `bar` error.',
+    }
+} satisfies Translations;
+```
