@@ -16,6 +16,6 @@ const en_GB = {
     invalid_value: 'Invalid value. Expected {expected}.',
     unrecognized_key: 'Unrecognised key.',
     missing_value: 'Missing value.',
-} satisfies Translations;
+} satisfies Translations as Translations;
 
 export { en_GB };

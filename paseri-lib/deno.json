@@ -1,8 +1,11 @@
 {
   "name": "@vbudovski/paseri",
   "license": "MIT",
-  "version": "0.1.0",
-  "exports": "./src/index.ts",
+  "version": "0.1.1",
+  "exports": {
+    ".": "./src/index.ts",
+    "./locales": "./src/locales/index.ts"
+  },
   "imports": {
     "@badrap/valita": "jsr:@badrap/valita",
     "@biomejs/biome": "npm:@biomejs/biome",
