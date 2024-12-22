@@ -18,7 +18,7 @@ class ParseErrorResult {
     get issue(): TreeNode {
         return this._issue;
     }
-    messages(locale: Translations = en) {
+    messages(locale: Translations = en): readonly Message[] {
         if (this._messageList === undefined) {
             this._messageList = messageList(this._issue, locale);
         }
@@ -36,7 +36,7 @@ class PaseriError extends Error {
 
         this._issue = issue;
     }
-    messages(locale: Translations = en) {
+    messages(locale: Translations = en): readonly Message[] {
         if (this._messageList === undefined) {
             this._messageList = messageList(this._issue, locale);
         }

@@ -1,5 +1,6 @@
 {
   "name": "@vbudovski/paseri",
+  "license": "MIT",
   "version": "0.1.0",
   "exports": "./src/index.ts",
   "imports": {
@@ -9,7 +10,7 @@
     "esbuild": "npm:esbuild",
     "expect-type": "npm:expect-type",
     "fast-check": "npm:fast-check",
-    "type-fest": "npm:type-fest",
+    "type-fest": "npm:type-fest@4.30.0",
     "typescript": "npm:typescript",
     "zod": "npm:zod"
   },
@@ -22,5 +23,8 @@
     "rules": {
       "exclude": ["no-explicit-any", "no-unused-vars"]
     }
+  },
+  "publish": {
+    "include": ["src"]
   }
 }
