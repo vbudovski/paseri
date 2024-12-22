@@ -2,6 +2,7 @@ import { expect } from '@std/expect';
 import { expectTypeOf } from 'expect-type';
 import fc from 'fast-check';
 import * as p from '../index.ts';
+import type { Message } from '../issue.ts';
 
 const { test } = Deno;
 
@@ -41,8 +42,23 @@ test('Invalid type', () => {
     fc.assert(
         fc.property(tree, (data) => {
             const result = schema.safeParse(data);
+
+            function makeExpectedMessages(d: unknown, path: number[] = []): Message[] {
+                if (Array.isArray(d)) {
+                    return [
+                        { path, message: 'Invalid type. Expected string.' },
+                        ...d.flatMap((di, i) => makeExpectedMessages(di, [...path, i])),
+                    ];
+                }
+
+                return [
+                    { path, message: 'Invalid type. Expected string.' },
+                    { path, message: 'Invalid type. Expected array.' },
+                ];
+            }
+
             if (!result.ok) {
-                expect(result.issue).toEqual({ type: 'leaf', code: 'invalid_value' });
+                expect(result.messages()).toEqual(makeExpectedMessages(data));
             } else {
                 expect(result.ok).toBeFalsy();
             }

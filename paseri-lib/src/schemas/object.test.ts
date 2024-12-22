@@ -2,7 +2,7 @@ import { expect } from '@std/expect';
 import { expectTypeOf } from 'expect-type';
 import fc from 'fast-check';
 import * as p from '../index.ts';
-import type { TreeNode } from '../issue.ts';
+import { type TreeNode, issueCodes } from '../issue.ts';
 
 const { test } = Deno;
 
@@ -31,7 +31,7 @@ test('Invalid type', () => {
             (data) => {
                 const result = schema.safeParse(data);
                 if (!result.ok) {
-                    expect(result.issue).toEqual({ type: 'leaf', code: 'invalid_type' });
+                    expect(result.messages()).toEqual([{ path: [], message: 'Invalid type. Expected object.' }]);
                 } else {
                     expect(result.ok).toBeFalsy();
                 }
@@ -91,16 +91,10 @@ test('Strict', () => {
             (data) => {
                 const result = schema.safeParse(data);
                 if (!result.ok) {
-                    const expectedResult: TreeNode = {
-                        type: 'join',
-                        left: {
-                            type: 'nest',
-                            key: 'bar',
-                            child: { type: 'nest', key: 'extra2', child: { type: 'leaf', code: 'unrecognized_key' } },
-                        },
-                        right: { type: 'nest', key: 'extra1', child: { type: 'leaf', code: 'unrecognized_key' } },
-                    };
-                    expect(result.issue).toEqual(expectedResult);
+                    expect(result.messages()).toEqual([
+                        { path: ['bar', 'extra2'], message: 'Unrecognised key.' },
+                        { path: ['extra1'], message: 'Unrecognised key.' },
+                    ]);
                 } else {
                     expect(result.ok).toBeFalsy();
                 }
@@ -151,12 +145,10 @@ test('Missing keys', () => {
 
     const result = schema.safeParse(data);
     if (!result.ok) {
-        const expectedResult: TreeNode = {
-            type: 'join',
-            left: { type: 'nest', key: 'child1', child: { type: 'leaf', code: 'missing_value' } },
-            right: { type: 'nest', key: 'child3', child: { type: 'leaf', code: 'missing_value' } },
-        };
-        expect(result.issue).toEqual(expectedResult);
+        expect(result.messages()).toEqual([
+            { path: ['child1'], message: 'Missing value.' },
+            { path: ['child3'], message: 'Missing value.' },
+        ]);
     } else {
         expect(result.ok).toBeFalsy();
     }
@@ -177,39 +169,11 @@ test('Deep missing keys', () => {
 
     const result = schema.safeParse(data);
     if (!result.ok) {
-        const expectedResult: TreeNode = {
-            type: 'join',
-            left: {
-                type: 'join',
-                left: {
-                    type: 'nest',
-                    key: 'object1',
-                    child: { type: 'nest', key: 'number1', child: { type: 'leaf', code: 'missing_value' } },
-                },
-                right: {
-                    type: 'nest',
-                    key: 'object2',
-                    child: {
-                        type: 'nest',
-                        key: 'object3',
-                        child: {
-                            type: 'nest',
-                            key: 'number2',
-                            child: {
-                                type: 'leaf',
-                                code: 'missing_value',
-                            },
-                        },
-                    },
-                },
-            },
-            right: {
-                type: 'nest',
-                key: 'string1',
-                child: { type: 'leaf', code: 'missing_value' },
-            },
-        };
-        expect(result.issue).toEqual(expectedResult);
+        expect(result.messages()).toEqual([
+            { path: ['object1', 'number1'], message: 'Missing value.' },
+            { path: ['object2', 'object3', 'number2'], message: 'Missing value.' },
+            { path: ['string1'], message: 'Missing value.' },
+        ]);
     } else {
         expect(result.ok).toBeFalsy();
     }
@@ -221,15 +185,7 @@ test('Optional key is not flagged as missing', () => {
 
     const result = schema.safeParse(data);
     if (!result.ok) {
-        const expectedResult: TreeNode = {
-            type: 'nest',
-            key: 'required',
-            child: {
-                type: 'leaf',
-                code: 'missing_value',
-            },
-        };
-        expect(result.issue).toEqual(expectedResult);
+        expect(result.messages()).toEqual([{ path: ['required'], message: 'Missing value.' }]);
     } else {
         expect(result.ok).toBeFalsy();
     }

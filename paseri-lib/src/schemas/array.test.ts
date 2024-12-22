@@ -2,7 +2,7 @@ import { expect } from '@std/expect';
 import { expectTypeOf } from 'expect-type';
 import fc from 'fast-check';
 import * as p from '../index.ts';
-import type { TreeNode } from '../issue.ts';
+import { type TreeNode, issueCodes } from '../issue.ts';
 
 const { test } = Deno;
 
@@ -31,7 +31,7 @@ test('Invalid type', () => {
             (data) => {
                 const result = schema.safeParse(data);
                 if (!result.ok) {
-                    expect(result.issue).toEqual({ type: 'leaf', code: 'invalid_type' });
+                    expect(result.messages()).toEqual([{ path: [], message: 'Invalid type. Expected array.' }]);
                 } else {
                     expect(result.ok).toBeFalsy();
                 }
@@ -63,7 +63,7 @@ test('Invalid min', () => {
         fc.property(fc.array(fc.float(), { maxLength: 2 }), (data) => {
             const result = schema.safeParse(data);
             if (!result.ok) {
-                expect(result.issue).toEqual({ type: 'leaf', code: 'too_short' });
+                expect(result.messages()).toEqual([{ path: [], message: 'Too short.' }]);
             } else {
                 expect(result.ok).toBeFalsy();
             }
@@ -94,7 +94,7 @@ test('Invalid max', () => {
         fc.property(fc.array(fc.float(), { minLength: 4 }), (data) => {
             const result = schema.safeParse(data);
             if (!result.ok) {
-                expect(result.issue).toEqual({ type: 'leaf', code: 'too_long' });
+                expect(result.messages()).toEqual([{ path: [], message: 'Too long.' }]);
             } else {
                 expect(result.ok).toBeFalsy();
             }
@@ -125,7 +125,7 @@ test('Invalid length (too long)', () => {
         fc.property(fc.array(fc.float(), { minLength: 4 }), (data) => {
             const result = schema.safeParse(data);
             if (!result.ok) {
-                expect(result.issue).toEqual({ type: 'leaf', code: 'too_long' });
+                expect(result.messages()).toEqual([{ path: [], message: 'Too long.' }]);
             } else {
                 expect(result.ok).toBeFalsy();
             }
@@ -140,7 +140,7 @@ test('Invalid length (too short)', () => {
         fc.property(fc.array(fc.float(), { maxLength: 2 }), (data) => {
             const result = schema.safeParse(data);
             if (!result.ok) {
-                expect(result.issue).toEqual({ type: 'leaf', code: 'too_short' });
+                expect(result.messages()).toEqual([{ path: [], message: 'Too short.' }]);
             } else {
                 expect(result.ok).toBeFalsy();
             }
@@ -154,12 +154,24 @@ test('Invalid elements', () => {
 
     const result = schema.safeParse(data);
     if (!result.ok) {
-        const expectedResult: TreeNode = {
-            type: 'join',
-            left: { type: 'nest', key: 1, child: { type: 'leaf', code: 'invalid_type' } },
-            right: { type: 'nest', key: 3, child: { type: 'leaf', code: 'invalid_type' } },
-        };
-        expect(result.issue).toEqual(expectedResult);
+        expect(result.messages()).toEqual([
+            { path: [1], message: 'Invalid type. Expected number.' },
+            { path: [3], message: 'Invalid type. Expected number.' },
+        ]);
+    } else {
+        expect(result.ok).toBeFalsy();
+    }
+});
+
+test('Invalid nested elements', () => {
+    const schema = p.array(p.array(p.number()));
+    const data = [[1], [2, 'foo'], [3], 'bar'];
+    const result = schema.safeParse(data);
+    if (!result.ok) {
+        expect(result.messages()).toEqual([
+            { path: [1, 1], message: 'Invalid type. Expected number.' },
+            { path: [3], message: 'Invalid type. Expected array.' },
+        ]);
     } else {
         expect(result.ok).toBeFalsy();
     }

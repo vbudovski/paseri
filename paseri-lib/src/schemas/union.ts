@@ -1,5 +1,6 @@
 import type { TupleToUnion } from 'type-fest';
 import type { Infer } from '../infer.ts';
+import { type TreeNode, addIssue } from '../issue.ts';
 import { type InternalParseResult, isParseSuccess } from '../result.ts';
 import { type AnySchemaType, Schema } from './schema.ts';
 
@@ -7,10 +8,6 @@ type ValidTupleType = [AnySchemaType, AnySchemaType, ...AnySchemaType[]];
 
 class UnionSchema<TupleType extends ValidTupleType> extends Schema<Infer<TupleToUnion<TupleType>>> {
     private readonly _elements: TupleType;
-
-    readonly issues = {
-        INVALID_VALUE: { type: 'leaf', code: 'invalid_value' },
-    } as const;
 
     constructor(...elements: TupleType) {
         super();
@@ -21,18 +18,21 @@ class UnionSchema<TupleType extends ValidTupleType> extends Schema<Infer<TupleTo
         return new UnionSchema(...this._elements);
     }
     _parse(value: unknown): InternalParseResult<Infer<TupleToUnion<TupleType>>> {
+        let issue: TreeNode | undefined = undefined;
         for (let i = 0; i < this._elements.length; i++) {
             const schema = this._elements[i];
-            const result = schema._parse(value);
-            if (result === undefined) {
+            const issueOrSuccess = schema._parse(value);
+            if (issueOrSuccess === undefined) {
                 return undefined;
             }
-            if (isParseSuccess<Infer<TupleToUnion<TupleType>>>(result)) {
-                return result;
+            if (isParseSuccess(issueOrSuccess)) {
+                return issueOrSuccess as InternalParseResult<Infer<TupleToUnion<TupleType>>>;
             }
+
+            issue = addIssue(issue, issueOrSuccess);
         }
 
-        return this.issues.INVALID_VALUE;
+        return issue;
     }
 }
 

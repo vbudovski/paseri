@@ -32,7 +32,11 @@ test('Invalid type', () => {
             (data) => {
                 const result = schema.safeParse(data);
                 if (!result.ok) {
-                    expect(result.issue).toEqual({ type: 'leaf', code: 'invalid_value' });
+                    expect(result.messages()).toEqual([
+                        { path: [], message: 'Invalid type. Expected string.' },
+                        { path: [], message: 'Invalid type. Expected number.' },
+                        { path: [], message: 'Invalid value. Expected 123n.' },
+                    ]);
                 } else {
                     expect(result.ok).toBeFalsy();
                 }

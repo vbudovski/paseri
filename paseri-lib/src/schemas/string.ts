@@ -1,4 +1,4 @@
-import type { TreeNode } from '../issue.ts';
+import { type LeafNode, type TreeNode, issueCodes } from '../issue.ts';
 import type { InternalParseResult } from '../result.ts';
 import { Schema } from './schema.ts';
 
@@ -12,14 +12,14 @@ type CheckFunction = (value: string) => TreeNode | undefined;
 class StringSchema extends Schema<string> {
     private _checks: CheckFunction[] | undefined = undefined;
 
-    readonly issues = {
-        INVALID_TYPE: { type: 'leaf', code: 'invalid_type' },
-        TOO_SHORT: { type: 'leaf', code: 'too_short' },
-        TOO_LONG: { type: 'leaf', code: 'too_long' },
-        INVALID_EMAIL: { type: 'leaf', code: 'invalid_email' },
-        INVALID_EMOJI: { type: 'leaf', code: 'invalid_emoji' },
-        INVALID_UUID: { type: 'leaf', code: 'invalid_uuid' },
-        INVALID_NANOID: { type: 'leaf', code: 'invalid_nanoid' },
+    readonly issues: Record<string, LeafNode> = {
+        INVALID_TYPE: { type: 'leaf', code: issueCodes.INVALID_TYPE, expected: 'string' },
+        TOO_SHORT: { type: 'leaf', code: issueCodes.TOO_SHORT },
+        TOO_LONG: { type: 'leaf', code: issueCodes.TOO_LONG },
+        INVALID_EMAIL: { type: 'leaf', code: issueCodes.INVALID_EMAIL },
+        INVALID_EMOJI: { type: 'leaf', code: issueCodes.INVALID_EMOJI },
+        INVALID_UUID: { type: 'leaf', code: issueCodes.INVALID_UUID },
+        INVALID_NANOID: { type: 'leaf', code: issueCodes.INVALID_NANOID },
     } as const;
 
     protected _clone(): StringSchema {

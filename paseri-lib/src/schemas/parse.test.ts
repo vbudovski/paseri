@@ -13,5 +13,5 @@ test('Failure', () => {
     const schema = p.string();
     expect(() => {
         schema.parse(123);
-    }).toThrow('Failed to parse {"type":"leaf","code":"invalid_type"}.');
+    }).toThrow('Failed to parse. See `e.messages()` for details.');
 });

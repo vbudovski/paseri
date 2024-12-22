@@ -1,5 +1,5 @@
 ---
-title: "Schema"
+title: "Common"
 sidebar:
     order: 0
 ---
@@ -11,7 +11,8 @@ All schemas contain some common methods.
 ### `parse`
 
 The `parse` method takes a `value` parameter as input. If the `value` conforms to the schema, then the parsed value is
-returned with the appropriate type, otherwise an exception is thrown.
+returned with the appropriate type, otherwise an exception containing a `messages` method is thrown. See the
+[messages](/reference/messages/) reference for details.
 
 ```typescript
 import * as p from '@vbudovski/paseri';
@@ -28,7 +29,8 @@ try {
 ### `safeParse`
 
 The `safeParse` method takes a `value` parameter as input. The result is a discriminated union with a `boolean` member
-`ok`. You can use it to extract the parsed value on success, or a list of issues on failure.
+`ok`. You can use it to extract the parsed value on success or get the error [messages](/reference/messages/) using
+`result.messages()`.
 
 ```typescript
 import * as p from '@vbudovski/paseri';
@@ -38,7 +40,7 @@ const result = schema.safeParse('foo');
 if (result.ok) {
     // Do something with the `result.value`.
 } else {
-    // Do something with the `result.issue`.
+    // Do something with the `result.messages()`.
 }
 ```
 

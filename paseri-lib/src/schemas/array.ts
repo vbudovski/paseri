@@ -1,5 +1,5 @@
 import type { Infer } from '../index.ts';
-import type { TreeNode } from '../issue.ts';
+import { type LeafNode, type TreeNode, issueCodes } from '../issue.ts';
 import { addIssue } from '../issue.ts';
 import { type InternalParseResult, isIssue } from '../result.ts';
 import { type AnySchemaType, Schema } from './schema.ts';
@@ -9,10 +9,10 @@ class ArraySchema<ElementSchemaType extends AnySchemaType> extends Schema<Infer<
     private _minLength = 0;
     private _maxLength = Number.POSITIVE_INFINITY;
 
-    readonly issues = {
-        INVALID_TYPE: { type: 'leaf', code: 'invalid_type' },
-        TOO_LONG: { type: 'leaf', code: 'too_long' },
-        TOO_SHORT: { type: 'leaf', code: 'too_short' },
+    readonly issues: Record<string, LeafNode> = {
+        INVALID_TYPE: { type: 'leaf', code: issueCodes.INVALID_TYPE, expected: 'array' },
+        TOO_LONG: { type: 'leaf', code: issueCodes.TOO_LONG },
+        TOO_SHORT: { type: 'leaf', code: issueCodes.TOO_SHORT },
     } as const;
 
     constructor(element: ElementSchemaType) {

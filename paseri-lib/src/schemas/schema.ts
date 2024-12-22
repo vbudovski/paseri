@@ -1,4 +1,4 @@
-import { isParseSuccess } from '../result.ts';
+import { ParseErrorResult, PaseriError, isParseSuccess } from '../result.ts';
 import type { InternalParseResult, ParseResult } from '../result.ts';
 
 abstract class Schema<OutputType> {
@@ -10,7 +10,7 @@ abstract class Schema<OutputType> {
             return result.value;
         }
 
-        throw new Error(`Failed to parse ${JSON.stringify(result.issue)}.`);
+        throw new PaseriError(result.issue);
     }
     safeParse(value: unknown): ParseResult<OutputType> {
         const issueOrSuccess = this._parse(value);
@@ -23,7 +23,7 @@ abstract class Schema<OutputType> {
             return issueOrSuccess;
         }
 
-        return { ok: false, issue: issueOrSuccess };
+        return new ParseErrorResult(issueOrSuccess);
     }
     optional(): OptionalSchema<OutputType> {
         return new OptionalSchema(this);
@@ -123,8 +123,7 @@ class ChainSchema<FromOutputType, ToOutputType> extends Schema<ToOutputType> {
     }
 }
 
-// biome-ignore lint/suspicious/noExplicitAny: Required to accept any Schema variant.
-type AnySchemaType = Schema<any>;
+type AnySchemaType = Schema<unknown>;
 
 export { Schema, OptionalSchema };
 export type { AnySchemaType };

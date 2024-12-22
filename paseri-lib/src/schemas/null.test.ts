@@ -25,7 +25,7 @@ test('Invalid value', () => {
             (data) => {
                 const result = schema.safeParse(data);
                 if (!result.ok) {
-                    expect(result.issue).toEqual({ type: 'leaf', code: 'invalid_value' });
+                    expect(result.messages()).toEqual([{ path: [], message: 'Invalid value. Expected null.' }]);
                 } else {
                     expect(result.ok).toBeFalsy();
                 }

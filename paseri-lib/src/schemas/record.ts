@@ -1,5 +1,5 @@
 import type { Infer } from '../infer.ts';
-import { type TreeNode, addIssue } from '../issue.ts';
+import { type LeafNode, type TreeNode, addIssue, issueCodes } from '../issue.ts';
 import { type InternalParseResult, isIssue } from '../result.ts';
 import { isPlainObject } from '../utils.ts';
 import { type AnySchemaType, Schema } from './schema.ts';
@@ -7,8 +7,8 @@ import { type AnySchemaType, Schema } from './schema.ts';
 class RecordSchema<ElementSchemaType extends AnySchemaType> extends Schema<Infer<Record<string, ElementSchemaType>>> {
     private readonly _element: ElementSchemaType;
 
-    readonly issues = {
-        INVALID_TYPE: { type: 'leaf', code: 'invalid_type' },
+    readonly issues: Record<string, LeafNode> = {
+        INVALID_TYPE: { type: 'leaf', code: issueCodes.INVALID_TYPE, expected: 'Record' },
     } as const;
 
     constructor(element: ElementSchemaType) {

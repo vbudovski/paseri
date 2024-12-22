@@ -2,7 +2,7 @@ import { expect } from '@std/expect';
 import { expectTypeOf } from 'expect-type';
 import fc from 'fast-check';
 import * as p from '../index.ts';
-import type { TreeNode } from '../issue.ts';
+import { type TreeNode, issueCodes } from '../issue.ts';
 
 const { test } = Deno;
 
@@ -31,7 +31,7 @@ test('Invalid type', () => {
         fc.property(fc.anything(), (data) => {
             const result = schema.safeParse(data);
             if (!result.ok) {
-                expect(result.issue).toEqual({ type: 'leaf', code: 'invalid_type' });
+                expect(result.messages()).toEqual([{ path: [], message: 'Invalid type. Expected Map.' }]);
             } else {
                 expect(result.ok).toBeFalsy();
             }
@@ -71,7 +71,7 @@ test('Invalid min', () => {
 
                 const result = schema.safeParse(dataAsMap);
                 if (!result.ok) {
-                    expect(result.issue).toEqual({ type: 'leaf', code: 'too_short' });
+                    expect(result.messages()).toEqual([{ path: [], message: 'Too short.' }]);
                 } else {
                     expect(result.ok).toBeFalsy();
                 }
@@ -112,7 +112,7 @@ test('Invalid max', () => {
 
                 const result = schema.safeParse(dataAsMap);
                 if (!result.ok) {
-                    expect(result.issue).toEqual({ type: 'leaf', code: 'too_long' });
+                    expect(result.messages()).toEqual([{ path: [], message: 'Too long.' }]);
                 } else {
                     expect(result.ok).toBeFalsy();
                 }
@@ -155,7 +155,7 @@ test('Invalid size (too long)', () => {
 
                 const result = schema.safeParse(dataAsMap);
                 if (!result.ok) {
-                    expect(result.issue).toEqual({ type: 'leaf', code: 'too_long' });
+                    expect(result.messages()).toEqual([{ path: [], message: 'Too long.' }]);
                 } else {
                     expect(result.ok).toBeFalsy();
                 }
@@ -175,7 +175,7 @@ test('Invalid size (too short)', () => {
 
                 const result = schema.safeParse(dataAsMap);
                 if (!result.ok) {
-                    expect(result.issue).toEqual({ type: 'leaf', code: 'too_short' });
+                    expect(result.messages()).toEqual([{ path: [], message: 'Too short.' }]);
                 } else {
                     expect(result.ok).toBeFalsy();
                 }
@@ -198,40 +198,12 @@ test('Invalid elements', () => {
 
     const result = schema.safeParse(data);
     if (!result.ok) {
-        const expectedResult: TreeNode = {
-            type: 'join',
-            left: {
-                type: 'join',
-                left: {
-                    type: 'nest',
-                    key: 1,
-                    child: { type: 'nest', key: 0, child: { type: 'leaf', code: 'invalid_type' } },
-                },
-                right: {
-                    type: 'nest',
-                    key: 3,
-                    child: { type: 'nest', key: 1, child: { type: 'leaf', code: 'invalid_type' } },
-                },
-            },
-            right: {
-                type: 'nest',
-                key: 5,
-                child: {
-                    type: 'join',
-                    left: {
-                        type: 'nest',
-                        key: 0,
-                        child: { type: 'leaf', code: 'invalid_type' },
-                    },
-                    right: {
-                        type: 'nest',
-                        key: 1,
-                        child: { type: 'leaf', code: 'invalid_type' },
-                    },
-                },
-            },
-        };
-        expect(result.issue).toEqual(expectedResult);
+        expect(result.messages()).toEqual([
+            { path: [1, 0], message: 'Invalid type. Expected number.' },
+            { path: [3, 1], message: 'Invalid type. Expected string.' },
+            { path: [5, 0], message: 'Invalid type. Expected number.' },
+            { path: [5, 1], message: 'Invalid type. Expected string.' },
+        ]);
     } else {
         expect(result.ok).toBeFalsy();
     }

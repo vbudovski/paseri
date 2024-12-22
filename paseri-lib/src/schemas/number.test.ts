@@ -30,7 +30,7 @@ test('Invalid type', () => {
             (data) => {
                 const result = schema.safeParse(data);
                 if (!result.ok) {
-                    expect(result.issue).toEqual({ type: 'leaf', code: 'invalid_type' });
+                    expect(result.messages()).toEqual([{ path: [], message: 'Invalid type. Expected number.' }]);
                 } else {
                     expect(result.ok).toBeFalsy();
                 }
@@ -62,7 +62,7 @@ test('Invalid gte', () => {
         fc.property(fc.float({ noNaN: true, max: 10, maxExcluded: true }), (data) => {
             const result = schema.safeParse(data);
             if (!result.ok) {
-                expect(result.issue).toEqual({ type: 'leaf', code: 'too_small' });
+                expect(result.messages()).toEqual([{ path: [], message: 'Too small.' }]);
             } else {
                 expect(result.ok).toBeFalsy();
             }
@@ -93,7 +93,7 @@ test('Invalid gt', () => {
         fc.property(fc.float({ noNaN: true, max: 10 }), (data) => {
             const result = schema.safeParse(data);
             if (!result.ok) {
-                expect(result.issue).toEqual({ type: 'leaf', code: 'too_small' });
+                expect(result.messages()).toEqual([{ path: [], message: 'Too small.' }]);
             } else {
                 expect(result.ok).toBeFalsy();
             }
@@ -124,7 +124,7 @@ test('Invalid lte', () => {
         fc.property(fc.float({ noNaN: true, min: 10, minExcluded: true }), (data) => {
             const result = schema.safeParse(data);
             if (!result.ok) {
-                expect(result.issue).toEqual({ type: 'leaf', code: 'too_large' });
+                expect(result.messages()).toEqual([{ path: [], message: 'Too large.' }]);
             } else {
                 expect(result.ok).toBeFalsy();
             }
@@ -155,7 +155,7 @@ test('Invalid lt', () => {
         fc.property(fc.float({ noNaN: true, min: 10 }), (data) => {
             const result = schema.safeParse(data);
             if (!result.ok) {
-                expect(result.issue).toEqual({ type: 'leaf', code: 'too_large' });
+                expect(result.messages()).toEqual([{ path: [], message: 'Too large.' }]);
             } else {
                 expect(result.ok).toBeFalsy();
             }
@@ -186,7 +186,7 @@ test('Invalid int', () => {
         fc.property(fc.float({ noInteger: true }), (data) => {
             const result = schema.safeParse(data);
             if (!result.ok) {
-                expect(result.issue).toEqual({ type: 'leaf', code: 'invalid_integer' });
+                expect(result.messages()).toEqual([{ path: [], message: 'Number must be an integer.' }]);
             } else {
                 expect(result.ok).toBeFalsy();
             }
@@ -223,7 +223,7 @@ test('Invalid finite', () => {
             (data) => {
                 const result = schema.safeParse(data);
                 if (!result.ok) {
-                    expect(result.issue).toEqual({ type: 'leaf', code: 'invalid_finite' });
+                    expect(result.messages()).toEqual([{ path: [], message: 'Number must be finite.' }]);
                 } else {
                     expect(result.ok).toBeFalsy();
                 }
@@ -257,7 +257,7 @@ test('Invalid safe', () => {
             (data) => {
                 const result = schema.safeParse(data);
                 if (!result.ok) {
-                    expect(result.issue).toEqual({ type: 'leaf', code: 'invalid_safe_integer' });
+                    expect(result.messages()).toEqual([{ path: [], message: 'Number must be a safe integer.' }]);
                 } else {
                     expect(result.ok).toBeFalsy();
                 }
