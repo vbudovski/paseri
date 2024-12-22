@@ -7,19 +7,29 @@ import {Tabs, TabItem} from '@astrojs/starlight/components';
 ## Installation
 
 <Tabs syncKey="packageManager">
+    <TabItem label="Deno">
+        ```shell
+        deno add jsr:@vbudovski/paseri
+        ```
+    </TabItem>
+    <TabItem label="Bun">
+        ```shell
+        bunx jsr add @vbudovski/paseri
+        ```
+    </TabItem>
     <TabItem label="pnpm">
         ```shell
-        pnpm add @vbudovski/paseri
+        pnpm dlx jsr add @vbudovski/paseri
         ```
     </TabItem>
     <TabItem label="yarn">
         ```shell
-        yarn add @vbudovski/paseri
+        yarn dlx jsr add @vbudovski/paseri
         ```
     </TabItem>
     <TabItem label="npm">
         ```shell
-        npm install @vbudovski/paseri
+        npx jsr add @vbudovski/paseri
         ```
     </TabItem>
 </Tabs>
