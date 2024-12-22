@@ -1,3 +1,8 @@
+/**
+ * This module contains the core Paseri validator and schemas.
+ * @module
+ */
+
 export {
     array,
     bigint,
