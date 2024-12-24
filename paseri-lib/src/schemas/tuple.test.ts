@@ -2,7 +2,6 @@ import { expect } from '@std/expect';
 import { expectTypeOf } from 'expect-type';
 import fc from 'fast-check';
 import * as p from '../index.ts';
-import { type TreeNode, issueCodes } from '../issue.ts';
 
 const { test } = Deno;
 

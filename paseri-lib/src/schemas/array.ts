@@ -1,6 +1,5 @@
 import type { Infer } from '../index.ts';
-import { type LeafNode, type TreeNode, issueCodes } from '../issue.ts';
-import { addIssue } from '../issue.ts';
+import { type LeafNode, type TreeNode, addIssue, issueCodes } from '../issue.ts';
 import { type InternalParseResult, isIssue } from '../result.ts';
 import { type AnySchemaType, Schema } from './schema.ts';
 
