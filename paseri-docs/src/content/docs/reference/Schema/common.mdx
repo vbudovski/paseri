@@ -97,3 +97,22 @@ if (result.ok) {
     // result.value is of type `bigint`.
 }
 ```
+
+## Types
+
+### `Infer`
+
+You can use the `Infer` type to determine the result type of any schema. This is useful, because you don't want to
+manually define a type that could easily get out of sync with the schema definition.
+
+```typescript
+import * as p from '@vbudovski/paseri';
+
+const schema = p.object({
+    foo: p.string(),
+    bar: p.number(),
+})
+
+type MySchema = p.Infer<typeof schema>;
+// MySchema will be { foo: string, bar: number }.
+```
