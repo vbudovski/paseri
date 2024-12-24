@@ -7,7 +7,13 @@ interface ParseSuccessResult<OutputType> {
     readonly value: OutputType;
 }
 
-class ParseErrorResult {
+interface ParseErrorResultInterface {
+    readonly ok: false;
+    readonly issue: TreeNode;
+    readonly messages: (locale?: Translations) => readonly Message[];
+}
+
+class ParseErrorResult implements ParseErrorResultInterface {
     readonly ok = false;
     private readonly _issue: TreeNode;
     private _messageList: readonly Message[] | undefined;
@@ -45,7 +51,7 @@ class PaseriError extends Error {
     }
 }
 
-type ParseResult<OutputType> = ParseSuccessResult<OutputType> | ParseErrorResult;
+type ParseResult<OutputType> = ParseSuccessResult<OutputType> | ParseErrorResultInterface;
 
 function ok<OutputType>(value: OutputType): ParseSuccessResult<OutputType> {
     return { ok: true, value };
