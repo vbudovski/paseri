@@ -313,3 +313,69 @@ test('Immutable', async (t) => {
         expect(modified).not.toBe(original);
     });
 });
+
+test('Merge (without overlap)', () => {
+    const schema = p.object({ foo: p.number() });
+    const schemaOther = p.object({ bar: p.string() });
+    const schemaMerged = schema.merge(schemaOther);
+
+    fc.assert(
+        fc.property(fc.record({ foo: fc.float(), bar: fc.string() }), (data) => {
+            const result = schemaMerged.safeParse(data);
+            if (result.ok) {
+                expectTypeOf(result.value).toEqualTypeOf<{ foo: number; bar: string }>;
+                expect(result.value).toEqual(data);
+            } else {
+                expect(result.ok).toBeTruthy();
+            }
+        }),
+    );
+});
+
+test('Merge (with overlap)', () => {
+    const schema = p.object({ foo: p.number() });
+    const schemaOther = p.object({ foo: p.string() });
+    const schemaMerged = schema.merge(schemaOther);
+
+    fc.assert(
+        fc.property(fc.record({ foo: fc.string() }), (data) => {
+            const result = schemaMerged.safeParse(data);
+            if (result.ok) {
+                expectTypeOf(result.value).toEqualTypeOf<{ foo: string }>;
+                expect(result.value).toEqual(data);
+            } else {
+                expect(result.ok).toBeTruthy();
+            }
+        }),
+    );
+});
+
+test('Merge (mode)', async (t) => {
+    await t.step('strip', () => {
+        const schema = p.object({ foo: p.string() }).strict();
+        const schemaOther = p.object({ foo: p.number() }).strip();
+        const schemaMerged = schema.merge(schemaOther);
+
+        const result = schemaMerged.parse({ foo: 123, bar: 'hello' });
+        expect(result).toEqual({ foo: 123 });
+    });
+
+    await t.step('strict', () => {
+        const schema = p.object({ foo: p.string() }).strip();
+        const schemaOther = p.object({ foo: p.number() }).strict();
+        const schemaMerged = schema.merge(schemaOther);
+
+        expect(() => {
+            schemaMerged.parse({ foo: 123, bar: 'hello' });
+        }).toThrow('Failed to parse. See `e.messages()` for details.');
+    });
+
+    await t.step('passthrough', () => {
+        const schema = p.object({ foo: p.string() }).strict();
+        const schemaOther = p.object({ foo: p.number() }).passthrough();
+        const schemaMerged = schema.merge(schemaOther);
+
+        const result = schemaMerged.parse({ foo: 123, bar: 'hello' });
+        expect(result).toEqual({ foo: 123, bar: 'hello' });
+    });
+});

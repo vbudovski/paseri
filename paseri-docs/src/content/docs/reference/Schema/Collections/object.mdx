@@ -104,3 +104,33 @@ if (result.ok) {
     // `other` is preserved in `result.value`.
 }
 ```
+
+## Methods
+
+### `merge`
+
+Combine the keys of this schema, and the keys of another schema into a new schema containing both sets of keys. The keys
+of the second schema will replace the keys of the first schema if there is any overlap. The combined schema will also
+inherit the behaviour of the second schema for any unknown keys.
+
+```typescript
+import * as p from '@vbudovski/paseri';
+
+const schema1 = p.object({
+    foo: p.string(),
+    bar: p.number(),
+}).strict();
+const schema2 = p.object({
+    bar: p.string(),
+    baz: p.number(),
+}).passthrough();
+const combinedSchema = schema1.merge(schema2);
+/*
+The resulting schema will be:
+p.object({
+    foo: p.string(),
+    bar: p.string(),
+    baz: p.number(),
+}).passthrough();
+*/
+```
