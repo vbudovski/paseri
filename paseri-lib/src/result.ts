@@ -14,7 +14,7 @@ interface ParseErrorResultInterface {
 }
 
 class ParseErrorResult implements ParseErrorResultInterface {
-    readonly ok = false;
+    readonly ok = false as const;
     private readonly _issue: TreeNode;
     private _messageList: readonly Message[] | undefined;
 
