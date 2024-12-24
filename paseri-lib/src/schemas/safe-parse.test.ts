@@ -19,7 +19,7 @@ test('Failure', () => {
     const schema = p.string();
     const result = schema.safeParse(123);
     if (!result.ok) {
-        expect(result.issue).toEqual({ type: 'leaf', code: 'invalid_type', expected: 'string' });
+        expect(result.messages()).toEqual([{ path: [], message: 'Invalid type. Expected string.' }]);
     } else {
         expect(result.ok).toBeFalsy();
     }
