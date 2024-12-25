@@ -6,6 +6,10 @@ sidebar:
 
 This is a catch-all schema that allows any value, and corresponds to the `unknown` TypeScript type.
 
+import { Playground } from "../../../../../components/Playground.tsx";
+
+## Example
+
 ```typescript
 import * as p from '@vbudovski/paseri';
 
@@ -17,3 +21,11 @@ if (result.ok) {
     // result.value typed as `unknown`.
 }
 ```
+
+## Playground
+
+<Playground
+    schemaDefaultValue={"```typescript\np.unknown()\n```"}
+    dataDefaultValue={"```typescript\n'foo'\n```"}
+    client:idle
+/>

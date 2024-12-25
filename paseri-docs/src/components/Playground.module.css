@@ -1,0 +1,31 @@
+.queryContainer {
+    container-type: inline-size;
+}
+
+.container {
+    display: grid;
+    gap: 1rem;
+    grid-template-areas: "schema" "data" "result";
+    grid-template-columns: 1fr 1fr;
+    margin-top: 1rem;
+
+    @container (min-width: 400px) {
+        grid-template-areas: "schema data" "result result";
+    }
+}
+
+.label {
+    font-size: var(--sl-text-sm);
+    margin-bottom: 0.25rem;
+}
+
+.result {
+    grid-area: result;
+}
+
+.errors {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    color: var(--sl-color-red);
+}

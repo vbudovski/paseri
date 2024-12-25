@@ -4,6 +4,10 @@ sidebar:
     order: 2
 ---
 
+import { Playground } from '../../../../../components/Playground.tsx'
+
+## Example
+
 ```typescript
 import * as p from '@vbudovski/paseri';
 
@@ -15,6 +19,14 @@ if (result.ok) {
     // result.value typed as `number`.
 }
 ```
+
+## Playground
+
+<Playground
+    schemaDefaultValue={"```typescript\np.number()\n```"}
+    dataDefaultValue={"```typescript\n123\n```"}
+    client:idle
+/>
 
 ## Validators
 

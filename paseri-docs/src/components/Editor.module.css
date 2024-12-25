@@ -1,0 +1,15 @@
+.editor {
+    margin: 0;
+    height: 200px;
+    overflow: hidden;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.5rem;
+    padding-inline-start: 0.75rem;
+    padding-inline-end: 0.5rem;
+    background-color: var(--astro-code-background);
+    line-height: 1.65;
+
+    &:hover:not(:focus) {
+        border-color: var(--sl-color-gray-2);
+    }
+}

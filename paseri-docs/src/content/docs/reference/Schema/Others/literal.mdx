@@ -8,6 +8,16 @@ Primitive values are all well and good, but sometimes we want a specific value o
 `string`. All primitive types &mdash; except `null` and `undefined`, as they can only ever have one value &mdash; are
 compatible with the `literal` schema.
 
+import { Playground } from "../../../../../components/Playground.tsx";
+
+## Playground
+
+<Playground
+    schemaDefaultValue={"```typescript\np.literal('foo')\n```"}
+    dataDefaultValue={"```typescript\n'foo'\n```"}
+    client:idle
+/>
+
 ## String literal
 
 ```typescript
@@ -68,7 +78,6 @@ if (result.ok) {
 
 ```typescript
 import * as p from '@vbudovski/paseri';
-
 
 const symbolLiteral = Symbol.for('bar');
 const schema = p.literal(symbolLiteral);

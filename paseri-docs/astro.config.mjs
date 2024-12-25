@@ -1,3 +1,4 @@
+import react from '@astrojs/react';
 import starlight from '@astrojs/starlight';
 import { defineConfig } from 'astro/config';
 import rehypeExternalLinks from 'rehype-external-links';
@@ -27,6 +28,7 @@ export default defineConfig({
                 },
             ],
         }),
+        react(),
     ],
     markdown: {
         rehypePlugins: [

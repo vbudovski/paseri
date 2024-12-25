@@ -1,0 +1,96 @@
+.code {
+    font-size: var(--sl-text-code);
+
+    /*&::before {
+        display: inline-block;
+        content: attr(data-gutter);
+        margin-left: -0.75rem;
+        margin-right: 0.5rem;
+        border-right: 1px solid var(--sl-color-gray-5);
+        padding-right: 0.5rem;
+        color: var(--sl-color-gray-7);
+        white-space: pre-wrap;
+        text-align: right;
+        min-width: 25px;
+    }*/
+}
+
+:root[data-theme="dark"] .code {
+    color: #d6deeb;
+
+    .keyword {
+        color: #c792ea;
+    }
+
+    .punctuation {
+        /*color: #c792ea;*/
+    }
+
+    .function {
+        color: #82aaff;
+    }
+
+    .builtin {
+        color: #c5e478;
+    }
+
+    .number {
+        color: #f78c6c;
+    }
+
+    .operator {
+        color: #c792ea;
+    }
+
+    .string {
+        color: #ecc48d;
+    }
+
+    .comment {
+        color: #809191;
+    }
+
+    .boolean {
+        color: #ff5874;
+    }
+}
+
+:root[data-theme="light"] .code {
+    color: #403f53;
+
+    .keyword {
+        color: #8d46b4;
+    }
+
+    .punctuation {
+        /*color: #8d46b4;*/
+    }
+
+    .function {
+        color: #3c63b3;
+    }
+
+    .builtin {
+        color: #3c63b3;
+    }
+
+    .number {
+        color: #aa0982;
+    }
+
+    .operator {
+        color: #8d46b4;
+    }
+
+    .string {
+        color: #9b504e;
+    }
+
+    .comment {
+        color: #5e6578;
+    }
+
+    .boolean {
+        color: #a54a4a;
+    }
+}

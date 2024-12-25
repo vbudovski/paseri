@@ -6,6 +6,10 @@ sidebar:
 
 Corresponds to the TypeScript `Record` type.
 
+import { Playground } from "../../../../../components/Playground.tsx";
+
+## Example
+
 ```typescript
 import * as p from '@vbudovski/paseri';
 
@@ -17,3 +21,11 @@ if (result.ok) {
     // result.value typed as `Record<string, number>`.
 }
 ```
+
+## Playground
+
+<Playground
+    schemaDefaultValue={"```typescript\np.record(p.number())\n```"}
+    dataDefaultValue={"```typescript\n{\n  foo: 1,\n  bar: 2,\n}\n```"}
+    client:idle
+/>

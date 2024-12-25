@@ -4,6 +4,10 @@ sidebar:
     order: 6
 ---
 
+import { Playground } from "../../../../../components/Playground.tsx";
+
+## Example
+
 ```typescript
 import * as p from '@vbudovski/paseri';
 
@@ -15,3 +19,11 @@ if (result.ok) {
     // result.value typed as `symbol`.
 }
 ```
+
+## Playground
+
+<Playground
+    schemaDefaultValue={"```typescript\np.symbol()\n```"}
+    dataDefaultValue={"```typescript\nSymbol.for('foo')\n```"}
+    client:idle
+/>

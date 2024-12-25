@@ -4,6 +4,10 @@ sidebar:
     order: 25
 ---
 
+import { Playground } from "../../../../../components/Playground.tsx";
+
+## Example
+
 ```typescript
 import * as p from '@vbudovski/paseri';
 
@@ -15,6 +19,14 @@ if (result.ok) {
     // result.value typed as `Set<number>`.
 }
 ```
+
+## Playground
+
+<Playground
+    schemaDefaultValue={"```typescript\np.set(p.number())\n```"}
+    dataDefaultValue={"```typescript\nnew Set([1, 2, 3])\n```"}
+    client:idle
+/>
 
 ## Validators
 

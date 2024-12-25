@@ -1,8 +1,13 @@
+
 ---
 title: "Boolean"
 sidebar:
     order: 4
 ---
+
+import { Playground } from "../../../../../components/Playground.tsx";
+
+## Example
 
 ```typescript
 import * as p from '@vbudovski/paseri';
@@ -15,3 +20,11 @@ if (result.ok) {
     // result.value typed as `boolean`.
 }
 ```
+
+## Playground
+
+<Playground
+    schemaDefaultValue={"```typescript\np.boolean()\n```"}
+    dataDefaultValue={"```typescript\ntrue\n```"}
+    client:idle
+/>

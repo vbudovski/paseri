@@ -6,6 +6,10 @@ sidebar:
 
 This schema rejects all values, and corresponds to the `never` TypeScript type.
 
+import { Playground } from "../../../../../components/Playground.tsx";
+
+## Example
+
 ```typescript
 import * as p from '@vbudovski/paseri';
 
@@ -17,3 +21,11 @@ if (!result.ok) {
     // result.issue flags value as invalid.
 }
 ```
+
+## Playground
+
+<Playground
+    schemaDefaultValue={"```typescript\np.never()\n```"}
+    dataDefaultValue={"```typescript\n'foo'\n```"}
+    client:idle
+/>
