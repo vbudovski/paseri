@@ -24,6 +24,6 @@ export {
     unknown,
     Schema,
 } from './schemas/index.ts';
-export { ok, err } from './result.ts';
+export { ok, err, PaseriError } from './result.ts';
 
 export type { Infer } from './infer.ts';

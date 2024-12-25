@@ -4,6 +4,10 @@ sidebar:
     order: 26
 ---
 
+import { Playground } from "../../../../../components/Playground.tsx";
+
+## Example
+
 ```typescript
 import * as p from '@vbudovski/paseri';
 
@@ -15,6 +19,14 @@ if (result.ok) {
     // result.value typed as `Map<number, string>`.
 }
 ```
+
+## Playground
+
+<Playground
+    schemaDefaultValue={"```typescript\np.map(p.number(), p.string())\n```"}
+    dataDefaultValue={"```typescript\nnew Map([\n    [1, 'foo'],\n    [2, 'bar'],\n    [3, 'baz'],\n])\n```"}
+    client:idle
+/>
 
 ## Validators
 

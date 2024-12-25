@@ -2,27 +2,27 @@
   "version": "4",
   "specifiers": {
     "jsr:@badrap/valita@*": "0.4.2",
-    "jsr:@std/assert@^1.0.9": "1.0.9",
-    "jsr:@std/expect@*": "1.0.9",
+    "jsr:@std/assert@^1.0.10": "1.0.10",
+    "jsr:@std/expect@*": "1.0.10",
     "jsr:@std/internal@^1.0.5": "1.0.5",
     "npm:@biomejs/biome@*": "1.9.4",
     "npm:expect-type@*": "1.1.0",
-    "npm:fast-check@*": "3.23.1",
+    "npm:fast-check@*": "3.23.2",
     "npm:type-fest@4.30.0": "4.30.0",
-    "npm:zod@*": "3.23.8"
+    "npm:zod@*": "3.24.1"
   },
   "jsr": {
     "@badrap/valita@0.4.2": {
       "integrity": "af8a829e82eac71adbc7b60352798f94dcc66d19fab16b657957ca9e646c25fd"
     },
-    "@std/assert@1.0.9": {
-      "integrity": "a9f0c611a869cc791b26f523eec54c7e187aab7932c2c8e8bea0622d13680dcd",
+    "@std/assert@1.0.10": {
+      "integrity": "59b5cbac5bd55459a19045d95cc7c2ff787b4f8527c0dd195078ff6f9481fbb3",
       "dependencies": [
         "jsr:@std/internal"
       ]
     },
-    "@std/expect@1.0.9": {
-      "integrity": "108bb428f17492ac40439479e1dc55fbaae581530e905a8603f97305842a5a01",
+    "@std/expect@1.0.10": {
+      "integrity": "7659b640447887cd1735f866962e10e434f12443b13595b149970c806e6f08db",
       "dependencies": [
         "jsr:@std/assert",
         "jsr:@std/internal"
@@ -73,8 +73,8 @@
     "expect-type@1.1.0": {
       "integrity": "sha512-bFi65yM+xZgk+u/KRIpekdSYkTB5W1pEf0Lt8Q8Msh7b+eQ7LXVtIB1Bkm4fvclDEL1b2CZkMhv2mOeF8tMdkA=="
     },
-    "fast-check@3.23.1": {
-      "integrity": "sha512-u/MudsoQEgBUZgR5N1v87vEgybeVYus9VnDVaIkxkkGP2jt54naghQ3PCQHJiogS8U/GavZCUPFfx3Xkp+NaHw==",
+    "fast-check@3.23.2": {
+      "integrity": "sha512-h5+1OzzfCC3Ef7VbtKdcv7zsstUQwUDlYpUTvjeUsJAssPgLn7QzbboPtL5ro04Mq0rPOsMzl7q5hIbRs2wD1A==",
       "dependencies": [
         "pure-rand"
       ]
@@ -85,8 +85,8 @@
     "type-fest@4.30.0": {
       "integrity": "sha512-G6zXWS1dLj6eagy6sVhOMQiLtJdxQBHIA9Z6HFUNLOlr6MFOgzV8wvmidtPONfPtEUv0uZsy77XJNzTAfwPDaA=="
     },
-    "zod@3.23.8": {
-      "integrity": "sha512-XBx9AXhXktjUqnepgTiE5flcKIYWi/rme0Eaj+5Y0lftuGBq+jyRu/md4WnuxqgP1ubdpNCsYEYPxrzVHD8d6g=="
+    "zod@3.24.1": {
+      "integrity": "sha512-muH7gBL9sI1nciMZV67X5fTKKBLtwpZ5VBp1vsOQzj1MhrBZ4wlVCm3gedKZWLp0Oyel8sIGfeiz54Su+OVT+A=="
     }
   },
   "workspace": {

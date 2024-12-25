@@ -4,6 +4,10 @@ sidebar:
     order: 5
 ---
 
+import { Playground } from "../../../../../components/Playground.tsx";
+
+## Example
+
 ```typescript
 import * as p from '@vbudovski/paseri';
 
@@ -15,3 +19,11 @@ if (result.ok) {
     // result.value typed as `undefined`.
 }
 ```
+
+## Playground
+
+<Playground
+    schemaDefaultValue={"```typescript\np.undefined()\n```"}
+    dataDefaultValue={"```typescript\nundefined\n```"}
+    client:idle
+/>

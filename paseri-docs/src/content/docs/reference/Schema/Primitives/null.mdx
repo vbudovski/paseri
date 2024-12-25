@@ -4,6 +4,10 @@ sidebar:
     order: 7
 ---
 
+import { Playground } from "../../../../../components/Playground.tsx";
+
+## Example
+
 ```typescript
 import * as p from '@vbudovski/paseri';
 
@@ -15,3 +19,11 @@ if (result.ok) {
     // result.value typed as `null`.
 }
 ```
+
+## Playground
+
+<Playground
+    schemaDefaultValue={"```typescript\np.null()\n```"}
+    dataDefaultValue={"```typescript\nnull\n```"}
+    client:idle
+/>

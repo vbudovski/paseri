@@ -4,6 +4,10 @@ sidebar:
     order: 1
 ---
 
+import { Playground } from '../../../../../components/Playground.tsx'
+
+## Example
+
 ```typescript
 import * as p from '@vbudovski/paseri';
 
@@ -15,6 +19,14 @@ if (result.ok) {
     // result.value typed as `string`.
 }
 ```
+
+## Playground
+
+<Playground
+    schemaDefaultValue={"```typescript\np.string().min(3)\n```"}
+    dataDefaultValue={"```typescript\n'foo'\n```"}
+    client:idle
+/>
 
 ## Validators
 
