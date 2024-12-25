@@ -1,4 +1,4 @@
-import type { NonEmptyObject } from 'type-fest';
+import type { IsEqual, Merge, NonEmptyObject, TupleToUnion } from 'type-fest';
 import type { Infer } from '../infer.ts';
 import { type LeafNode, type TreeNode, issueCodes } from '../issue.ts';
 import { addIssue } from '../issue.ts';
@@ -162,6 +162,37 @@ class ObjectSchema<ShapeType extends ValidShapeType<ShapeType>> extends Schema<I
         cloned._mode = 'passthrough';
 
         return cloned;
+    }
+    merge<ShapeTypeOther extends ValidShapeType<ShapeTypeOther>>(
+        other: ObjectSchema<ShapeTypeOther>,
+        // @ts-expect-error FIXME: How do we get the shape validation to play nicely with Merge?
+    ): ObjectSchema<Merge<ShapeType, ShapeTypeOther>> {
+        // @ts-expect-error FIXME: How do we get the shape validation to play nicely with Merge?
+        const merged = new ObjectSchema<Merge<ShapeType, ShapeTypeOther>>(
+            Object.fromEntries([...this._shape.entries(), ...other._shape.entries()]),
+        );
+        merged._mode = other._mode;
+
+        return merged;
+    }
+    pick<Keys extends [keyof ShapeType, ...(keyof ShapeType)[]]>(
+        ...keys: Keys
+        // @ts-expect-error FIXME: How do we get the shape validation to play nicely with Pick?
+    ): ObjectSchema<Pick<ShapeType, TupleToUnion<Keys>>> {
+        // @ts-expect-error FIXME: How do we get the shape validation to play nicely with Pick?
+        return new ObjectSchema<Pick<ShapeType, TupleToUnion<Keys>>>(
+            Object.fromEntries(this._shape.entries().filter(([key]) => keys.includes(key as keyof ShapeType))),
+        );
+    }
+    omit<Keys extends [keyof ShapeType, ...(keyof ShapeType)[]]>(
+        // Ensure at least one key remains in schema.
+        ...keys: IsEqual<TupleToUnion<Keys>, keyof ShapeType> extends true ? never : Keys
+        // @ts-expect-error FIXME: How do we get the shape validation to play nicely with Omit?
+    ): ObjectSchema<Omit<ShapeType, TupleToUnion<Keys>>> {
+        // @ts-expect-error FIXME: How do we get the shape validation to play nicely with Omit?
+        return new ObjectSchema<Omit<ShapeType, TupleToUnion<Keys>>>(
+            Object.fromEntries(this._shape.entries().filter(([key]) => !keys.includes(key as keyof ShapeType))),
+        );
     }
 }
 
