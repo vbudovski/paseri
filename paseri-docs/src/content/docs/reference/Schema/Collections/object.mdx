@@ -154,3 +154,23 @@ p.object({
 });
 */
 ```
+
+### `omit`
+
+Analogous to TypeScript's built-in `Omit` utility type. Creates a schema that contains all except the selected keys.
+
+```typescript
+import * as p from '@vbudovski/paseri';
+
+const schema = p.object({
+    foo: p.string(),
+    bar: p.number(),
+});
+const schemaOmitted = schema.omit('foo');
+/*
+The resulting schema will be:
+p.object({
+    bar: p.number(),
+});
+*/
+```

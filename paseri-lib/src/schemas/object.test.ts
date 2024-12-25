@@ -393,3 +393,17 @@ test('Pick', () => {
         expect(result.ok).toBeTruthy();
     }
 });
+
+test('Omit', () => {
+    const schema = p.object({ foo: p.string(), bar: p.number() });
+    const schemaOmitted = schema.omit('foo');
+
+    const data = { bar: 123 };
+    const result = schemaOmitted.safeParse(data);
+    if (result.ok) {
+        expectTypeOf(result.value).toEqualTypeOf<{ bar: number }>;
+        expect(result.value).toEqual(data);
+    } else {
+        expect(result.ok).toBeTruthy();
+    }
+});
