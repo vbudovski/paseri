@@ -379,3 +379,17 @@ test('Merge (mode)', async (t) => {
         expect(result).toEqual({ foo: 123, bar: 'hello' });
     });
 });
+
+test('Pick', () => {
+    const schema = p.object({ foo: p.string(), bar: p.number() });
+    const schemaPicked = schema.pick('foo');
+
+    const data = { foo: 'hello' };
+    const result = schemaPicked.safeParse(data);
+    if (result.ok) {
+        expectTypeOf(result.value).toEqualTypeOf<{ foo: string }>;
+        expect(result.value).toEqual(data);
+    } else {
+        expect(result.ok).toBeTruthy();
+    }
+});

@@ -1,4 +1,4 @@
-import type { Merge, NonEmptyObject } from 'type-fest';
+import type { Merge, NonEmptyObject, TupleToUnion } from 'type-fest';
 import type { Infer } from '../infer.ts';
 import { type LeafNode, type TreeNode, issueCodes } from '../issue.ts';
 import { addIssue } from '../issue.ts';
@@ -174,6 +174,15 @@ class ObjectSchema<ShapeType extends ValidShapeType<ShapeType>> extends Schema<I
         merged._mode = other._mode;
 
         return merged;
+    }
+    pick<Keys extends [keyof ShapeType, ...(keyof ShapeType)[]]>(
+        ...keys: Keys
+        // @ts-expect-error FIXME: How do we get the shape validation to play nicely with Pick?
+    ): ObjectSchema<Pick<ShapeType, TupleToUnion<Keys>>> {
+        // @ts-expect-error FIXME: How do we get the shape validation to play nicely with Pick?
+        return new ObjectSchema<Pick<ShapeType, TupleToUnion<Keys>>>(
+            Object.fromEntries(this._shape.entries().filter(([key]) => keys.includes(key as keyof ShapeType))),
+        );
     }
 }
 

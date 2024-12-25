@@ -134,3 +134,23 @@ p.object({
 }).passthrough();
 */
 ```
+
+### `pick`
+
+Analogous to TypeScript's built-in `Pick` utility type. Creates a schema that contains only the selected keys.
+
+```typescript
+import * as p from '@vbudovski/paseri';
+
+const schema = p.object({
+    foo: p.string(),
+    bar: p.number(),
+});
+const schemaPicked = schema.pick('foo');
+/*
+The resulting schema will be:
+p.object({
+    foo: p.string(),
+});
+*/
+```
