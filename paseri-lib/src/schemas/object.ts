@@ -12,7 +12,7 @@ type ValidShapeType<ShapeType> = NonEmptyObject<{
 
 type Mode = 'strip' | 'strict' | 'passthrough';
 
-class ObjectSchema<ShapeType extends ValidShapeType<ShapeType>> extends Schema<Infer<ShapeType>> {
+class ObjectSchema<ShapeType extends Record<string, Schema<unknown>>> extends Schema<Infer<ShapeType>> {
     private readonly _shape: Map<string, Schema<unknown>>;
     private _mode: Mode = 'strict';
 
@@ -165,11 +165,12 @@ class ObjectSchema<ShapeType extends ValidShapeType<ShapeType>> extends Schema<I
     }
     merge<ShapeTypeOther extends ValidShapeType<ShapeTypeOther>>(
         other: ObjectSchema<ShapeTypeOther>,
-        // @ts-expect-error FIXME: How do we get the shape validation to play nicely with Merge?
     ): ObjectSchema<Merge<ShapeType, ShapeTypeOther>> {
-        // @ts-expect-error FIXME: How do we get the shape validation to play nicely with Merge?
-        const merged = new ObjectSchema<Merge<ShapeType, ShapeTypeOther>>(
-            Object.fromEntries([...this._shape.entries(), ...other._shape.entries()]),
+        const merged = new ObjectSchema(
+            Object.fromEntries([...this._shape.entries(), ...other._shape.entries()]) as Merge<
+                ShapeType,
+                ShapeTypeOther
+            >,
         );
         merged._mode = other._mode;
 
@@ -177,21 +178,23 @@ class ObjectSchema<ShapeType extends ValidShapeType<ShapeType>> extends Schema<I
     }
     pick<Keys extends [keyof ShapeType, ...(keyof ShapeType)[]]>(
         ...keys: Keys
-        // @ts-expect-error FIXME: How do we get the shape validation to play nicely with Pick?
     ): ObjectSchema<Pick<ShapeType, TupleToUnion<Keys>>> {
-        // @ts-expect-error FIXME: How do we get the shape validation to play nicely with Pick?
-        return new ObjectSchema<Pick<ShapeType, TupleToUnion<Keys>>>(
-            Object.fromEntries(this._shape.entries().filter(([key]) => keys.includes(key as keyof ShapeType))),
+        return new ObjectSchema(
+            Object.fromEntries(this._shape.entries().filter(([key]) => keys.includes(key as keyof ShapeType))) as Pick<
+                ShapeType,
+                TupleToUnion<Keys>
+            >,
         );
     }
     omit<Keys extends [keyof ShapeType, ...(keyof ShapeType)[]]>(
         // Ensure at least one key remains in schema.
         ...keys: IsEqual<TupleToUnion<Keys>, keyof ShapeType> extends true ? never : Keys
-        // @ts-expect-error FIXME: How do we get the shape validation to play nicely with Omit?
     ): ObjectSchema<Omit<ShapeType, TupleToUnion<Keys>>> {
-        // @ts-expect-error FIXME: How do we get the shape validation to play nicely with Omit?
-        return new ObjectSchema<Omit<ShapeType, TupleToUnion<Keys>>>(
-            Object.fromEntries(this._shape.entries().filter(([key]) => !keys.includes(key as keyof ShapeType))),
+        return new ObjectSchema(
+            Object.fromEntries(this._shape.entries().filter(([key]) => !keys.includes(key as keyof ShapeType))) as Omit<
+                ShapeType,
+                TupleToUnion<Keys>
+            >,
         );
     }
 }
