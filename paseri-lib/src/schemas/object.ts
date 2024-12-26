@@ -199,10 +199,8 @@ class ObjectSchema<ShapeType extends Record<string, Schema<unknown>>> extends Sc
     }
 }
 
-function object<ShapeType extends ValidShapeType<ShapeType>>(
+const object = /* @__PURE__ */ <ShapeType extends ValidShapeType<ShapeType>>(
     ...args: ConstructorParameters<typeof ObjectSchema<ShapeType>>
-): ObjectSchema<ShapeType> {
-    return new ObjectSchema(...args);
-}
+): ObjectSchema<ShapeType> => new ObjectSchema(...args);
 
 export { object };

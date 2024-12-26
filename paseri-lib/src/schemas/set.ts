@@ -83,10 +83,8 @@ class SetSchema<ElementSchemaType extends AnySchemaType> extends Schema<Infer<Se
     }
 }
 
-function set<ElementSchemaType extends AnySchemaType>(
+const set = /* @__PURE__ */ <ElementSchemaType extends AnySchemaType>(
     ...args: ConstructorParameters<typeof SetSchema<ElementSchemaType>>
-): SetSchema<ElementSchemaType> {
-    return new SetSchema(...args);
-}
+): SetSchema<ElementSchemaType> => new SetSchema(...args);
 
 export { set };

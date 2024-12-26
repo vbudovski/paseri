@@ -98,10 +98,8 @@ class MapSchema<
     }
 }
 
-function map<ElementKeySchemaType extends AnySchemaType, ElementValueSchemaType extends AnySchemaType>(
+const map = /* @__PURE__ */ <ElementKeySchemaType extends AnySchemaType, ElementValueSchemaType extends AnySchemaType>(
     ...args: ConstructorParameters<typeof MapSchema<ElementKeySchemaType, ElementValueSchemaType>>
-): MapSchema<ElementKeySchemaType, ElementValueSchemaType> {
-    return new MapSchema(...args);
-}
+): MapSchema<ElementKeySchemaType, ElementValueSchemaType> => new MapSchema(...args);
 
 export { map };

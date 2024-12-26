@@ -17,8 +17,6 @@ class NeverSchema extends Schema<never> {
 
 const singleton = new NeverSchema();
 
-function never(): NeverSchema {
-    return singleton;
-}
+const never = /* @__PURE__ */ (): NeverSchema => singleton;
 
 export { never };

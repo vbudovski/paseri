@@ -83,8 +83,6 @@ class BigIntSchema extends Schema<bigint> {
 
 const singleton = new BigIntSchema();
 
-function bigint(): BigIntSchema {
-    return singleton;
-}
+const bigint = /* @__PURE__ */ (): BigIntSchema => singleton;
 
 export { bigint };

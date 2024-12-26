@@ -36,10 +36,8 @@ class UnionSchema<TupleType extends ValidTupleType> extends Schema<Infer<TupleTo
     }
 }
 
-function union<TupleType extends ValidTupleType>(
+const union = /* @__PURE__ */ <TupleType extends ValidTupleType>(
     ...args: ConstructorParameters<typeof UnionSchema<TupleType>>
-): UnionSchema<TupleType> {
-    return new UnionSchema(...args);
-}
+): UnionSchema<TupleType> => new UnionSchema(...args);
 
 export { union };

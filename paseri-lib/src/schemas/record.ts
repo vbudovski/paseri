@@ -43,10 +43,8 @@ class RecordSchema<ElementSchemaType extends AnySchemaType> extends Schema<Infer
     }
 }
 
-function record<ElementSchemaType extends AnySchemaType>(
+const record = /* @__PURE__ */ <ElementSchemaType extends AnySchemaType>(
     ...args: ConstructorParameters<typeof RecordSchema<ElementSchemaType>>
-): RecordSchema<ElementSchemaType> {
-    return new RecordSchema(...args);
-}
+): RecordSchema<ElementSchemaType> => new RecordSchema(...args);
 
 export { record };

@@ -12,8 +12,6 @@ class UnknownSchema extends Schema<unknown> {
 
 const singleton = new UnknownSchema();
 
-function unknown(): UnknownSchema {
-    return singleton;
-}
+const unknown = /* @__PURE__ */ (): UnknownSchema => singleton;
 
 export { unknown };
