@@ -19,7 +19,7 @@ class SymbolSchema extends Schema<symbol> {
     }
 }
 
-const singleton = new SymbolSchema();
+const singleton = /* @__PURE__ */ new SymbolSchema();
 
 const symbol = /* @__PURE__ */ (): SymbolSchema => singleton;
 

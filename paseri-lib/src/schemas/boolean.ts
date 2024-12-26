@@ -19,7 +19,7 @@ class BooleanSchema extends Schema<boolean> {
     }
 }
 
-const singleton = new BooleanSchema();
+const singleton = /* @__PURE__ */ new BooleanSchema();
 
 const boolean = /* @__PURE__ */ (): BooleanSchema => singleton;
 

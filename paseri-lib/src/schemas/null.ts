@@ -19,7 +19,7 @@ class NullSchema extends Schema<null> {
     }
 }
 
-const singleton = new NullSchema();
+const singleton = /* @__PURE__ */ new NullSchema();
 
 // `null` is a reserved word.
 const null_ = /* @__PURE__ */ (): NullSchema => singleton;

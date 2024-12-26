@@ -127,7 +127,7 @@ class StringSchema extends Schema<string> {
     }
 }
 
-const singleton = new StringSchema();
+const singleton = /* @__PURE__ */ new StringSchema();
 
 const string = /* @__PURE__ */ (): StringSchema => singleton;
 

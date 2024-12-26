@@ -15,7 +15,7 @@ class NeverSchema extends Schema<never> {
     }
 }
 
-const singleton = new NeverSchema();
+const singleton = /* @__PURE__ */ new NeverSchema();
 
 const never = /* @__PURE__ */ (): NeverSchema => singleton;
 

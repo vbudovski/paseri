@@ -10,7 +10,7 @@ class UnknownSchema extends Schema<unknown> {
     }
 }
 
-const singleton = new UnknownSchema();
+const singleton = /* @__PURE__ */ new UnknownSchema();
 
 const unknown = /* @__PURE__ */ (): UnknownSchema => singleton;
 

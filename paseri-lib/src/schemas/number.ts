@@ -117,7 +117,7 @@ class NumberSchema extends Schema<number> {
     }
 }
 
-const singleton = new NumberSchema();
+const singleton = /* @__PURE__ */ new NumberSchema();
 
 const number = /* @__PURE__ */ (): NumberSchema => singleton;
 

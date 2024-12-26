@@ -19,7 +19,7 @@ class UndefinedSchema extends Schema<undefined> {
     }
 }
 
-const singleton = new UndefinedSchema();
+const singleton = /* @__PURE__ */ new UndefinedSchema();
 
 // `undefined` is a reserved word.
 const undefined_ = /* @__PURE__ */ (): UndefinedSchema => singleton;
