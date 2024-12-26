@@ -21,8 +21,6 @@ class BooleanSchema extends Schema<boolean> {
 
 const singleton = new BooleanSchema();
 
-function boolean(): BooleanSchema {
-    return singleton;
-}
+const boolean = /* @__PURE__ */ (): BooleanSchema => singleton;
 
 export { boolean };

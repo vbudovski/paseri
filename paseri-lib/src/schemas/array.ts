@@ -81,10 +81,8 @@ class ArraySchema<ElementSchemaType extends AnySchemaType> extends Schema<Infer<
     }
 }
 
-function array<ElementSchemaType extends AnySchemaType>(
+const array = /* @__PURE__ */ <ElementSchemaType extends AnySchemaType>(
     ...args: ConstructorParameters<typeof ArraySchema<ElementSchemaType>>
-): ArraySchema<ElementSchemaType> {
-    return new ArraySchema(...args);
-}
+): ArraySchema<ElementSchemaType> => new ArraySchema(...args);
 
 export { array };

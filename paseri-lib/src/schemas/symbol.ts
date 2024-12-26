@@ -21,8 +21,6 @@ class SymbolSchema extends Schema<symbol> {
 
 const singleton = new SymbolSchema();
 
-function symbol(): SymbolSchema {
-    return singleton;
-}
+const symbol = /* @__PURE__ */ (): SymbolSchema => singleton;
 
 export { symbol };

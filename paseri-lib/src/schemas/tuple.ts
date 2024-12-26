@@ -57,10 +57,8 @@ class TupleSchema<TupleSchemaType extends ValidTupleSchemaType> extends Schema<I
     }
 }
 
-function tuple<TupleSchemaType extends ValidTupleSchemaType>(
+const tuple = /* @__PURE__ */ <TupleSchemaType extends ValidTupleSchemaType>(
     ...args: ConstructorParameters<typeof TupleSchema<TupleSchemaType>>
-): TupleSchema<TupleSchemaType> {
-    return new TupleSchema(...args);
-}
+): TupleSchema<TupleSchemaType> => new TupleSchema(...args);
 
 export { tuple };

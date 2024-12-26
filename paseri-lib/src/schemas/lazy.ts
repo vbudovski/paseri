@@ -23,8 +23,8 @@ class LazySchema<OutputType> extends Schema<OutputType> {
     }
 }
 
-function lazy<OutputType>(...args: ConstructorParameters<typeof LazySchema<OutputType>>): LazySchema<OutputType> {
-    return new LazySchema(...args);
-}
+const lazy = /* @__PURE__ */ <OutputType>(
+    ...args: ConstructorParameters<typeof LazySchema<OutputType>>
+): LazySchema<OutputType> => new LazySchema(...args);
 
 export { lazy };

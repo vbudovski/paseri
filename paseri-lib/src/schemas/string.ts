@@ -129,8 +129,6 @@ class StringSchema extends Schema<string> {
 
 const singleton = new StringSchema();
 
-function string(): StringSchema {
-    return singleton;
-}
+const string = /* @__PURE__ */ (): StringSchema => singleton;
 
 export { string, emailRegex, emojiRegex, uuidRegex, nanoidRegex };

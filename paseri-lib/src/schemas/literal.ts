@@ -33,10 +33,8 @@ class LiteralSchema<OutputType extends LiteralType> extends Schema<OutputType> {
     }
 }
 
-function literal<OutputType extends LiteralType>(
+const literal = /* @__PURE__ */ <OutputType extends LiteralType>(
     ...args: ConstructorParameters<typeof LiteralSchema<OutputType>>
-): LiteralSchema<OutputType> {
-    return new LiteralSchema(...args);
-}
+): LiteralSchema<OutputType> => new LiteralSchema(...args);
 
 export { literal };

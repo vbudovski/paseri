@@ -22,8 +22,6 @@ class UndefinedSchema extends Schema<undefined> {
 const singleton = new UndefinedSchema();
 
 // `undefined` is a reserved word.
-function undefined_(): UndefinedSchema {
-    return singleton;
-}
+const undefined_ = /* @__PURE__ */ (): UndefinedSchema => singleton;
 
 export { undefined_ };
