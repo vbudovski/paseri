@@ -12,11 +12,11 @@ class MapSchema<
     private _minSize = 0;
     private _maxSize = Number.POSITIVE_INFINITY;
 
-    readonly issues: Record<string, LeafNode> = {
+    readonly issues = {
         INVALID_TYPE: { type: 'leaf', code: issueCodes.INVALID_TYPE, expected: 'Map' },
         TOO_LONG: { type: 'leaf', code: issueCodes.TOO_LONG },
         TOO_SHORT: { type: 'leaf', code: issueCodes.TOO_SHORT },
-    } as const;
+    } as const satisfies Record<string, LeafNode>;
 
     constructor(...element: [ElementKeySchemaType, ElementValueSchemaType]) {
         super();

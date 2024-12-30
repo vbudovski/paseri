@@ -12,7 +12,7 @@ type CheckFunction = (value: string) => TreeNode | undefined;
 class StringSchema extends Schema<string> {
     private _checks: CheckFunction[] | undefined = undefined;
 
-    readonly issues: Record<string, LeafNode> = {
+    readonly issues = {
         INVALID_TYPE: { type: 'leaf', code: issueCodes.INVALID_TYPE, expected: 'string' },
         TOO_SHORT: { type: 'leaf', code: issueCodes.TOO_SHORT },
         TOO_LONG: { type: 'leaf', code: issueCodes.TOO_LONG },
@@ -20,7 +20,7 @@ class StringSchema extends Schema<string> {
         INVALID_EMOJI: { type: 'leaf', code: issueCodes.INVALID_EMOJI },
         INVALID_UUID: { type: 'leaf', code: issueCodes.INVALID_UUID },
         INVALID_NANOID: { type: 'leaf', code: issueCodes.INVALID_NANOID },
-    } as const;
+    } as const satisfies Record<string, LeafNode>;
 
     protected _clone(): StringSchema {
         const cloned = new StringSchema();

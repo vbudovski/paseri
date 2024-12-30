@@ -7,11 +7,11 @@ type CheckFunction = (value: bigint) => TreeNode | undefined;
 class BigIntSchema extends Schema<bigint> {
     private _checks: CheckFunction[] | undefined = undefined;
 
-    readonly issues: Record<string, LeafNode> = {
+    readonly issues = {
         INVALID_TYPE: { type: 'leaf', code: issueCodes.INVALID_TYPE, expected: 'bigint' },
         TOO_SMALL: { type: 'leaf', code: issueCodes.TOO_SMALL },
         TOO_LARGE: { type: 'leaf', code: issueCodes.TOO_LARGE },
-    } as const;
+    } as const satisfies Record<string, LeafNode>;
 
     protected _clone(): BigIntSchema {
         const cloned = new BigIntSchema();

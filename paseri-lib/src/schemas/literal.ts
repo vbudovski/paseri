@@ -8,18 +8,20 @@ type LiteralType = string | number | bigint | boolean | symbol;
 class LiteralSchema<OutputType extends LiteralType> extends Schema<OutputType> {
     private readonly _value: OutputType;
 
-    readonly issues: Record<string, LeafNode> = {} as const;
+    readonly issues;
 
     constructor(value: IsLiteral<OutputType> extends true ? OutputType : never) {
         super();
 
         this._value = value;
 
-        this.issues.INVALID_VALUE = {
-            type: 'leaf',
-            code: issueCodes.INVALID_VALUE,
-            expected: typeof value === 'bigint' ? `${value}n` : String(value),
-        };
+        this.issues = {
+            INVALID_VALUE: {
+                type: 'leaf',
+                code: issueCodes.INVALID_VALUE,
+                expected: typeof value === 'bigint' ? `${value}n` : String(value),
+            },
+        } as const satisfies Record<string, LeafNode>;
     }
     protected _clone(): LiteralSchema<OutputType> {
         return new LiteralSchema(this._value as IsLiteral<OutputType> extends true ? OutputType : never);

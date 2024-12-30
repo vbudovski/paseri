@@ -7,9 +7,9 @@ import { type AnySchemaType, Schema } from './schema.ts';
 class RecordSchema<ElementSchemaType extends AnySchemaType> extends Schema<Infer<Record<string, ElementSchemaType>>> {
     private readonly _element: ElementSchemaType;
 
-    readonly issues: Record<string, LeafNode> = {
+    readonly issues = {
         INVALID_TYPE: { type: 'leaf', code: issueCodes.INVALID_TYPE, expected: 'Record' },
-    } as const;
+    } as const satisfies Record<string, LeafNode>;
 
     constructor(element: ElementSchemaType) {
         super();

@@ -3,9 +3,9 @@ import type { InternalParseResult } from '../result.ts';
 import { Schema } from './schema.ts';
 
 class SymbolSchema extends Schema<symbol> {
-    readonly issues: Record<string, LeafNode> = {
+    readonly issues = {
         INVALID_TYPE: { type: 'leaf', code: issueCodes.INVALID_TYPE, expected: 'Symbol' },
-    } as const;
+    } as const satisfies Record<string, LeafNode>;
 
     protected _clone(): SymbolSchema {
         return new SymbolSchema();

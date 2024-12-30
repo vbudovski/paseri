@@ -7,14 +7,14 @@ type CheckFunction = (value: number) => TreeNode | undefined;
 class NumberSchema extends Schema<number> {
     private _checks: CheckFunction[] | undefined = undefined;
 
-    readonly issues: Record<string, LeafNode> = {
+    readonly issues = {
         INVALID_TYPE: { type: 'leaf', code: issueCodes.INVALID_TYPE, expected: 'number' },
         TOO_SMALL: { type: 'leaf', code: issueCodes.TOO_SMALL },
         TOO_LARGE: { type: 'leaf', code: issueCodes.TOO_LARGE },
         INVALID_INTEGER: { type: 'leaf', code: issueCodes.INVALID_INTEGER },
         INVALID_FINITE: { type: 'leaf', code: issueCodes.INVALID_FINITE },
         INVALID_SAFE_INTEGER: { type: 'leaf', code: issueCodes.INVALID_SAFE_INTEGER },
-    } as const;
+    } as const satisfies Record<string, LeafNode>;
 
     protected _clone(): NumberSchema {
         const cloned = new NumberSchema();

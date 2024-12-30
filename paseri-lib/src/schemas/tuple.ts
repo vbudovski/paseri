@@ -9,11 +9,11 @@ class TupleSchema<TupleSchemaType extends ValidTupleSchemaType> extends Schema<I
     private readonly _schemas: TupleSchemaType;
     private readonly _length: number;
 
-    readonly issues: Record<string, LeafNode> = {
+    readonly issues = {
         INVALID_TYPE: { type: 'leaf', code: issueCodes.INVALID_TYPE, expected: 'array' },
         TOO_LONG: { type: 'leaf', code: issueCodes.TOO_LONG },
         TOO_SHORT: { type: 'leaf', code: issueCodes.TOO_SHORT },
-    } as const;
+    } as const satisfies Record<string, LeafNode>;
 
     constructor(...schemas: TupleSchemaType) {
         super();

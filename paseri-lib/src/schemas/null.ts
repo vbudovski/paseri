@@ -3,9 +3,9 @@ import type { InternalParseResult } from '../result.ts';
 import { Schema } from './schema.ts';
 
 class NullSchema extends Schema<null> {
-    readonly issues: Record<string, LeafNode> = {
+    readonly issues = {
         INVALID_VALUE: { type: 'leaf', code: issueCodes.INVALID_VALUE, expected: 'null' },
-    } as const;
+    } as const satisfies Record<string, LeafNode>;
 
     protected _clone(): NullSchema {
         return new NullSchema();

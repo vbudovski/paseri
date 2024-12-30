@@ -3,9 +3,9 @@ import type { InternalParseResult } from '../result.ts';
 import { Schema } from './schema.ts';
 
 class BooleanSchema extends Schema<boolean> {
-    readonly issues: Record<string, LeafNode> = {
+    readonly issues = {
         INVALID_TYPE: { type: 'leaf', code: issueCodes.INVALID_TYPE, expected: 'boolean' },
-    } as const;
+    } as const satisfies Record<string, LeafNode>;
 
     protected _clone(): BooleanSchema {
         return new BooleanSchema();
