@@ -7,7 +7,7 @@ type CheckFunction = (value: bigint) => TreeNode | undefined;
 class BigIntSchema extends Schema<bigint> {
     private _checks: CheckFunction[] | undefined = undefined;
 
-    readonly issues = {
+    private readonly issues = {
         INVALID_TYPE: { type: 'leaf', code: issueCodes.INVALID_TYPE, expected: 'bigint' },
         TOO_SMALL: { type: 'leaf', code: issueCodes.TOO_SMALL },
         TOO_LARGE: { type: 'leaf', code: issueCodes.TOO_LARGE },

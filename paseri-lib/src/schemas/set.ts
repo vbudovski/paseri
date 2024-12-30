@@ -9,7 +9,7 @@ class SetSchema<ElementSchemaType extends AnySchemaType> extends Schema<Infer<Se
     private _minSize = 0;
     private _maxSize = Number.POSITIVE_INFINITY;
 
-    readonly issues = {
+    private readonly issues = {
         INVALID_TYPE: { type: 'leaf', code: issueCodes.INVALID_TYPE, expected: 'Set' },
         TOO_LONG: { type: 'leaf', code: issueCodes.TOO_LONG },
         TOO_SHORT: { type: 'leaf', code: issueCodes.TOO_SHORT },

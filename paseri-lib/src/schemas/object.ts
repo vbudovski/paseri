@@ -16,7 +16,7 @@ class ObjectSchema<ShapeType extends Record<string, Schema<unknown>>> extends Sc
     private readonly _shape: Map<string, Schema<unknown>>;
     private _mode: Mode = 'strict';
 
-    readonly issues = {
+    private readonly issues = {
         INVALID_TYPE: { type: 'leaf', code: issueCodes.INVALID_TYPE, expected: 'object' },
         UNRECOGNIZED_KEY: { type: 'leaf', code: issueCodes.UNRECOGNIZED_KEY },
         MISSING_VALUE: { type: 'leaf', code: issueCodes.MISSING_VALUE },

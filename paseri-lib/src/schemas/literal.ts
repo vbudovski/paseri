@@ -8,7 +8,7 @@ type LiteralType = string | number | bigint | boolean | symbol;
 class LiteralSchema<OutputType extends LiteralType> extends Schema<OutputType> {
     private readonly _value: OutputType;
 
-    readonly issues;
+    private readonly issues;
 
     constructor(value: IsLiteral<OutputType> extends true ? OutputType : never) {
         super();

@@ -12,7 +12,7 @@ type CheckFunction = (value: string) => TreeNode | undefined;
 class StringSchema extends Schema<string> {
     private _checks: CheckFunction[] | undefined = undefined;
 
-    readonly issues = {
+    private readonly issues = {
         INVALID_TYPE: { type: 'leaf', code: issueCodes.INVALID_TYPE, expected: 'string' },
         TOO_SHORT: { type: 'leaf', code: issueCodes.TOO_SHORT },
         TOO_LONG: { type: 'leaf', code: issueCodes.TOO_LONG },

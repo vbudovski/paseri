@@ -3,7 +3,7 @@ import type { InternalParseResult } from '../result.ts';
 import { Schema } from './schema.ts';
 
 class UndefinedSchema extends Schema<undefined> {
-    readonly issues = {
+    private readonly issues = {
         INVALID_VALUE: { type: 'leaf', code: issueCodes.INVALID_VALUE, expected: 'undefined' },
     } as const satisfies Record<string, LeafNode>;
 
