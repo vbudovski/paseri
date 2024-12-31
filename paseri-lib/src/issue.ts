@@ -3,7 +3,7 @@ import type { Tagged } from 'type-fest';
 const issueCodes = {
     // Common.
     INVALID_TYPE: 'invalid_type' as Tagged<'invalid_type', 'IssueCode'>,
-    // Array/Tuple/Map/Set/String.
+    // Array/Tuple/Map/Set/String/Date.
     TOO_SHORT: 'too_short' as Tagged<'too_short', 'IssueCode'>,
     TOO_LONG: 'too_long' as Tagged<'too_long', 'IssueCode'>,
     // String.
@@ -23,6 +23,10 @@ const issueCodes = {
     // Object.
     UNRECOGNIZED_KEY: 'unrecognized_key' as Tagged<'unrecognized_key', 'IssueCode'>,
     MISSING_VALUE: 'missing_value' as Tagged<'missing_value', 'IssueCode'>,
+    // Date.
+    INVALID_DATE: 'invalid_date' as Tagged<'invalid_date', 'IssueCode'>,
+    TOO_RECENT: 'too_recent' as Tagged<'too_recent', 'IssueCode'>,
+    TOO_DATED: 'too_dated' as Tagged<'too_dated', 'IssueCode'>,
 } as const;
 
 type IssueCode = (typeof issueCodes)[keyof typeof issueCodes];

@@ -7,6 +7,7 @@ export {
     array,
     bigint,
     boolean,
+    date,
     lazy,
     literal,
     map,

@@ -22,6 +22,10 @@ function formatResult(value: unknown): string {
         return value.description === 'undefined' ? 'Symbol()' : `Symbol('${value.description}')`;
     }
 
+    if (value instanceof Date) {
+        return String(value);
+    }
+
     if (value === null) {
         return 'null';
     }
