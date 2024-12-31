@@ -81,6 +81,9 @@ class ArraySchema<ElementSchemaType extends AnySchemaType> extends Schema<Infer<
     }
 }
 
+/**
+ * [Array](https://paseri.dev/reference/schema/collections/array/) schema.
+ */
 const array = /* @__PURE__ */ <ElementSchemaType extends AnySchemaType>(
     ...args: ConstructorParameters<typeof ArraySchema<ElementSchemaType>>
 ): ArraySchema<ElementSchemaType> => new ArraySchema(...args);

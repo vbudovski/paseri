@@ -5,6 +5,9 @@ type InferMapped<SchemaType> = {
     [Key in keyof SchemaType]: SchemaType[Key] extends Schema<infer OutputType> ? OutputType : never;
 };
 
+/**
+ * [Infer](https://paseri.dev/reference/schema/common/#infer) the type from a schema.
+ */
 type Infer<SchemaType> = Simplify<
     SchemaType extends Readonly<Array<AnySchemaType>>
         ? InferMapped<SchemaType>

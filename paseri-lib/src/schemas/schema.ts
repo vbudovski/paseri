@@ -1,6 +1,10 @@
 import { ParseErrorResult, PaseriError, isParseSuccess } from '../result.ts';
 import type { InternalParseResult, ParseResult } from '../result.ts';
 
+/**
+ * The abstract base class for all schemas, containing the [common](https://paseri.dev/reference/schema/common/)
+ * interface.
+ */
 abstract class Schema<OutputType> {
     protected abstract _clone(): Schema<OutputType>;
     public abstract _parse(value: unknown): InternalParseResult<OutputType>;

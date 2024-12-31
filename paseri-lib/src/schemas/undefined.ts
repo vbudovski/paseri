@@ -21,6 +21,9 @@ class UndefinedSchema extends Schema<undefined> {
 
 const singleton = /* @__PURE__ */ new UndefinedSchema();
 
+/**
+ * [Undefined](https://paseri.dev/reference/schema/primitives/undefined/) schema.
+ */
 // `undefined` is a reserved word.
 const undefined_ = /* @__PURE__ */ (): UndefinedSchema => singleton;
 

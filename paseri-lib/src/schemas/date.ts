@@ -66,6 +66,9 @@ class DateSchema extends Schema<Date> {
 
 const singleton = /* @__PURE__ */ new DateSchema();
 
+/**
+ * [Date](https://paseri.dev/reference/schema/primitives/date/) schema.
+ */
 const date = /* @__PURE__ */ (): DateSchema => singleton;
 
 export { date };

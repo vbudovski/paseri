@@ -33,6 +33,9 @@ class ParseErrorResult implements ParseErrorResultInterface {
     }
 }
 
+/**
+ * `PaseriError` is thrown from `parse` when the data being validated does not adhere to the expected schema.
+ */
 class PaseriError extends Error {
     private readonly _issue: TreeNode;
     private _messageList: readonly Message[] | undefined;
@@ -42,6 +45,11 @@ class PaseriError extends Error {
 
         this._issue = issue;
     }
+
+    /**
+     * Retrieve the error messages for a parsing failure.
+     * @param locale The locale to use for error messages.
+     */
     messages(locale: Translations = en): readonly Message[] {
         if (this._messageList === undefined) {
             this._messageList = messageList(this._issue, locale);
@@ -53,10 +61,18 @@ class PaseriError extends Error {
 
 type ParseResult<OutputType> = ParseSuccessResult<OutputType> | ParseErrorResultInterface;
 
+/**
+ * Indicates a successful parse result.
+ * @param value The result of the successful parsing.
+ */
 function ok<OutputType>(value: OutputType): ParseSuccessResult<OutputType> {
     return { ok: true, value };
 }
 
+/**
+ * Indicates an error parse result.
+ * @param code The error code indicating the specific parsing failure.
+ */
 function err(code: string): ParseErrorResult {
     return new ParseErrorResult({ type: 'leaf', code: code as CustomIssueCode });
 }

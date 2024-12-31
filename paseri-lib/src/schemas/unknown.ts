@@ -12,6 +12,9 @@ class UnknownSchema extends Schema<unknown> {
 
 const singleton = /* @__PURE__ */ new UnknownSchema();
 
+/**
+ * [Unknown](https://paseri.dev/reference/schema/others/unknown/) schema.
+ */
 const unknown = /* @__PURE__ */ (): UnknownSchema => singleton;
 
 export { unknown };

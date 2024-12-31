@@ -21,6 +21,9 @@ class BooleanSchema extends Schema<boolean> {
 
 const singleton = /* @__PURE__ */ new BooleanSchema();
 
+/**
+ * [Boolean](https://paseri.dev/reference/schema/primitives/boolean/) schema.
+ */
 const boolean = /* @__PURE__ */ (): BooleanSchema => singleton;
 
 export { boolean };

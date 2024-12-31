@@ -17,6 +17,9 @@ class NeverSchema extends Schema<never> {
 
 const singleton = /* @__PURE__ */ new NeverSchema();
 
+/**
+ * [Never](https://paseri.dev/reference/schema/others/never/) schema.
+ */
 const never = /* @__PURE__ */ (): NeverSchema => singleton;
 
 export { never };

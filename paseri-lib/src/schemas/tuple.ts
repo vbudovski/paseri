@@ -57,6 +57,9 @@ class TupleSchema<TupleSchemaType extends ValidTupleSchemaType> extends Schema<I
     }
 }
 
+/**
+ * [Tuple](https://paseri.dev/reference/schema/collections/tuple/) schema.
+ */
 const tuple = /* @__PURE__ */ <TupleSchemaType extends ValidTupleSchemaType>(
     ...args: ConstructorParameters<typeof TupleSchema<TupleSchemaType>>
 ): TupleSchema<TupleSchemaType> => new TupleSchema(...args);

@@ -83,6 +83,9 @@ class BigIntSchema extends Schema<bigint> {
 
 const singleton = /* @__PURE__ */ new BigIntSchema();
 
+/**
+ * [BigInt](https://paseri.dev/reference/schema/primitives/bigint/) schema.
+ */
 const bigint = /* @__PURE__ */ (): BigIntSchema => singleton;
 
 export { bigint };

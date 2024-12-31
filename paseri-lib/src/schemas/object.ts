@@ -199,6 +199,9 @@ class ObjectSchema<ShapeType extends Record<string, Schema<unknown>>> extends Sc
     }
 }
 
+/**
+ * [Object](https://paseri.dev/reference/schema/collections/object/) schema.
+ */
 const object = /* @__PURE__ */ <ShapeType extends ValidShapeType<ShapeType>>(
     ...args: ConstructorParameters<typeof ObjectSchema<ShapeType>>
 ): ObjectSchema<ShapeType> => new ObjectSchema(...args);

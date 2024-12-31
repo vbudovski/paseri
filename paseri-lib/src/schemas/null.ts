@@ -21,6 +21,9 @@ class NullSchema extends Schema<null> {
 
 const singleton = /* @__PURE__ */ new NullSchema();
 
+/**
+ * [Null](https://paseri.dev/reference/schema/primitives/null/) schema.
+ */
 // `null` is a reserved word.
 const null_ = /* @__PURE__ */ (): NullSchema => singleton;
 

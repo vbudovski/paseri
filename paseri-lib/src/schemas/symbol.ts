@@ -21,6 +21,9 @@ class SymbolSchema extends Schema<symbol> {
 
 const singleton = /* @__PURE__ */ new SymbolSchema();
 
+/**
+ * [Symbol](https://paseri.dev/reference/schema/primitives/symbol/) schema.
+ */
 const symbol = /* @__PURE__ */ (): SymbolSchema => singleton;
 
 export { symbol };

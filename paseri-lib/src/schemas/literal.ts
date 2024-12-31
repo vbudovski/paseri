@@ -35,6 +35,9 @@ class LiteralSchema<OutputType extends LiteralType> extends Schema<OutputType> {
     }
 }
 
+/**
+ * [Literal](https://paseri.dev/reference/schema/others/literal/) schema.
+ */
 const literal = /* @__PURE__ */ <OutputType extends LiteralType>(
     ...args: ConstructorParameters<typeof LiteralSchema<OutputType>>
 ): LiteralSchema<OutputType> => new LiteralSchema(...args);

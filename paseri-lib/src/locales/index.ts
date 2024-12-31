@@ -1,6 +1,7 @@
 /**
- * This module contains the messages for all available locales.
  * @module
+ *
+ * This module contains the messages for all available locales.
  */
 
 export { en } from './en.ts';

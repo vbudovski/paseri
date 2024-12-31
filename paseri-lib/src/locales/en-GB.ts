@@ -1,5 +1,8 @@
 import type { Translations } from '../message.ts';
 
+/**
+ * English (United Kingdom of Great Britain and Northern Ireland).
+ */
 const en_GB = {
     invalid_type: 'Invalid type. Expected {expected}.',
     too_short: 'Too short.',

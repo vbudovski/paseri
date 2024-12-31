@@ -1,6 +1,25 @@
 /**
- * This module contains the core Paseri validator and schemas.
  * @module
+ *
+ * This module contains the core Paseri validator and schemas.
+ *
+ * @example
+ *
+ * ```typescript
+ * import * as p from '@vbudovski/paseri';
+ *
+ * const schema = p.object({
+ *     hello: p.string(),
+ * });
+ *
+ * const data = ={ hello: 'world' };
+ * const result = schema.safeParse(data);
+ * if (result.ok) {
+ *     console.log(`Hello ${result.value.hello}!`);
+ * } else {
+ *     throw new Error('issues parsing data.');
+ * }
+ * ```
  */
 
 export {

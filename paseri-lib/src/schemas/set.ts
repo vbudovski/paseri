@@ -83,6 +83,9 @@ class SetSchema<ElementSchemaType extends AnySchemaType> extends Schema<Infer<Se
     }
 }
 
+/**
+ * [Set](https://paseri.dev/reference/schema/collections/set/) schema.
+ */
 const set = /* @__PURE__ */ <ElementSchemaType extends AnySchemaType>(
     ...args: ConstructorParameters<typeof SetSchema<ElementSchemaType>>
 ): SetSchema<ElementSchemaType> => new SetSchema(...args);

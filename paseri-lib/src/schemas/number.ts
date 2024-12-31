@@ -119,6 +119,9 @@ class NumberSchema extends Schema<number> {
 
 const singleton = /* @__PURE__ */ new NumberSchema();
 
+/**
+ * [Number](https://paseri.dev/reference/schema/primitives/number/) schema.
+ */
 const number = /* @__PURE__ */ (): NumberSchema => singleton;
 
 export { number };

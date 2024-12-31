@@ -42,9 +42,9 @@ import * as p from '@vbudovski/paseri';
 
 const schema = p.object({
     hello: p.string(),
-})
+});
 
-const data = Object.freeze({ hello: 'world' });
+const data = { hello: 'world' };
 const result = schema.safeParse(data);
 if (result.ok) {
     console.log(`Hello ${result.value.hello}!`);

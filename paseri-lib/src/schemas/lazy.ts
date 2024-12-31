@@ -23,6 +23,9 @@ class LazySchema<OutputType> extends Schema<OutputType> {
     }
 }
 
+/**
+ * [Lazy](https://paseri.dev/reference/schema/others/lazy/) schema.
+ */
 const lazy = /* @__PURE__ */ <OutputType>(
     ...args: ConstructorParameters<typeof LazySchema<OutputType>>
 ): LazySchema<OutputType> => new LazySchema(...args);

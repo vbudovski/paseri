@@ -43,6 +43,9 @@ class RecordSchema<ElementSchemaType extends AnySchemaType> extends Schema<Infer
     }
 }
 
+/**
+ * [Record](https://paseri.dev/reference/schema/collections/record/) schema.
+ */
 const record = /* @__PURE__ */ <ElementSchemaType extends AnySchemaType>(
     ...args: ConstructorParameters<typeof RecordSchema<ElementSchemaType>>
 ): RecordSchema<ElementSchemaType> => new RecordSchema(...args);

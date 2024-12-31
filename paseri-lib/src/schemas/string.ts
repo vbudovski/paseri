@@ -129,6 +129,9 @@ class StringSchema extends Schema<string> {
 
 const singleton = /* @__PURE__ */ new StringSchema();
 
+/**
+ * [String](https://paseri.dev/reference/schema/primitives/string/) schema.
+ */
 const string = /* @__PURE__ */ (): StringSchema => singleton;
 
 export { string, emailRegex, emojiRegex, uuidRegex, nanoidRegex };
