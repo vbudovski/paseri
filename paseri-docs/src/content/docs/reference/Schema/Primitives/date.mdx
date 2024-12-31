@@ -1,0 +1,48 @@
+---
+title: "Date"
+sidebar:
+    order: 5
+---
+
+import { Playground } from '../../../../../components/Playground.tsx'
+
+## Example
+
+```typescript
+import * as p from '@vbudovski/paseri';
+
+const schema = p.date();
+const data = new Date(2020, 0, 1);
+
+const result = schema.safeParse(data);
+if (result.ok) {
+    // result.value typed as `Date`.
+}
+```
+
+## Playground
+
+<Playground
+    schemaDefaultValue={"```typescript\np.date()\n```"}
+    dataDefaultValue={"```typescript\nnew Date(2020, 0, 1)\n```"}
+    client:idle
+/>
+
+## Validators
+
+### `min`
+
+Date on or after `value`.
+
+```typescript
+p.string().min(new Date(2020, 0, 1));
+```
+
+### `max`
+
+Date on or before `value`.
+
+```typescript
+p.string().max(new Date(2020, 0, 1));
+```
+
