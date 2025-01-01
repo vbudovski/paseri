@@ -2,7 +2,9 @@ import { expect } from '@std/expect';
 import { expectTypeOf } from 'expect-type';
 import fc from 'fast-check';
 import * as p from '../index.ts';
-import { nanoidRegex } from './string.ts';
+import { emojiRegex, nanoidRegex, uuidRegex } from './string.ts';
+
+import emoji from '../emoji.json' with { type: 'json' };
 
 const { test } = Deno;
 
@@ -172,28 +174,46 @@ test('Email', async (t) => {
     });
 });
 
-test('Emoji', async (t) => {
-    // TODO: Use fast-check once it has better support for the emoji regex.
+test('Valid emoji', () => {
     const schema = p.string().emoji();
 
-    await t.step('Valid', () => {
-        const result = schema.safeParse('🥳');
-        if (result.ok) {
-            expectTypeOf(result.value).toEqualTypeOf<string>;
-            expect(result.value).toBe('🥳');
-        } else {
-            expect(result.ok).toBeTruthy();
-        }
-    });
+    fc.assert(
+        fc.property(
+            fc.string({
+                minLength: 1,
+                unit: fc.mapToConstant(
+                    ...emoji.map((e) => ({ num: e.count, build: (v: number) => String.fromCodePoint(v + e.start) })),
+                ),
+            }),
+            (data) => {
+                const result = schema.safeParse(data);
+                if (result.ok) {
+                    expectTypeOf(result.value).toEqualTypeOf<string>;
+                    expect(result.value).toBe(data);
+                } else {
+                    expect(result.ok).toBeTruthy();
+                }
+            },
+        ),
+    );
+});
 
-    await t.step('Invalid', () => {
-        const result = schema.safeParse('a');
-        if (!result.ok) {
-            expect(result.messages()).toEqual([{ path: [], message: 'Invalid emoji.' }]);
-        } else {
-            expect(result.ok).toBeFalsy();
-        }
-    });
+test('Invalid emoji', () => {
+    const schema = p.string().emoji();
+
+    fc.assert(
+        fc.property(
+            fc.string().filter((value) => !emojiRegex.test(value)),
+            (data) => {
+                const result = schema.safeParse(data);
+                if (!result.ok) {
+                    expect(result.messages()).toEqual([{ path: [], message: 'Invalid emoji.' }]);
+                } else {
+                    expect(result.ok).toBeFalsy();
+                }
+            },
+        ),
+    );
 });
 
 test('Valid uuid', () => {
@@ -216,15 +236,17 @@ test('Invalid uuid', () => {
     const schema = p.string().uuid();
 
     fc.assert(
-        // It's possible that this will generate a valid UUID, but *extremely* unlikely.
-        fc.property(fc.string(), (data) => {
-            const result = schema.safeParse(data);
-            if (!result.ok) {
-                expect(result.messages()).toEqual([{ path: [], message: 'Invalid UUID.' }]);
-            } else {
-                expect(result.ok).toBeFalsy();
-            }
-        }),
+        fc.property(
+            fc.string().filter((value) => !uuidRegex.test(value)),
+            (data) => {
+                const result = schema.safeParse(data);
+                if (!result.ok) {
+                    expect(result.messages()).toEqual([{ path: [], message: 'Invalid UUID.' }]);
+                } else {
+                    expect(result.ok).toBeFalsy();
+                }
+            },
+        ),
     );
 });
 
@@ -250,15 +272,17 @@ test('Invalid Nano ID', () => {
     const schema = p.string().nanoid();
 
     fc.assert(
-        // It's possible that this will generate a valid Nano, but *extremely* unlikely.
-        fc.property(fc.string(), (data) => {
-            const result = schema.safeParse(data);
-            if (!result.ok) {
-                expect(result.messages()).toEqual([{ path: [], message: 'Invalid Nano ID.' }]);
-            } else {
-                expect(result.ok).toBeFalsy();
-            }
-        }),
+        fc.property(
+            fc.string().filter((value) => !nanoidRegex.test(value)),
+            (data) => {
+                const result = schema.safeParse(data);
+                if (!result.ok) {
+                    expect(result.messages()).toEqual([{ path: [], message: 'Invalid Nano ID.' }]);
+                } else {
+                    expect(result.ok).toBeFalsy();
+                }
+            },
+        ),
     );
 });
 
