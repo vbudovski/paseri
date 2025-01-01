@@ -13,6 +13,7 @@
     "@std/expect": "jsr:@std/expect",
     "expect-type": "npm:expect-type",
     "fast-check": "npm:fast-check",
+    "recheck": "npm:recheck",
     "type-fest": "npm:type-fest@4.30.0",
     "zod": "npm:zod"
   },

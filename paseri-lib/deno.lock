@@ -8,6 +8,7 @@
     "npm:@biomejs/biome@*": "1.9.4",
     "npm:expect-type@*": "1.1.0",
     "npm:fast-check@*": "3.23.2",
+    "npm:recheck@*": "4.4.5",
     "npm:type-fest@4.30.0": "4.30.0",
     "npm:zod@*": "3.24.1"
   },
@@ -82,6 +83,27 @@
     "pure-rand@6.1.0": {
       "integrity": "sha512-bVWawvoZoBYpp6yIoQtQXHZjmz35RSVHnUOTefl8Vcjr8snTPY1wnpSPMWekcFwbxI6gtmT7rSYPFvz71ldiOA=="
     },
+    "recheck-jar@4.4.5": {
+      "integrity": "sha512-a2kMzcfr+ntT0bObNLY22EUNV6Z6WeZ+DybRmPOUXVWzGcqhRcrK74tpgrYt3FdzTlSh85pqoryAPmrNkwLc0g=="
+    },
+    "recheck-linux-x64@4.4.5": {
+      "integrity": "sha512-s8OVPCpiSGw+tLCxH3eei7Zp2AoL22kXqLmEtWXi0AnYNwfuTjZmeLn2aQjW8qhs8ZPSkxS7uRIRTeZqR5Fv/Q=="
+    },
+    "recheck-macos-x64@4.4.5": {
+      "integrity": "sha512-Ouup9JwwoKCDclt3Na8+/W2pVbt8FRpzjkDuyM32qTR2TOid1NI+P1GA6/VQAKEOjvaxgGjxhcP/WqAjN+EULA=="
+    },
+    "recheck-windows-x64@4.4.5": {
+      "integrity": "sha512-mkpzLHu9G9Ztjx8HssJh9k/Xm1d1d/4OoT7etHqFk+k1NGzISCRXBD22DqYF9w8+J4QEzTAoDf8icFt0IGhOEQ=="
+    },
+    "recheck@4.4.5": {
+      "integrity": "sha512-J80Ykhr+xxWtvWrfZfPpOR/iw2ijvb4WY8d9AVoN8oHsPP07JT1rCAalUSACMGxM1cvSocb6jppWFjVS6eTTrA==",
+      "dependencies": [
+        "recheck-jar",
+        "recheck-linux-x64",
+        "recheck-macos-x64",
+        "recheck-windows-x64"
+      ]
+    },
     "type-fest@4.30.0": {
       "integrity": "sha512-G6zXWS1dLj6eagy6sVhOMQiLtJdxQBHIA9Z6HFUNLOlr6MFOgzV8wvmidtPONfPtEUv0uZsy77XJNzTAfwPDaA=="
     },
@@ -96,6 +118,7 @@
       "npm:@biomejs/biome@*",
       "npm:expect-type@*",
       "npm:fast-check@*",
+      "npm:recheck@*",
       "npm:type-fest@4.30.0",
       "npm:zod@*"
     ]
