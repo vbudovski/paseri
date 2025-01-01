@@ -2,10 +2,15 @@ import { type LeafNode, type TreeNode, issueCodes } from '../issue.ts';
 import type { InternalParseResult } from '../result.ts';
 import { Schema } from './schema.ts';
 
+// These regular expressions should match Zod, wherever possible.
 const emailRegex = /^(?!\.)(?!.*\.\.)([A-Z0-9_'+\-.]*)[A-Z0-9_+-]@([A-Z0-9][A-Z0-9\-]*\.)+[A-Z]{2,}$/i;
 const emojiRegex = /^(?:(?=(\p{Extended_Pictographic}|\p{Emoji_Component}))\1)+$/u;
 const uuidRegex = /^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/i;
 const nanoidRegex = /^[a-z0-9_-]{21}$/i;
+// Does not support negative years, or years above 9999.
+const dateRegexString =
+    '((\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-((0[13578]|1[02])-(0[1-9]|[12]\\d|3[01])|(0[469]|11)-(0[1-9]|[12]\\d|30)|(02)-(0[1-9]|1\\d|2[0-8])))';
+const dateRegex = new RegExp(`^${dateRegexString}$`);
 
 type CheckFunction = (value: string) => TreeNode | undefined;
 
@@ -23,6 +28,7 @@ class StringSchema extends Schema<string> {
         DOES_NOT_INCLUDE: { type: 'leaf', code: issueCodes.DOES_NOT_INCLUDE },
         DOES_NOT_START_WITH: { type: 'leaf', code: issueCodes.DOES_NOT_START_WITH },
         DOES_NOT_END_WITH: { type: 'leaf', code: issueCodes.DOES_NOT_END_WITH },
+        INVALID_DATE_STRING: { type: 'leaf', code: issueCodes.INVALID_DATE_STRING },
     } as const satisfies Record<string, LeafNode>;
 
     protected _clone(): StringSchema {
@@ -161,6 +167,17 @@ class StringSchema extends Schema<string> {
 
         return cloned;
     }
+    date(): StringSchema {
+        const cloned = this._clone();
+        cloned._checks = this._checks || [];
+        cloned._checks.push((_value) => {
+            if (!dateRegex.test(_value)) {
+                return this.issues.INVALID_DATE_STRING;
+            }
+        });
+
+        return cloned;
+    }
 }
 
 const singleton = /* @__PURE__ */ new StringSchema();
@@ -170,4 +187,4 @@ const singleton = /* @__PURE__ */ new StringSchema();
  */
 const string = /* @__PURE__ */ (): StringSchema => singleton;
 
-export { string, emailRegex, emojiRegex, uuidRegex, nanoidRegex };
+export { string, emailRegex, emojiRegex, uuidRegex, nanoidRegex, dateRegex };

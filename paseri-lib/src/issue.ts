@@ -14,6 +14,7 @@ const issueCodes = {
     DOES_NOT_INCLUDE: 'does_not_include' as Tagged<'does_not_include', 'IssueCode'>,
     DOES_NOT_START_WITH: 'does_not_start_with' as Tagged<'does_not_start_with', 'IssueCode'>,
     DOES_NOT_END_WITH: 'does_not_end_with' as Tagged<'does_not_end_with', 'IssueCode'>,
+    INVALID_DATE_STRING: 'invalid_date_string' as Tagged<'invalid_date_string', 'IssueCode'>,
     // BigInt/Number.
     TOO_SMALL: 'too_small' as Tagged<'too_small', 'IssueCode'>,
     TOO_LARGE: 'too_large' as Tagged<'too_large', 'IssueCode'>,

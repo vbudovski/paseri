@@ -4,9 +4,20 @@ import fc from 'fast-check';
 import { checkSync } from 'recheck';
 import emoji from '../emoji.json' with { type: 'json' };
 import * as p from '../index.ts';
-import { emailRegex, emojiRegex, nanoidRegex, uuidRegex } from './string.ts';
+import { dateRegex, emailRegex, emojiRegex, nanoidRegex, uuidRegex } from './string.ts';
 
 const { test } = Deno;
+
+function formatDate(value: Date): string {
+    const year =
+        value.getFullYear() >= 0
+            ? String(value.getFullYear()).padStart(4, '0')
+            : `-${String(Math.abs(value.getFullYear())).padStart(4, '0')}`;
+    const month = String(value.getMonth() + 1).padStart(2, '0');
+    const date = String(value.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${date}`;
+}
 
 test('Valid type', () => {
     const schema = p.string();
@@ -431,6 +442,55 @@ test('Invalid endsWith', () => {
     );
 });
 
+test('Valid date', () => {
+    const schema = p.string().date();
+
+    fc.assert(
+        fc.property(
+            fc.date({ min: new Date(0, 0, 1), max: new Date(9999, 11, 31) }).map((value) => {
+                return formatDate(value);
+            }),
+            (data) => {
+                const result = schema.safeParse(data);
+                if (result.ok) {
+                    expectTypeOf(result.value).toEqualTypeOf<string>;
+                    expect(result.value).toBe(data);
+                } else {
+                    expect(result.ok).toBeTruthy();
+                }
+            },
+        ),
+    );
+});
+
+test('Invalid date', () => {
+    const schema = p.string().date();
+
+    fc.assert(
+        fc.property(
+            fc.string().filter((value) => !dateRegex.test(value)),
+            (data) => {
+                const result = schema.safeParse(data);
+                if (!result.ok) {
+                    expect(result.messages()).toEqual([{ path: [], message: 'Invalid date string.' }]);
+                } else {
+                    expect(result.ok).toBeFalsy();
+                }
+            },
+        ),
+    );
+});
+
+test('Date ReDoS', () => {
+    const diagnostics = checkSync(dateRegex.source, dateRegex.flags);
+    if (diagnostics.status === 'vulnerable') {
+        console.log(`Vulnerable pattern: ${diagnostics.attack.pattern}`);
+    } else if (diagnostics.status === 'unknown') {
+        console.log(`Error: ${diagnostics.error.kind}.`);
+    }
+    expect(diagnostics.status).toBe('safe');
+});
+
 test('Optional', () => {
     const schema = p.string().optional();
 
@@ -521,6 +581,12 @@ test('Immutable', async (t) => {
     await t.step('endsWith', () => {
         const original = p.string();
         const modified = original.endsWith('foo');
+        expect(modified).not.toEqual(original);
+    });
+
+    await t.step('date', () => {
+        const original = p.string();
+        const modified = original.date();
         expect(modified).not.toEqual(original);
     });
 });
