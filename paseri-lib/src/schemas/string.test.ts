@@ -316,6 +316,16 @@ test('Invalid Nano ID', () => {
     );
 });
 
+test('Nano ID ReDoS', () => {
+    const diagnostics = checkSync(nanoidRegex.source, nanoidRegex.flags);
+    if (diagnostics.status === 'vulnerable') {
+        console.log(`Vulnerable pattern: ${diagnostics.attack.pattern}`);
+    } else if (diagnostics.status === 'unknown') {
+        console.log(`Error: ${diagnostics.error.kind}.`);
+    }
+    expect(diagnostics.status).toBe('safe');
+});
+
 test('Optional', () => {
     const schema = p.string().optional();
 
