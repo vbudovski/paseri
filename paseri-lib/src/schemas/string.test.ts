@@ -4,7 +4,7 @@ import fc from 'fast-check';
 import { checkSync } from 'recheck';
 import emoji from '../emoji.json' with { type: 'json' };
 import * as p from '../index.ts';
-import { dateRegex, emailRegex, emojiRegex, nanoidRegex, uuidRegex } from './string.ts';
+import { dateRegex, emailRegex, emojiRegex, nanoidRegex, timeRegex, uuidRegex } from './string.ts';
 
 const { test } = Deno;
 
@@ -17,6 +17,19 @@ function formatDate(value: Date): string {
     const date = String(value.getDate()).padStart(2, '0');
 
     return `${year}-${month}-${date}`;
+}
+
+function formatTime(value: Date, precision?: number): string {
+    const hour = String(value.getHours()).padStart(2, '0');
+    const minute = String(value.getMinutes()).padStart(2, '0');
+    const second = String(value.getSeconds()).padStart(2, '0');
+    const fraction = value.getMilliseconds() / 1000;
+    const fractionString =
+        precision === undefined
+            ? String(fraction).slice(1)
+            : `.${fraction.toFixed(precision).slice(2).padEnd(precision, '0')}`;
+
+    return `${hour}:${minute}:${second}${fractionString}`;
 }
 
 test('Valid type', () => {
@@ -491,6 +504,61 @@ test('Date ReDoS', () => {
     expect(diagnostics.status).toBe('safe');
 });
 
+test('Valid time', () => {
+    fc.assert(
+        fc.property(
+            fc.date({ min: new Date(0, 0, 1), max: new Date(9999, 11, 31) }),
+            fc.option(fc.integer({ min: 0, max: 8 }), { nil: undefined }),
+            (date, precision) => {
+                const data = formatTime(date, precision);
+
+                const schema = p.string().time({ precision });
+                const result = schema.safeParse(data);
+                if (result.ok) {
+                    expectTypeOf(result.value).toEqualTypeOf<string>;
+                    expect(result.value).toBe(data);
+                } else {
+                    expect(result.ok).toBeTruthy();
+                }
+            },
+        ),
+    );
+});
+
+test('Invalid time', () => {
+    const schema = p.string().time();
+
+    fc.assert(
+        fc.property(
+            fc.string().filter((value) => !timeRegex().test(value)),
+            (data) => {
+                const result = schema.safeParse(data);
+                if (!result.ok) {
+                    expect(result.messages()).toEqual([{ path: [], message: 'Invalid time string.' }]);
+                } else {
+                    expect(result.ok).toBeFalsy();
+                }
+            },
+        ),
+    );
+});
+
+test('Time ReDoS', () => {
+    fc.assert(
+        fc.property(fc.option(fc.integer({ min: 0, max: 8 }), { nil: undefined }), (precision) => {
+            const regex = timeRegex(precision);
+            const diagnostics = checkSync(regex.source, regex.flags);
+            if (diagnostics.status === 'vulnerable') {
+                console.log(`Vulnerable pattern: ${diagnostics.attack.pattern}`);
+            } else if (diagnostics.status === 'unknown') {
+                console.log(`Error: ${diagnostics.error.kind}.`);
+            }
+            expect(diagnostics.status).toBe('safe');
+        }),
+        { ignoreEqualValues: true },
+    );
+});
+
 test('Optional', () => {
     const schema = p.string().optional();
 
@@ -587,6 +655,12 @@ test('Immutable', async (t) => {
     await t.step('date', () => {
         const original = p.string();
         const modified = original.date();
+        expect(modified).not.toEqual(original);
+    });
+
+    await t.step('time', () => {
+        const original = p.string();
+        const modified = original.time();
         expect(modified).not.toEqual(original);
     });
 });

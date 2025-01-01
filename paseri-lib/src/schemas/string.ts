@@ -11,6 +11,9 @@ const nanoidRegex = /^[a-z0-9_-]{21}$/i;
 const dateRegexString =
     '((\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-((0[13578]|1[02])-(0[1-9]|[12]\\d|3[01])|(0[469]|11)-(0[1-9]|[12]\\d|30)|(02)-(0[1-9]|1\\d|2[0-8])))';
 const dateRegex = new RegExp(`^${dateRegexString}$`);
+const timeRegexString = (precision?: number) =>
+    `([01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d${precision === undefined ? '(\\.\\d+)?' : `\\.\\d{${precision}}`}`;
+const timeRegex = (precision?: number) => new RegExp(`^${timeRegexString(precision)}$`);
 
 type CheckFunction = (value: string) => TreeNode | undefined;
 
@@ -29,6 +32,7 @@ class StringSchema extends Schema<string> {
         DOES_NOT_START_WITH: { type: 'leaf', code: issueCodes.DOES_NOT_START_WITH },
         DOES_NOT_END_WITH: { type: 'leaf', code: issueCodes.DOES_NOT_END_WITH },
         INVALID_DATE_STRING: { type: 'leaf', code: issueCodes.INVALID_DATE_STRING },
+        INVALID_TIME_STRING: { type: 'leaf', code: issueCodes.INVALID_TIME_STRING },
     } as const satisfies Record<string, LeafNode>;
 
     protected _clone(): StringSchema {
@@ -178,6 +182,17 @@ class StringSchema extends Schema<string> {
 
         return cloned;
     }
+    time(options: { precision?: number } = {}): StringSchema {
+        const cloned = this._clone();
+        cloned._checks = this._checks || [];
+        cloned._checks.push((_value) => {
+            if (!timeRegex(options.precision).test(_value)) {
+                return this.issues.INVALID_TIME_STRING;
+            }
+        });
+
+        return cloned;
+    }
 }
 
 const singleton = /* @__PURE__ */ new StringSchema();
@@ -187,4 +202,4 @@ const singleton = /* @__PURE__ */ new StringSchema();
  */
 const string = /* @__PURE__ */ (): StringSchema => singleton;
 
-export { string, emailRegex, emojiRegex, uuidRegex, nanoidRegex, dateRegex };
+export { string, emailRegex, emojiRegex, uuidRegex, nanoidRegex, dateRegex, timeRegex };

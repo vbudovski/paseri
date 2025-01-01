@@ -117,3 +117,19 @@ A valid [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) date string `YYYY-MM-
 ```typescript
 p.string().date();
 ```
+
+### `time`
+
+A valid [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) time string `hh:mm:ss[.s+]`.
+
+```typescript
+p.string().time();
+```
+
+You can require a fixed precision by setting the `precision` option.
+
+```typescript
+p.string().time({ precision: 3 });
+// 01:02:03.123 ✅
+// 01:02:03.1234 ❌
+```
