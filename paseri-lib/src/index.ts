@@ -3,7 +3,7 @@
  *
  * This module contains the core Paseri validator and schemas.
  *
- * @example
+ * @example Basic usage
  *
  * ```typescript
  * import * as p from '@vbudovski/paseri';
@@ -12,7 +12,7 @@
  *     hello: p.string(),
  * });
  *
- * const data = ={ hello: 'world' };
+ * const data = { hello: 'world' };
  * const result = schema.safeParse(data);
  * if (result.ok) {
  *     console.log(`Hello ${result.value.hello}!`);
