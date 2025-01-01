@@ -361,6 +361,41 @@ test('Invalid includes', () => {
     );
 });
 
+test('Valid startsWith', () => {
+    const schema = p.string().startsWith('foo');
+
+    fc.assert(
+        fc.property(fc.string(), (suffix) => {
+            const data = `foo${suffix}`;
+            const result = schema.safeParse(data);
+            if (result.ok) {
+                expectTypeOf(result.value).toEqualTypeOf<string>;
+                expect(result.value).toBe(data);
+            } else {
+                expect(result.ok).toBeTruthy();
+            }
+        }),
+    );
+});
+
+test('Invalid startsWith', () => {
+    const schema = p.string().startsWith('foo');
+
+    fc.assert(
+        fc.property(
+            fc.string().filter((value) => !value.startsWith('foo')),
+            (data) => {
+                const result = schema.safeParse(data);
+                if (!result.ok) {
+                    expect(result.messages()).toEqual([{ path: [], message: 'Does not start with search string.' }]);
+                } else {
+                    expect(result.ok).toBeFalsy();
+                }
+            },
+        ),
+    );
+});
+
 test('Optional', () => {
     const schema = p.string().optional();
 
@@ -439,6 +474,12 @@ test('Immutable', async (t) => {
     await t.step('includes', () => {
         const original = p.string();
         const modified = original.includes('foo');
+        expect(modified).not.toEqual(original);
+    });
+
+    await t.step('startsWith', () => {
+        const original = p.string();
+        const modified = original.startsWith('foo');
         expect(modified).not.toEqual(original);
     });
 });
