@@ -11,6 +11,7 @@ const issueCodes = {
     INVALID_EMOJI: 'invalid_emoji' as Tagged<'invalid_emoji', 'IssueCode'>,
     INVALID_UUID: 'invalid_uuid' as Tagged<'invalid_uuid', 'IssueCode'>,
     INVALID_NANOID: 'invalid_nanoid' as Tagged<'invalid_nanoid', 'IssueCode'>,
+    DOES_NOT_INCLUDE: 'does_not_include' as Tagged<'does_not_include', 'IssueCode'>,
     // BigInt/Number.
     TOO_SMALL: 'too_small' as Tagged<'too_small', 'IssueCode'>,
     TOO_LARGE: 'too_large' as Tagged<'too_large', 'IssueCode'>,

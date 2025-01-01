@@ -326,6 +326,41 @@ test('Nano ID ReDoS', () => {
     expect(diagnostics.status).toBe('safe');
 });
 
+test('Valid includes', () => {
+    const schema = p.string().includes('foo');
+
+    fc.assert(
+        fc.property(fc.string(), fc.string(), (prefix, suffix) => {
+            const data = `${prefix}foo${suffix}`;
+            const result = schema.safeParse(data);
+            if (result.ok) {
+                expectTypeOf(result.value).toEqualTypeOf<string>;
+                expect(result.value).toBe(data);
+            } else {
+                expect(result.ok).toBeTruthy();
+            }
+        }),
+    );
+});
+
+test('Invalid includes', () => {
+    const schema = p.string().includes('foo');
+
+    fc.assert(
+        fc.property(
+            fc.string().filter((value) => !value.includes('foo')),
+            (data) => {
+                const result = schema.safeParse(data);
+                if (!result.ok) {
+                    expect(result.messages()).toEqual([{ path: [], message: 'Does not include search string.' }]);
+                } else {
+                    expect(result.ok).toBeFalsy();
+                }
+            },
+        ),
+    );
+});
+
 test('Optional', () => {
     const schema = p.string().optional();
 
@@ -398,6 +433,12 @@ test('Immutable', async (t) => {
     await t.step('nanoid', () => {
         const original = p.string();
         const modified = original.nanoid();
+        expect(modified).not.toEqual(original);
+    });
+
+    await t.step('includes', () => {
+        const original = p.string();
+        const modified = original.includes('foo');
         expect(modified).not.toEqual(original);
     });
 });

@@ -11,6 +11,7 @@ const en_GB = {
     invalid_emoji: 'Invalid emoji.',
     invalid_uuid: 'Invalid UUID.',
     invalid_nanoid: 'Invalid Nano ID.',
+    does_not_include: 'Does not include search string.',
     too_small: 'Too small.',
     too_large: 'Too large.',
     invalid_integer: 'Number must be an integer.',

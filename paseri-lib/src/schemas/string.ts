@@ -20,6 +20,7 @@ class StringSchema extends Schema<string> {
         INVALID_EMOJI: { type: 'leaf', code: issueCodes.INVALID_EMOJI },
         INVALID_UUID: { type: 'leaf', code: issueCodes.INVALID_UUID },
         INVALID_NANOID: { type: 'leaf', code: issueCodes.INVALID_NANOID },
+        DOES_NOT_INCLUDE: { type: 'leaf', code: issueCodes.DOES_NOT_INCLUDE },
     } as const satisfies Record<string, LeafNode>;
 
     protected _clone(): StringSchema {
@@ -120,6 +121,17 @@ class StringSchema extends Schema<string> {
         cloned._checks.push((_value) => {
             if (!nanoidRegex.test(_value)) {
                 return this.issues.INVALID_NANOID;
+            }
+        });
+
+        return cloned;
+    }
+    includes(searchString: string): StringSchema {
+        const cloned = this._clone();
+        cloned._checks = this._checks || [];
+        cloned._checks.push((_value) => {
+            if (!_value.includes(searchString)) {
+                return this.issues.DOES_NOT_INCLUDE;
             }
         });
 
