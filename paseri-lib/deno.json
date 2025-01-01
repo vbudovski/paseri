@@ -13,12 +13,14 @@
     "@std/expect": "jsr:@std/expect",
     "expect-type": "npm:expect-type",
     "fast-check": "npm:fast-check",
+    "recheck": "npm:recheck",
     "type-fest": "npm:type-fest@4.30.0",
     "zod": "npm:zod"
   },
   "tasks": {
     "lint": "deno run --allow-env --allow-read --allow-run npm:@biomejs/biome lint src",
-    "format": "deno run --allow-env --allow-read --allow-run npm:@biomejs/biome format src"
+    "format": "deno run --allow-env --allow-read --allow-run npm:@biomejs/biome format src",
+    "generate_emoji": "deno run --allow-net --allow-write bin/generate_emoji.ts"
   },
   "lint": {
     "rules": {

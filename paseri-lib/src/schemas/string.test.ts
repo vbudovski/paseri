@@ -1,8 +1,10 @@
 import { expect } from '@std/expect';
 import { expectTypeOf } from 'expect-type';
 import fc from 'fast-check';
+import { checkSync } from 'recheck';
+import emoji from '../emoji.json' with { type: 'json' };
 import * as p from '../index.ts';
-import { nanoidRegex } from './string.ts';
+import { emailRegex, emojiRegex, nanoidRegex, uuidRegex } from './string.ts';
 
 const { test } = Deno;
 
@@ -172,31 +174,69 @@ test('Email', async (t) => {
     });
 });
 
-test('Emoji', async (t) => {
-    // TODO: Use fast-check once it has better support for the emoji regex.
-    const schema = p.string().emoji();
-
-    await t.step('Valid', () => {
-        const result = schema.safeParse('🥳');
-        if (result.ok) {
-            expectTypeOf(result.value).toEqualTypeOf<string>;
-            expect(result.value).toBe('🥳');
-        } else {
-            expect(result.ok).toBeTruthy();
-        }
-    });
-
-    await t.step('Invalid', () => {
-        const result = schema.safeParse('a');
-        if (!result.ok) {
-            expect(result.messages()).toEqual([{ path: [], message: 'Invalid emoji.' }]);
-        } else {
-            expect(result.ok).toBeFalsy();
-        }
-    });
+test('Email ReDoS', () => {
+    const diagnostics = checkSync(emailRegex.source, emailRegex.flags, { timeout: 20_000 });
+    if (diagnostics.status === 'vulnerable') {
+        console.log(`Vulnerable pattern: ${diagnostics.attack.pattern}`);
+    } else if (diagnostics.status === 'unknown') {
+        console.log(`Error: ${diagnostics.error.kind}.`);
+    }
+    expect(diagnostics.status).toBe('safe');
 });
 
-test('Valid uuid', () => {
+test('Valid emoji', () => {
+    const schema = p.string().emoji();
+
+    fc.assert(
+        fc.property(
+            fc.string({
+                minLength: 1,
+                unit: fc.mapToConstant(
+                    ...emoji.map((e) => ({ num: e.count, build: (v: number) => String.fromCodePoint(v + e.start) })),
+                ),
+            }),
+            (data) => {
+                const result = schema.safeParse(data);
+                if (result.ok) {
+                    expectTypeOf(result.value).toEqualTypeOf<string>;
+                    expect(result.value).toBe(data);
+                } else {
+                    expect(result.ok).toBeTruthy();
+                }
+            },
+        ),
+    );
+});
+
+test('Invalid emoji', () => {
+    const schema = p.string().emoji();
+
+    fc.assert(
+        fc.property(
+            fc.string().filter((value) => !emojiRegex.test(value)),
+            (data) => {
+                const result = schema.safeParse(data);
+                if (!result.ok) {
+                    expect(result.messages()).toEqual([{ path: [], message: 'Invalid emoji.' }]);
+                } else {
+                    expect(result.ok).toBeFalsy();
+                }
+            },
+        ),
+    );
+});
+
+test('Emoji ReDoS', () => {
+    const diagnostics = checkSync(emojiRegex.source, emojiRegex.flags);
+    if (diagnostics.status === 'vulnerable') {
+        console.log(`Vulnerable pattern: ${diagnostics.attack.pattern}`);
+    } else if (diagnostics.status === 'unknown') {
+        console.log(`Error: ${diagnostics.error.kind}.`);
+    }
+    expect(diagnostics.status).toBe('safe');
+});
+
+test('Valid UUID', () => {
     const schema = p.string().uuid();
 
     fc.assert(
@@ -212,20 +252,32 @@ test('Valid uuid', () => {
     );
 });
 
-test('Invalid uuid', () => {
+test('Invalid UUID', () => {
     const schema = p.string().uuid();
 
     fc.assert(
-        // It's possible that this will generate a valid UUID, but *extremely* unlikely.
-        fc.property(fc.string(), (data) => {
-            const result = schema.safeParse(data);
-            if (!result.ok) {
-                expect(result.messages()).toEqual([{ path: [], message: 'Invalid UUID.' }]);
-            } else {
-                expect(result.ok).toBeFalsy();
-            }
-        }),
+        fc.property(
+            fc.string().filter((value) => !uuidRegex.test(value)),
+            (data) => {
+                const result = schema.safeParse(data);
+                if (!result.ok) {
+                    expect(result.messages()).toEqual([{ path: [], message: 'Invalid UUID.' }]);
+                } else {
+                    expect(result.ok).toBeFalsy();
+                }
+            },
+        ),
     );
+});
+
+test('UUID ReDoS', () => {
+    const diagnostics = checkSync(uuidRegex.source, uuidRegex.flags);
+    if (diagnostics.status === 'vulnerable') {
+        console.log(`Vulnerable pattern: ${diagnostics.attack.pattern}`);
+    } else if (diagnostics.status === 'unknown') {
+        console.log(`Error: ${diagnostics.error.kind}.`);
+    }
+    expect(diagnostics.status).toBe('safe');
 });
 
 test('Valid Nano ID', () => {
@@ -250,16 +302,28 @@ test('Invalid Nano ID', () => {
     const schema = p.string().nanoid();
 
     fc.assert(
-        // It's possible that this will generate a valid Nano, but *extremely* unlikely.
-        fc.property(fc.string(), (data) => {
-            const result = schema.safeParse(data);
-            if (!result.ok) {
-                expect(result.messages()).toEqual([{ path: [], message: 'Invalid Nano ID.' }]);
-            } else {
-                expect(result.ok).toBeFalsy();
-            }
-        }),
+        fc.property(
+            fc.string().filter((value) => !nanoidRegex.test(value)),
+            (data) => {
+                const result = schema.safeParse(data);
+                if (!result.ok) {
+                    expect(result.messages()).toEqual([{ path: [], message: 'Invalid Nano ID.' }]);
+                } else {
+                    expect(result.ok).toBeFalsy();
+                }
+            },
+        ),
     );
+});
+
+test('Nano ID ReDoS', () => {
+    const diagnostics = checkSync(nanoidRegex.source, nanoidRegex.flags);
+    if (diagnostics.status === 'vulnerable') {
+        console.log(`Vulnerable pattern: ${diagnostics.attack.pattern}`);
+    } else if (diagnostics.status === 'unknown') {
+        console.log(`Error: ${diagnostics.error.kind}.`);
+    }
+    expect(diagnostics.status).toBe('safe');
 });
 
 test('Optional', () => {
