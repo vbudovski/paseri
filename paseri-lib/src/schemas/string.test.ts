@@ -236,7 +236,7 @@ test('Emoji ReDoS', () => {
     expect(diagnostics.status).toBe('safe');
 });
 
-test('Valid uuid', () => {
+test('Valid UUID', () => {
     const schema = p.string().uuid();
 
     fc.assert(
@@ -252,7 +252,7 @@ test('Valid uuid', () => {
     );
 });
 
-test('Invalid uuid', () => {
+test('Invalid UUID', () => {
     const schema = p.string().uuid();
 
     fc.assert(
@@ -268,6 +268,16 @@ test('Invalid uuid', () => {
             },
         ),
     );
+});
+
+test('UUID ReDoS', () => {
+    const diagnostics = checkSync(uuidRegex.source, uuidRegex.flags);
+    if (diagnostics.status === 'vulnerable') {
+        console.log(`Vulnerable pattern: ${diagnostics.attack.pattern}`);
+    } else if (diagnostics.status === 'unknown') {
+        console.log(`Error: ${diagnostics.error.kind}.`);
+    }
+    expect(diagnostics.status).toBe('safe');
 });
 
 test('Valid Nano ID', () => {
