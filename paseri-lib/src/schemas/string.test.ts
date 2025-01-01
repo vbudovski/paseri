@@ -396,6 +396,41 @@ test('Invalid startsWith', () => {
     );
 });
 
+test('Valid endsWith', () => {
+    const schema = p.string().endsWith('foo');
+
+    fc.assert(
+        fc.property(fc.string(), (prefix) => {
+            const data = `${prefix}foo`;
+            const result = schema.safeParse(data);
+            if (result.ok) {
+                expectTypeOf(result.value).toEqualTypeOf<string>;
+                expect(result.value).toBe(data);
+            } else {
+                expect(result.ok).toBeTruthy();
+            }
+        }),
+    );
+});
+
+test('Invalid endsWith', () => {
+    const schema = p.string().endsWith('foo');
+
+    fc.assert(
+        fc.property(
+            fc.string().filter((value) => !value.endsWith('foo')),
+            (data) => {
+                const result = schema.safeParse(data);
+                if (!result.ok) {
+                    expect(result.messages()).toEqual([{ path: [], message: 'Does not end with search string.' }]);
+                } else {
+                    expect(result.ok).toBeFalsy();
+                }
+            },
+        ),
+    );
+});
+
 test('Optional', () => {
     const schema = p.string().optional();
 
@@ -480,6 +515,12 @@ test('Immutable', async (t) => {
     await t.step('startsWith', () => {
         const original = p.string();
         const modified = original.startsWith('foo');
+        expect(modified).not.toEqual(original);
+    });
+
+    await t.step('endsWith', () => {
+        const original = p.string();
+        const modified = original.endsWith('foo');
         expect(modified).not.toEqual(original);
     });
 });

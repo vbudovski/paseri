@@ -22,6 +22,7 @@ class StringSchema extends Schema<string> {
         INVALID_NANOID: { type: 'leaf', code: issueCodes.INVALID_NANOID },
         DOES_NOT_INCLUDE: { type: 'leaf', code: issueCodes.DOES_NOT_INCLUDE },
         DOES_NOT_START_WITH: { type: 'leaf', code: issueCodes.DOES_NOT_START_WITH },
+        DOES_NOT_END_WITH: { type: 'leaf', code: issueCodes.DOES_NOT_END_WITH },
     } as const satisfies Record<string, LeafNode>;
 
     protected _clone(): StringSchema {
@@ -144,6 +145,17 @@ class StringSchema extends Schema<string> {
         cloned._checks.push((_value) => {
             if (!_value.startsWith(searchString)) {
                 return this.issues.DOES_NOT_START_WITH;
+            }
+        });
+
+        return cloned;
+    }
+    endsWith(searchString: string): StringSchema {
+        const cloned = this._clone();
+        cloned._checks = this._checks || [];
+        cloned._checks.push((_value) => {
+            if (!_value.endsWith(searchString)) {
+                return this.issues.DOES_NOT_END_WITH;
             }
         });
 

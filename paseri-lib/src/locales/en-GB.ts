@@ -13,6 +13,7 @@ const en_GB = {
     invalid_nanoid: 'Invalid Nano ID.',
     does_not_include: 'Does not include search string.',
     does_not_start_with: 'Does not start with search string.',
+    does_not_end_with: 'Does not end with search string.',
     too_small: 'Too small.',
     too_large: 'Too large.',
     invalid_integer: 'Number must be an integer.',
