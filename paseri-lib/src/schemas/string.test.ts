@@ -4,7 +4,7 @@ import fc from 'fast-check';
 import { checkSync } from 'recheck';
 import emoji from '../emoji.json' with { type: 'json' };
 import * as p from '../index.ts';
-import { emojiRegex, nanoidRegex, uuidRegex } from './string.ts';
+import { emailRegex, emojiRegex, nanoidRegex, uuidRegex } from './string.ts';
 
 const { test } = Deno;
 
@@ -172,6 +172,16 @@ test('Email', async (t) => {
             expect(result.ok).toBeFalsy();
         }
     });
+});
+
+test('Email ReDoS', () => {
+    const diagnostics = checkSync(emailRegex.source, emailRegex.flags, { timeout: 20_000 });
+    if (diagnostics.status === 'vulnerable') {
+        console.log(`Vulnerable pattern: ${diagnostics.attack.pattern}`);
+    } else if (diagnostics.status === 'unknown') {
+        console.log(`Error: ${diagnostics.error.kind}.`);
+    }
+    expect(diagnostics.status).toBe('safe');
 });
 
 test('Valid emoji', () => {
