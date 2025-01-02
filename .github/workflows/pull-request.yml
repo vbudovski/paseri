@@ -7,7 +7,11 @@ on:
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
 jobs:
+  lint:
+    uses: ./.github/workflows/lint.yml
+
   test:
+    needs: lint
     uses: ./.github/workflows/test.yml
     secrets:
       GIST_SECRET: ${{ secrets.GIST_SECRET }}
