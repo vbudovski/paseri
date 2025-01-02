@@ -1,5 +1,7 @@
 [![Release](https://github.com/vbudovski/paseri/actions/workflows/release.yml/badge.svg)](https://github.com/vbudovski/paseri/actions/workflows/release.yml)
 [![Coverage](https://gist.githubusercontent.com/vbudovski/80548a1b87f9f00fe1ae426ca6a2a517/raw/vbudovski_paseri_main-coverage.svg)](https://github.com/vbudovski/paseri/actions/workflows/release.yml)
+[![JSR](https://jsr.io/badges/@vbudovski/paseri)](https://jsr.io/@vbudovski/paseri)
+[![JSR Score](https://jsr.io/badges/@vbudovski/paseri/score)](https://jsr.io/@vbudovski/paseri)
 
 ---
 
