@@ -1,0 +1,10 @@
+{
+  "tasks": {
+    "init": "deno run --allow-env --allow-read --allow-write --allow-run npm:husky",
+    "lint-staged": "deno run --allow-env --allow-read --allow-write --allow-sys --allow-run npm:lint-staged",
+    "ci": "deno run --allow-env --allow-read --allow-run npm:@biomejs/biome ci",
+    "check": "deno run --allow-env --allow-read --allow-run npm:@biomejs/biome check"
+  },
+  "workspace": ["paseri-lib"],
+  "nodeModulesDir": "auto"
+}

@@ -42,6 +42,35 @@ The list may be expanded in time, but for now the objectives are the following:
 
 https://paseri.dev
 
+## Developer guide
+
+Paseri uses the [Deno](https://deno.com/) runtime rather than Node, and requires Deno 2.1.4 or later. Packages are
+published to the [JSR registry](https://jsr.io/) only, and publishing is performed automatically by CI.
+
+* `paseri-lib` contains the sources for the library.
+* `paseri-docs` contains the documentation, built with [Astro](https://astro.build/) and
+[Starlight](https://starlight.astro.build/).
+
+### Setup
+
+After cloning the repository, be sure you set up the git hooks using the following command:
+
+```shell
+deno task init
+```
+
+### Running tests
+
+```shell
+deno test
+```
+
+### Running benchmarks
+
+```shell
+deno bench
+```
+
 ---
 
 [^1]: An [excellent article](https://lexi-lambda.github.io/blog/2019/11/05/parse-don-t-validate/) on the concept of
