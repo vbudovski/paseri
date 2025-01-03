@@ -1,12 +1,33 @@
+import { regex } from 'regex';
 import { type LeafNode, type TreeNode, issueCodes } from '../issue.ts';
 import type { InternalParseResult } from '../result.ts';
 import { Schema } from './schema.ts';
 
-// These regular expressions should match Zod, wherever possible.
-const emailRegex = /^(?!\.)(?!.*\.\.)([A-Z0-9_'+\-.]*)[A-Z0-9_+-]@([A-Z0-9][A-Z0-9\-]*\.)+[A-Z]{2,}$/i;
-const emojiRegex = /^(?:(?=(\p{Extended_Pictographic}|\p{Emoji_Component}))\1)+$/u;
-const uuidRegex = /^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/i;
-const nanoidRegex = /^[a-z0-9_-]{21}$/i;
+// User part validation adapted from https://github.com/validatorjs/validator.js/blob/master/src/lib/isEmail.js.
+const emailRegex = regex('i')`
+    ^ \g<email> $
+
+    (?(DEFINE)
+        (?<email> \g<user-part> (\. \g<user-part>)*+ @ \g<domain>)
+        # Literal backtick leads to compatibility issues with u flag.
+        (?<user-part> [a-z\d!#$%&'*+\-\/=?^_\u0060\{\|\}~]++)
+        # The smallest allowable top-level domain is 2 characters (country codes).
+        (?<domain> ([a-z\d][a-z\d\-]*+\.)++ [a-z]{2,})
+    )
+`;
+// Atomic group here to prevent ReDoS.
+const emojiRegex = regex`^(\p{Extended_Pictographic} | \p{Emoji_Component})++$`;
+// Conversion of UUID regex from https://github.com/validatorjs/validator.js/blob/master/src/lib/isUUID.js.
+const uuidRegex = regex('i')`
+    ^ (\g<uuid> | \g<uuid-min> | \g<uuid-max>) $
+
+    (?(DEFINE)
+        (?<uuid> \p{AHex}{8}-\p{AHex}{4}-[1-8]\p{AHex}{3}-[89ab]\p{AHex}{3}-\p{AHex}{12})
+        (?<uuid-min> 00000000-0000-0000-0000-000000000000)
+        (?<uuid-max> ffffffff-ffff-ffff-ffff-ffffffffffff)
+    )
+`;
+const nanoidRegex = /^[a-z\d_-]{21}$/i;
 // Does not support negative years, or years above 9999.
 const dateRegexString =
     '((\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-((0[13578]|1[02])-(0[1-9]|[12]\\d|3[01])|(0[469]|11)-(0[1-9]|[12]\\d|30)|(02)-(0[1-9]|1\\d|2[0-8])))';
@@ -23,11 +44,37 @@ const datetimeRegex = (precision?: number, offset?: boolean, local?: boolean) =>
 
     return new RegExp(`^${dateRegexString}T${timeRegexString(precision)}${timezone.join('|')}$`);
 };
-const ipv4Regex =
-    /^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])$/;
-// Does not support dual format IPv4/IPv6 addresses "y:y:y:y:y:y:x.x.x.x".
-const ipv6Regex =
-    /^(([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]+|::(ffff(:0{1,4})?:)?((25[0-5]|(2[0-4]|1?[0-9])?[0-9])\.){3}(25[0-5]|(2[0-4]|1?[0-9])?[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1?[0-9])?[0-9])\.){3}(25[0-5]|(2[0-4]|1?[0-9])?[0-9]))$/;
+// Conversion of IP regex from https://github.com/validatorjs/validator.js/blob/master/src/lib/isIP.js.
+const ipv4Regex = regex`
+    ^ \g<ipv4> $
+
+    (?(DEFINE)
+        (?<ipv4> (\g<byte> \.){3} \g<byte>)
+        (?<byte> 25[0-5] | 2[0-4]\d | 1\d\d | [1-9]\d | \d)
+    )
+`;
+const ipv6Regex = regex('i')`
+    ^ \g<ipv6> $
+
+    (?(DEFINE)
+        (?<ipv6>
+            (
+                (\g<segment> :){7} (\g<segment> | :) |
+                (\g<segment> :){6} (\g<ipv4> | : \g<segment> | :) |
+                (\g<segment> :){5} (: \g<ipv4> | (: \g<segment>){1,2} | :) |
+                (\g<segment> :){4} ((: \g<segment>){0,1} : \g<ipv4> | (: \g<segment>){1,3} | :) |
+                (\g<segment> :){3} ((: \g<segment>){0,2} : \g<ipv4> | (: \g<segment>){1,4} | :) |
+                (\g<segment> :){2} ((: \g<segment>){0,3} : \g<ipv4> | (: \g<segment>){1,5} | :) |
+                (\g<segment> :){1} ((: \g<segment>){0,4} : \g<ipv4> | (: \g<segment>){1,6} | :) |
+                (: ((: \g<segment>){0,5} : \g<ipv4> | (: \g<segment>){1,7} | :))
+            )
+            (% [\da-z]+)?
+        )
+        (?<segment> \p{AHex}{1,4})
+        (?<ipv4> (\g<byte> \.){3} \g<byte>)
+        (?<byte> 25[0-5] | 2[0-4]\d | 1\d\d | [1-9]\d | \d)
+    )
+`;
 const ipv4CidrRegex =
     /^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\/(3[0-2]|[12]?[0-9])$/;
 const ipv6CidrRegex =
