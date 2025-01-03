@@ -23,6 +23,11 @@ const datetimeRegex = (precision?: number, offset?: boolean, local?: boolean) =>
 
     return new RegExp(`^${dateRegexString}T${timeRegexString(precision)}${timezone.join('|')}$`);
 };
+const ipv4Regex =
+    /^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])$/;
+// Does not support dual format IPv4/IPv6 addresses "y:y:y:y:y:y:x.x.x.x".
+const ipv6Regex =
+    /^(([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]+|::(ffff(:0{1,4})?:)?((25[0-5]|(2[0-4]|1?[0-9])?[0-9])\.){3}(25[0-5]|(2[0-4]|1?[0-9])?[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1?[0-9])?[0-9])\.){3}(25[0-5]|(2[0-4]|1?[0-9])?[0-9]))$/;
 
 type CheckFunction = (value: string) => TreeNode | undefined;
 
@@ -43,6 +48,7 @@ class StringSchema extends Schema<string> {
         INVALID_DATE_STRING: { type: 'leaf', code: issueCodes.INVALID_DATE_STRING },
         INVALID_TIME_STRING: { type: 'leaf', code: issueCodes.INVALID_TIME_STRING },
         INVALID_DATE_TIME_STRING: { type: 'leaf', code: issueCodes.INVALID_DATE_TIME_STRING },
+        INVALID_IP_ADDRESS: { type: 'leaf', code: issueCodes.INVALID_IP_ADDRESS },
     } as const satisfies Record<string, LeafNode>;
 
     protected _clone(): StringSchema {
@@ -214,6 +220,27 @@ class StringSchema extends Schema<string> {
 
         return cloned;
     }
+    ip(options: { version?: 4 | 6 } = {}): StringSchema {
+        const cloned = this._clone();
+        cloned._checks = this._checks || [];
+        cloned._checks.push((_value) => {
+            if (!options.version) {
+                if (!ipv4Regex.test(_value) && !ipv6Regex.test(_value)) {
+                    return this.issues.INVALID_IP_ADDRESS;
+                }
+            } else if (options.version === 4) {
+                if (!ipv4Regex.test(_value)) {
+                    return this.issues.INVALID_IP_ADDRESS;
+                }
+            } else {
+                if (!ipv6Regex.test(_value)) {
+                    return this.issues.INVALID_IP_ADDRESS;
+                }
+            }
+        });
+
+        return cloned;
+    }
 }
 
 const singleton = /* @__PURE__ */ new StringSchema();
@@ -223,4 +250,15 @@ const singleton = /* @__PURE__ */ new StringSchema();
  */
 const string = /* @__PURE__ */ (): StringSchema => singleton;
 
-export { string, emailRegex, emojiRegex, uuidRegex, nanoidRegex, dateRegex, timeRegex, datetimeRegex };
+export {
+    string,
+    emailRegex,
+    emojiRegex,
+    uuidRegex,
+    nanoidRegex,
+    dateRegex,
+    timeRegex,
+    datetimeRegex,
+    ipv4Regex,
+    ipv6Regex,
+};

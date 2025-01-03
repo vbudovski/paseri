@@ -167,3 +167,21 @@ p.string().datetime({ local: true });
 // 2020-01-02T01:02:03.123Z ✅
 // 2020-01-02T01:02:03.123 ✅
 ```
+
+### `ip`
+
+A valid [IPv4](https://en.wikipedia.org/wiki/IPv4) or [IPv6](https://en.wikipedia.org/wiki/IPv6) address.
+
+```typescript
+p.string().ip();
+// 127.0.0.1 ✅
+// ::1 ✅
+```
+
+The protocol version can be restricted.
+
+```typescript
+p.string().ip({ version: 4 });
+// 127.0.0.1 ✅
+// ::1 ❌
+```

@@ -4,7 +4,17 @@ import fc from 'fast-check';
 import { checkSync } from 'recheck';
 import emoji from '../emoji.json' with { type: 'json' };
 import * as p from '../index.ts';
-import { dateRegex, datetimeRegex, emailRegex, emojiRegex, nanoidRegex, timeRegex, uuidRegex } from './string.ts';
+import {
+    dateRegex,
+    datetimeRegex,
+    emailRegex,
+    emojiRegex,
+    ipv4Regex,
+    ipv6Regex,
+    nanoidRegex,
+    timeRegex,
+    uuidRegex,
+} from './string.ts';
 
 const { test } = Deno;
 
@@ -631,6 +641,71 @@ test('Datetime ReDoS', () => {
     );
 });
 
+test('Valid ip', () => {
+    const schema = p.string().ip();
+
+    fc.assert(
+        fc.property(
+            fc.oneof(
+                fc.ipV4(),
+                // Exclude dual format addresses.
+                fc
+                    .ipV6()
+                    .filter((value) => !value.includes('.')),
+            ),
+            (data) => {
+                const result = schema.safeParse(data);
+                if (result.ok) {
+                    expectTypeOf(result.value).toEqualTypeOf<string>;
+                    expect(result.value).toBe(data);
+                } else {
+                    expect(result.ok).toBeTruthy();
+                }
+            },
+        ),
+    );
+});
+
+test('Invalid ip', () => {
+    const schema = p.string().ip();
+
+    fc.assert(
+        fc.property(
+            fc.string().filter((value) => !ipv4Regex.test(value) && !ipv6Regex.test(value)),
+            (data) => {
+                const result = schema.safeParse(data);
+                if (!result.ok) {
+                    expect(result.messages()).toEqual([{ path: [], message: 'Invalid IP address.' }]);
+                } else {
+                    expect(result.ok).toBeFalsy();
+                }
+            },
+        ),
+    );
+});
+
+test('ip ReDoS', async (t) => {
+    await t.step('IPv4', () => {
+        const diagnostics = checkSync(ipv4Regex.source, ipv4Regex.flags);
+        if (diagnostics.status === 'vulnerable') {
+            console.log(`Vulnerable pattern: ${diagnostics.attack.pattern}`);
+        } else if (diagnostics.status === 'unknown') {
+            console.log(`Error: ${diagnostics.error.kind}.`);
+        }
+        expect(diagnostics.status).toBe('safe');
+    });
+
+    await t.step('IPv6', () => {
+        const diagnostics = checkSync(ipv6Regex.source, ipv6Regex.flags);
+        if (diagnostics.status === 'vulnerable') {
+            console.log(`Vulnerable pattern: ${diagnostics.attack.pattern}`);
+        } else if (diagnostics.status === 'unknown') {
+            console.log(`Error: ${diagnostics.error.kind}.`);
+        }
+        expect(diagnostics.status).toBe('safe');
+    });
+});
+
 test('Optional', () => {
     const schema = p.string().optional();
 
@@ -739,6 +814,12 @@ test('Immutable', async (t) => {
     await t.step('datetime', () => {
         const original = p.string();
         const modified = original.datetime();
+        expect(modified).not.toEqual(original);
+    });
+
+    await t.step('ip', () => {
+        const original = p.string();
+        const modified = original.ip();
         expect(modified).not.toEqual(original);
     });
 });
