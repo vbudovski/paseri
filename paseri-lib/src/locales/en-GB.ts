@@ -16,6 +16,7 @@ const en_GB = {
     does_not_end_with: 'Does not end with search string.',
     invalid_date_string: 'Invalid date string.',
     invalid_time_string: 'Invalid time string.',
+    invalid_date_time_string: 'Invalid datetime string.',
     too_small: 'Too small.',
     too_large: 'Too large.',
     invalid_integer: 'Number must be an integer.',

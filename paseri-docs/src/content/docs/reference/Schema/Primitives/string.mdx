@@ -133,3 +133,37 @@ p.string().time({ precision: 3 });
 // 01:02:03.123 ✅
 // 01:02:03.1234 ❌
 ```
+
+### `datetime`
+
+A valid [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) UTC datetime string `YYYY-MM-DDThh:mm:ss[.s+]Z`.
+
+```typescript
+p.string().datetime();
+```
+
+You can require a fixed precision by setting the `precision` option.
+
+```typescript
+p.string().datetime({ precision: 3 });
+// 2020-01-02T01:02:03.123Z ✅
+// 2020-01-02T01:02:03.1234Z ❌
+```
+
+Non-UTC offsets are accepted by setting the `offset` option.
+
+```typescript
+p.string().datetime({ offset: true });
+// 2020-01-02T01:02:03.123Z ✅
+// 2020-01-02T01:02:03.123+02:30 ✅
+// 2020-01-02T01:02:03.123-0430 ✅
+// 2020-01-02T01:02:03.123 ❌
+```
+
+Offset-less (naïve) values are accepted by setting the `local` option.
+
+```typescript
+p.string().datetime({ local: true });
+// 2020-01-02T01:02:03.123Z ✅
+// 2020-01-02T01:02:03.123 ✅
+```

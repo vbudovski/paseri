@@ -16,6 +16,7 @@ const issueCodes = {
     DOES_NOT_END_WITH: 'does_not_end_with' as Tagged<'does_not_end_with', 'IssueCode'>,
     INVALID_DATE_STRING: 'invalid_date_string' as Tagged<'invalid_date_string', 'IssueCode'>,
     INVALID_TIME_STRING: 'invalid_time_string' as Tagged<'invalid_time_string', 'IssueCode'>,
+    INVALID_DATE_TIME_STRING: 'invalid_date_time_string' as Tagged<'invalid_date_time_string', 'IssueCode'>,
     // BigInt/Number.
     TOO_SMALL: 'too_small' as Tagged<'too_small', 'IssueCode'>,
     TOO_LARGE: 'too_large' as Tagged<'too_large', 'IssueCode'>,

@@ -14,6 +14,15 @@ const dateRegex = new RegExp(`^${dateRegexString}$`);
 const timeRegexString = (precision?: number) =>
     `([01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d${precision === undefined ? '(\\.\\d+)?' : `\\.\\d{${precision}}`}`;
 const timeRegex = (precision?: number) => new RegExp(`^${timeRegexString(precision)}$`);
+const datetimeRegex = (precision?: number, offset?: boolean, local?: boolean) => {
+    const timezone: string[] = [];
+    timezone.push(local ? 'Z?' : 'Z');
+    if (offset) {
+        timezone.push('([+-][0-5]\\d:[0-5]\\d)');
+    }
+
+    return new RegExp(`^${dateRegexString}T${timeRegexString(precision)}${timezone.join('|')}$`);
+};
 
 type CheckFunction = (value: string) => TreeNode | undefined;
 
@@ -33,6 +42,7 @@ class StringSchema extends Schema<string> {
         DOES_NOT_END_WITH: { type: 'leaf', code: issueCodes.DOES_NOT_END_WITH },
         INVALID_DATE_STRING: { type: 'leaf', code: issueCodes.INVALID_DATE_STRING },
         INVALID_TIME_STRING: { type: 'leaf', code: issueCodes.INVALID_TIME_STRING },
+        INVALID_DATE_TIME_STRING: { type: 'leaf', code: issueCodes.INVALID_DATE_TIME_STRING },
     } as const satisfies Record<string, LeafNode>;
 
     protected _clone(): StringSchema {
@@ -193,6 +203,17 @@ class StringSchema extends Schema<string> {
 
         return cloned;
     }
+    datetime(options: { precision?: number; offset?: boolean; local?: boolean } = {}): StringSchema {
+        const cloned = this._clone();
+        cloned._checks = this._checks || [];
+        cloned._checks.push((_value) => {
+            if (!datetimeRegex(options.precision, options.offset, options.local).test(_value)) {
+                return this.issues.INVALID_DATE_TIME_STRING;
+            }
+        });
+
+        return cloned;
+    }
 }
 
 const singleton = /* @__PURE__ */ new StringSchema();
@@ -202,4 +223,4 @@ const singleton = /* @__PURE__ */ new StringSchema();
  */
 const string = /* @__PURE__ */ (): StringSchema => singleton;
 
-export { string, emailRegex, emojiRegex, uuidRegex, nanoidRegex, dateRegex, timeRegex };
+export { string, emailRegex, emojiRegex, uuidRegex, nanoidRegex, dateRegex, timeRegex, datetimeRegex };
