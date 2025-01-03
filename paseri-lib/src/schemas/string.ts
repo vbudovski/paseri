@@ -1,37 +1,125 @@
+import { pattern, regex } from 'regex';
 import { type LeafNode, type TreeNode, issueCodes } from '../issue.ts';
 import type { InternalParseResult } from '../result.ts';
 import { Schema } from './schema.ts';
 
-// These regular expressions should match Zod, wherever possible.
-const emailRegex = /^(?!\.)(?!.*\.\.)([A-Z0-9_'+\-.]*)[A-Z0-9_+-]@([A-Z0-9][A-Z0-9\-]*\.)+[A-Z]{2,}$/i;
-const emojiRegex = /^(?:(?=(\p{Extended_Pictographic}|\p{Emoji_Component}))\1)+$/u;
-const uuidRegex = /^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/i;
-const nanoidRegex = /^[a-z0-9_-]{21}$/i;
-// Does not support negative years, or years above 9999.
-const dateRegexString =
-    '((\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-((0[13578]|1[02])-(0[1-9]|[12]\\d|3[01])|(0[469]|11)-(0[1-9]|[12]\\d|30)|(02)-(0[1-9]|1\\d|2[0-8])))';
-const dateRegex = new RegExp(`^${dateRegexString}$`);
-const timeRegexString = (precision?: number) =>
-    `([01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d${precision === undefined ? '(\\.\\d+)?' : `\\.\\d{${precision}}`}`;
-const timeRegex = (precision?: number) => new RegExp(`^${timeRegexString(precision)}$`);
-const datetimeRegex = (precision?: number, offset?: boolean, local?: boolean) => {
-    const timezone: string[] = [];
-    timezone.push(local ? 'Z?' : 'Z');
-    if (offset) {
-        timezone.push('([+-][0-5]\\d:[0-5]\\d)');
-    }
+// User part validation adapted from https://github.com/validatorjs/validator.js/blob/master/src/lib/isEmail.js.
+const emailRegex = regex('i')`
+    ^ \g<email> $
 
-    return new RegExp(`^${dateRegexString}T${timeRegexString(precision)}${timezone.join('|')}$`);
-};
-const ipv4Regex =
-    /^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])$/;
-// Does not support dual format IPv4/IPv6 addresses "y:y:y:y:y:y:x.x.x.x".
-const ipv6Regex =
-    /^(([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]+|::(ffff(:0{1,4})?:)?((25[0-5]|(2[0-4]|1?[0-9])?[0-9])\.){3}(25[0-5]|(2[0-4]|1?[0-9])?[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1?[0-9])?[0-9])\.){3}(25[0-5]|(2[0-4]|1?[0-9])?[0-9]))$/;
-const ipv4CidrRegex =
-    /^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\/(3[0-2]|[12]?[0-9])$/;
-const ipv6CidrRegex =
-    /^(([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]+|::(ffff(:0{1,4})?:)?((25[0-5]|(2[0-4]|1?[0-9])?[0-9])\.){3}(25[0-5]|(2[0-4]|1?[0-9])?[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1?[0-9])?[0-9])\.){3}(25[0-5]|(2[0-4]|1?[0-9])?[0-9]))\/(12[0-8]|1[01][0-9]|[1-9]?[0-9])$/;
+    (?(DEFINE)
+        (?<email> \g<user-part> (\. \g<user-part>)* @ \g<domain>)
+        # Literal backtick leads to compatibility issues with u flag.
+        (?<user-part> [a-z\d!#$%&'*\-\/=?^_\u0060\{\|\}~+]+)
+        # The smallest allowable top-level domain is 2 characters (country codes).
+        (?<domain> ([a-z\d][a-z\d\-]*\.)+ [a-z]{2,})
+    )
+`;
+// Atomic group here to prevent ReDoS.
+const emojiRegex = regex`^(\p{Extended_Pictographic} | \p{Emoji_Component})++$`;
+// Conversion of UUID regex from https://github.com/validatorjs/validator.js/blob/master/src/lib/isUUID.js.
+const uuidRegex = regex('i')`
+    ^ (\g<uuid> | \g<uuid-min> | \g<uuid-max>) $
+
+    (?(DEFINE)
+        (?<uuid> \p{AHex}{8}-\p{AHex}{4}-[1-8]\p{AHex}{3}-[89ab]\p{AHex}{3}-\p{AHex}{12})
+        (?<uuid-min> 00000000-0000-0000-0000-000000000000)
+        (?<uuid-max> ffffffff-ffff-ffff-ffff-ffffffffffff)
+    )
+`;
+const nanoidRegex = /^[a-z\d_-]{21}$/i;
+const dateRegex = regex`
+    ^ \g<date> $
+
+    (?(DEFINE)
+        (?<date> (\g<leap-date> | \d{4}-(\g<with-31> | \g<with-30> | \g<february>)))
+        (?<leap-date> (\d\d[2468][048] | \d\d[13579][26] | \d\d0[48] | [02468][048]00 | [13579][26]00)-02-29)
+        (?<with-31> (0[13578] | 1[02])-(0[1-9] | [12]\d | 3[01]))
+        (?<with-30> (0[469] | 11)-(0[1-9] | [12]\d|30))
+        (?<february> 02-(0[1-9] | 1\d | 2[0-8]))
+    )
+`;
+const timeRegex = (precision?: number) => regex`
+    ^ \g<time> $
+
+    (?(DEFINE)
+        (?<time> \g<hours> : \g<minutes> : \g<seconds> \g<fractional-seconds>)
+        (?<hours> ([01]\d | 2[0-3]))
+        (?<minutes> [0-5]\d)
+        (?<seconds> [0-5]\d)
+        (?<fractional-seconds> ${precision === undefined ? pattern`(\.\d+)?` : pattern`\.\d{${String(precision)}}`})
+    )
+`;
+const datetimeRegex = (precision?: number, offset?: boolean, local?: boolean) => regex`
+    ^ \g<datetime> $
+
+    (?(DEFINE)
+        (?<datetime> \g<date> T \g<time> \g<timezone>)
+        (?<date> (\g<leap-date> | \d{4}-(\g<with-31> | \g<with-30> | \g<february>)))
+        (?<leap-date> (\d\d[2468][048] | \d\d[13579][26] | \d\d0[48] | [02468][048]00 | [13579][26]00)-02-29)
+        (?<with-31> (0[13578] | 1[02])-(0[1-9] | [12]\d | 3[01]))
+        (?<with-30> (0[469] | 11)-(0[1-9] | [12]\d|30))
+        (?<february> 02-(0[1-9] | 1\d | 2[0-8]))
+        (?<time> \g<hours> : \g<minutes> : \g<seconds> \g<fractional-seconds>)
+        (?<hours> ([01]\d | 2[0-3]))
+        (?<minutes> [0-5]\d)
+        (?<seconds> [0-5]\d)
+        (?<fractional-seconds> ${precision === undefined ? pattern`(\.\d+)?` : pattern`\.\d{${String(precision)}}`})
+        (?<timezone> ${offset && local ? pattern`(\g<offset> | Z?)` : offset ? pattern`(\g<offset> | Z)` : local ? pattern`Z?` : pattern`Z`})
+        (?<offset> [+\-][0-5]\d:[0-5]\d)
+    )
+`;
+// Adapted IP regex from https://github.com/validatorjs/validator.js/blob/master/src/lib/isIP.js.
+const ipRegex = (version?: 4 | 6) => regex('i')`
+    ^ \g<ip> $
+
+    (?(DEFINE)
+        (?<ip> ${version === undefined ? pattern`(\g<ipv4> | \g<ipv6>)` : version === 4 ? pattern`\g<ipv4>` : pattern`\g<ipv6>`})
+        (?<ipv6>
+            (
+                (\g<segment> :){7} (\g<segment> | :) |
+                (\g<segment> :){6} (\g<ipv4> | : \g<segment> | :) |
+                (\g<segment> :){5} (: \g<ipv4> | (: \g<segment>){1,2} | :) |
+                (\g<segment> :){4} ((: \g<segment>){0,1} : \g<ipv4> | (: \g<segment>){1,3} | :) |
+                (\g<segment> :){3} ((: \g<segment>){0,2} : \g<ipv4> | (: \g<segment>){1,4} | :) |
+                (\g<segment> :){2} ((: \g<segment>){0,3} : \g<ipv4> | (: \g<segment>){1,5} | :) |
+                (\g<segment> :){1} ((: \g<segment>){0,4} : \g<ipv4> | (: \g<segment>){1,6} | :) |
+                (: ((: \g<segment>){0,5} : \g<ipv4> | (: \g<segment>){1,7} | :))
+            )
+            (% [\da-z]+)?
+        )
+        (?<segment> \p{AHex}{1,4})
+        (?<ipv4> (\g<byte> \.){3} \g<byte>)
+        (?<byte> 25[0-5] | 2[0-4]\d | 1\d\d | [1-9]\d | \d)
+    )
+`;
+const ipCidrRegex = (version?: 4 | 6) => regex('i')`
+    ^ \g<ip-range> $
+
+    (?(DEFINE)
+        (?<ip-range> ${version === undefined ? pattern`(\g<ipv4-range> | \g<ipv6-range>)` : version === 4 ? pattern`\g<ipv4-range>` : pattern`\g<ipv6-range>`})
+        (?<ipv6-range> \g<ipv6> / \g<ipv6-bits>)
+        (?<ipv6>
+            (
+                (\g<segment> :){7} (\g<segment> | :) |
+                (\g<segment> :){6} (\g<ipv4> | : \g<segment> | :) |
+                (\g<segment> :){5} (: \g<ipv4> | (: \g<segment>){1,2} | :) |
+                (\g<segment> :){4} ((: \g<segment>){0,1} : \g<ipv4> | (: \g<segment>){1,3} | :) |
+                (\g<segment> :){3} ((: \g<segment>){0,2} : \g<ipv4> | (: \g<segment>){1,4} | :) |
+                (\g<segment> :){2} ((: \g<segment>){0,3} : \g<ipv4> | (: \g<segment>){1,5} | :) |
+                (\g<segment> :){1} ((: \g<segment>){0,4} : \g<ipv4> | (: \g<segment>){1,6} | :) |
+                (: ((: \g<segment>){0,5} : \g<ipv4> | (: \g<segment>){1,7} | :))
+            )
+            (% [\da-z]+)?
+        )
+        (?<ipv6-bits> (12[0-8] | 1[01]\d | \d{1,2}))
+        (?<segment> \p{AHex}{1,4})
+        (?<ipv4-range> \g<ipv4> / \g<ipv4-bits>)
+        (?<ipv4> (\g<byte> \.){3} \g<byte>)
+        (?<ipv4-bits> (3[0-2] | 2\d | 1\d | \d))
+        (?<byte> 25[0-5] | 2[0-4]\d | 1\d\d | [1-9]\d | \d)
+    )
+`;
 
 type CheckFunction = (value: string) => TreeNode | undefined;
 
@@ -204,10 +292,12 @@ class StringSchema extends Schema<string> {
         return cloned;
     }
     time(options: { precision?: number } = {}): StringSchema {
+        const regex = timeRegex(options.precision);
+
         const cloned = this._clone();
         cloned._checks = this._checks || [];
         cloned._checks.push((_value) => {
-            if (!timeRegex(options.precision).test(_value)) {
+            if (!regex.test(_value)) {
                 return this.issues.INVALID_TIME_STRING;
             }
         });
@@ -215,10 +305,12 @@ class StringSchema extends Schema<string> {
         return cloned;
     }
     datetime(options: { precision?: number; offset?: boolean; local?: boolean } = {}): StringSchema {
+        const regex = datetimeRegex(options.precision, options.offset, options.local);
+
         const cloned = this._clone();
         cloned._checks = this._checks || [];
         cloned._checks.push((_value) => {
-            if (!datetimeRegex(options.precision, options.offset, options.local).test(_value)) {
+            if (!regex.test(_value)) {
                 return this.issues.INVALID_DATE_TIME_STRING;
             }
         });
@@ -226,42 +318,26 @@ class StringSchema extends Schema<string> {
         return cloned;
     }
     ip(options: { version?: 4 | 6 } = {}): StringSchema {
+        const regex = ipRegex(options.version);
+
         const cloned = this._clone();
         cloned._checks = this._checks || [];
         cloned._checks.push((_value) => {
-            if (!options.version) {
-                if (!ipv4Regex.test(_value) && !ipv6Regex.test(_value)) {
-                    return this.issues.INVALID_IP_ADDRESS;
-                }
-            } else if (options.version === 4) {
-                if (!ipv4Regex.test(_value)) {
-                    return this.issues.INVALID_IP_ADDRESS;
-                }
-            } else {
-                if (!ipv6Regex.test(_value)) {
-                    return this.issues.INVALID_IP_ADDRESS;
-                }
+            if (!regex.test(_value)) {
+                return this.issues.INVALID_IP_ADDRESS;
             }
         });
 
         return cloned;
     }
     cidr(options: { version?: 4 | 6 } = {}): StringSchema {
+        const regex = ipCidrRegex(options.version);
+
         const cloned = this._clone();
         cloned._checks = this._checks || [];
         cloned._checks.push((_value) => {
-            if (!options.version) {
-                if (!ipv4CidrRegex.test(_value) && !ipv6CidrRegex.test(_value)) {
-                    return this.issues.INVALID_IP_ADDRESS_RANGE;
-                }
-            } else if (options.version === 4) {
-                if (!ipv4CidrRegex.test(_value)) {
-                    return this.issues.INVALID_IP_ADDRESS_RANGE;
-                }
-            } else {
-                if (!ipv6CidrRegex.test(_value)) {
-                    return this.issues.INVALID_IP_ADDRESS_RANGE;
-                }
+            if (!regex.test(_value)) {
+                return this.issues.INVALID_IP_ADDRESS_RANGE;
             }
         });
 
@@ -285,8 +361,6 @@ export {
     dateRegex,
     timeRegex,
     datetimeRegex,
-    ipv4Regex,
-    ipv6Regex,
-    ipv4CidrRegex,
-    ipv6CidrRegex,
+    ipRegex,
+    ipCidrRegex,
 };
