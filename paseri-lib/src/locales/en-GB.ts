@@ -18,6 +18,7 @@ const en_GB = {
     invalid_time_string: 'Invalid time string.',
     invalid_date_time_string: 'Invalid datetime string.',
     invalid_ip_address: 'Invalid IP address.',
+    invalid_ip_address_range: 'Invalid IP address range.',
     too_small: 'Too small.',
     too_large: 'Too large.',
     invalid_integer: 'Number must be an integer.',

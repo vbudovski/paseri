@@ -9,7 +9,9 @@ import {
     datetimeRegex,
     emailRegex,
     emojiRegex,
+    ipv4CidrRegex,
     ipv4Regex,
+    ipv6CidrRegex,
     ipv6Regex,
     nanoidRegex,
     timeRegex,
@@ -706,6 +708,76 @@ test('ip ReDoS', async (t) => {
     });
 });
 
+test('Valid cidr', () => {
+    const schema = p.string().cidr();
+
+    fc.assert(
+        fc.property(
+            fc.oneof(
+                fc.tuple(fc.ipV4(), fc.integer({ min: 1, max: 32 })).map(([ip, bits]) => `${ip}/${bits}`),
+                fc
+                    .tuple(
+                        // Exclude dual format addresses.
+                        fc
+                            .ipV6()
+                            .filter((value) => !value.includes('.')),
+                        fc.integer({ min: 1, max: 128 }),
+                    )
+                    .map(([ip, bits]) => `${ip}/${bits}`),
+            ),
+            (data) => {
+                const result = schema.safeParse(data);
+                if (result.ok) {
+                    expectTypeOf(result.value).toEqualTypeOf<string>;
+                    expect(result.value).toBe(data);
+                } else {
+                    expect(result.ok).toBeTruthy();
+                }
+            },
+        ),
+    );
+});
+
+test('Invalid cidr', () => {
+    const schema = p.string().cidr();
+
+    fc.assert(
+        fc.property(
+            fc.string().filter((value) => !ipv4CidrRegex.test(value) && !ipv6CidrRegex.test(value)),
+            (data) => {
+                const result = schema.safeParse(data);
+                if (!result.ok) {
+                    expect(result.messages()).toEqual([{ path: [], message: 'Invalid IP address range.' }]);
+                } else {
+                    expect(result.ok).toBeFalsy();
+                }
+            },
+        ),
+    );
+});
+
+test('cidr ReDoS', async (t) => {
+    await t.step('IPv4', () => {
+        const diagnostics = checkSync(ipv4CidrRegex.source, ipv4CidrRegex.flags);
+        if (diagnostics.status === 'vulnerable') {
+            console.log(`Vulnerable pattern: ${diagnostics.attack.pattern}`);
+        } else if (diagnostics.status === 'unknown') {
+            console.log(`Error: ${diagnostics.error.kind}.`);
+        }
+        expect(diagnostics.status).toBe('safe');
+    });
+
+    await t.step('IPv6', () => {
+        const diagnostics = checkSync(ipv6CidrRegex.source, ipv6CidrRegex.flags);
+        if (diagnostics.status === 'vulnerable') {
+            console.log(`Vulnerable pattern: ${diagnostics.attack.pattern}`);
+        } else if (diagnostics.status === 'unknown') {
+            console.log(`Error: ${diagnostics.error.kind}.`);
+        }
+        expect(diagnostics.status).toBe('safe');
+    });
+});
+
 test('Optional', () => {
     const schema = p.string().optional();
 
@@ -820,6 +892,12 @@ test('Immutable', async (t) => {
     await t.step('ip', () => {
         const original = p.string();
         const modified = original.ip();
+        expect(modified).not.toEqual(original);
+    });
+
+    await t.step('cidr', () => {
+        const original = p.string();
+        const modified = original.cidr();
         expect(modified).not.toEqual(original);
     });
 });

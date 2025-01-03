@@ -185,3 +185,21 @@ p.string().ip({ version: 4 });
 // 127.0.0.1 ✅
 // ::1 ❌
 ```
+
+### `cidr`
+
+A valid IP address range in [CIDR](https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing) notation.
+
+```typescript
+p.string().cidr();
+// 127.0.0.0/8 ✅
+// ::1/128 ✅
+```
+
+The protocol version can be restricted.
+
+```typescript
+p.string().cidr({ version: 4 });
+// 127.0.0.0/8 ✅
+// ::1/128 ❌
+```

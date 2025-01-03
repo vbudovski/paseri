@@ -28,6 +28,10 @@ const ipv4Regex =
 // Does not support dual format IPv4/IPv6 addresses "y:y:y:y:y:y:x.x.x.x".
 const ipv6Regex =
     /^(([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]+|::(ffff(:0{1,4})?:)?((25[0-5]|(2[0-4]|1?[0-9])?[0-9])\.){3}(25[0-5]|(2[0-4]|1?[0-9])?[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1?[0-9])?[0-9])\.){3}(25[0-5]|(2[0-4]|1?[0-9])?[0-9]))$/;
+const ipv4CidrRegex =
+    /^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\/(3[0-2]|[12]?[0-9])$/;
+const ipv6CidrRegex =
+    /^(([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]+|::(ffff(:0{1,4})?:)?((25[0-5]|(2[0-4]|1?[0-9])?[0-9])\.){3}(25[0-5]|(2[0-4]|1?[0-9])?[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1?[0-9])?[0-9])\.){3}(25[0-5]|(2[0-4]|1?[0-9])?[0-9]))\/(12[0-8]|1[01][0-9]|[1-9]?[0-9])$/;
 
 type CheckFunction = (value: string) => TreeNode | undefined;
 
@@ -49,6 +53,7 @@ class StringSchema extends Schema<string> {
         INVALID_TIME_STRING: { type: 'leaf', code: issueCodes.INVALID_TIME_STRING },
         INVALID_DATE_TIME_STRING: { type: 'leaf', code: issueCodes.INVALID_DATE_TIME_STRING },
         INVALID_IP_ADDRESS: { type: 'leaf', code: issueCodes.INVALID_IP_ADDRESS },
+        INVALID_IP_ADDRESS_RANGE: { type: 'leaf', code: issueCodes.INVALID_IP_ADDRESS_RANGE },
     } as const satisfies Record<string, LeafNode>;
 
     protected _clone(): StringSchema {
@@ -241,6 +246,27 @@ class StringSchema extends Schema<string> {
 
         return cloned;
     }
+    cidr(options: { version?: 4 | 6 } = {}): StringSchema {
+        const cloned = this._clone();
+        cloned._checks = this._checks || [];
+        cloned._checks.push((_value) => {
+            if (!options.version) {
+                if (!ipv4CidrRegex.test(_value) && !ipv6CidrRegex.test(_value)) {
+                    return this.issues.INVALID_IP_ADDRESS_RANGE;
+                }
+            } else if (options.version === 4) {
+                if (!ipv4CidrRegex.test(_value)) {
+                    return this.issues.INVALID_IP_ADDRESS_RANGE;
+                }
+            } else {
+                if (!ipv6CidrRegex.test(_value)) {
+                    return this.issues.INVALID_IP_ADDRESS_RANGE;
+                }
+            }
+        });
+
+        return cloned;
+    }
 }
 
 const singleton = /* @__PURE__ */ new StringSchema();
@@ -261,4 +287,6 @@ export {
     datetimeRegex,
     ipv4Regex,
     ipv6Regex,
+    ipv4CidrRegex,
+    ipv6CidrRegex,
 };
