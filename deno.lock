@@ -11,6 +11,7 @@
     "npm:husky@*": "9.1.7",
     "npm:lint-staged@*": "15.3.0",
     "npm:recheck@*": "4.4.5",
+    "npm:regex@^5.1.1": "5.1.1",
     "npm:type-fest@4.30.0": "4.30.0",
     "npm:zod@*": "3.24.1"
   },
@@ -307,6 +308,15 @@
         "recheck-windows-x64"
       ]
     },
+    "regex-utilities@2.3.0": {
+      "integrity": "sha512-8VhliFJAWRaUiVvREIiW2NXXTmHs4vMNnSzuJVhscgmGav3g9VDxLrQndI3dZZVVdp0ZO/5v0xmX516/7M9cng=="
+    },
+    "regex@5.1.1": {
+      "integrity": "sha512-dN5I359AVGPnwzJm2jN1k0W9LPZ+ePvoOeVMMfqIMFz53sSwXkxaJoxr50ptnsC771lK95BnTrVSZxq0b9yCGw==",
+      "dependencies": [
+        "regex-utilities"
+      ]
+    },
     "restore-cursor@5.1.0": {
       "integrity": "sha512-oMA2dcrw6u0YfxJQXm342bFKX/E4sG9rbTzO9ptUcR/e8A33cHuvStiYOwH7fszkZlZ1z/ta9AAoPk2F4qIOHA==",
       "dependencies": [
@@ -402,6 +412,7 @@
           "npm:expect-type@*",
           "npm:fast-check@*",
           "npm:recheck@*",
+          "npm:regex@^5.1.1",
           "npm:type-fest@4.30.0",
           "npm:zod@*"
         ]
