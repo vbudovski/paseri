@@ -195,32 +195,42 @@ test('Invalid length (too short)', () => {
     );
 });
 
-test('Email', async (t) => {
-    // TODO: Use fast-check once it has better support for the email regex.
+test('Valid email', () => {
     const schema = p.string().email();
 
-    await t.step('Valid', () => {
-        const result = schema.safeParse('hello@example.com');
-        if (result.ok) {
-            expectTypeOf(result.value).toEqualTypeOf<string>;
-            expect(result.value).toBe('hello@example.com');
-        } else {
-            expect(result.ok).toBeTruthy();
-        }
-    });
+    fc.assert(
+        fc.property(fc.emailAddress(), (data) => {
+            const result = schema.safeParse(data);
+            if (result.ok) {
+                expectTypeOf(result.value).toEqualTypeOf<string>;
+                expect(result.value).toBe(data);
+            } else {
+                expect(result.ok).toBeTruthy();
+            }
+        }),
+    );
+});
 
-    await t.step('Invalid', () => {
-        const result = schema.safeParse('not_an_email');
-        if (!result.ok) {
-            expect(result.messages()).toEqual([{ path: [], message: 'Invalid email.' }]);
-        } else {
-            expect(result.ok).toBeFalsy();
-        }
-    });
+test('Invalid email', () => {
+    const schema = p.string().email();
+
+    fc.assert(
+        fc.property(
+            fc.string().filter((value) => !emailRegex.test(value)),
+            (data) => {
+                const result = schema.safeParse(data);
+                if (!result.ok) {
+                    expect(result.messages()).toEqual([{ path: [], message: 'Invalid email.' }]);
+                } else {
+                    expect(result.ok).toBeFalsy();
+                }
+            },
+        ),
+    );
 });
 
 test('Email ReDoS', () => {
-    const diagnostics = checkSync(emailRegex.source, emailRegex.flags, { timeout: 20_000 });
+    const diagnostics = checkSync(emailRegex.source, emailRegex.flags.replace('v', 'u'));
     if (diagnostics.status === 'vulnerable') {
         console.log(`Vulnerable pattern: ${diagnostics.attack.pattern}`);
     } else if (diagnostics.status === 'unknown') {
@@ -272,7 +282,7 @@ test('Invalid emoji', () => {
 });
 
 test('Emoji ReDoS', () => {
-    const diagnostics = checkSync(emojiRegex.source, emojiRegex.flags);
+    const diagnostics = checkSync(emojiRegex.source, emojiRegex.flags.replace('v', 'u'));
     if (diagnostics.status === 'vulnerable') {
         console.log(`Vulnerable pattern: ${diagnostics.attack.pattern}`);
     } else if (diagnostics.status === 'unknown') {
@@ -316,7 +326,7 @@ test('Invalid UUID', () => {
 });
 
 test('UUID ReDoS', () => {
-    const diagnostics = checkSync(uuidRegex.source, uuidRegex.flags);
+    const diagnostics = checkSync(uuidRegex.source, uuidRegex.flags.replace('v', 'u'));
     if (diagnostics.status === 'vulnerable') {
         console.log(`Vulnerable pattern: ${diagnostics.attack.pattern}`);
     } else if (diagnostics.status === 'unknown') {
@@ -647,24 +657,15 @@ test('Valid ip', () => {
     const schema = p.string().ip();
 
     fc.assert(
-        fc.property(
-            fc.oneof(
-                fc.ipV4(),
-                // Exclude dual format addresses.
-                fc
-                    .ipV6()
-                    .filter((value) => !value.includes('.')),
-            ),
-            (data) => {
-                const result = schema.safeParse(data);
-                if (result.ok) {
-                    expectTypeOf(result.value).toEqualTypeOf<string>;
-                    expect(result.value).toBe(data);
-                } else {
-                    expect(result.ok).toBeTruthy();
-                }
-            },
-        ),
+        fc.property(fc.oneof(fc.ipV4(), fc.ipV6()), (data) => {
+            const result = schema.safeParse(data);
+            if (result.ok) {
+                expectTypeOf(result.value).toEqualTypeOf<string>;
+                expect(result.value).toBe(data);
+            } else {
+                expect(result.ok).toBeTruthy();
+            }
+        }),
     );
 });
 
@@ -688,7 +689,7 @@ test('Invalid ip', () => {
 
 test('ip ReDoS', async (t) => {
     await t.step('IPv4', () => {
-        const diagnostics = checkSync(ipv4Regex.source, ipv4Regex.flags);
+        const diagnostics = checkSync(ipv4Regex.source, ipv4Regex.flags.replace('v', 'u'));
         if (diagnostics.status === 'vulnerable') {
             console.log(`Vulnerable pattern: ${diagnostics.attack.pattern}`);
         } else if (diagnostics.status === 'unknown') {
@@ -698,7 +699,7 @@ test('ip ReDoS', async (t) => {
     });
 
     await t.step('IPv6', () => {
-        const diagnostics = checkSync(ipv6Regex.source, ipv6Regex.flags);
+        const diagnostics = checkSync(ipv6Regex.source, ipv6Regex.flags.replace('v', 'u'));
         if (diagnostics.status === 'vulnerable') {
             console.log(`Vulnerable pattern: ${diagnostics.attack.pattern}`);
         } else if (diagnostics.status === 'unknown') {
