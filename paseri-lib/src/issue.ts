@@ -77,11 +77,6 @@ interface NestNode {
 
 type TreeNode = LeafNode | JoinNode | NestNode;
 
-interface Issue {
-    path: Key[];
-    code: string;
-}
-
 interface Message {
     path: Key[];
     message: string;
@@ -99,4 +94,4 @@ function addIssue(node: TreeNode | undefined, newNode: TreeNode): TreeNode {
 }
 
 export { addIssue, issueCodes };
-export type { TreeNode, LeafNode, JoinNode, Issue, IssueCode, CustomIssueCode, Message, Key };
+export type { TreeNode, LeafNode, JoinNode, IssueCode, CustomIssueCode, Message, Key };
