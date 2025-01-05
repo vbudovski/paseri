@@ -767,6 +767,41 @@ test('cidr ReDoS', () => {
     );
 });
 
+test('Valid regex', () => {
+    const schema = p.string().regex(/^a+$/);
+
+    fc.assert(
+        fc.property(fc.string({ minLength: 1, unit: fc.constantFrom('a') }), (data) => {
+            const result = schema.safeParse(data);
+            if (result.ok) {
+                expectTypeOf(result.value).toEqualTypeOf<string>;
+                expect(result.value).toBe(data);
+            } else {
+                expect(result.ok).toBeTruthy();
+            }
+        }),
+    );
+});
+
+test('Invalid regex', () => {
+    const regex = /^a+$/;
+    const schema = p.string().regex(regex);
+
+    fc.assert(
+        fc.property(
+            fc.string().filter((value) => !regex.test(value)),
+            (data) => {
+                const result = schema.safeParse(data);
+                if (!result.ok) {
+                    expect(result.messages()).toEqual([{ path: [], message: 'Does not match regex.' }]);
+                } else {
+                    expect(result.ok).toBeFalsy();
+                }
+            },
+        ),
+    );
+});
+
 test('Optional', () => {
     const schema = p.string().optional();
 
@@ -887,6 +922,12 @@ test('Immutable', async (t) => {
     await t.step('cidr', () => {
         const original = p.string();
         const modified = original.cidr();
+        expect(modified).not.toEqual(original);
+    });
+
+    await t.step('regex', () => {
+        const original = p.string();
+        const modified = original.regex(/a+/);
         expect(modified).not.toEqual(original);
     });
 });

@@ -203,3 +203,20 @@ p.string().cidr({ version: 4 });
 // 127.0.0.0/8 ✅
 // ::1/128 ❌
 ```
+
+### `regex`
+
+Matches the provided `regex`.
+
+:::danger
+Be careful about the regex you provide to the validator! As you'll likely be dealing with untrusted input, a
+poorly-crafted regular expression is susceptible to a denial-of-service attack, often referred to as
+[ReDoS](https://en.wikipedia.org/wiki/ReDoS). Consider testing your regular expressions with
+[recheck](https://makenowjust-labs.github.io/recheck/).
+:::
+
+```typescript
+p.string().regex(/^a+$/);
+// aaa ✅
+// aab ❌
+```

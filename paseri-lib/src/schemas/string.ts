@@ -142,6 +142,7 @@ class StringSchema extends Schema<string> {
         INVALID_DATE_TIME_STRING: { type: 'leaf', code: issueCodes.INVALID_DATE_TIME_STRING },
         INVALID_IP_ADDRESS: { type: 'leaf', code: issueCodes.INVALID_IP_ADDRESS },
         INVALID_IP_ADDRESS_RANGE: { type: 'leaf', code: issueCodes.INVALID_IP_ADDRESS_RANGE },
+        DOES_NOT_MATCH_REGEX: { type: 'leaf', code: issueCodes.DOES_NOT_MATCH_REGEX },
     } as const satisfies Record<string, LeafNode>;
 
     protected _clone(): StringSchema {
@@ -348,6 +349,17 @@ class StringSchema extends Schema<string> {
         cloned._checks.push((_value) => {
             if (!regex.test(_value)) {
                 return this.issues.INVALID_IP_ADDRESS_RANGE;
+            }
+        });
+
+        return cloned;
+    }
+    regex(regex: RegExp): StringSchema {
+        const cloned = this._clone();
+        cloned._checks = this._checks || [];
+        cloned._checks.push((_value) => {
+            if (!regex.test(_value)) {
+                return this.issues.DOES_NOT_MATCH_REGEX;
             }
         });
 

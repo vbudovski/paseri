@@ -19,6 +19,7 @@ const issueCodes = {
     INVALID_DATE_TIME_STRING: 'invalid_date_time_string' as Tagged<'invalid_date_time_string', 'IssueCode'>,
     INVALID_IP_ADDRESS: 'invalid_ip_address' as Tagged<'invalid_ip_address', 'IssueCode'>,
     INVALID_IP_ADDRESS_RANGE: 'invalid_ip_address_range' as Tagged<'invalid_ip_address_range', 'IssueCode'>,
+    DOES_NOT_MATCH_REGEX: 'does_not_match_regex' as Tagged<'does_not_match_regex', 'IssueCode'>,
     // BigInt/Number.
     TOO_SMALL: 'too_small' as Tagged<'too_small', 'IssueCode'>,
     TOO_LARGE: 'too_large' as Tagged<'too_large', 'IssueCode'>,
