@@ -211,10 +211,11 @@ test('Valid email', () => {
 
 test('Invalid email', () => {
     const schema = p.string().email();
+    const regex = emailRegex();
 
     fc.assert(
         fc.property(
-            fc.string().filter((value) => !emailRegex.test(value)),
+            fc.string().filter((value) => !regex.test(value)),
             (data) => {
                 const result = schema.safeParse(data);
                 if (!result.ok) {
@@ -228,7 +229,8 @@ test('Invalid email', () => {
 });
 
 test('Email ReDoS', () => {
-    const diagnostics = checkSync(emailRegex.source, emailRegex.flags.replace('v', 'u'));
+    const regex = emailRegex();
+    const diagnostics = checkSync(regex.source, regex.flags.replace('v', 'u'));
     if (diagnostics.status === 'vulnerable') {
         console.log(`Vulnerable pattern: ${diagnostics.attack.pattern}`);
     } else if (diagnostics.status === 'unknown') {
@@ -263,10 +265,11 @@ test('Valid emoji', () => {
 
 test('Invalid emoji', () => {
     const schema = p.string().emoji();
+    const regex = emojiRegex();
 
     fc.assert(
         fc.property(
-            fc.string().filter((value) => !emojiRegex.test(value)),
+            fc.string().filter((value) => !regex.test(value)),
             (data) => {
                 const result = schema.safeParse(data);
                 if (!result.ok) {
@@ -280,7 +283,8 @@ test('Invalid emoji', () => {
 });
 
 test('Emoji ReDoS', () => {
-    const diagnostics = checkSync(emojiRegex.source, emojiRegex.flags.replace('v', 'u'));
+    const regex = emojiRegex();
+    const diagnostics = checkSync(regex.source, regex.flags.replace('v', 'u'));
     if (diagnostics.status === 'vulnerable') {
         console.log(`Vulnerable pattern: ${diagnostics.attack.pattern}`);
     } else if (diagnostics.status === 'unknown') {
@@ -307,10 +311,11 @@ test('Valid UUID', () => {
 
 test('Invalid UUID', () => {
     const schema = p.string().uuid();
+    const regex = uuidRegex();
 
     fc.assert(
         fc.property(
-            fc.string().filter((value) => !uuidRegex.test(value)),
+            fc.string().filter((value) => !regex.test(value)),
             (data) => {
                 const result = schema.safeParse(data);
                 if (!result.ok) {
@@ -324,7 +329,8 @@ test('Invalid UUID', () => {
 });
 
 test('UUID ReDoS', () => {
-    const diagnostics = checkSync(uuidRegex.source, uuidRegex.flags.replace('v', 'u'));
+    const regex = uuidRegex();
+    const diagnostics = checkSync(regex.source, regex.flags.replace('v', 'u'));
     if (diagnostics.status === 'vulnerable') {
         console.log(`Vulnerable pattern: ${diagnostics.attack.pattern}`);
     } else if (diagnostics.status === 'unknown') {
@@ -336,7 +342,7 @@ test('UUID ReDoS', () => {
 test('Valid Nano ID', () => {
     const schema = p.string().nanoid();
     // FIXME: fast-check doesn't like case-insensitive regexes.
-    const regex = new RegExp(nanoidRegex.source);
+    const regex = new RegExp(nanoidRegex().source);
 
     fc.assert(
         fc.property(fc.stringMatching(regex), (data) => {
@@ -353,10 +359,11 @@ test('Valid Nano ID', () => {
 
 test('Invalid Nano ID', () => {
     const schema = p.string().nanoid();
+    const regex = nanoidRegex();
 
     fc.assert(
         fc.property(
-            fc.string().filter((value) => !nanoidRegex.test(value)),
+            fc.string().filter((value) => !regex.test(value)),
             (data) => {
                 const result = schema.safeParse(data);
                 if (!result.ok) {
@@ -370,7 +377,8 @@ test('Invalid Nano ID', () => {
 });
 
 test('Nano ID ReDoS', () => {
-    const diagnostics = checkSync(nanoidRegex.source, nanoidRegex.flags);
+    const regex = nanoidRegex();
+    const diagnostics = checkSync(regex.source, regex.flags);
     if (diagnostics.status === 'vulnerable') {
         console.log(`Vulnerable pattern: ${diagnostics.attack.pattern}`);
     } else if (diagnostics.status === 'unknown') {
@@ -507,10 +515,11 @@ test('Valid date', () => {
 
 test('Invalid date', () => {
     const schema = p.string().date();
+    const regex = dateRegex();
 
     fc.assert(
         fc.property(
-            fc.string().filter((value) => !dateRegex.test(value)),
+            fc.string().filter((value) => !regex.test(value)),
             (data) => {
                 const result = schema.safeParse(data);
                 if (!result.ok) {
@@ -524,7 +533,8 @@ test('Invalid date', () => {
 });
 
 test('Date ReDoS', () => {
-    const diagnostics = checkSync(dateRegex.source, dateRegex.flags.replace('v', 'u'));
+    const regex = dateRegex();
+    const diagnostics = checkSync(regex.source, regex.flags.replace('v', 'u'));
     if (diagnostics.status === 'vulnerable') {
         console.log(`Vulnerable pattern: ${diagnostics.attack.pattern}`);
     } else if (diagnostics.status === 'unknown') {
