@@ -4,7 +4,7 @@ import type { InternalParseResult } from '../result.ts';
 import { Schema } from './schema.ts';
 
 // User part validation adapted from https://github.com/validatorjs/validator.js/blob/master/src/lib/isEmail.js.
-const emailRegex = regex('i')`
+const emailRegex = (): RegExp => regex('i')`
     ^ \g<email> $
 
     (?(DEFINE)
@@ -16,9 +16,9 @@ const emailRegex = regex('i')`
     )
 `;
 // Atomic group here to prevent ReDoS.
-const emojiRegex = regex`^(\p{Extended_Pictographic} | \p{Emoji_Component})++$`;
+const emojiRegex = (): RegExp => regex`^(\p{Extended_Pictographic} | \p{Emoji_Component})++$`;
 // Conversion of UUID regex from https://github.com/validatorjs/validator.js/blob/master/src/lib/isUUID.js.
-const uuidRegex = regex('i')`
+const uuidRegex = (): RegExp => regex('i')`
     ^ (\g<uuid> | \g<uuid-min> | \g<uuid-max>) $
 
     (?(DEFINE)
@@ -27,8 +27,8 @@ const uuidRegex = regex('i')`
         (?<uuid-max> ffffffff-ffff-ffff-ffff-ffffffffffff)
     )
 `;
-const nanoidRegex = /^[a-z\d_-]{21}$/i;
-const dateRegex = regex`
+const nanoidRegex = (): RegExp => /^[a-z\d_-]{21}$/i;
+const dateRegex = (): RegExp => regex`
     ^ \g<date> $
 
     (?(DEFINE)
@@ -39,7 +39,7 @@ const dateRegex = regex`
         (?<february> 02-(0[1-9] | 1\d | 2[0-8]))
     )
 `;
-const timeRegex = (precision?: number) => regex`
+const timeRegex = (precision?: number): RegExp => regex`
     ^ \g<time> $
 
     (?(DEFINE)
@@ -50,7 +50,7 @@ const timeRegex = (precision?: number) => regex`
         (?<fractional-seconds> ${precision === undefined ? pattern`(\.\d+)?` : pattern`\.\d{${String(precision)}}`})
     )
 `;
-const datetimeRegex = (precision?: number, offset?: boolean, local?: boolean) => regex`
+const datetimeRegex = (precision?: number, offset?: boolean, local?: boolean): RegExp => regex`
     ^ \g<datetime> $
 
     (?(DEFINE)
@@ -70,7 +70,7 @@ const datetimeRegex = (precision?: number, offset?: boolean, local?: boolean) =>
     )
 `;
 // Adapted IP regex from https://github.com/validatorjs/validator.js/blob/master/src/lib/isIP.js.
-const ipRegex = (version?: 4 | 6) => regex('i')`
+const ipRegex = (version?: 4 | 6): RegExp => regex('i')`
     ^ \g<ip> $
 
     (?(DEFINE)
@@ -93,7 +93,7 @@ const ipRegex = (version?: 4 | 6) => regex('i')`
         (?<byte> 25[0-5] | 2[0-4]\d | 1\d\d | [1-9]\d | \d)
     )
 `;
-const ipCidrRegex = (version?: 4 | 6) => regex('i')`
+const ipCidrRegex = (version?: 4 | 6): RegExp => regex('i')`
     ^ \g<ip-range> $
 
     (?(DEFINE)
@@ -204,10 +204,12 @@ class StringSchema extends Schema<string> {
         return cloned;
     }
     email(): StringSchema {
+        const regex = emailRegex();
+
         const cloned = this._clone();
         cloned._checks = this._checks || [];
         cloned._checks.push((_value) => {
-            if (!emailRegex.test(_value)) {
+            if (!regex.test(_value)) {
                 return this.issues.INVALID_EMAIL;
             }
         });
@@ -215,10 +217,12 @@ class StringSchema extends Schema<string> {
         return cloned;
     }
     emoji(): StringSchema {
+        const regex = emojiRegex();
+
         const cloned = this._clone();
         cloned._checks = this._checks || [];
         cloned._checks.push((_value) => {
-            if (!emojiRegex.test(_value)) {
+            if (!regex.test(_value)) {
                 return this.issues.INVALID_EMOJI;
             }
         });
@@ -226,10 +230,12 @@ class StringSchema extends Schema<string> {
         return cloned;
     }
     uuid(): StringSchema {
+        const regex = uuidRegex();
+
         const cloned = this._clone();
         cloned._checks = this._checks || [];
         cloned._checks.push((_value) => {
-            if (!uuidRegex.test(_value)) {
+            if (!regex.test(_value)) {
                 return this.issues.INVALID_UUID;
             }
         });
@@ -237,10 +243,12 @@ class StringSchema extends Schema<string> {
         return cloned;
     }
     nanoid(): StringSchema {
+        const regex = nanoidRegex();
+
         const cloned = this._clone();
         cloned._checks = this._checks || [];
         cloned._checks.push((_value) => {
-            if (!nanoidRegex.test(_value)) {
+            if (!regex.test(_value)) {
                 return this.issues.INVALID_NANOID;
             }
         });
@@ -281,10 +289,12 @@ class StringSchema extends Schema<string> {
         return cloned;
     }
     date(): StringSchema {
+        const regex = dateRegex();
+
         const cloned = this._clone();
         cloned._checks = this._checks || [];
         cloned._checks.push((_value) => {
-            if (!dateRegex.test(_value)) {
+            if (!regex.test(_value)) {
                 return this.issues.INVALID_DATE_STRING;
             }
         });
