@@ -9,7 +9,7 @@ test('Valid type', () => {
     const schema = p.tuple(p.number(), p.string(), p.literal(123n));
 
     fc.assert(
-        fc.property(fc.tuple(fc.float(), fc.string(), fc.constant(123n)), (data) => {
+        fc.property(fc.tuple(fc.float({ noNaN: true }), fc.string(), fc.constant(123n)), (data) => {
             const result = schema.safeParse(data);
             if (result.ok) {
                 expectTypeOf(result.value).toEqualTypeOf<[number, string, 123n]>;
@@ -82,15 +82,18 @@ test('Optional', () => {
     const schema = p.tuple(p.number(), p.string(), p.literal(123n)).optional();
 
     fc.assert(
-        fc.property(fc.option(fc.tuple(fc.float(), fc.string(), fc.constant(123n)), { nil: undefined }), (data) => {
-            const result = schema.safeParse(data);
-            if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<[number, string, 123n] | undefined>;
-                expect(result.value).toEqual(data);
-            } else {
-                expect(result.ok).toBeTruthy();
-            }
-        }),
+        fc.property(
+            fc.option(fc.tuple(fc.float({ noNaN: true }), fc.string(), fc.constant(123n)), { nil: undefined }),
+            (data) => {
+                const result = schema.safeParse(data);
+                if (result.ok) {
+                    expectTypeOf(result.value).toEqualTypeOf<[number, string, 123n] | undefined>;
+                    expect(result.value).toEqual(data);
+                } else {
+                    expect(result.ok).toBeTruthy();
+                }
+            },
+        ),
     );
 });
 
@@ -98,14 +101,17 @@ test('Nullable', () => {
     const schema = p.tuple(p.number(), p.string(), p.literal(123n)).nullable();
 
     fc.assert(
-        fc.property(fc.option(fc.tuple(fc.float(), fc.string(), fc.constant(123n)), { nil: null }), (data) => {
-            const result = schema.safeParse(data);
-            if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<[number, string, 123n] | null>;
-                expect(result.value).toEqual(data);
-            } else {
-                expect(result.ok).toBeTruthy();
-            }
-        }),
+        fc.property(
+            fc.option(fc.tuple(fc.float({ noNaN: true }), fc.string(), fc.constant(123n)), { nil: null }),
+            (data) => {
+                const result = schema.safeParse(data);
+                if (result.ok) {
+                    expectTypeOf(result.value).toEqualTypeOf<[number, string, 123n] | null>;
+                    expect(result.value).toEqual(data);
+                } else {
+                    expect(result.ok).toBeTruthy();
+                }
+            },
+        ),
     );
 });

@@ -76,7 +76,7 @@ test('Chain primitive to primitive', () => {
     });
 
     fc.assert(
-        fc.property(fc.float(), (data) => {
+        fc.property(fc.float({ noNaN: true }), (data) => {
             const dataAsString = numberToString(data);
 
             const result = schema.safeParse(dataAsString);
@@ -96,7 +96,7 @@ test('Chain primitive to Array', () => {
     });
 
     fc.assert(
-        fc.property(fc.array(fc.float(), { minLength: 1 }), (data) => {
+        fc.property(fc.array(fc.float({ noNaN: true }), { minLength: 1 }), (data) => {
             const dataAsString = data.map((d) => numberToString(d)).join(',');
 
             const result = schema.safeParse(dataAsString);
@@ -116,7 +116,7 @@ test('Chain Array to primitive', () => {
     });
 
     fc.assert(
-        fc.property(fc.array(fc.float(), { minLength: 1 }), (data) => {
+        fc.property(fc.array(fc.float({ noNaN: true }), { minLength: 1 }), (data) => {
             const result = schema.safeParse(data);
             if (result.ok) {
                 expectTypeOf(result.value).toEqualTypeOf<string>;
@@ -138,7 +138,7 @@ test('Chain primitive to Object with unrecognised keys', () => {
     });
 
     fc.assert(
-        fc.property(fc.array(fc.float(), { minLength: 2 }), (data) => {
+        fc.property(fc.array(fc.float({ noNaN: true }), { minLength: 2 }), (data) => {
             const dataAsString = data.map((d) => numberToString(d)).join(',');
 
             const result = schema.safeParse(dataAsString);
@@ -161,14 +161,17 @@ test('Chain Object with unrecognised keys to primitive', () => {
         });
 
     fc.assert(
-        fc.property(fc.record({ foo: fc.float(), bar: fc.float(), extra: fc.anything() }), (data) => {
-            const result = schema.safeParse(data);
-            if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<string>;
-                expect(result.value).toBe(`${numberToString(data.foo)},${numberToString(data.bar)}`);
-            } else {
-                expect(result.ok).toBeTruthy();
-            }
-        }),
+        fc.property(
+            fc.record({ foo: fc.float({ noNaN: true }), bar: fc.float({ noNaN: true }), extra: fc.anything() }),
+            (data) => {
+                const result = schema.safeParse(data);
+                if (result.ok) {
+                    expectTypeOf(result.value).toEqualTypeOf<string>;
+                    expect(result.value).toBe(`${numberToString(data.foo)},${numberToString(data.bar)}`);
+                } else {
+                    expect(result.ok).toBeTruthy();
+                }
+            },
+        ),
     );
 });

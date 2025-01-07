@@ -9,7 +9,7 @@ test('Valid type', () => {
     const schema = p.union(p.string(), p.number(), p.literal(123n));
 
     fc.assert(
-        fc.property(fc.oneof(fc.string(), fc.float(), fc.constant(123n)), (data) => {
+        fc.property(fc.oneof(fc.string(), fc.float({ noNaN: true }), fc.constant(123n)), (data) => {
             const result = schema.safeParse(data);
             if (result.ok) {
                 expectTypeOf(result.value).toEqualTypeOf<string | number | 123n>;
@@ -49,15 +49,18 @@ test('Optional', () => {
     const schema = p.union(p.string(), p.number(), p.literal(123n)).optional();
 
     fc.assert(
-        fc.property(fc.option(fc.oneof(fc.string(), fc.float(), fc.constant(123n)), { nil: undefined }), (data) => {
-            const result = schema.safeParse(data);
-            if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<string | number | 123n | undefined>;
-                expect(result.value).toEqual(data);
-            } else {
-                expect(result.ok).toBeTruthy();
-            }
-        }),
+        fc.property(
+            fc.option(fc.oneof(fc.string(), fc.float({ noNaN: true }), fc.constant(123n)), { nil: undefined }),
+            (data) => {
+                const result = schema.safeParse(data);
+                if (result.ok) {
+                    expectTypeOf(result.value).toEqualTypeOf<string | number | 123n | undefined>;
+                    expect(result.value).toEqual(data);
+                } else {
+                    expect(result.ok).toBeTruthy();
+                }
+            },
+        ),
     );
 });
 
@@ -65,15 +68,18 @@ test('Nullable', () => {
     const schema = p.union(p.string(), p.number(), p.literal(123n)).nullable();
 
     fc.assert(
-        fc.property(fc.option(fc.oneof(fc.string(), fc.float(), fc.constant(123n)), { nil: null }), (data) => {
-            const result = schema.safeParse(data);
-            if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<string | number | 123n | null>;
-                expect(result.value).toEqual(data);
-            } else {
-                expect(result.ok).toBeTruthy();
-            }
-        }),
+        fc.property(
+            fc.option(fc.oneof(fc.string(), fc.float({ noNaN: true }), fc.constant(123n)), { nil: null }),
+            (data) => {
+                const result = schema.safeParse(data);
+                if (result.ok) {
+                    expectTypeOf(result.value).toEqualTypeOf<string | number | 123n | null>;
+                    expect(result.value).toEqual(data);
+                } else {
+                    expect(result.ok).toBeTruthy();
+                }
+            },
+        ),
     );
 });
 
@@ -86,11 +92,11 @@ test('Discriminated union', () => {
     fc.assert(
         fc.property(
             fc.oneof(
-                fc.record({ shape: fc.constant('circle'), radius: fc.float() }),
+                fc.record({ shape: fc.constant('circle'), radius: fc.float({ noNaN: true }) }),
                 fc.record({
                     shape: fc.constant('rectangle'),
-                    width: fc.float(),
-                    height: fc.float(),
+                    width: fc.float({ noNaN: true }),
+                    height: fc.float({ noNaN: true }),
                 }),
             ),
             (data) => {

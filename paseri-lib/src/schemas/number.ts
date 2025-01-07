@@ -23,7 +23,7 @@ class NumberSchema extends Schema<number> {
         return cloned;
     }
     _parse(value: unknown): InternalParseResult<number> {
-        if (typeof value !== 'number') {
+        if (typeof value !== 'number' || Number.isNaN(value)) {
             return this.issues.INVALID_TYPE;
         }
 

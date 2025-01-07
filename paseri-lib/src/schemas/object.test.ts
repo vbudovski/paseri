@@ -55,7 +55,7 @@ test('Strip', () => {
         fc.property(
             fc.record({
                 foo: fc.string(),
-                bar: fc.record({ baz: fc.float(), extra2: fc.anything() }),
+                bar: fc.record({ baz: fc.float({ noNaN: true }), extra2: fc.anything() }),
                 extra1: fc.anything(),
             }),
             (data) => {
@@ -84,7 +84,7 @@ test('Strict', () => {
         fc.property(
             fc.record({
                 foo: fc.string(),
-                bar: fc.record({ baz: fc.float(), extra2: fc.anything() }),
+                bar: fc.record({ baz: fc.float({ noNaN: true }), extra2: fc.anything() }),
                 extra1: fc.anything(),
             }),
             (data) => {
@@ -118,7 +118,7 @@ test('Passthrough', () => {
         fc.property(
             fc.record({
                 foo: fc.string(),
-                bar: fc.record({ baz: fc.float(), extra2: fc.anything() }),
+                bar: fc.record({ baz: fc.float({ noNaN: true }), extra2: fc.anything() }),
                 extra1: fc.anything(),
             }),
             (data) => {
@@ -207,7 +207,7 @@ test('Optional', () => {
             fc.option(
                 fc.record({
                     foo: fc.string(),
-                    bar: fc.option(fc.record({ baz: fc.float() }), { nil: undefined }),
+                    bar: fc.option(fc.record({ baz: fc.float({ noNaN: true }) }), { nil: undefined }),
                 }),
                 { nil: undefined },
             ),
@@ -243,7 +243,7 @@ test('Nullable', () => {
             fc.option(
                 fc.record({
                     foo: fc.string(),
-                    bar: fc.option(fc.record({ baz: fc.float() }), { nil: null }),
+                    bar: fc.option(fc.record({ baz: fc.float({ noNaN: true }) }), { nil: null }),
                 }),
                 { nil: null },
             ),
@@ -320,7 +320,7 @@ test('Merge (without overlap)', () => {
     const schemaMerged = schema.merge(schemaOther);
 
     fc.assert(
-        fc.property(fc.record({ foo: fc.float(), bar: fc.string() }), (data) => {
+        fc.property(fc.record({ foo: fc.float({ noNaN: true }), bar: fc.string() }), (data) => {
             const result = schemaMerged.safeParse(data);
             if (result.ok) {
                 expectTypeOf(result.value).toEqualTypeOf<{ foo: number; bar: string }>;

@@ -9,7 +9,7 @@ test('Valid type', () => {
     const schema = p.record(p.number());
 
     fc.assert(
-        fc.property(fc.object({ values: [fc.float()], maxDepth: 0 }), (data) => {
+        fc.property(fc.object({ values: [fc.float({ noNaN: true })], maxDepth: 0 }), (data) => {
             const result = schema.safeParse(data);
             if (result.ok) {
                 expectTypeOf(result.value).toEqualTypeOf<Record<string, number>>;
@@ -58,15 +58,18 @@ test('Optional', () => {
     const schema = p.record(p.number()).optional();
 
     fc.assert(
-        fc.property(fc.option(fc.object({ values: [fc.float()], maxDepth: 0 }), { nil: undefined }), (data) => {
-            const result = schema.safeParse(data);
-            if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<Record<string, number> | undefined>;
-                expect(result.value).toEqual(data);
-            } else {
-                expect(result.ok).toBeTruthy();
-            }
-        }),
+        fc.property(
+            fc.option(fc.object({ values: [fc.float({ noNaN: true })], maxDepth: 0 }), { nil: undefined }),
+            (data) => {
+                const result = schema.safeParse(data);
+                if (result.ok) {
+                    expectTypeOf(result.value).toEqualTypeOf<Record<string, number> | undefined>;
+                    expect(result.value).toEqual(data);
+                } else {
+                    expect(result.ok).toBeTruthy();
+                }
+            },
+        ),
     );
 });
 
@@ -74,14 +77,17 @@ test('Nullable', () => {
     const schema = p.record(p.number()).nullable();
 
     fc.assert(
-        fc.property(fc.option(fc.object({ values: [fc.float()], maxDepth: 0 }), { nil: null }), (data) => {
-            const result = schema.safeParse(data);
-            if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<Record<string, number> | null>;
-                expect(result.value).toEqual(data);
-            } else {
-                expect(result.ok).toBeTruthy();
-            }
-        }),
+        fc.property(
+            fc.option(fc.object({ values: [fc.float({ noNaN: true })], maxDepth: 0 }), { nil: null }),
+            (data) => {
+                const result = schema.safeParse(data);
+                if (result.ok) {
+                    expectTypeOf(result.value).toEqualTypeOf<Record<string, number> | null>;
+                    expect(result.value).toEqual(data);
+                } else {
+                    expect(result.ok).toBeTruthy();
+                }
+            },
+        ),
     );
 });

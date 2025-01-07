@@ -9,7 +9,7 @@ test('Valid type', () => {
     const schema = p.set(p.number());
 
     fc.assert(
-        fc.property(fc.array(fc.float()), (data) => {
+        fc.property(fc.array(fc.float({ noNaN: true })), (data) => {
             const dataAsSet = new Set(data);
 
             const result = schema.safeParse(dataAsSet);
@@ -43,7 +43,7 @@ test('Valid min', () => {
 
     fc.assert(
         fc.property(
-            fc.array(fc.float(), { minLength: 3 }).filter((value) => new Set(value).size >= 3),
+            fc.array(fc.float({ noNaN: true }), { minLength: 3 }).filter((value) => new Set(value).size >= 3),
             (data) => {
                 const dataAsSet = new Set(data);
 
@@ -64,7 +64,7 @@ test('Invalid min', () => {
 
     fc.assert(
         fc.property(
-            fc.array(fc.float(), { maxLength: 2 }).filter((value) => new Set(value).size <= 2),
+            fc.array(fc.float({ noNaN: true }), { maxLength: 2 }).filter((value) => new Set(value).size <= 2),
             (data) => {
                 const dataAsSet = new Set(data);
 
@@ -84,7 +84,7 @@ test('Valid max', () => {
 
     fc.assert(
         fc.property(
-            fc.array(fc.float(), { maxLength: 3 }).filter((value) => new Set(value).size <= 3),
+            fc.array(fc.float({ noNaN: true }), { maxLength: 3 }).filter((value) => new Set(value).size <= 3),
             (data) => {
                 const dataAsSet = new Set(data);
 
@@ -105,7 +105,7 @@ test('Invalid max', () => {
 
     fc.assert(
         fc.property(
-            fc.array(fc.float(), { minLength: 4 }).filter((value) => new Set(value).size >= 4),
+            fc.array(fc.float({ noNaN: true }), { minLength: 4 }).filter((value) => new Set(value).size >= 4),
             (data) => {
                 const dataAsSet = new Set(data);
 
@@ -125,7 +125,9 @@ test('Valid size', () => {
 
     fc.assert(
         fc.property(
-            fc.array(fc.float(), { minLength: 3, maxLength: 3 }).filter((value) => new Set(value).size === 3),
+            fc
+                .array(fc.float({ noNaN: true }), { minLength: 3, maxLength: 3 })
+                .filter((value) => new Set(value).size === 3),
             (data) => {
                 const dataAsSet = new Set(data);
 
@@ -146,7 +148,7 @@ test('Invalid size (too long)', () => {
 
     fc.assert(
         fc.property(
-            fc.array(fc.float(), { minLength: 4 }).filter((value) => new Set(value).size >= 4),
+            fc.array(fc.float({ noNaN: true }), { minLength: 4 }).filter((value) => new Set(value).size >= 4),
             (data) => {
                 const dataAsSet = new Set(data);
 
@@ -166,7 +168,7 @@ test('Invalid size (too short)', () => {
 
     fc.assert(
         fc.property(
-            fc.array(fc.float(), { maxLength: 2 }).filter((value) => new Set(value).size <= 2),
+            fc.array(fc.float({ noNaN: true }), { maxLength: 2 }).filter((value) => new Set(value).size <= 2),
             (data) => {
                 const dataAsSet = new Set(data);
 
@@ -200,7 +202,7 @@ test('Optional', () => {
     const schema = p.set(p.number()).optional();
 
     fc.assert(
-        fc.property(fc.option(fc.array(fc.float()), { nil: undefined }), (data) => {
+        fc.property(fc.option(fc.array(fc.float({ noNaN: true })), { nil: undefined }), (data) => {
             const dataAsSet = new Set(data);
 
             const result = schema.safeParse(dataAsSet);
@@ -218,7 +220,7 @@ test('Nullable', () => {
     const schema = p.set(p.number()).nullable();
 
     fc.assert(
-        fc.property(fc.option(fc.array(fc.float()), { nil: null }), (data) => {
+        fc.property(fc.option(fc.array(fc.float({ noNaN: true })), { nil: null }), (data) => {
             const dataAsSet = new Set(data);
 
             const result = schema.safeParse(dataAsSet);

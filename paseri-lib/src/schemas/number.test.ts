@@ -9,7 +9,7 @@ test('Valid type', () => {
     const schema = p.number();
 
     fc.assert(
-        fc.property(fc.float(), (data) => {
+        fc.property(fc.float({ noNaN: true }), (data) => {
             const result = schema.safeParse(data);
             if (result.ok) {
                 expectTypeOf(result.value).toEqualTypeOf<number>;
@@ -26,7 +26,10 @@ test('Invalid type', () => {
 
     fc.assert(
         fc.property(
-            fc.anything().filter((value) => typeof value !== 'number'),
+            fc.oneof(
+                fc.anything().filter((value) => typeof value !== 'number'),
+                fc.constant(Number.NaN),
+            ),
             (data) => {
                 const result = schema.safeParse(data);
                 if (!result.ok) {
@@ -183,7 +186,7 @@ test('Invalid int', () => {
     const schema = p.number().int();
 
     fc.assert(
-        fc.property(fc.float({ noInteger: true }), (data) => {
+        fc.property(fc.float({ noNaN: true, noInteger: true }), (data) => {
             const result = schema.safeParse(data);
             if (!result.ok) {
                 expect(result.messages()).toEqual([{ path: [], message: 'Number must be an integer.' }]);
@@ -214,21 +217,14 @@ test('Invalid finite', () => {
     const schema = p.number().finite();
 
     fc.assert(
-        fc.property(
-            fc.oneof(
-                fc.constant(Number.POSITIVE_INFINITY),
-                fc.constant(Number.NEGATIVE_INFINITY),
-                fc.constant(Number.NaN),
-            ),
-            (data) => {
-                const result = schema.safeParse(data);
-                if (!result.ok) {
-                    expect(result.messages()).toEqual([{ path: [], message: 'Number must be finite.' }]);
-                } else {
-                    expect(result.ok).toBeFalsy();
-                }
-            },
-        ),
+        fc.property(fc.oneof(fc.constant(Number.POSITIVE_INFINITY), fc.constant(Number.NEGATIVE_INFINITY)), (data) => {
+            const result = schema.safeParse(data);
+            if (!result.ok) {
+                expect(result.messages()).toEqual([{ path: [], message: 'Number must be finite.' }]);
+            } else {
+                expect(result.ok).toBeFalsy();
+            }
+        }),
     );
 });
 
@@ -270,7 +266,7 @@ test('Optional', () => {
     const schema = p.number().optional();
 
     fc.assert(
-        fc.property(fc.option(fc.float(), { nil: undefined }), (data) => {
+        fc.property(fc.option(fc.float({ noNaN: true }), { nil: undefined }), (data) => {
             const result = schema.safeParse(data);
             if (result.ok) {
                 expectTypeOf(result.value).toEqualTypeOf<number | undefined>;
@@ -286,7 +282,7 @@ test('Nullable', () => {
     const schema = p.number().nullable();
 
     fc.assert(
-        fc.property(fc.option(fc.float(), { nil: null }), (data) => {
+        fc.property(fc.option(fc.float({ noNaN: true }), { nil: null }), (data) => {
             const result = schema.safeParse(data);
             if (result.ok) {
                 expectTypeOf(result.value).toEqualTypeOf<number | null>;

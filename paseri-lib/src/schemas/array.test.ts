@@ -9,7 +9,7 @@ test('Valid type', () => {
     const schema = p.array(p.number());
 
     fc.assert(
-        fc.property(fc.array(fc.float()), (data) => {
+        fc.property(fc.array(fc.float({ noNaN: true })), (data) => {
             const result = schema.safeParse(data);
             if (result.ok) {
                 expectTypeOf(result.value).toEqualTypeOf<number[]>;
@@ -43,7 +43,7 @@ test('Valid min', () => {
     const schema = p.array(p.number()).min(3);
 
     fc.assert(
-        fc.property(fc.array(fc.float(), { minLength: 3 }), (data) => {
+        fc.property(fc.array(fc.float({ noNaN: true }), { minLength: 3 }), (data) => {
             const result = schema.safeParse(data);
             if (result.ok) {
                 expectTypeOf(result.value).toEqualTypeOf<number[]>;
@@ -59,7 +59,7 @@ test('Invalid min', () => {
     const schema = p.array(p.number()).min(3);
 
     fc.assert(
-        fc.property(fc.array(fc.float(), { maxLength: 2 }), (data) => {
+        fc.property(fc.array(fc.float({ noNaN: true }), { maxLength: 2 }), (data) => {
             const result = schema.safeParse(data);
             if (!result.ok) {
                 expect(result.messages()).toEqual([{ path: [], message: 'Too short.' }]);
@@ -74,7 +74,7 @@ test('Valid max', () => {
     const schema = p.array(p.number()).max(3);
 
     fc.assert(
-        fc.property(fc.array(fc.float(), { maxLength: 3 }), (data) => {
+        fc.property(fc.array(fc.float({ noNaN: true }), { maxLength: 3 }), (data) => {
             const result = schema.safeParse(data);
             if (result.ok) {
                 expectTypeOf(result.value).toEqualTypeOf<number[]>;
@@ -90,7 +90,7 @@ test('Invalid max', () => {
     const schema = p.array(p.number()).max(3);
 
     fc.assert(
-        fc.property(fc.array(fc.float(), { minLength: 4 }), (data) => {
+        fc.property(fc.array(fc.float({ noNaN: true }), { minLength: 4 }), (data) => {
             const result = schema.safeParse(data);
             if (!result.ok) {
                 expect(result.messages()).toEqual([{ path: [], message: 'Too long.' }]);
@@ -105,7 +105,7 @@ test('Valid length', () => {
     const schema = p.array(p.number()).length(3);
 
     fc.assert(
-        fc.property(fc.array(fc.float(), { minLength: 3, maxLength: 3 }), (data) => {
+        fc.property(fc.array(fc.float({ noNaN: true }), { minLength: 3, maxLength: 3 }), (data) => {
             const result = schema.safeParse(data);
             if (result.ok) {
                 expectTypeOf(result.value).toEqualTypeOf<number[]>;
@@ -121,7 +121,7 @@ test('Invalid length (too long)', () => {
     const schema = p.array(p.number()).length(3);
 
     fc.assert(
-        fc.property(fc.array(fc.float(), { minLength: 4 }), (data) => {
+        fc.property(fc.array(fc.float({ noNaN: true }), { minLength: 4 }), (data) => {
             const result = schema.safeParse(data);
             if (!result.ok) {
                 expect(result.messages()).toEqual([{ path: [], message: 'Too long.' }]);
@@ -136,7 +136,7 @@ test('Invalid length (too short)', () => {
     const schema = p.array(p.number()).length(3);
 
     fc.assert(
-        fc.property(fc.array(fc.float(), { maxLength: 2 }), (data) => {
+        fc.property(fc.array(fc.float({ noNaN: true }), { maxLength: 2 }), (data) => {
             const result = schema.safeParse(data);
             if (!result.ok) {
                 expect(result.messages()).toEqual([{ path: [], message: 'Too short.' }]);
@@ -180,7 +180,7 @@ test('Optional', () => {
     const schema = p.array(p.number()).optional();
 
     fc.assert(
-        fc.property(fc.option(fc.array(fc.float()), { nil: undefined }), (data) => {
+        fc.property(fc.option(fc.array(fc.float({ noNaN: true })), { nil: undefined }), (data) => {
             const result = schema.safeParse(data);
             if (result.ok) {
                 expectTypeOf(result.value).toEqualTypeOf<number[] | undefined>;
@@ -196,7 +196,7 @@ test('Nullable', () => {
     const schema = p.array(p.number()).nullable();
 
     fc.assert(
-        fc.property(fc.option(fc.array(fc.float()), { nil: null }), (data) => {
+        fc.property(fc.option(fc.array(fc.float({ noNaN: true })), { nil: null }), (data) => {
             const result = schema.safeParse(data);
             if (result.ok) {
                 expectTypeOf(result.value).toEqualTypeOf<number[] | null>;

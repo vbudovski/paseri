@@ -9,7 +9,7 @@ test('Valid type', () => {
     const schema = p.map(p.number(), p.string());
 
     fc.assert(
-        fc.property(fc.array(fc.tuple(fc.float(), fc.string())), (data) => {
+        fc.property(fc.array(fc.tuple(fc.float({ noNaN: true }), fc.string())), (data) => {
             const dataAsMap = new Map(data);
 
             const result = schema.safeParse(dataAsMap);
@@ -43,7 +43,9 @@ test('Valid min', () => {
 
     fc.assert(
         fc.property(
-            fc.array(fc.tuple(fc.float(), fc.string()), { minLength: 3 }).filter((value) => new Map(value).size >= 3),
+            fc
+                .array(fc.tuple(fc.float({ noNaN: true }), fc.string()), { minLength: 3 })
+                .filter((value) => new Map(value).size >= 3),
             (data) => {
                 const dataAsMap = new Map(data);
 
@@ -64,7 +66,9 @@ test('Invalid min', () => {
 
     fc.assert(
         fc.property(
-            fc.array(fc.tuple(fc.float(), fc.string()), { maxLength: 2 }).filter((value) => new Map(value).size <= 2),
+            fc
+                .array(fc.tuple(fc.float({ noNaN: true }), fc.string()), { maxLength: 2 })
+                .filter((value) => new Map(value).size <= 2),
             (data) => {
                 const dataAsMap = new Map(data);
 
@@ -84,7 +88,9 @@ test('Valid max', () => {
 
     fc.assert(
         fc.property(
-            fc.array(fc.tuple(fc.float(), fc.string()), { maxLength: 3 }).filter((value) => new Map(value).size <= 3),
+            fc
+                .array(fc.tuple(fc.float({ noNaN: true }), fc.string()), { maxLength: 3 })
+                .filter((value) => new Map(value).size <= 3),
             (data) => {
                 const dataAsMap = new Map(data);
 
@@ -105,7 +111,9 @@ test('Invalid max', () => {
 
     fc.assert(
         fc.property(
-            fc.array(fc.tuple(fc.float(), fc.string()), { minLength: 4 }).filter((value) => new Map(value).size >= 4),
+            fc
+                .array(fc.tuple(fc.float({ noNaN: true }), fc.string()), { minLength: 4 })
+                .filter((value) => new Map(value).size >= 4),
             (data) => {
                 const dataAsMap = new Map(data);
 
@@ -126,7 +134,7 @@ test('Valid size', () => {
     fc.assert(
         fc.property(
             fc
-                .array(fc.tuple(fc.float(), fc.string()), { minLength: 3, maxLength: 3 })
+                .array(fc.tuple(fc.float({ noNaN: true }), fc.string()), { minLength: 3, maxLength: 3 })
                 .filter((value) => new Map(value).size === 3),
             (data) => {
                 const dataAsMap = new Map(data);
@@ -148,7 +156,9 @@ test('Invalid size (too long)', () => {
 
     fc.assert(
         fc.property(
-            fc.array(fc.tuple(fc.float(), fc.string()), { minLength: 4 }).filter((value) => new Map(value).size >= 4),
+            fc
+                .array(fc.tuple(fc.float({ noNaN: true }), fc.string()), { minLength: 4 })
+                .filter((value) => new Map(value).size >= 4),
             (data) => {
                 const dataAsMap = new Map(data);
 
@@ -168,7 +178,9 @@ test('Invalid size (too short)', () => {
 
     fc.assert(
         fc.property(
-            fc.array(fc.tuple(fc.float(), fc.string()), { maxLength: 2 }).filter((value) => new Map(value).size <= 2),
+            fc
+                .array(fc.tuple(fc.float({ noNaN: true }), fc.string()), { maxLength: 2 })
+                .filter((value) => new Map(value).size <= 2),
             (data) => {
                 const dataAsMap = new Map(data);
 
@@ -212,17 +224,20 @@ test('Optional', () => {
     const schema = p.map(p.number(), p.string()).optional();
 
     fc.assert(
-        fc.property(fc.option(fc.array(fc.tuple(fc.float(), fc.string())), { nil: undefined }), (data) => {
-            const dataAsMap = new Map(data);
+        fc.property(
+            fc.option(fc.array(fc.tuple(fc.float({ noNaN: true }), fc.string())), { nil: undefined }),
+            (data) => {
+                const dataAsMap = new Map(data);
 
-            const result = schema.safeParse(dataAsMap);
-            if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<Map<number, string> | undefined>;
-                expect(result.value).toEqual(dataAsMap);
-            } else {
-                expect(result.ok).toBeTruthy();
-            }
-        }),
+                const result = schema.safeParse(dataAsMap);
+                if (result.ok) {
+                    expectTypeOf(result.value).toEqualTypeOf<Map<number, string> | undefined>;
+                    expect(result.value).toEqual(dataAsMap);
+                } else {
+                    expect(result.ok).toBeTruthy();
+                }
+            },
+        ),
     );
 });
 
@@ -230,7 +245,7 @@ test('Nullable', () => {
     const schema = p.map(p.number(), p.string()).nullable();
 
     fc.assert(
-        fc.property(fc.option(fc.array(fc.tuple(fc.float(), fc.string())), { nil: null }), (data) => {
+        fc.property(fc.option(fc.array(fc.tuple(fc.float({ noNaN: true }), fc.string())), { nil: null }), (data) => {
             const dataAsMap = new Map(data);
 
             const result = schema.safeParse(dataAsMap);
