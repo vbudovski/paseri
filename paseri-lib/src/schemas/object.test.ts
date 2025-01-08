@@ -2,6 +2,7 @@ import { expect } from '@std/expect';
 import { expectTypeOf } from 'expect-type';
 import fc from 'fast-check';
 import * as p from '../index.ts';
+import { isPlainObject } from '../utils.ts';
 
 const { test } = Deno;
 
@@ -26,7 +27,7 @@ test('Invalid type', () => {
 
     fc.assert(
         fc.property(
-            fc.anything().filter((value) => !(typeof value === 'object' && value !== null)),
+            fc.anything({ withDate: true, withSet: true, withMap: true }).filter((value) => !isPlainObject(value)),
             (data) => {
                 const result = schema.safeParse(data);
                 if (!result.ok) {
