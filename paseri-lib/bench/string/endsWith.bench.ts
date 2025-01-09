@@ -11,7 +11,7 @@ const valitaSchema = v.string().assert((value) => value.endsWith('foo'));
 const dataValid = 'Hello, world!foo';
 const dataInvalid = 'Hello, world!';
 
-bench('Paseri', { group: 'Ends with valid' }, () => {
+bench('Paseri', { group: 'Ends with valid', baseline: true }, () => {
     paseriSchema.safeParse(dataValid);
 });
 
@@ -23,7 +23,7 @@ bench('Valita', { group: 'Ends with valid' }, () => {
     valitaSchema.try(dataValid);
 });
 
-bench('Paseri', { group: 'Ends with invalid' }, () => {
+bench('Paseri', { group: 'Ends with invalid', baseline: true }, () => {
     paseriSchema.safeParse(dataInvalid);
 });
 

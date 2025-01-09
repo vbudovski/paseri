@@ -11,7 +11,7 @@ const valitaSchema = v.literal('apple');
 const dataValid = 'apple';
 const dataInvalid = 'banana';
 
-bench('Paseri', { group: 'String valid' }, () => {
+bench('Paseri', { group: 'String valid', baseline: true }, () => {
     paseriSchema.safeParse(dataValid);
 });
 
@@ -23,7 +23,7 @@ bench('Valita', { group: 'String valid' }, () => {
     valitaSchema.try(dataValid);
 });
 
-bench('Paseri', { group: 'String invalid' }, () => {
+bench('Paseri', { group: 'String invalid', baseline: true }, () => {
     paseriSchema.safeParse(dataInvalid);
 });
 

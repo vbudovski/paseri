@@ -26,7 +26,7 @@ const data1 = { shape: 'circle', radius: 30 };
 const data2 = { shape: 'rectangle', width: 10, height: 20 };
 
 // Matches first member.
-bench('Paseri', { group: 'Discriminated union 1' }, () => {
+bench('Paseri', { group: 'Discriminated union 1', baseline: true }, () => {
     paseriSchema.safeParse(data1);
 });
 
@@ -43,7 +43,7 @@ bench('Valita', { group: 'Discriminated union 1' }, () => {
 });
 
 // Matches second member.
-bench('Paseri', { group: 'Discriminated union 2' }, () => {
+bench('Paseri', { group: 'Discriminated union 2', baseline: true }, () => {
     paseriSchema.safeParse(data2);
 });
 

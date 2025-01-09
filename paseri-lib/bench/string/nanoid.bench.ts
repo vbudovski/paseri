@@ -9,7 +9,7 @@ const zodSchema = z.string().nanoid();
 const dataValid = 'V1StGXR8_Z5jdHi6B-myT';
 const dataInvalid = 'not_a_nano_id';
 
-bench('Paseri', { group: 'Nano ID valid' }, () => {
+bench('Paseri', { group: 'Nano ID valid', baseline: true }, () => {
     paseriSchema.safeParse(dataValid);
 });
 
@@ -17,7 +17,7 @@ bench('Zod', { group: 'Nano ID valid' }, () => {
     zodSchema.safeParse(dataValid);
 });
 
-bench('Paseri', { group: 'Nano ID invalid' }, () => {
+bench('Paseri', { group: 'Nano ID invalid', baseline: true }, () => {
     paseriSchema.safeParse(dataInvalid);
 });
 

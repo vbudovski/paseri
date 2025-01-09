@@ -11,7 +11,7 @@ const zodSchema = z.literal(symbolLiteral);
 const dataValid = Symbol.for('test');
 const dataInvalid = Symbol.for('other');
 
-bench('Paseri', { group: 'Symbol valid' }, () => {
+bench('Paseri', { group: 'Symbol valid', baseline: true }, () => {
     paseriSchema.safeParse(dataValid);
 });
 
@@ -19,7 +19,7 @@ bench('Zod', { group: 'Symbol valid' }, () => {
     zodSchema.safeParse(dataValid);
 });
 
-bench('Paseri', { group: 'Symbol invalid' }, () => {
+bench('Paseri', { group: 'Symbol invalid', baseline: true }, () => {
     paseriSchema.safeParse(dataInvalid);
 });
 

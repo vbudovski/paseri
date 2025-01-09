@@ -27,7 +27,7 @@ const dataValid = {
 };
 const dataInvalid = null;
 
-bench('Paseri', { group: 'Type valid' }, () => {
+bench('Paseri', { group: 'Type valid', baseline: true }, () => {
     paseriSchema.safeParse(dataValid);
 });
 
@@ -39,7 +39,7 @@ bench('Valita', { group: 'Type valid' }, () => {
     valitaSchema.try(dataValid);
 });
 
-bench('Paseri', { group: 'Type invalid' }, () => {
+bench('Paseri', { group: 'Type invalid', baseline: true }, () => {
     paseriSchema.safeParse(dataInvalid);
 });
 

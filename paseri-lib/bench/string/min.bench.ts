@@ -11,7 +11,7 @@ const valitaSchema = v.string().assert((value) => value.length >= 3);
 const dataValid = 'aaa';
 const dataInvalid = 'aa';
 
-bench('Paseri', { group: 'Min valid' }, () => {
+bench('Paseri', { group: 'Min valid', baseline: true }, () => {
     paseriSchema.safeParse(dataValid);
 });
 
@@ -23,7 +23,7 @@ bench('Valita', { group: 'Min valid' }, () => {
     valitaSchema.try(dataValid);
 });
 
-bench('Paseri', { group: 'Min invalid' }, () => {
+bench('Paseri', { group: 'Min invalid', baseline: true }, () => {
     paseriSchema.safeParse(dataInvalid);
 });
 

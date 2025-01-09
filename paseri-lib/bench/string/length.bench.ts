@@ -12,7 +12,7 @@ const dataValid = 'aaa';
 const dataTooLong = 'aaaa';
 const dataTooShort = 'aa';
 
-bench('Paseri', { group: 'Length valid' }, () => {
+bench('Paseri', { group: 'Length valid', baseline: true }, () => {
     paseriSchema.safeParse(dataValid);
 });
 
@@ -24,7 +24,7 @@ bench('Valita', { group: 'Length valid' }, () => {
     valitaSchema.try(dataValid);
 });
 
-bench('Paseri', { group: 'Length too long' }, () => {
+bench('Paseri', { group: 'Length too long', baseline: true }, () => {
     paseriSchema.safeParse(dataTooLong);
 });
 
@@ -36,7 +36,7 @@ bench('Valita', { group: 'Length too long' }, () => {
     valitaSchema.try(dataTooLong);
 });
 
-bench('Paseri', { group: 'Length too short' }, () => {
+bench('Paseri', { group: 'Length too short', baseline: true }, () => {
     paseriSchema.safeParse(dataTooShort);
 });
 

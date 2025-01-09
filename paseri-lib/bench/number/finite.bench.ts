@@ -11,7 +11,7 @@ const valitaSchema = v.number().assert((value) => Number.isFinite(value));
 const dataValid = 123;
 const dataInvalid = Number.NEGATIVE_INFINITY;
 
-bench('Paseri', { group: 'Finite valid' }, () => {
+bench('Paseri', { group: 'Finite valid', baseline: true }, () => {
     paseriSchema.safeParse(dataValid);
 });
 
@@ -23,7 +23,7 @@ bench('Valita', { group: 'Finite valid' }, () => {
     valitaSchema.try(dataValid);
 });
 
-bench('Paseri', { group: 'Finite invalid' }, () => {
+bench('Paseri', { group: 'Finite invalid', baseline: true }, () => {
     paseriSchema.safeParse(dataInvalid);
 });
 

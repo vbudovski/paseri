@@ -11,7 +11,7 @@ const valitaSchema = v.literal(123);
 const dataValid = 123;
 const dataInvalid = 456;
 
-bench('Paseri', { group: 'Number valid' }, () => {
+bench('Paseri', { group: 'Number valid', baseline: true }, () => {
     paseriSchema.safeParse(dataValid);
 });
 
@@ -23,7 +23,7 @@ bench('Valita', { group: 'Number valid' }, () => {
     valitaSchema.try(dataValid);
 });
 
-bench('Paseri', { group: 'Number invalid' }, () => {
+bench('Paseri', { group: 'Number invalid', baseline: true }, () => {
     paseriSchema.safeParse(dataInvalid);
 });
 

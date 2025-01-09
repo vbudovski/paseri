@@ -11,7 +11,7 @@ const valitaSchema = v.number().assert((value) => Number.isInteger(value));
 const dataValid = 123;
 const dataInvalid = 123.4;
 
-bench('Paseri', { group: 'Integer valid' }, () => {
+bench('Paseri', { group: 'Integer valid', baseline: true }, () => {
     paseriSchema.safeParse(dataValid);
 });
 
@@ -23,7 +23,7 @@ bench('Valita', { group: 'Integer valid' }, () => {
     valitaSchema.try(dataValid);
 });
 
-bench('Paseri', { group: 'Integer invalid' }, () => {
+bench('Paseri', { group: 'Integer invalid', baseline: true }, () => {
     paseriSchema.safeParse(dataInvalid);
 });
 

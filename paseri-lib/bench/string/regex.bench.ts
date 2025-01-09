@@ -10,7 +10,7 @@ const zodSchema = z.string().regex(regex);
 const dataValid = 'a'.repeat(20);
 const dataInvalid = `${'a'.repeat(30)}#`;
 
-bench('Paseri', { group: 'Date valid' }, () => {
+bench('Paseri', { group: 'Date valid', baseline: true }, () => {
     paseriSchema.safeParse(dataValid);
 });
 
@@ -18,7 +18,7 @@ bench('Zod', { group: 'Date valid' }, () => {
     zodSchema.safeParse(dataValid);
 });
 
-bench('Paseri', { group: 'Date invalid' }, () => {
+bench('Paseri', { group: 'Date invalid', baseline: true }, () => {
     paseriSchema.safeParse(dataInvalid);
 });
 

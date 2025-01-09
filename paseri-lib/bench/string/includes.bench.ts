@@ -11,7 +11,7 @@ const valitaSchema = v.string().assert((value) => value.includes('foo'));
 const dataValid = 'Hello,fooworld!';
 const dataInvalid = 'Hello, world!';
 
-bench('Paseri', { group: 'Includes valid' }, () => {
+bench('Paseri', { group: 'Includes valid', baseline: true }, () => {
     paseriSchema.safeParse(dataValid);
 });
 
@@ -23,7 +23,7 @@ bench('Valita', { group: 'Includes valid' }, () => {
     valitaSchema.try(dataValid);
 });
 
-bench('Paseri', { group: 'Includes invalid' }, () => {
+bench('Paseri', { group: 'Includes invalid', baseline: true }, () => {
     paseriSchema.safeParse(dataInvalid);
 });
 

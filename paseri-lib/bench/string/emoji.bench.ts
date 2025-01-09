@@ -9,7 +9,7 @@ const zodSchema = z.string().emoji();
 const dataValid = '🥳';
 const dataInvalid = 'a';
 
-bench('Paseri', { group: 'Emoji valid' }, () => {
+bench('Paseri', { group: 'Emoji valid', baseline: true }, () => {
     paseriSchema.safeParse(dataValid);
 });
 
@@ -17,7 +17,7 @@ bench('Zod', { group: 'Emoji valid' }, () => {
     zodSchema.safeParse(dataValid);
 });
 
-bench('Paseri', { group: 'Emoji invalid' }, () => {
+bench('Paseri', { group: 'Emoji invalid', baseline: true }, () => {
     paseriSchema.safeParse(dataInvalid);
 });
 

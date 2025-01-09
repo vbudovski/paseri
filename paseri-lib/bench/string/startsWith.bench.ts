@@ -11,7 +11,7 @@ const valitaSchema = v.string().assert((value) => value.startsWith('foo'));
 const dataValid = 'fooHello, world!';
 const dataInvalid = 'Hello, world!';
 
-bench('Paseri', { group: 'Starts with valid' }, () => {
+bench('Paseri', { group: 'Starts with valid', baseline: true }, () => {
     paseriSchema.safeParse(dataValid);
 });
 
@@ -23,7 +23,7 @@ bench('Valita', { group: 'Starts with valid' }, () => {
     valitaSchema.try(dataValid);
 });
 
-bench('Paseri', { group: 'Starts with invalid' }, () => {
+bench('Paseri', { group: 'Starts with invalid', baseline: true }, () => {
     paseriSchema.safeParse(dataInvalid);
 });
 

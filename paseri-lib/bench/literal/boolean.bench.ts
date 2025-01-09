@@ -11,7 +11,7 @@ const valitaSchema = v.literal(true);
 const dataValid = true;
 const dataInvalid = false;
 
-bench('Paseri', { group: 'Boolean valid' }, () => {
+bench('Paseri', { group: 'Boolean valid', baseline: true }, () => {
     paseriSchema.safeParse(dataValid);
 });
 
@@ -23,7 +23,7 @@ bench('Valita', { group: 'Boolean valid' }, () => {
     valitaSchema.try(dataValid);
 });
 
-bench('Paseri', { group: 'Boolean invalid' }, () => {
+bench('Paseri', { group: 'Boolean invalid', baseline: true }, () => {
     paseriSchema.safeParse(dataInvalid);
 });
 

@@ -9,7 +9,7 @@ const zodSchema = z.string().cidr();
 const dataValid = '10.0.0.0/22';
 const dataInvalid = '127.0.0.1';
 
-bench('Paseri', { group: 'CIDR valid' }, () => {
+bench('Paseri', { group: 'CIDR valid', baseline: true }, () => {
     paseriSchema.safeParse(dataValid);
 });
 
@@ -17,7 +17,7 @@ bench('Zod', { group: 'CIDR valid' }, () => {
     zodSchema.safeParse(dataValid);
 });
 
-bench('Paseri', { group: 'CIDR invalid' }, () => {
+bench('Paseri', { group: 'CIDR invalid', baseline: true }, () => {
     paseriSchema.safeParse(dataInvalid);
 });
 

@@ -15,7 +15,7 @@ const dataValid1 = 'Hello, world!';
 const dataValid2 = ['foo', 'bar'];
 const dataValid3 = ['foo', ['bar', 'baz']];
 
-bench('Paseri', { group: 'Type valid 1' }, () => {
+bench('Paseri', { group: 'Type valid 1', baseline: true }, () => {
     paseriSchema.safeParse(dataValid1);
 });
 
@@ -27,7 +27,7 @@ bench('Valita', { group: 'Type valid 1' }, () => {
     valitaSchema.try(dataValid1);
 });
 
-bench('Paseri', { group: 'Type valid 2' }, () => {
+bench('Paseri', { group: 'Type valid 2', baseline: true }, () => {
     paseriSchema.safeParse(dataValid2);
 });
 
@@ -39,7 +39,7 @@ bench('Valita', { group: 'Type valid 2' }, () => {
     valitaSchema.try(dataValid2);
 });
 
-bench('Paseri', { group: 'Type valid 3' }, () => {
+bench('Paseri', { group: 'Type valid 3', baseline: true }, () => {
     paseriSchema.safeParse(dataValid3);
 });
 

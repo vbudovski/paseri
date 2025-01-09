@@ -11,7 +11,7 @@ const valitaSchema = v.number().assert((value) => value >= 10);
 const dataValid = 10;
 const dataInvalid = 9;
 
-bench('Paseri', { group: 'Greater than or equal valid' }, () => {
+bench('Paseri', { group: 'Greater than or equal valid', baseline: true }, () => {
     paseriSchema.safeParse(dataValid);
 });
 
@@ -23,7 +23,7 @@ bench('Valita', { group: 'Greater than or equal valid' }, () => {
     valitaSchema.try(dataValid);
 });
 
-bench('Paseri', { group: 'Greater than or equal invalid' }, () => {
+bench('Paseri', { group: 'Greater than or equal invalid', baseline: true }, () => {
     paseriSchema.safeParse(dataInvalid);
 });
 

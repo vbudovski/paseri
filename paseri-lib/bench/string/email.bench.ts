@@ -9,7 +9,7 @@ const zodSchema = z.string().email();
 const dataValid = 'hello@example.com';
 const dataInvalid = 'not_an_email';
 
-bench('Paseri', { group: 'Email valid' }, () => {
+bench('Paseri', { group: 'Email valid', baseline: true }, () => {
     paseriSchema.safeParse(dataValid);
 });
 
@@ -17,7 +17,7 @@ bench('Zod', { group: 'Email valid' }, () => {
     zodSchema.safeParse(dataValid);
 });
 
-bench('Paseri', { group: 'Email invalid' }, () => {
+bench('Paseri', { group: 'Email invalid', baseline: true }, () => {
     paseriSchema.safeParse(dataInvalid);
 });
 

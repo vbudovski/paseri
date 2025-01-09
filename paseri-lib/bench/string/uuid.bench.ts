@@ -9,7 +9,7 @@ const zodSchema = z.string().uuid();
 const dataValid = 'd98d4b7e-58a5-4e21-839b-2699b94c115b';
 const dataInvalid = 'not_a_UUID';
 
-bench('Paseri', { group: 'UUID valid' }, () => {
+bench('Paseri', { group: 'UUID valid', baseline: true }, () => {
     paseriSchema.safeParse(dataValid);
 });
 
@@ -17,7 +17,7 @@ bench('Zod', { group: 'UUID valid' }, () => {
     zodSchema.safeParse(dataValid);
 });
 
-bench('Paseri', { group: 'UUID invalid' }, () => {
+bench('Paseri', { group: 'UUID invalid', baseline: true }, () => {
     paseriSchema.safeParse(dataInvalid);
 });
 

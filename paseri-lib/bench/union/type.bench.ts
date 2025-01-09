@@ -14,7 +14,7 @@ const dataValid3 = true;
 const dataInvalid = null;
 
 // Matches first member.
-bench('Paseri', { group: 'Type valid 1' }, () => {
+bench('Paseri', { group: 'Type valid 1', baseline: true }, () => {
     paseriSchema.safeParse(dataValid1);
 });
 
@@ -27,7 +27,7 @@ bench('Valita', { group: 'Type valid 1' }, () => {
 });
 
 // Matches second member.
-bench('Paseri', { group: 'Type valid 2' }, () => {
+bench('Paseri', { group: 'Type valid 2', baseline: true }, () => {
     paseriSchema.safeParse(dataValid2);
 });
 
@@ -40,7 +40,7 @@ bench('Valita', { group: 'Type valid 2' }, () => {
 });
 
 // Matches third member.
-bench('Paseri', { group: 'Type valid 3' }, () => {
+bench('Paseri', { group: 'Type valid 3', baseline: true }, () => {
     paseriSchema.safeParse(dataValid3);
 });
 
@@ -52,7 +52,7 @@ bench('Valita', { group: 'Type valid 3' }, () => {
     valitaSchema.try(dataValid3);
 });
 
-bench('Paseri', { group: 'Type invalid' }, () => {
+bench('Paseri', { group: 'Type invalid', baseline: true }, () => {
     paseriSchema.safeParse(dataInvalid);
 });
 

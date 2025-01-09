@@ -67,7 +67,7 @@ const data = Object.freeze({
     },
 });
 
-bench('Paseri', { group: 'Parse strict' }, () => {
+bench('Paseri', { group: 'Parse strict', baseline: true }, () => {
     paseriSchema.safeParse(data);
 });
 

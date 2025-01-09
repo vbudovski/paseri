@@ -11,7 +11,7 @@ const valitaSchema = v.number().assert((value) => Number.isSafeInteger(value));
 const dataValid = 123;
 const dataInvalid = Number.MAX_SAFE_INTEGER + 1;
 
-bench('Paseri', { group: 'Safe integer valid' }, () => {
+bench('Paseri', { group: 'Safe integer valid', baseline: true }, () => {
     paseriSchema.safeParse(dataValid);
 });
 
@@ -23,7 +23,7 @@ bench('Valita', { group: 'Safe integer valid' }, () => {
     valitaSchema.try(dataValid);
 });
 
-bench('Paseri', { group: 'Safe integer invalid' }, () => {
+bench('Paseri', { group: 'Safe integer invalid', baseline: true }, () => {
     paseriSchema.safeParse(dataInvalid);
 });
 

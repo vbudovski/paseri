@@ -9,7 +9,7 @@ const zodSchema = z.string().date();
 const dataValid = '2020-01-01';
 const dataInvalid = '2024-01-32';
 
-bench('Paseri', { group: 'Date valid' }, () => {
+bench('Paseri', { group: 'Date valid', baseline: true }, () => {
     paseriSchema.safeParse(dataValid);
 });
 
@@ -17,7 +17,7 @@ bench('Zod', { group: 'Date valid' }, () => {
     zodSchema.safeParse(dataValid);
 });
 
-bench('Paseri', { group: 'Date invalid' }, () => {
+bench('Paseri', { group: 'Date invalid', baseline: true }, () => {
     paseriSchema.safeParse(dataInvalid);
 });
 

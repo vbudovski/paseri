@@ -26,7 +26,7 @@ const data = {
     string3: 'lorem',
 };
 
-bench('Paseri', { group: 'Flat, small' }, () => {
+bench('Paseri', { group: 'Flat, small', baseline: true }, () => {
     paseriSchema.safeParse(data);
 });
 

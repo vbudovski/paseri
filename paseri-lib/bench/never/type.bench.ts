@@ -10,7 +10,7 @@ const valitaSchema = v.never();
 
 const data = 'Hello, world!';
 
-bench('Paseri', { group: 'Type valid' }, () => {
+bench('Paseri', { group: 'Type valid', baseline: true }, () => {
     paseriSchema.safeParse(data);
 });
 

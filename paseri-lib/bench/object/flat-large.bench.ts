@@ -50,7 +50,7 @@ const data = {
     string9: 'lorem',
 };
 
-bench('Paseri', { group: 'Flat, large' }, () => {
+bench('Paseri', { group: 'Flat, large', baseline: true }, () => {
     paseriSchema.safeParse(data);
 });
 
