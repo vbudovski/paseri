@@ -2,7 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/denoland/deno/main/cli/schemas/config-file.v1.json",
   "name": "@vbudovski/paseri",
   "license": "MIT",
-  "version": "0.1.16",
+  "version": "0.1.17",
   "exports": {
     ".": "./src/index.ts",
     "./locales": "./src/locales/index.ts"
@@ -26,6 +26,7 @@
     }
   },
   "publish": {
-    "exclude": ["bench"]
+    "include": ["src", "LICENSE.md", "README.md"],
+    "exclude": ["src/**/*.test.ts", "src/emoji.json"]
   }
 }
