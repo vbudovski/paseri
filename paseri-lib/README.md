@@ -13,6 +13,28 @@ APIs conforms to the expected format.
 Why the name? It's the Japanese name for parsley (パセリ), and also a play on words on parse/parsing, which is the goal
 of this library.
 
+## Installation
+
+```shell
+deno add jsr:@vbudovski/paseri
+```
+
+```shell
+bunx jsr add @vbudovski/paseri
+```
+
+```shell
+pnpx jsr add @vbudovski/paseri
+```
+
+```shell
+yarn dlx jsr add @vbudovski/paseri
+```
+
+```shell
+npx jsr add @vbudovski/paseri
+```
+
 ## Acknowledgements
 
 ### Zod
