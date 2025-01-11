@@ -13,7 +13,9 @@ type ValidShapeType<ShapeType> = NonEmptyObject<{
 type Mode = 'strip' | 'strict' | 'passthrough';
 
 class ObjectSchema<ShapeType extends Record<string, Schema<unknown>>> extends Schema<Infer<ShapeType>> {
-    private readonly _shape: Map<string, Schema<unknown>>;
+    private readonly _shape: ShapeType;
+    private readonly _shapeKeys: string[];
+    private readonly _shapeSize: number;
     private _mode: Mode = 'strict';
 
     private readonly issues = {
@@ -25,10 +27,12 @@ class ObjectSchema<ShapeType extends Record<string, Schema<unknown>>> extends Sc
     constructor(shape: ShapeType) {
         super();
 
-        this._shape = new Map(Object.entries(shape));
+        this._shape = shape;
+        this._shapeKeys = [...Object.keys(shape)];
+        this._shapeSize = this._shapeKeys.length;
     }
     protected _clone(): ObjectSchema<ShapeType> {
-        const cloned = new ObjectSchema(Object.fromEntries(this._shape.entries()) as ShapeType);
+        const cloned = new ObjectSchema(this._shape);
         cloned._mode = this._mode;
 
         return cloned;
@@ -46,7 +50,7 @@ class ObjectSchema<ShapeType extends Record<string, Schema<unknown>>> extends Sc
 
         let issue: TreeNode | undefined = undefined;
         for (const key in value) {
-            const schema = this._shape.get(key);
+            const schema = this._shape[key];
             if (schema) {
                 seen++;
 
@@ -74,8 +78,9 @@ class ObjectSchema<ShapeType extends Record<string, Schema<unknown>>> extends Sc
             }
         }
 
-        if (seen < this._shape.size) {
-            for (const [key, schema] of this._shape.entries()) {
+        if (seen < this._shapeSize) {
+            for (const key of this._shapeKeys) {
+                const schema = this._shape[key];
                 if (schema instanceof OptionalSchema) {
                     continue;
                 }
@@ -166,12 +171,7 @@ class ObjectSchema<ShapeType extends Record<string, Schema<unknown>>> extends Sc
     merge<ShapeTypeOther extends ValidShapeType<ShapeTypeOther>>(
         other: ObjectSchema<ShapeTypeOther>,
     ): ObjectSchema<Merge<ShapeType, ShapeTypeOther>> {
-        const merged = new ObjectSchema(
-            Object.fromEntries([...this._shape.entries(), ...other._shape.entries()]) as Merge<
-                ShapeType,
-                ShapeTypeOther
-            >,
-        );
+        const merged = new ObjectSchema({ ...this._shape, ...other._shape });
         merged._mode = other._mode;
 
         return merged;
@@ -180,10 +180,9 @@ class ObjectSchema<ShapeType extends Record<string, Schema<unknown>>> extends Sc
         ...keys: Keys
     ): ObjectSchema<Pick<ShapeType, TupleToUnion<Keys>>> {
         return new ObjectSchema(
-            Object.fromEntries(this._shape.entries().filter(([key]) => keys.includes(key as keyof ShapeType))) as Pick<
-                ShapeType,
-                TupleToUnion<Keys>
-            >,
+            Object.fromEntries(
+                Object.entries(this._shape).filter(([key]) => keys.includes(key as keyof ShapeType)),
+            ) as Pick<ShapeType, TupleToUnion<Keys>>,
         );
     }
     omit<Keys extends [keyof ShapeType, ...(keyof ShapeType)[]]>(
@@ -191,10 +190,9 @@ class ObjectSchema<ShapeType extends Record<string, Schema<unknown>>> extends Sc
         ...keys: IsEqual<TupleToUnion<Keys>, keyof ShapeType> extends true ? never : Keys
     ): ObjectSchema<Omit<ShapeType, TupleToUnion<Keys>>> {
         return new ObjectSchema(
-            Object.fromEntries(this._shape.entries().filter(([key]) => !keys.includes(key as keyof ShapeType))) as Omit<
-                ShapeType,
-                TupleToUnion<Keys>
-            >,
+            Object.fromEntries(
+                Object.entries(this._shape).filter(([key]) => !keys.includes(key as keyof ShapeType)),
+            ) as Omit<ShapeType, TupleToUnion<Keys>>,
         );
     }
 }
