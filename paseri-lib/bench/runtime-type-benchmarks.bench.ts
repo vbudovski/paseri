@@ -52,6 +52,12 @@ const valitaSchema = v.object({
     }),
 });
 
+// There appears to be a performance issue in V8 (Google) and JavaScriptCore (Apple) engines that results in degraded
+// performance when iterating a frozen object, and using its keys to index into a non-frozen one. We're using a frozen
+// object here to match the implementation used in https://moltar.github.io/typescript-runtime-type-benchmarks/,
+// however, making this non-frozen will produce a much better benchmark output. `bench/object/frozen.bench.ts` should be
+// used to keep track of potential bug fixes in future releases of the JavaScript engines.
+// See https://issues.chromium.org/issues/389352228.
 const data = Object.freeze({
     number: 1,
     negNumber: -1,
