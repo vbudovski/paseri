@@ -7,14 +7,18 @@ type Translations = Simplify<{ [Key in UnwrapTagged<IssueCode>]: string } & Reco
 function message(
     locale: Translations,
     code: IssueCode | CustomIssueCode,
-    placeholders: Record<string, string>,
+    placeholders: Record<string, string | string[]>,
 ): string {
     let value = locale[code];
     if (value === undefined) {
         throw new Error(`No message for code ${code}.`);
     }
 
-    for (const [placeholder, replacement] of Object.entries(placeholders)) {
+    for (let [placeholder, replacement] of Object.entries(placeholders)) {
+        if (Array.isArray(replacement)) {
+            replacement = replacement.join(' | ');
+        }
+
         value = value.replaceAll(`{${placeholder}}`, replacement);
     }
 

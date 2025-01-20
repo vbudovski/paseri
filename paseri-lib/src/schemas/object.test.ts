@@ -40,6 +40,12 @@ test('Invalid type', () => {
     );
 });
 
+test('Value', () => {
+    const shape = { foo: p.string(), bar: p.number(), baz: p.literal(123n) };
+    const schema = p.object(shape);
+    expectTypeOf(schema.shape).toEqualTypeOf<typeof shape>;
+});
+
 test('Strip', () => {
     const schema = p
         .object({

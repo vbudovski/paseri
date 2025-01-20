@@ -2,6 +2,7 @@ import { expect } from '@std/expect';
 import { expectTypeOf } from 'expect-type';
 import fc from 'fast-check';
 import * as p from '../index.ts';
+import { findDiscriminator } from './union.ts';
 
 const { test } = Deno;
 
@@ -112,4 +113,77 @@ test('Discriminated union', () => {
             },
         ),
     );
+});
+
+test('Invalid discriminator', () => {
+    const schema = p.union(
+        p.object({ shape: p.literal('circle'), radius: p.number() }),
+        p.object({ shape: p.literal('rectangle'), width: p.number(), height: p.number() }),
+    );
+
+    const result = schema.safeParse({});
+    if (!result.ok) {
+        expect(result.messages()).toEqual([
+            { path: [], message: "Invalid discriminator value. Expected 'circle' | 'rectangle'." },
+        ]);
+    } else {
+        expect(result.ok).toBeFalsy();
+    }
+});
+
+test('findDiscriminator', async (t) => {
+    await t.step('No objects', () => {
+        const elements = [p.number(), p.string()] as const;
+        const discriminators = findDiscriminator(...elements);
+        expect(discriminators).toEqual({ found: false });
+    });
+
+    await t.step('No common keys', () => {
+        const elements = [p.object({ foo: p.literal('foo') }), p.object({ bar: p.literal('bar') })] as const;
+        const discriminators = findDiscriminator(...elements);
+        expect(discriminators).toEqual({ found: false });
+    });
+
+    await t.step('One common key', () => {
+        const elements = [
+            p.object({ foo: p.literal('foo'), bar: p.literal('bar1') }),
+            p.object({ bar: p.literal('bar2'), baz: p.literal('baz') }),
+        ] as const;
+        const discriminators = findDiscriminator(...elements);
+        expect(discriminators).toEqual({
+            found: true,
+            key: 'bar',
+            schemas: new Map<string, unknown>([
+                ['bar1', elements[0]],
+                ['bar2', elements[1]],
+            ]),
+            options: ["'bar1'", "'bar2'"],
+        });
+    });
+
+    await t.step('One common key not literal', () => {
+        const elements = [
+            p.object({ foo: p.literal('foo'), bar: p.literal('bar1') }),
+            p.object({ bar: p.string(), baz: p.literal('baz') }),
+        ] as const;
+        const discriminators = findDiscriminator(...elements);
+        expect(discriminators).toEqual({ found: false });
+    });
+
+    await t.step('Two common keys', () => {
+        const elements = [
+            p.object({ foo: p.literal('foo1'), bar: p.literal('bar1') }),
+            p.object({ bar: p.literal('bar2'), baz: p.literal('baz'), foo: p.literal('foo2') }),
+        ] as const;
+        const discriminators = findDiscriminator(...elements);
+        expect(discriminators).toEqual({
+            found: true,
+            key: 'foo',
+            schemas: new Map<string, unknown>([
+                ['foo1', elements[0]],
+                ['foo2', elements[1]],
+            ]),
+            options: ["'foo1'", "'foo2'"],
+        });
+    });
 });
