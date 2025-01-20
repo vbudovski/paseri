@@ -171,7 +171,7 @@ class ObjectSchema<ShapeType extends Record<string, Schema<unknown>>> extends Sc
     merge<ShapeTypeOther extends ValidShapeType<ShapeTypeOther>>(
         other: ObjectSchema<ShapeTypeOther>,
     ): ObjectSchema<Merge<ShapeType, ShapeTypeOther>> {
-        const merged = new ObjectSchema({ ...this._shape, ...other._shape });
+        const merged = new ObjectSchema<Merge<ShapeType, ShapeTypeOther>>({ ...this._shape, ...other._shape });
         merged._mode = other._mode;
 
         return merged;

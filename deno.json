@@ -11,5 +11,8 @@
     "commitlint": "deno run --allow-env --allow-sys --allow-read --allow-write --allow-run npm:@commitlint/cli"
   },
   "workspace": ["paseri-lib"],
-  "nodeModulesDir": "auto"
+  "nodeModulesDir": "auto",
+  "compilerOptions": {
+    "exactOptionalPropertyTypes": true
+  }
 }
