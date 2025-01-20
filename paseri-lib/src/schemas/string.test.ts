@@ -550,8 +550,12 @@ test('Valid time', () => {
             fc.option(fc.integer({ min: 0, max: 8 }), { nil: undefined }),
             (date, precision) => {
                 const data = formatTime(date, precision);
+                const options: { precision?: number } = {};
+                if (precision !== undefined) {
+                    options.precision = precision;
+                }
 
-                const schema = p.string().time({ precision });
+                const schema = p.string().time(options);
                 const result = schema.safeParse(data);
                 if (result.ok) {
                     expectTypeOf(result.value).toEqualTypeOf<string>;
@@ -608,8 +612,18 @@ test('Valid datetime', () => {
             fc.boolean(),
             (date, timezone, precision, offset, local) => {
                 const data = formatDatetime(date, timezone, precision, offset, local);
+                const options: { precision?: number; offset?: boolean; local?: boolean } = {};
+                if (precision !== undefined) {
+                    options.precision = precision;
+                }
+                if (offset !== undefined) {
+                    options.offset = offset;
+                }
+                if (local !== undefined) {
+                    options.local = local;
+                }
 
-                const schema = p.string().datetime({ precision, offset, local });
+                const schema = p.string().datetime(options);
                 const result = schema.safeParse(data);
                 if (result.ok) {
                     expectTypeOf(result.value).toEqualTypeOf<string>;

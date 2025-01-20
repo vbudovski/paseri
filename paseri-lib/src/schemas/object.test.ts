@@ -200,6 +200,7 @@ test('Optional', () => {
                     baz: p.number(),
                 })
                 .optional(),
+            bif: p.number().optional(),
         })
         .optional();
 
@@ -209,6 +210,7 @@ test('Optional', () => {
                 fc.record({
                     foo: fc.string(),
                     bar: fc.option(fc.record({ baz: fc.float({ noNaN: true }) }), { nil: undefined }),
+                    bif: fc.integer(),
                 }),
                 { nil: undefined },
             ),
@@ -216,7 +218,7 @@ test('Optional', () => {
                 const result = schema.safeParse(data);
                 if (result.ok) {
                     expectTypeOf(result.value).toEqualTypeOf<
-                        { foo: string; bar: { baz: number } | undefined } | undefined
+                        { foo: string; bar?: { baz: number }; bif?: number } | undefined
                     >;
                     expect(result.value).toEqual(data);
                 } else {
