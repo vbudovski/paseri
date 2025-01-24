@@ -4,7 +4,7 @@ import { type LeafNode, type TreeNode, issueCodes } from '../issue.ts';
 import { addIssue } from '../issue.ts';
 import { type InternalParseResult, isParseSuccess } from '../result.ts';
 import { isPlainObject } from '../utils.ts';
-import { OptionalSchema, Schema } from './schema.ts';
+import { type AnySchemaType, OptionalSchema, Schema } from './schema.ts';
 
 type ValidShapeType<ShapeType> = NonEmptyObject<{
     [Key in keyof ShapeType]: ShapeType[Key] extends Schema<infer OutputType> ? Schema<OutputType> : never;
@@ -12,7 +12,7 @@ type ValidShapeType<ShapeType> = NonEmptyObject<{
 
 type Mode = 'strip' | 'strict' | 'passthrough';
 
-class ObjectSchema<ShapeType extends Record<string, Schema<unknown>>> extends Schema<Infer<ShapeType>> {
+class ObjectSchema<ShapeType extends Record<string, AnySchemaType>> extends Schema<Infer<ShapeType>> {
     private readonly _shape: ShapeType;
     private readonly _shapeKeys: string[];
     private readonly _shapeSize: number;
@@ -150,6 +150,9 @@ class ObjectSchema<ShapeType extends Record<string, Schema<unknown>>> extends Sc
 
         return undefined;
     }
+    get shape(): ShapeType {
+        return this._shape;
+    }
     strip(): ObjectSchema<ShapeType> {
         const cloned = this._clone();
         cloned._mode = 'strip';
@@ -204,4 +207,4 @@ const object = /* @__PURE__ */ <ShapeType extends ValidShapeType<ShapeType>>(
     ...args: ConstructorParameters<typeof ObjectSchema<ShapeType>>
 ): ObjectSchema<ShapeType> => new ObjectSchema(...args);
 
-export { object };
+export { object, ObjectSchema };

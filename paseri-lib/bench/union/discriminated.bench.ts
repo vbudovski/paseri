@@ -17,7 +17,6 @@ const zodSchemaDiscriminator = z.discriminatedUnion('shape', [
     z.object({ shape: z.literal('rectangle'), width: z.number(), height: z.number() }),
 ]);
 const valitaSchema = v.union(
-    // @ts-ignore TS2322 FIXME: Fails in TypeScript 5.6+.
     v.object({ shape: v.literal('circle'), radius: v.number() }),
     v.object({ shape: v.literal('rectangle'), width: v.number(), height: v.number() }),
 );

@@ -1,6 +1,7 @@
 import type { IsLiteral } from 'type-fest';
 import { type LeafNode, issueCodes } from '../issue.ts';
 import type { InternalParseResult } from '../result.ts';
+import { primitiveToString } from '../utils.ts';
 import { Schema } from './schema.ts';
 
 type LiteralType = string | number | bigint | boolean | symbol;
@@ -19,7 +20,7 @@ class LiteralSchema<OutputType extends LiteralType> extends Schema<OutputType> {
             INVALID_VALUE: {
                 type: 'leaf',
                 code: issueCodes.INVALID_VALUE,
-                expected: typeof value === 'bigint' ? `${value}n` : String(value),
+                expected: primitiveToString(value),
             },
         } as const satisfies Record<string, LeafNode>;
     }
@@ -33,6 +34,9 @@ class LiteralSchema<OutputType extends LiteralType> extends Schema<OutputType> {
 
         return undefined;
     }
+    get value(): OutputType {
+        return this._value;
+    }
 }
 
 /**
@@ -42,4 +46,4 @@ const literal = /* @__PURE__ */ <OutputType extends LiteralType>(
     ...args: ConstructorParameters<typeof LiteralSchema<OutputType>>
 ): LiteralSchema<OutputType> => new LiteralSchema(...args);
 
-export { literal };
+export { literal, LiteralSchema };

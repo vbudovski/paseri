@@ -21,10 +21,14 @@ test('String', async (t) => {
     await t.step('Invalid', () => {
         const result = schema.safeParse('banana');
         if (!result.ok) {
-            expect(result.messages()).toEqual([{ path: [], message: 'Invalid value. Expected apple.' }]);
+            expect(result.messages()).toEqual([{ path: [], message: "Invalid value. Expected 'apple'." }]);
         } else {
             expect(result.ok).toBeFalsy();
         }
+    });
+
+    await t.step('Value', () => {
+        expectTypeOf(schema.value).toEqualTypeOf<'apple'>;
     });
 });
 
@@ -49,6 +53,10 @@ test('Number', async (t) => {
             expect(result.ok).toBeFalsy();
         }
     });
+
+    await t.step('Value', () => {
+        expectTypeOf(schema.value).toEqualTypeOf<123>;
+    });
 });
 
 test('BigInt', async (t) => {
@@ -71,6 +79,10 @@ test('BigInt', async (t) => {
         } else {
             expect(result.ok).toBeFalsy();
         }
+    });
+
+    await t.step('Value', () => {
+        expectTypeOf(schema.value).toEqualTypeOf<123n>;
     });
 });
 
@@ -95,6 +107,10 @@ test('Boolean', async (t) => {
             expect(result.ok).toBeFalsy();
         }
     });
+
+    await t.step('Value', () => {
+        expectTypeOf(schema.value).toEqualTypeOf<true>;
+    });
 });
 
 test('Symbol', async (t) => {
@@ -118,10 +134,14 @@ test('Symbol', async (t) => {
 
         const result = schema.safeParse(data);
         if (!result.ok) {
-            expect(result.messages()).toEqual([{ path: [], message: 'Invalid value. Expected Symbol(test).' }]);
+            expect(result.messages()).toEqual([{ path: [], message: "Invalid value. Expected Symbol('test')." }]);
         } else {
             expect(result.ok).toBeFalsy();
         }
+    });
+
+    await t.step('Value', () => {
+        expectTypeOf(schema.value).toEqualTypeOf<typeof symbolLiteral>;
     });
 });
 

@@ -26,6 +26,7 @@ const en_GB = {
     invalid_finite: 'Number must be finite.',
     invalid_safe_integer: 'Number must be a safe integer.',
     invalid_value: 'Invalid value. Expected {expected}.',
+    invalid_discriminator_value: 'Invalid discriminator value. Expected {expected}.',
     unrecognized_key: 'Unrecognised key.',
     missing_value: 'Missing value.',
     invalid_date: 'Invalid date.',
