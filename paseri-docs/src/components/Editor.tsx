@@ -60,7 +60,8 @@ function Editor(props: EditorProps) {
     };
 
     return (
-        <LexicalComposer initialConfig={initialConfig}>
+        // Set key to force the editor to re-render on value change.
+        <LexicalComposer initialConfig={initialConfig} key={isEditable ? undefined : defaultValue}>
             <RichTextPlugin
                 contentEditable={<ContentEditable aria-labelledby={id} className={styles.editor} />}
                 ErrorBoundary={LexicalErrorBoundary}
