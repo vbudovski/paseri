@@ -6,11 +6,15 @@
     display: grid;
     gap: 1rem;
     grid-template-areas: "schema" "data" "result";
-    grid-template-columns: 1fr 1fr;
     margin-top: 1rem;
 
-    @container (min-width: 400px) {
+    @container (min-width: 350px) {
+        grid-template-columns: 1fr 1fr;
         grid-template-areas: "schema data" "result result";
+    }
+
+    @container (min-width: 600px) {
+        grid-template-areas: "schema" "data" "result";
     }
 }
 
