@@ -2,8 +2,8 @@
   "version": "4",
   "specifiers": {
     "jsr:@badrap/valita@*": "0.4.2",
-    "jsr:@std/assert@^1.0.10": "1.0.10",
-    "jsr:@std/expect@*": "1.0.10",
+    "jsr:@std/assert@^1.0.11": "1.0.11",
+    "jsr:@std/expect@1.0.12": "1.0.12",
     "jsr:@std/internal@^1.0.5": "1.0.5",
     "npm:@biomejs/biome@*": "1.9.4",
     "npm:@commitlint/cli@*": "19.6.1",
@@ -14,21 +14,21 @@
     "npm:lint-staged@*": "15.3.0",
     "npm:recheck@*": "4.4.5",
     "npm:regex@^5.1.1": "5.1.1",
-    "npm:type-fest@4.30.0": "4.30.0",
+    "npm:type-fest@4.33.0": "4.33.0",
     "npm:zod@*": "3.24.1"
   },
   "jsr": {
     "@badrap/valita@0.4.2": {
       "integrity": "af8a829e82eac71adbc7b60352798f94dcc66d19fab16b657957ca9e646c25fd"
     },
-    "@std/assert@1.0.10": {
-      "integrity": "59b5cbac5bd55459a19045d95cc7c2ff787b4f8527c0dd195078ff6f9481fbb3",
+    "@std/assert@1.0.11": {
+      "integrity": "2461ef3c368fe88bc60e186e7744a93112f16fd110022e113a0849e94d1c83c1",
       "dependencies": [
         "jsr:@std/internal"
       ]
     },
-    "@std/expect@1.0.10": {
-      "integrity": "7659b640447887cd1735f866962e10e434f12443b13595b149970c806e6f08db",
+    "@std/expect@1.0.12": {
+      "integrity": "417509358ca7c10632c2a30273c952e447020767706d8c5e11f9793e00ec9d55",
       "dependencies": [
         "jsr:@std/assert",
         "jsr:@std/internal"
@@ -854,8 +854,8 @@
         "is-number"
       ]
     },
-    "type-fest@4.30.0": {
-      "integrity": "sha512-G6zXWS1dLj6eagy6sVhOMQiLtJdxQBHIA9Z6HFUNLOlr6MFOgzV8wvmidtPONfPtEUv0uZsy77XJNzTAfwPDaA=="
+    "type-fest@4.33.0": {
+      "integrity": "sha512-s6zVrxuyKbbAsSAD5ZPTB77q4YIdRctkTbJ2/Dqlinwz+8ooH2gd+YA7VA6Pa93KML9GockVvoxjZ2vHP+mu8g=="
     },
     "typescript@5.7.2": {
       "integrity": "sha512-i5t66RHxDvVN40HfDd1PsEThGNnlMCMT3jMUuoh9/0TaqWevNontacunWyN02LA9/fIbEWlcHZcgTKb9QoaLfg=="
@@ -925,12 +925,12 @@
       "paseri-lib": {
         "dependencies": [
           "jsr:@badrap/valita@*",
-          "jsr:@std/expect@*",
+          "jsr:@std/expect@1.0.12",
           "npm:expect-type@*",
           "npm:fast-check@*",
           "npm:recheck@*",
           "npm:regex@^5.1.1",
-          "npm:type-fest@4.30.0",
+          "npm:type-fest@4.33.0",
           "npm:zod@*"
         ]
       }

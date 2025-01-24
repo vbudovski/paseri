@@ -9,12 +9,12 @@
   },
   "imports": {
     "@badrap/valita": "jsr:@badrap/valita",
-    "@std/expect": "jsr:@std/expect",
+    "@std/expect": "jsr:@std/expect@1.0.12",
     "expect-type": "npm:expect-type",
     "fast-check": "npm:fast-check",
     "recheck": "npm:recheck",
     "regex": "npm:regex@^5.1.1",
-    "type-fest": "npm:type-fest@4.30.0",
+    "type-fest": "npm:type-fest@4.33.0",
     "zod": "npm:zod"
   },
   "tasks": {

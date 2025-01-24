@@ -12,21 +12,21 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.4",
-    "@astrojs/starlight": "^0.30.3",
-    "@lexical/code": "^0.21.0",
-    "@lexical/markdown": "^0.21.0",
-    "@lexical/plain-text": "^0.21.0",
-    "@lexical/react": "^0.21.0",
-    "@types/react": "^19.0.2",
-    "@types/react-dom": "^19.0.2",
-    "astro": "^5.1.1",
-    "lexical": "^0.21.0",
+    "@astrojs/starlight": "^0.31.1",
+    "@lexical/code": "^0.23.1",
+    "@lexical/markdown": "^0.23.1",
+    "@lexical/plain-text": "^0.23.1",
+    "@lexical/react": "^0.23.1",
+    "@types/react": "^19.0.8",
+    "@types/react-dom": "^19.0.3",
+    "astro": "^5.1.9",
+    "lexical": "^0.23.1",
     "rehype-external-links": "^3.0.0",
     "sharp": "^0.33.5",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.3"
   },
   "dependencies": {
-    "@astrojs/react": "^4.1.2",
+    "@astrojs/react": "^4.1.6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
