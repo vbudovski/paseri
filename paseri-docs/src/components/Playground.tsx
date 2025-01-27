@@ -1,5 +1,4 @@
-import { useMemo, useState } from 'react';
-import * as p from '../../../paseri-lib/src/index';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Editor } from './Editor.tsx';
 import styles from './Playground.module.css';
 
@@ -59,6 +58,56 @@ function formatResult(value: unknown): string {
     return JSON.stringify(value);
 }
 
+type EditorState = { schema: string; data: string };
+
+function useWorker() {
+    const isRunning = useRef<boolean>(false);
+    const worker = useRef<Worker>(undefined);
+    const [result, setResult] = useState<Result>({ ok: true, parsedData: '' });
+
+    const startWorker = useCallback(() => {
+        console.debug(`[${new Date().getTime()}] Starting worker.`);
+        worker.current = new Worker(new URL('worker.ts', import.meta.url), { type: 'module' });
+        worker.current.onmessage = (event: MessageEvent<Result>) => {
+            setResult(event.data);
+            isRunning.current = false;
+        };
+    }, []);
+
+    const terminateWorker = useCallback(() => {
+        console.debug(`[${new Date().getTime()}] Terminating worker.`);
+        worker.current?.terminate();
+        isRunning.current = false;
+    }, []);
+
+    useEffect(() => {
+        startWorker();
+
+        return () => {
+            terminateWorker();
+        };
+    }, [startWorker, terminateWorker]);
+
+    const run = useCallback(
+        (message: EditorState) => {
+            isRunning.current = true;
+            worker.current?.postMessage(message);
+
+            setTimeout(() => {
+                if (isRunning.current) {
+                    console.debug(`[${new Date().getTime()}] Restarting worker due to timeout.`);
+                    terminateWorker();
+                    setResult({ ok: false, errors: ['Aborted due to excessive run time.'] });
+                    startWorker();
+                }
+            }, 1_000);
+        },
+        [startWorker, terminateWorker],
+    );
+
+    return { run, result };
+}
+
 interface PlaygroundProps {
     schemaDefaultValue?: string;
     dataDefaultValue?: string;
@@ -67,25 +116,16 @@ interface PlaygroundProps {
 function Playground(props: PlaygroundProps) {
     const { schemaDefaultValue = '', dataDefaultValue = '' } = props;
 
-    const [editorState, setEditorState] = useState<{ schema: string; data: string }>({
+    const { run, result } = useWorker();
+
+    const [editorState, setEditorState] = useState<EditorState>({
         schema: schemaDefaultValue,
         data: dataDefaultValue,
     });
 
-    const result: Result = useMemo(() => {
-        try {
-            return {
-                ok: true,
-                parsedData: new Function('p', `return ${editorState.schema}.parse(${editorState.data})`)(p),
-            };
-        } catch (e) {
-            if (e instanceof p.PaseriError) {
-                return { ok: false, errors: e.messages().map((message) => JSON.stringify(message)) };
-            }
-
-            return { ok: false, errors: ['Malformed input.'] };
-        }
-    }, [editorState]);
+    useEffect(() => {
+        run(editorState);
+    }, [run, editorState]);
 
     return (
         <div className={['not-content', styles.queryContainer].join(' ')}>
