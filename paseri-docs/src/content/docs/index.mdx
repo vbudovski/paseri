@@ -16,3 +16,26 @@ hero:
       icon: open-book
       variant: secondary
 ---
+import { Card, CardGrid } from "@astrojs/starlight/components";
+
+
+<CardGrid stagger>
+  <Card title="Simple" icon="seti:todo">
+    No build steps, no complicated configuration. The fluent interface allows you to model complex structures, while
+    maintaining great code readability.
+  </Card>
+
+  <Card title="Performant" icon="rocket">
+    Great care has been taken to ensure that parsing is fast. Data copying is reduced to the absolute minimum. An
+    extensive benchmarking suite prevents performance regressions.
+  </Card>
+
+  <Card title="Safe" icon="seti:lock">
+    No dynamic code execution means that you can parse in a strict content security policy environment.
+  </Card>
+
+  <Card title="Versatile" icon="list-format">
+    An extensive collection of built-in schemas is provided, allowing you to model a large variety of complex types,
+    including recursion.
+  </Card>
+</CardGrid>
