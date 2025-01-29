@@ -46,3 +46,32 @@ li a {
     margin-top: 0.2em;
     margin-bottom: 0.2em;
 }
+
+.performance-chart.not-content {
+    margin-top: 1.5rem;
+
+    @media screen and (min-width: 800px) {
+        max-width: 50%;
+    }
+
+    .charts-css.bar {
+        --color-1: var(--sl-color-accent);
+        --color-2: var(--sl-color-gray-2);
+        --color-3: var(--sl-color-gray-3);
+        --primary-axis-color: var(--sl-color-gray-1);
+        --secondary-axes-color: var(--sl-color-gray-5);
+        --aspect-ratio: 4 / 3;
+        --labels-size: 60px;
+    }
+
+    .data {
+        font-weight: 600;
+        padding-inline-end: 8px;
+        color: var(--sl-color-black);
+    }
+
+    .title-main {
+        font-size: var(--sl-text-h3);
+        line-height: var(--sl-line-height-headings);
+    }
+}

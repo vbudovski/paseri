@@ -20,6 +20,7 @@
     "@types/react": "^19.0.8",
     "@types/react-dom": "^19.0.3",
     "astro": "^5.1.9",
+    "charts.css": "^1.1.0",
     "lexical": "^0.23.1",
     "rehype-external-links": "^3.0.0",
     "sharp": "^0.33.5",

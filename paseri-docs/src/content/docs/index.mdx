@@ -16,7 +16,8 @@ hero:
       icon: open-book
       variant: secondary
 ---
-import { Card, CardGrid } from "@astrojs/starlight/components";
+import { Card, CardGrid } from '@astrojs/starlight/components';
+import 'charts.css';
 
 
 <CardGrid stagger>
@@ -39,3 +40,26 @@ import { Card, CardGrid } from "@astrojs/starlight/components";
     including recursion.
   </Card>
 </CardGrid>
+
+<div className="performance-chart not-content">
+  <table className="charts-css bar show-labels show-primary-axis show-heading data-spacing-10 show-8-secondary-axes">
+    <caption>
+      <div className="title-main">Relative performance</div>
+      <div className="title-sub">(higher is better)</div>
+    </caption>
+    <tbody>
+      <tr>
+        <th scope="row">Paseri</th>
+        <td style="--size: calc(5736440 / (739222 * 8));"><span className="data">×7.8</span></td>
+      </tr>
+      <tr>
+        <th scope="row">MyZod</th>
+        <td style="--size: calc(2856545 / (739222 * 8));"><span className="data">×3.9</span></td>
+      </tr>
+      <tr>
+        <th scope="row">Zod</th>
+        <td style="--size: calc(1 / 8);"><span className="data">×1</span></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
