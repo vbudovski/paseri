@@ -13,7 +13,7 @@
     "expect-type": "npm:expect-type",
     "fast-check": "npm:fast-check",
     "recheck": "npm:recheck",
-    "regex": "npm:regex@^5.1.1",
+    "regex": "npm:regex@^6.0.0",
     "type-fest": "npm:type-fest@4.33.0",
     "zod": "npm:zod"
   },

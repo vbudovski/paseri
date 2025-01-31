@@ -1,0 +1,36 @@
+{
+  "imports": {
+    "@astrojs/markdown-remark": "npm:@astrojs/markdown-remark",
+    "@mdx-js/mdx": "npm:@mdx-js/mdx",
+    "@vitejs/plugin-react": "npm:@vitejs/plugin-react",
+    "acorn": "npm:acorn",
+    "comma-separated-tokens": "npm:comma-separated-tokens",
+    "es-module-lexer": "npm:es-module-lexer",
+    "estree-util-visit": "npm:estree-util-visit",
+    "fs": "node:fs",
+    "hast-util-parse-selector": "npm:hast-util-parse-selector",
+    "hast-util-to-html": "npm:hast-util-to-html",
+    "kleur/colors": "npm:kleur/colors",
+    "parse-entities": "npm:parse-entities",
+    "path": "node:path",
+    "property-information": "npm:property-information",
+    "rehype-raw": "npm:rehype-raw",
+    "remark-gfm": "npm:remark-gfm",
+    "remark-smartypants": "npm:remark-smartypants",
+    "source-map": "npm:source-map",
+    "space-separated-tokens": "npm:space-separated-tokens",
+    "stringify-entities": "npm:stringify-entities",
+    "unist-util-visit": "npm:unist-util-visit",
+    "unist-util-visit-parents": "npm:unist-util-visit-parents",
+    "url": "node:url",
+    "vfile": "npm:vfile",
+    "zod": "npm:zod"
+  },
+  "tasks": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro check && astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  }
+}
