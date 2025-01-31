@@ -32,5 +32,9 @@
     "build": "astro check && astro build",
     "preview": "astro preview",
     "astro": "astro"
+  },
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "jsxImportSource": "react"
   }
 }

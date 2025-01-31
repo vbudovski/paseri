@@ -137,7 +137,7 @@ function Playground(props: PlaygroundProps) {
                     <Editor
                         id="schema"
                         onChange={(textValue) => {
-                            setEditorState((prevState) => ({
+                            setEditorState((prevState: EditorState) => ({
                                 ...prevState,
                                 schema: textValue,
                             }));
@@ -152,7 +152,7 @@ function Playground(props: PlaygroundProps) {
                     <Editor
                         id="data"
                         onChange={(textValue) => {
-                            setEditorState((prevState) => ({
+                            setEditorState((prevState: EditorState) => ({
                                 ...prevState,
                                 data: textValue,
                             }));
@@ -173,7 +173,7 @@ function Playground(props: PlaygroundProps) {
                             />
                         ) : (
                             <ul className={styles.errors}>
-                                {result.errors.map((error, index) => (
+                                {result.errors.map((error: string, index: number) => (
                                     // biome-ignore lint/suspicious/noArrayIndexKey: No better key.
                                     <li key={index}>{error}</li>
                                 ))}

@@ -11,7 +11,7 @@ import styles from './Editor.module.css';
 import { theme } from './theme.ts';
 
 interface OnChangePluginProps {
-    onChange?: (textValue: string) => void;
+    onChange?: ((textValue: string) => void) | undefined;
 }
 
 function OnChangePlugin(props: OnChangePluginProps) {
