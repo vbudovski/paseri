@@ -11,7 +11,7 @@ test('Valid type', () => {
     const schema = p.object({ foo: p.string(), 1: p.number(), [bar]: p.number() });
 
     fc.assert(
-        fc.property(fc.record({ foo: fc.string(), 1: fc.float(), [bar]: fc.integer() }), (data) => {
+        fc.property(fc.record({ foo: fc.string(), 1: fc.float({ noNaN: true }), [bar]: fc.integer() }), (data) => {
             const result = schema.safeParse(data);
             if (result.ok) {
                 expectTypeOf(result.value).toEqualTypeOf<{ foo: string; 1: number; [bar]: number }>;
