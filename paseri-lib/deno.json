@@ -9,13 +9,13 @@
   },
   "imports": {
     "@badrap/valita": "jsr:@badrap/valita",
-    "@std/expect": "jsr:@std/expect@1.0.12",
+    "@std/expect": "jsr:@std/expect@1.0.13",
     "expect-type": "npm:expect-type",
     "fast-check": "npm:fast-check",
     "recheck": "npm:recheck",
-    "regex": "npm:regex@^6.0.0",
-    "type-fest": "npm:type-fest@4.33.0",
-    "zod": "npm:zod"
+    "regex": "npm:regex@^6.0.1",
+    "type-fest": "npm:type-fest@4.34.1",
+    "zod": "npm:zod@3.24.2"
   },
   "tasks": {
     "generate_emoji": "deno run --allow-net --allow-write bin/generate_emoji.ts"

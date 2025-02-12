@@ -3,7 +3,7 @@
   "specifiers": {
     "jsr:@badrap/valita@*": "0.4.2",
     "jsr:@std/assert@^1.0.11": "1.0.11",
-    "jsr:@std/expect@1.0.12": "1.0.12",
+    "jsr:@std/expect@1.0.13": "1.0.13",
     "jsr:@std/internal@^1.0.5": "1.0.5",
     "npm:@astrojs/check@~0.9.4": "0.9.4_typescript@5.7.2",
     "npm:@astrojs/markdown-remark@*": "6.0.2",
@@ -40,8 +40,8 @@
     "npm:react-dom@19": "19.0.0_react@19.0.0",
     "npm:react@19": "19.0.0",
     "npm:recheck@*": "4.4.5",
-    "npm:regex@6": "6.0.0",
     "npm:regex@^5.1.1": "5.1.1",
+    "npm:regex@^6.0.1": "6.0.1",
     "npm:rehype-external-links@3": "3.0.0",
     "npm:rehype-raw@*": "7.0.0",
     "npm:remark-gfm@*": "4.0.0",
@@ -51,11 +51,13 @@
     "npm:space-separated-tokens@*": "2.0.2",
     "npm:stringify-entities@*": "4.0.4",
     "npm:type-fest@4.33.0": "4.33.0",
+    "npm:type-fest@4.34.1": "4.34.1",
     "npm:typescript@^5.7.3": "5.7.3",
     "npm:unist-util-visit-parents@*": "6.0.1",
     "npm:unist-util-visit@*": "5.0.0",
     "npm:vfile@*": "6.0.3",
-    "npm:zod@*": "3.24.1"
+    "npm:zod@*": "3.24.1",
+    "npm:zod@3.24.2": "3.24.2"
   },
   "jsr": {
     "@badrap/valita@0.4.2": {
@@ -67,8 +69,8 @@
         "jsr:@std/internal"
       ]
     },
-    "@std/expect@1.0.12": {
-      "integrity": "417509358ca7c10632c2a30273c952e447020767706d8c5e11f9793e00ec9d55",
+    "@std/expect@1.0.13": {
+      "integrity": "d8e236c7089cd9fcf5e6032f27dadc3db6349d0aee48c15bc71d717bca5baa42",
       "dependencies": [
         "jsr:@std/assert",
         "jsr:@std/internal"
@@ -216,7 +218,7 @@
       "dependencies": [
         "sitemap",
         "stream-replace-string",
-        "zod"
+        "zod@3.24.1"
       ]
     },
     "@astrojs/starlight@0.31.1_astro@5.2.1__vite@6.0.11__zod@3.24.1": {
@@ -1551,7 +1553,7 @@
         "xxhash-wasm",
         "yargs-parser",
         "yocto-spinner",
-        "zod",
+        "zod@3.24.1",
         "zod-to-json-schema",
         "zod-to-ts@1.2.0_typescript@5.7.3_zod@3.24.1"
       ]
@@ -1616,7 +1618,7 @@
         "xxhash-wasm",
         "yargs-parser",
         "yocto-spinner",
-        "zod",
+        "zod@3.24.1",
         "zod-to-json-schema",
         "zod-to-ts@1.2.0_typescript@5.7.2_zod@3.24.1"
       ]
@@ -1655,7 +1657,7 @@
         "chalk",
         "cli-boxes",
         "string-width@7.2.0",
-        "type-fest",
+        "type-fest@4.33.0",
         "widest-line",
         "wrap-ansi@9.0.0"
       ]
@@ -3702,8 +3704,8 @@
         "regex-utilities"
       ]
     },
-    "regex@6.0.0": {
-      "integrity": "sha512-2xXUhn4n/JISczyycYeTklPgctFFZoyORM8EBrUM7HrxebHvSwXaiDFawOeOhQOb6AGrgU2a47Iv9jml/YocCQ==",
+    "regex@6.0.1": {
+      "integrity": "sha512-uorlqlzAKjKQZ5P+kTJr3eeJGSVroLKoHmquUj4zHWuR+hEyNqlXsSKlYYF5F4NI6nl7tWCs0apKJ0lmfsXAPA==",
       "dependencies": [
         "regex-utilities"
       ]
@@ -4135,6 +4137,9 @@
     "type-fest@4.33.0": {
       "integrity": "sha512-s6zVrxuyKbbAsSAD5ZPTB77q4YIdRctkTbJ2/Dqlinwz+8ooH2gd+YA7VA6Pa93KML9GockVvoxjZ2vHP+mu8g=="
     },
+    "type-fest@4.34.1": {
+      "integrity": "sha512-6kSc32kT0rbwxD6QL1CYe8IqdzN/J/ILMrNK+HMQCKH3insCDRY/3ITb0vcBss0a3t72fzh2YSzj8ko1HgwT3g=="
+    },
     "typesafe-path@0.2.2": {
       "integrity": "sha512-OJabfkAg1WLZSqJAJ0Z6Sdt3utnbzr/jh+NAHoyWHJe8CMSy79Gm085094M9nvTPy22KzTVn5Zq5mbapCI/hPA=="
     },
@@ -4557,25 +4562,28 @@
     "zod-to-json-schema@3.24.1_zod@3.24.1": {
       "integrity": "sha512-3h08nf3Vw3Wl3PK+q3ow/lIil81IT2Oa7YpQyUUDsEWbXveMesdfK1xBd2RhCkynwZndAxixji/7SYJJowr62w==",
       "dependencies": [
-        "zod"
+        "zod@3.24.1"
       ]
     },
     "zod-to-ts@1.2.0_typescript@5.7.2_zod@3.24.1": {
       "integrity": "sha512-x30XE43V+InwGpvTySRNz9kB7qFU8DlyEy7BsSTCHPH1R0QasMmHWZDCzYm6bVXtj/9NNJAZF3jW8rzFvH5OFA==",
       "dependencies": [
         "typescript@5.7.2",
-        "zod"
+        "zod@3.24.1"
       ]
     },
     "zod-to-ts@1.2.0_typescript@5.7.3_zod@3.24.1": {
       "integrity": "sha512-x30XE43V+InwGpvTySRNz9kB7qFU8DlyEy7BsSTCHPH1R0QasMmHWZDCzYm6bVXtj/9NNJAZF3jW8rzFvH5OFA==",
       "dependencies": [
         "typescript@5.7.3",
-        "zod"
+        "zod@3.24.1"
       ]
     },
     "zod@3.24.1": {
       "integrity": "sha512-muH7gBL9sI1nciMZV67X5fTKKBLtwpZ5VBp1vsOQzj1MhrBZ4wlVCm3gedKZWLp0Oyel8sIGfeiz54Su+OVT+A=="
+    },
+    "zod@3.24.2": {
+      "integrity": "sha512-lY7CDW43ECgW9u1TcT3IoXHflywfVqDYze4waEz812jR/bZ8FHDsl7pFQoSZTz5N+2NqRXs8GBwnAwo3ZNxqhQ=="
     },
     "zwitch@2.0.4": {
       "integrity": "sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A=="
@@ -4636,13 +4644,13 @@
       "paseri-lib": {
         "dependencies": [
           "jsr:@badrap/valita@*",
-          "jsr:@std/expect@1.0.12",
+          "jsr:@std/expect@1.0.13",
           "npm:expect-type@*",
           "npm:fast-check@*",
           "npm:recheck@*",
-          "npm:regex@6",
-          "npm:type-fest@4.33.0",
-          "npm:zod@*"
+          "npm:regex@^6.0.1",
+          "npm:type-fest@4.34.1",
+          "npm:zod@3.24.2"
         ]
       }
     }
