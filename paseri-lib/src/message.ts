@@ -1,5 +1,5 @@
 import type { Simplify, UnwrapTagged } from 'type-fest';
-import type { CustomIssueCode, IssueCode, Key } from './issue.ts';
+import type { CustomIssueCode, IssueCode } from './issue.ts';
 import type { Message, TreeNode } from './issue.ts';
 
 type Translations = Simplify<{ [Key in UnwrapTagged<IssueCode>]: string } & Record<string, string | undefined>>;
@@ -25,7 +25,7 @@ function message(
     return value;
 }
 
-type StackItem = [TreeNode, Key[]];
+type StackItem = [TreeNode, PropertyKey[]];
 
 function messageList(node: TreeNode, locale: Translations): readonly Message[] {
     const messages: Message[] = [];

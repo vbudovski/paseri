@@ -12,9 +12,9 @@ type ValidShapeType<ShapeType> = NonEmptyObject<{
 
 type Mode = 'strip' | 'strict' | 'passthrough';
 
-class ObjectSchema<ShapeType extends Record<string, AnySchemaType>> extends Schema<Infer<ShapeType>> {
+class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends Schema<Infer<ShapeType>> {
     private readonly _shape: ShapeType;
-    private readonly _shapeKeys: string[];
+    private readonly _shapeKeys: PropertyKey[];
     private readonly _shapeSize: number;
     private _mode: Mode = 'strict';
 
@@ -43,8 +43,8 @@ class ObjectSchema<ShapeType extends Record<string, AnySchemaType>> extends Sche
         }
 
         let seen = 0;
-        const modifiedValues: Record<string, unknown> = {};
-        const unrecognisedKeys: Record<string, boolean> = {};
+        const modifiedValues: Record<PropertyKey, unknown> = {};
+        const unrecognisedKeys: Record<PropertyKey, boolean> = {};
         let hasUnrecognisedKey = false;
         let hasModifiedChildValue = false;
 
@@ -115,7 +115,7 @@ class ObjectSchema<ShapeType extends Record<string, AnySchemaType>> extends Sche
         }
 
         if (hasUnrecognisedKey && this._mode === 'strip' && hasModifiedChildValue) {
-            const sanitizedValue: Record<string, unknown> = {};
+            const sanitizedValue: Record<PropertyKey, unknown> = {};
             for (const key in value) {
                 if (unrecognisedKeys[key]) {
                     continue;
@@ -132,7 +132,7 @@ class ObjectSchema<ShapeType extends Record<string, AnySchemaType>> extends Sche
         }
 
         if (hasUnrecognisedKey && this._mode === 'strip' && !hasModifiedChildValue) {
-            const sanitizedValue: Record<string, unknown> = {};
+            const sanitizedValue: Record<PropertyKey, unknown> = {};
             for (const key in value) {
                 if (unrecognisedKeys[key]) {
                     continue;

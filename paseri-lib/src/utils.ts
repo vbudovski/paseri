@@ -1,6 +1,6 @@
 import type { Primitive } from 'type-fest';
 
-function isPlainObject(value: unknown): value is Record<string, unknown> {
+function isPlainObject(value: unknown): value is Record<PropertyKey, unknown> {
     return !(
         typeof value !== 'object' ||
         value === null ||

@@ -43,8 +43,6 @@ const issueCodes = {
 type IssueCode = (typeof issueCodes)[keyof typeof issueCodes];
 type CustomIssueCode = Tagged<string, 'CustomIssueCode'>;
 
-type Key = string | number;
-
 type LeafNode =
     | {
           type: 'leaf';
@@ -83,14 +81,14 @@ interface JoinNode {
 
 interface NestNode {
     type: 'nest';
-    key: Key;
+    key: PropertyKey;
     child: TreeNode;
 }
 
 type TreeNode = LeafNode | JoinNode | NestNode;
 
 interface Message {
-    path: Key[];
+    path: PropertyKey[];
     message: string;
 }
 
@@ -106,4 +104,4 @@ function addIssue(node: TreeNode | undefined, newNode: TreeNode): TreeNode {
 }
 
 export { addIssue, issueCodes };
-export type { TreeNode, LeafNode, JoinNode, IssueCode, CustomIssueCode, Message, Key };
+export type { TreeNode, LeafNode, JoinNode, IssueCode, CustomIssueCode, Message };

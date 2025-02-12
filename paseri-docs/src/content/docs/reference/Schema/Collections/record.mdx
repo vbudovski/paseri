@@ -18,7 +18,7 @@ const data = { foo: 1, bar: 2 };
 
 const result = schema.safeParse(data);
 if (result.ok) {
-    // result.value typed as `Record<string, number>`.
+    // result.value typed as `Record<string | number | symbol, number>`.
 }
 ```
 

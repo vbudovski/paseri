@@ -4,7 +4,9 @@ import { type InternalParseResult, isIssue } from '../result.ts';
 import { isPlainObject } from '../utils.ts';
 import { type AnySchemaType, Schema } from './schema.ts';
 
-class RecordSchema<ElementSchemaType extends AnySchemaType> extends Schema<Infer<Record<string, ElementSchemaType>>> {
+class RecordSchema<ElementSchemaType extends AnySchemaType> extends Schema<
+    Infer<Record<PropertyKey, ElementSchemaType>>
+> {
     private readonly _element: ElementSchemaType;
 
     private readonly issues = {
@@ -19,7 +21,7 @@ class RecordSchema<ElementSchemaType extends AnySchemaType> extends Schema<Infer
     protected _clone(): RecordSchema<ElementSchemaType> {
         return new RecordSchema(this._element);
     }
-    _parse(value: unknown): InternalParseResult<Infer<Record<string, ElementSchemaType>>> {
+    _parse(value: unknown): InternalParseResult<Infer<Record<PropertyKey, ElementSchemaType>>> {
         if (!isPlainObject(value)) {
             return this.issues.INVALID_TYPE;
         }

@@ -31,7 +31,7 @@ type InferObject<SchemaType> = Merge<InferObjectOptional<SchemaType>, InferObjec
 type Infer<SchemaType> = Simplify<
     SchemaType extends Readonly<Array<AnySchemaType>>
         ? InferArray<SchemaType>
-        : SchemaType extends Readonly<Record<string | number | symbol, AnySchemaType>>
+        : SchemaType extends Readonly<Record<PropertyKey, AnySchemaType>>
           ? InferObject<SchemaType>
           : SchemaType extends Set<Schema<infer OutputType>>
             ? Set<OutputType>
