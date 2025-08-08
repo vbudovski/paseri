@@ -11,6 +11,17 @@
       "correctness": {
         "noUnusedImports": {
           "level": "error"
+        },
+        "noUnusedVariables": {
+          "level": "error",
+          "options": {
+            "ignoreRestSiblings": true
+          }
+        }
+      },
+      "suspicious": {
+        "noDuplicateProperties": {
+          "level": "warn"
         }
       }
     }

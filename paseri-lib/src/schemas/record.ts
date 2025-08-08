@@ -1,5 +1,5 @@
 import type { Infer } from '../infer.ts';
-import { type LeafNode, type TreeNode, addIssue, issueCodes } from '../issue.ts';
+import { addIssue, issueCodes, type LeafNode, type TreeNode } from '../issue.ts';
 import { type InternalParseResult, isIssue } from '../result.ts';
 import { isPlainObject } from '../utils.ts';
 import { type AnySchemaType, Schema } from './schema.ts';
@@ -28,7 +28,7 @@ class RecordSchema<ElementSchemaType extends AnySchemaType> extends Schema<
 
         const schema = this._element;
 
-        let issue: TreeNode | undefined = undefined;
+        let issue: TreeNode | undefined;
         for (const key in value) {
             const childValue = value[key];
             const issueOrSuccess = schema._parse(childValue);

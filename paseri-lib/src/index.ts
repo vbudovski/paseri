@@ -22,6 +22,8 @@
  * ```
  */
 
+export type { Infer } from './infer.ts';
+export { err, ok, PaseriError } from './result.ts';
 export {
     array,
     bigint,
@@ -35,6 +37,7 @@ export {
     number,
     object,
     record,
+    Schema,
     set,
     string,
     symbol,
@@ -42,8 +45,4 @@ export {
     undefined_ as undefined,
     union,
     unknown,
-    Schema,
 } from './schemas/index.ts';
-export { ok, err, PaseriError } from './result.ts';
-
-export type { Infer } from './infer.ts';

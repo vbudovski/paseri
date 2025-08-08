@@ -1,5 +1,5 @@
 import type { Infer } from '../infer.ts';
-import { type LeafNode, type TreeNode, addIssue, issueCodes } from '../issue.ts';
+import { addIssue, issueCodes, type LeafNode, type TreeNode } from '../issue.ts';
 import { type InternalParseResult, isIssue } from '../result.ts';
 import type { AnySchemaType } from './schema.ts';
 import { Schema } from './schema.ts';
@@ -46,7 +46,7 @@ class SetSchema<ElementSchemaType extends AnySchemaType> extends Schema<Infer<Se
 
         const schema = this._element;
 
-        let issue: TreeNode | undefined = undefined;
+        let issue: TreeNode | undefined;
         let i = 0;
         for (const childValue of value) {
             const issueOrSuccess = schema._parse(childValue);

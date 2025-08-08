@@ -1,6 +1,5 @@
 import type { Simplify, UnwrapTagged } from 'type-fest';
-import type { CustomIssueCode, IssueCode } from './issue.ts';
-import type { Message, TreeNode } from './issue.ts';
+import type { CustomIssueCode, IssueCode, Message, TreeNode } from './issue.ts';
 
 type Translations = Simplify<{ [Key in UnwrapTagged<IssueCode>]: string } & Record<string, string | undefined>>;
 

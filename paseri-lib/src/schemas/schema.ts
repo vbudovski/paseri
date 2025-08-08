@@ -1,5 +1,5 @@
-import { ParseErrorResult, PaseriError, isParseSuccess } from '../result.ts';
 import type { InternalParseResult, ParseResult } from '../result.ts';
+import { isParseSuccess, ParseErrorResult, PaseriError } from '../result.ts';
 
 /**
  * The abstract base class for all schemas, containing the [common](https://paseri.dev/reference/schema/common/)

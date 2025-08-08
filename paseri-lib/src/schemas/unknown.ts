@@ -5,7 +5,7 @@ class UnknownSchema extends Schema<unknown> {
     protected _clone(): UnknownSchema {
         return new UnknownSchema();
     }
-    _parse(value: unknown): InternalParseResult<unknown> {
+    _parse(_value: unknown): InternalParseResult<unknown> {
         return undefined;
     }
 }

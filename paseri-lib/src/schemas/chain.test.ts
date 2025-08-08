@@ -53,7 +53,7 @@ test('Chain to schema fail', () => {
 });
 
 test('Chain transform fail', () => {
-    const schema = p.string().chain(p.number(), (value) => {
+    const schema = p.string().chain(p.number(), (_value) => {
         return p.err('foo');
     });
 

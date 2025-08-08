@@ -66,7 +66,7 @@ function useWorker() {
     const [result, setResult] = useState<Result>({ ok: true, parsedData: '' });
 
     const startWorker = useCallback(() => {
-        console.debug(`[${new Date().getTime()}] Starting worker.`);
+        console.debug(`[${Date.now()}] Starting worker.`);
         worker.current = new Worker(new URL('worker.ts', import.meta.url), { type: 'module' });
         worker.current.onmessage = (event: MessageEvent<Result>) => {
             setResult(event.data);
@@ -75,7 +75,7 @@ function useWorker() {
     }, []);
 
     const terminateWorker = useCallback(() => {
-        console.debug(`[${new Date().getTime()}] Terminating worker.`);
+        console.debug(`[${Date.now()}] Terminating worker.`);
         worker.current?.terminate();
         isRunning.current = false;
     }, []);
@@ -95,7 +95,7 @@ function useWorker() {
 
             setTimeout(() => {
                 if (isRunning.current) {
-                    console.debug(`[${new Date().getTime()}] Restarting worker due to timeout.`);
+                    console.debug(`[${Date.now()}] Restarting worker due to timeout.`);
                     terminateWorker();
                     setResult({ ok: false, errors: ['Aborted due to excessive run time.'] });
                     startWorker();
@@ -164,7 +164,7 @@ function Playground(props: PlaygroundProps) {
                     <div id="result" className={styles.label}>
                         Result
                     </div>
-                    <div aria-labelledby="result">
+                    <div role="note" aria-labelledby="result">
                         {result.ok ? (
                             <Editor
                                 id="result"
