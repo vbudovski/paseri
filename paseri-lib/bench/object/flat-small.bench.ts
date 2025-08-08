@@ -9,7 +9,7 @@ const paseriSchema = p.object({
     string2: p.string(),
     string3: p.string(),
 });
-const zodSchema = z.object({
+const zodSchema = z.strictObject({
     string1: z.string(),
     string2: z.string(),
     string3: z.string(),

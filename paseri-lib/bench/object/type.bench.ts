@@ -9,10 +9,10 @@ const paseriSchema = p.object({
     object1: p.object({ string2: p.string() }),
     object2: p.object({ object3: p.object({ string3: p.string() }) }),
 });
-const zodSchema = z.object({
+const zodSchema = z.strictObject({
     string1: z.string(),
-    object1: z.object({ string2: z.string() }),
-    object2: z.object({ object3: z.object({ string3: z.string() }) }),
+    object1: z.strictObject({ string2: z.string() }),
+    object2: z.strictObject({ object3: z.strictObject({ string3: z.string() }) }),
 });
 const valitaSchema = v.object({
     string1: v.string(),
