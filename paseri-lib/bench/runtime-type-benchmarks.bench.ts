@@ -55,23 +55,20 @@ const paseriSchemaPassthrough = p
             .passthrough(),
     })
     .passthrough();
-const zodSchemaStrict = z
-    .object({
-        number: z.number(),
-        negNumber: z.number(),
-        maxNumber: z.number(),
-        string: z.string(),
-        longString: z.string(),
-        boolean: z.boolean(),
-        deeplyNested: z
-            .object({
-                foo: z.string(),
-                num: z.number(),
-                bool: z.boolean(),
-            })
-            .strict(),
-    })
-    .strict();
+const zodSchemaStrict = z.strictObject({
+    number: z.number(),
+    negNumber: z.number(),
+    maxNumber: z.number(),
+    string: z.string(),
+    longString: z.string(),
+    boolean: z.boolean(),
+    deeplyNested: z.strictObject({
+        foo: z.string(),
+        num: z.number(),
+        bool: z.boolean(),
+    }),
+});
+// TODO: Decide what to do with the now-deprecated strip option.
 const zodSchemaStrip = z
     .object({
         number: z.number(),
@@ -89,23 +86,19 @@ const zodSchemaStrip = z
             .strip(),
     })
     .strip();
-const zodSchemaPassthrough = z
-    .object({
-        number: z.number(),
-        negNumber: z.number(),
-        maxNumber: z.number(),
-        string: z.string(),
-        longString: z.string(),
-        boolean: z.boolean(),
-        deeplyNested: z
-            .object({
-                foo: z.string(),
-                num: z.number(),
-                bool: z.boolean(),
-            })
-            .passthrough(),
-    })
-    .passthrough();
+const zodSchemaPassthrough = z.looseObject({
+    number: z.number(),
+    negNumber: z.number(),
+    maxNumber: z.number(),
+    string: z.string(),
+    longString: z.string(),
+    boolean: z.boolean(),
+    deeplyNested: z.looseObject({
+        foo: z.string(),
+        num: z.number(),
+        bool: z.boolean(),
+    }),
+});
 const valitaSchema = v.object({
     number: v.number(),
     negNumber: v.number(),

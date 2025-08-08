@@ -1,5 +1,5 @@
 import type { Infer } from '../infer.ts';
-import { type LeafNode, type TreeNode, addIssue, issueCodes } from '../issue.ts';
+import { addIssue, issueCodes, type LeafNode, type TreeNode } from '../issue.ts';
 import { type InternalParseResult, isIssue } from '../result.ts';
 import { type AnySchemaType, Schema } from './schema.ts';
 
@@ -39,7 +39,7 @@ class TupleSchema<TupleSchemaType extends ValidTupleSchemaType> extends Schema<I
             return this.issues.TOO_SHORT;
         }
 
-        let issue: TreeNode | undefined = undefined;
+        let issue: TreeNode | undefined;
         for (let i = 0; i < length; i++) {
             const schema = this._schemas[i];
             const elementValue = value[i];

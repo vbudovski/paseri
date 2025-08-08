@@ -1,4 +1,4 @@
-import { type LeafNode, type TreeNode, issueCodes } from '../issue.ts';
+import { issueCodes, type LeafNode, type TreeNode } from '../issue.ts';
 import type { InternalParseResult } from '../result.ts';
 import { Schema } from './schema.ts';
 

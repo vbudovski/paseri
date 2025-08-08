@@ -1,7 +1,6 @@
 import type { IsEqual, Merge, NonEmptyObject, TupleToUnion } from 'type-fest';
 import type { Infer } from '../infer.ts';
-import { type LeafNode, type TreeNode, issueCodes } from '../issue.ts';
-import { addIssue } from '../issue.ts';
+import { addIssue, issueCodes, type LeafNode, type TreeNode } from '../issue.ts';
 import { type InternalParseResult, isParseSuccess } from '../result.ts';
 import { isPlainObject } from '../utils.ts';
 import { type AnySchemaType, OptionalSchema, Schema } from './schema.ts';
@@ -48,7 +47,7 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
         let hasUnrecognisedKey = false;
         let hasModifiedChildValue = false;
 
-        let issue: TreeNode | undefined = undefined;
+        let issue: TreeNode | undefined;
         for (const key in value) {
             const schema = this._shape[key];
             if (schema) {

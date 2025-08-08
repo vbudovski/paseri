@@ -7,7 +7,7 @@ const { bench } = Deno;
 const paseriSchema = p.object({
     string1: p.string(),
 });
-const zodSchema = z.object({
+const zodSchema = z.strictObject({
     string1: z.string(),
 });
 const valitaSchema = v.object({

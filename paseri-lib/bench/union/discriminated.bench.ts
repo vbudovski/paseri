@@ -9,12 +9,12 @@ const paseriSchema = p.union(
     p.object({ shape: p.literal('rectangle'), width: p.number(), height: p.number() }),
 );
 const zodSchemaRegular = z.union([
-    z.object({ shape: z.literal('circle'), radius: z.number() }),
-    z.object({ shape: z.literal('rectangle'), width: z.number(), height: z.number() }),
+    z.strictObject({ shape: z.literal('circle'), radius: z.number() }),
+    z.strictObject({ shape: z.literal('rectangle'), width: z.number(), height: z.number() }),
 ]);
 const zodSchemaDiscriminator = z.discriminatedUnion('shape', [
-    z.object({ shape: z.literal('circle'), radius: z.number() }),
-    z.object({ shape: z.literal('rectangle'), width: z.number(), height: z.number() }),
+    z.strictObject({ shape: z.literal('circle'), radius: z.number() }),
+    z.strictObject({ shape: z.literal('rectangle'), width: z.number(), height: z.number() }),
 ]);
 const valitaSchema = v.union(
     v.object({ shape: v.literal('circle'), radius: v.number() }),

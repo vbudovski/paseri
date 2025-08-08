@@ -10,6 +10,7 @@ export { null_ } from './null.ts';
 export { number } from './number.ts';
 export { object } from './object.ts';
 export { record } from './record.ts';
+export { Schema } from './schema.ts';
 export { set } from './set.ts';
 export { string } from './string.ts';
 export { symbol } from './symbol.ts';
@@ -17,5 +18,3 @@ export { tuple } from './tuple.ts';
 export { undefined_ } from './undefined.ts';
 export { union } from './union.ts';
 export { unknown } from './unknown.ts';
-
-export { Schema } from './schema.ts';

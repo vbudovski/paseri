@@ -1,5 +1,5 @@
 import type { Infer } from '../infer.ts';
-import { type LeafNode, type TreeNode, addIssue, issueCodes } from '../issue.ts';
+import { addIssue, issueCodes, type LeafNode, type TreeNode } from '../issue.ts';
 import { type InternalParseResult, isIssue } from '../result.ts';
 import type { AnySchemaType } from './schema.ts';
 import { Schema } from './schema.ts';
@@ -49,10 +49,10 @@ class MapSchema<
 
         const [elementKeySchema, elementValueSchema] = this._element;
 
-        let issue: TreeNode | undefined = undefined;
+        let issue: TreeNode | undefined;
         let i = 0;
         for (const [childKey, childValue] of value) {
-            let childIssue: TreeNode | undefined = undefined;
+            let childIssue: TreeNode | undefined;
 
             let issueOrSuccess = elementKeySchema._parse(childKey);
             if (issueOrSuccess !== undefined && isIssue(issueOrSuccess)) {

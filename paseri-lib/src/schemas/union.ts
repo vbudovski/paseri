@@ -1,6 +1,6 @@
 import type { TupleToUnion } from 'type-fest';
 import type { Infer } from '../infer.ts';
-import { type LeafNode, type TreeNode, addIssue, issueCodes } from '../issue.ts';
+import { addIssue, issueCodes, type LeafNode, type TreeNode } from '../issue.ts';
 import type { InternalParseResult } from '../result.ts';
 import { isParseSuccess } from '../result.ts';
 import { isPlainObject, primitiveToString } from '../utils.ts';
@@ -95,7 +95,7 @@ class UnionSchema<TupleType extends ValidTupleType> extends Schema<Infer<TupleTo
         return this.issues.INVALID_DISCRIMINATOR_VALUE;
     }
     _parseRegular(value: unknown): InternalParseResult<Infer<TupleToUnion<TupleType>>> {
-        let issue: TreeNode | undefined = undefined;
+        let issue: TreeNode | undefined;
         for (let i = 0; i < this._elements.length; i++) {
             const schema = this._elements[i];
             const issueOrSuccess = schema._parse(value);

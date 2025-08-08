@@ -9,7 +9,7 @@ test('Valid type', () => {
     const schema = p.date();
 
     fc.assert(
-        fc.property(fc.date(), (data) => {
+        fc.property(fc.date({ noInvalidDate: true }), (data) => {
             const result = schema.safeParse(data);
             if (result.ok) {
                 expectTypeOf(result.value).toEqualTypeOf<Date>;
@@ -51,7 +51,7 @@ test('Valid min', () => {
     const schema = p.date().min(new Date(2020, 0, 1));
 
     fc.assert(
-        fc.property(fc.date({ min: new Date(2020, 0, 1) }), (data) => {
+        fc.property(fc.date({ min: new Date(2020, 0, 1), noInvalidDate: true }), (data) => {
             const result = schema.safeParse(data);
             if (result.ok) {
                 expectTypeOf(result.value).toEqualTypeOf<Date>;
@@ -67,7 +67,7 @@ test('Invalid min', () => {
     const schema = p.date().min(new Date(2020, 0, 1));
 
     fc.assert(
-        fc.property(fc.date({ max: new Date(2019, 11, 31) }), (data) => {
+        fc.property(fc.date({ max: new Date(2019, 11, 31), noInvalidDate: true }), (data) => {
             const result = schema.safeParse(data);
             if (!result.ok) {
                 expect(result.messages()).toEqual([{ path: [], message: 'Too dated.' }]);
@@ -82,7 +82,7 @@ test('Valid max', () => {
     const schema = p.date().max(new Date(2020, 0, 1));
 
     fc.assert(
-        fc.property(fc.date({ max: new Date(2020, 0, 1) }), (data) => {
+        fc.property(fc.date({ max: new Date(2020, 0, 1), noInvalidDate: true }), (data) => {
             const result = schema.safeParse(data);
             if (result.ok) {
                 expectTypeOf(result.value).toEqualTypeOf<Date>;
@@ -98,7 +98,7 @@ test('Invalid max', () => {
     const schema = p.date().max(new Date(2020, 0, 1));
 
     fc.assert(
-        fc.property(fc.date({ min: new Date(2020, 0, 2) }), (data) => {
+        fc.property(fc.date({ min: new Date(2020, 0, 2), noInvalidDate: true }), (data) => {
             const result = schema.safeParse(data);
             if (!result.ok) {
                 expect(result.messages()).toEqual([{ path: [], message: 'Too recent.' }]);
@@ -113,7 +113,7 @@ test('Optional', () => {
     const schema = p.date().optional();
 
     fc.assert(
-        fc.property(fc.option(fc.date(), { nil: undefined }), (data) => {
+        fc.property(fc.option(fc.date({ noInvalidDate: true }), { nil: undefined }), (data) => {
             const result = schema.safeParse(data);
             if (result.ok) {
                 expectTypeOf(result.value).toEqualTypeOf<Date | undefined>;
@@ -129,7 +129,7 @@ test('Nullable', () => {
     const schema = p.date().nullable();
 
     fc.assert(
-        fc.property(fc.option(fc.date(), { nil: null }), (data) => {
+        fc.property(fc.option(fc.date({ noInvalidDate: true }), { nil: null }), (data) => {
             const result = schema.safeParse(data);
             if (result.ok) {
                 expectTypeOf(result.value).toEqualTypeOf<Date | null>;

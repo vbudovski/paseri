@@ -1,4 +1,4 @@
-import { type LeafNode, issueCodes } from '../issue.ts';
+import { issueCodes, type LeafNode } from '../issue.ts';
 import type { InternalParseResult } from '../result.ts';
 import { Schema } from './schema.ts';
 
@@ -10,7 +10,7 @@ class NeverSchema extends Schema<never> {
     protected _clone(): NeverSchema {
         return new NeverSchema();
     }
-    _parse(value: unknown): InternalParseResult<never> {
+    _parse(_value: unknown): InternalParseResult<never> {
         return this.issues.INVALID_TYPE;
     }
 }

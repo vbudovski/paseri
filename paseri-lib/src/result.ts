@@ -1,6 +1,6 @@
 import type { CustomIssueCode, Message, TreeNode } from './issue.ts';
 import { en } from './locales/index.ts';
-import { type Translations, messageList } from './message.ts';
+import { messageList, type Translations } from './message.ts';
 
 interface ParseSuccessResult<OutputType> {
     readonly ok: true;

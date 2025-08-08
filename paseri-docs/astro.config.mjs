@@ -1,17 +1,23 @@
 import react from '@astrojs/react';
+import sitemap from '@astrojs/sitemap';
 import starlight from '@astrojs/starlight';
 import { defineConfig } from 'astro/config';
 import rehypeExternalLinks from 'rehype-external-links';
 
 // https://astro.build/config
 export default defineConfig({
+    site: 'https://paseri.dev',
     integrations: [
         starlight({
             title: 'Paseri',
             customCss: ['./src/styles/custom.css'],
-            social: {
-                github: 'https://github.com/vbudovski/paseri',
-            },
+            social: [
+                {
+                    icon: 'github',
+                    label: 'GitHub',
+                    href: 'https://github.com/vbudovski/paseri',
+                },
+            ],
             sidebar: [
                 {
                     label: 'About',
@@ -29,6 +35,7 @@ export default defineConfig({
             ],
         }),
         react(),
+        sitemap(),
     ],
     markdown: {
         rehypePlugins: [

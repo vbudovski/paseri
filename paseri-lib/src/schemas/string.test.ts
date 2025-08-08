@@ -497,7 +497,7 @@ test('Valid date', () => {
 
     fc.assert(
         fc.property(
-            fc.date({ min: new Date(0, 0, 1), max: new Date(9999, 11, 31) }).map((value) => {
+            fc.date({ min: new Date(0, 0, 1), max: new Date(9999, 11, 31), noInvalidDate: true }).map((value) => {
                 return formatDate(value);
             }),
             (data) => {
@@ -546,7 +546,7 @@ test('Date ReDoS', () => {
 test('Valid time', () => {
     fc.assert(
         fc.property(
-            fc.date({ min: new Date(0, 0, 1), max: new Date(9999, 11, 31) }),
+            fc.date({ min: new Date(0, 0, 1), max: new Date(9999, 11, 31), noInvalidDate: true }),
             fc.option(fc.integer({ min: 0, max: 8 }), { nil: undefined }),
             (date, precision) => {
                 const data = formatTime(date, precision);
@@ -605,7 +605,7 @@ test('Time ReDoS', () => {
 test('Valid datetime', () => {
     fc.assert(
         fc.property(
-            fc.date({ min: new Date(0, 0, 1), max: new Date(9999, 11, 31) }),
+            fc.date({ min: new Date(0, 0, 1), max: new Date(9999, 11, 31), noInvalidDate: true }),
             fc.integer({ min: -1000, max: 1000 }),
             fc.option(fc.integer({ min: 0, max: 8 }), { nil: undefined }),
             fc.boolean(),

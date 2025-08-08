@@ -1,4 +1,4 @@
-import * as p from '../../../paseri-lib/src/index.ts';
+import * as p from '@vbudovski/paseri';
 
 self.onmessage = (event: MessageEvent<{ schema: string; data: string }>) => {
     const { schema, data } = event.data;
