@@ -10,7 +10,7 @@
     "check": "deno run --allow-env --allow-read --allow-run npm:@biomejs/biome check",
     "commitlint": "deno run --allow-env --allow-sys --allow-read --allow-write --allow-run npm:@commitlint/cli"
   },
-  "workspace": ["paseri-lib", "paseri-docs"],
+  "workspace": ["paseri-lib"],
   "nodeModulesDir": "auto",
   "compilerOptions": {
     "exactOptionalPropertyTypes": true

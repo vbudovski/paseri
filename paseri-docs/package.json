@@ -20,11 +20,14 @@
     "@lexical/react": "^0.34.0",
     "@types/react": "^19.0.8",
     "@types/react-dom": "^19.0.3",
+    "@vbudovski/paseri": "npm:@jsr/vbudovski__paseri@^0.1.20",
     "astro": "^5.2.1",
     "charts.css": "^1.2.0",
     "lexical": "^0.34.0",
+    "regex": "^6.0.1",
     "rehype-external-links": "^3.0.0",
-    "sharp": "^0.34.3"
+    "sharp": "^0.34.3",
+    "zod": "^3.25.76"
   },
   "dependencies": {
     "@astrojs/react": "^4.2.0",
@@ -35,9 +38,6 @@
     "@astrojs/react": {
       "react": "^19.0.0",
       "react-dom": "^19.0.0"
-    },
-    "astro": {
-      "zod": "^3.25.76"
     }
   },
   "packageManager": "pnpm@10.14.0+sha512.ad27a79641b49c3e481a16a805baa71817a04bbe06a38d17e60e2eaee83f6a146c6a688125f5792e48dd5ba30e7da52a5cda4c3992b9ccf333f9ce223af84748"
