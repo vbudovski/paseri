@@ -4,7 +4,7 @@ import * as p from '../../src/index.ts';
 const { bench } = Deno;
 
 const paseriSchema = p.string().cidr();
-const zodSchema = z.string().cidr();
+const zodSchema = z.cidrv4().or(z.cidrv6());
 
 const dataValid = '10.0.0.0/22';
 const dataInvalid = '127.0.0.1';
