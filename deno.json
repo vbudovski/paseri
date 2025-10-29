@@ -13,6 +13,7 @@
   "workspace": ["paseri-lib"],
   "nodeModulesDir": "auto",
   "compilerOptions": {
-    "exactOptionalPropertyTypes": true
+    "exactOptionalPropertyTypes": true,
+    "isolatedDeclarations": true
   }
 }

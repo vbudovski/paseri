@@ -66,7 +66,7 @@ https://paseri.dev
 
 ## Developer guide
 
-Paseri uses the [Deno](https://deno.com/) runtime rather than Node, and requires Deno 2.1.4 or later. Packages are
+Paseri uses the [Deno](https://deno.com/) runtime rather than Node, and requires Deno 2.5.5 or later. Packages are
 published to the [JSR registry](https://jsr.io/) only, and publishing is performed automatically by CI.
 
 * `paseri-lib` contains the sources for the library.
