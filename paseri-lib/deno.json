@@ -9,13 +9,13 @@
   },
   "imports": {
     "@badrap/valita": "jsr:@badrap/valita@0.4.6",
-    "@std/expect": "jsr:@std/expect@1.0.16",
+    "@std/expect": "jsr:@std/expect@1.0.17",
     "expect-type": "npm:expect-type@1.2.2",
-    "fast-check": "npm:fast-check@4.2.0",
-    "recheck": "npm:recheck@4.4.5",
+    "fast-check": "npm:fast-check@4.3.0",
+    "recheck": "npm:recheck@4.5.0",
     "regex": "npm:regex@^6.0.1",
-    "type-fest": "npm:type-fest@4.41.0",
-    "zod": "npm:zod@4.0.15"
+    "type-fest": "npm:type-fest@5.1.0",
+    "zod": "npm:zod@4.1.12"
   },
   "tasks": {
     "generate_emoji": "deno run --allow-net --allow-write bin/generate_emoji.ts"
@@ -23,6 +23,12 @@
   "lint": {
     "rules": {
       "exclude": ["no-explicit-any", "no-unused-vars"]
+    }
+  },
+  "test": {
+    "permissions": {
+      "env": true,
+      "read": true
     }
   },
   "publish": {

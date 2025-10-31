@@ -1,7 +1,7 @@
 import { expect } from '@std/expect';
 import { expectTypeOf } from 'expect-type';
 import fc from 'fast-check';
-import { checkSync } from 'recheck';
+import { check } from 'recheck';
 import emoji from '../emoji.json' with { type: 'json' };
 import * as p from '../index.ts';
 import {
@@ -228,9 +228,9 @@ test('Invalid email', () => {
     );
 });
 
-test('Email ReDoS', () => {
+test('Email ReDoS', async () => {
     const regex = emailRegex();
-    const diagnostics = checkSync(regex.source, regex.flags.replace('v', 'u'));
+    const diagnostics = await check(regex.source, regex.flags.replace('v', 'u'));
     if (diagnostics.status === 'vulnerable') {
         console.log(`Vulnerable pattern: ${diagnostics.attack.pattern}`);
     } else if (diagnostics.status === 'unknown') {
@@ -282,9 +282,9 @@ test('Invalid emoji', () => {
     );
 });
 
-test('Emoji ReDoS', () => {
+test('Emoji ReDoS', async () => {
     const regex = emojiRegex();
-    const diagnostics = checkSync(regex.source, regex.flags.replace('v', 'u'));
+    const diagnostics = await check(regex.source, regex.flags.replace('v', 'u'));
     if (diagnostics.status === 'vulnerable') {
         console.log(`Vulnerable pattern: ${diagnostics.attack.pattern}`);
     } else if (diagnostics.status === 'unknown') {
@@ -328,9 +328,9 @@ test('Invalid UUID', () => {
     );
 });
 
-test('UUID ReDoS', () => {
+test('UUID ReDoS', async () => {
     const regex = uuidRegex();
-    const diagnostics = checkSync(regex.source, regex.flags.replace('v', 'u'));
+    const diagnostics = await check(regex.source, regex.flags.replace('v', 'u'));
     if (diagnostics.status === 'vulnerable') {
         console.log(`Vulnerable pattern: ${diagnostics.attack.pattern}`);
     } else if (diagnostics.status === 'unknown') {
@@ -376,9 +376,9 @@ test('Invalid Nano ID', () => {
     );
 });
 
-test('Nano ID ReDoS', () => {
+test('Nano ID ReDoS', async () => {
     const regex = nanoidRegex();
-    const diagnostics = checkSync(regex.source, regex.flags);
+    const diagnostics = await check(regex.source, regex.flags);
     if (diagnostics.status === 'vulnerable') {
         console.log(`Vulnerable pattern: ${diagnostics.attack.pattern}`);
     } else if (diagnostics.status === 'unknown') {
@@ -532,9 +532,9 @@ test('Invalid date', () => {
     );
 });
 
-test('Date ReDoS', () => {
+test('Date ReDoS', async () => {
     const regex = dateRegex();
-    const diagnostics = checkSync(regex.source, regex.flags.replace('v', 'u'));
+    const diagnostics = await check(regex.source, regex.flags.replace('v', 'u'));
     if (diagnostics.status === 'vulnerable') {
         console.log(`Vulnerable pattern: ${diagnostics.attack.pattern}`);
     } else if (diagnostics.status === 'unknown') {
@@ -590,13 +590,14 @@ test('Time ReDoS', () => {
     fc.assert(
         fc.property(fc.option(fc.integer({ min: 0, max: 8 }), { nil: undefined }), (precision) => {
             const regex = timeRegex(precision);
-            const diagnostics = checkSync(regex.source, regex.flags.replace('v', 'u'));
-            if (diagnostics.status === 'vulnerable') {
-                console.log(`Vulnerable pattern: ${diagnostics.attack.pattern}`);
-            } else if (diagnostics.status === 'unknown') {
-                console.log(`Error: ${diagnostics.error.kind}.`);
-            }
-            expect(diagnostics.status).toBe('safe');
+            check(regex.source, regex.flags.replace('v', 'u')).then((diagnostics) => {
+                if (diagnostics.status === 'vulnerable') {
+                    console.log(`Vulnerable pattern: ${diagnostics.attack.pattern}`);
+                } else if (diagnostics.status === 'unknown') {
+                    console.log(`Error: ${diagnostics.error.kind}.`);
+                }
+                expect(diagnostics.status).toBe('safe');
+            });
         }),
         { ignoreEqualValues: true },
     );
@@ -662,13 +663,14 @@ test('Datetime ReDoS', () => {
             fc.boolean(),
             (precision, offset, local) => {
                 const regex = datetimeRegex(precision, offset, local);
-                const diagnostics = checkSync(regex.source, regex.flags.replace('v', 'u'));
-                if (diagnostics.status === 'vulnerable') {
-                    console.log(`Vulnerable pattern: ${diagnostics.attack.pattern}`);
-                } else if (diagnostics.status === 'unknown') {
-                    console.log(`Error: ${diagnostics.error.kind}.`);
-                }
-                expect(diagnostics.status).toBe('safe');
+                check(regex.source, regex.flags.replace('v', 'u')).then((diagnostics) => {
+                    if (diagnostics.status === 'vulnerable') {
+                        console.log(`Vulnerable pattern: ${diagnostics.attack.pattern}`);
+                    } else if (diagnostics.status === 'unknown') {
+                        console.log(`Error: ${diagnostics.error.kind}.`);
+                    }
+                    expect(diagnostics.status).toBe('safe');
+                });
             },
         ),
         { ignoreEqualValues: true },
@@ -713,13 +715,14 @@ test('ip ReDoS', () => {
     fc.assert(
         fc.property(fc.constantFrom(4 as const, 6 as const, undefined), (version) => {
             const regex = ipRegex(version);
-            const diagnostics = checkSync(regex.source, regex.flags.replace('v', 'u'), { timeout: 20_000 });
-            if (diagnostics.status === 'vulnerable') {
-                console.log(`Vulnerable pattern: ${diagnostics.attack.pattern}`);
-            } else if (diagnostics.status === 'unknown') {
-                console.log(`Error: ${diagnostics.error.kind}.`);
-            }
-            expect(diagnostics.status).toBe('safe');
+            check(regex.source, regex.flags.replace('v', 'u'), { timeout: 20_000 }).then((diagnostics) => {
+                if (diagnostics.status === 'vulnerable') {
+                    console.log(`Vulnerable pattern: ${diagnostics.attack.pattern}`);
+                } else if (diagnostics.status === 'unknown') {
+                    console.log(`Error: ${diagnostics.error.kind}.`);
+                }
+                expect(diagnostics.status).toBe('safe');
+            });
         }),
         { ignoreEqualValues: true },
     );
@@ -769,13 +772,14 @@ test('cidr ReDoS', () => {
     fc.assert(
         fc.property(fc.constantFrom(4 as const, 6 as const, undefined), (version) => {
             const regex = ipCidrRegex(version);
-            const diagnostics = checkSync(regex.source, regex.flags.replace('v', 'u'), { timeout: 20_000 });
-            if (diagnostics.status === 'vulnerable') {
-                console.log(`Vulnerable pattern: ${diagnostics.attack.pattern}`);
-            } else if (diagnostics.status === 'unknown') {
-                console.log(`Error: ${diagnostics.error.kind}.`);
-            }
-            expect(diagnostics.status).toBe('safe');
+            check(regex.source, regex.flags.replace('v', 'u'), { timeout: 20_000 }).then((diagnostics) => {
+                if (diagnostics.status === 'vulnerable') {
+                    console.log(`Vulnerable pattern: ${diagnostics.attack.pattern}`);
+                } else if (diagnostics.status === 'unknown') {
+                    console.log(`Error: ${diagnostics.error.kind}.`);
+                }
+                expect(diagnostics.status).toBe('safe');
+            });
         }),
         { ignoreEqualValues: true },
     );

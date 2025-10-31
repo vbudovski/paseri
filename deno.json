@@ -1,7 +1,7 @@
 {
   "imports": {
-    "@commitlint/config-conventional": "npm:@commitlint/config-conventional@^19.6.0",
-    "@commitlint/types": "npm:@commitlint/types@^19.5.0"
+    "@commitlint/config-conventional": "npm:@commitlint/config-conventional@^20.0.0",
+    "@commitlint/types": "npm:@commitlint/types@^20.0.0"
   },
   "tasks": {
     "init": "deno run --allow-env --allow-read --allow-write --allow-run npm:husky",
