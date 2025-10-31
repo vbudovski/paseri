@@ -37,7 +37,7 @@ jobs:
       - name: Run tests
         id: tests
         run: |
-          deno test --coverage
+          deno test -P --coverage
           echo "CODE_COVERAGE=$(deno coverage | grep "All files" | sed 's/\x1B\[[0-9;]\{1,\}[A-Za-z]//g' | cut -d '|' -f 3 | xargs)" >> $GITHUB_OUTPUT
           echo "GIST_PATH=$(echo "${{ github.repository }}/${{ github.ref_name }}" | sed 's/\//_/g')-coverage.svg" >> $GITHUB_OUTPUT
 
