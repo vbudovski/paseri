@@ -1,3 +1,5 @@
+import type { StandardSchemaV1 } from '@standard-schema/spec';
+import type { Translations } from '../message.ts';
 import type { InternalParseResult, ParseResult } from '../result.ts';
 import { isParseSuccess, ParseErrorResult, PaseriError } from '../result.ts';
 
@@ -5,7 +7,28 @@ import { isParseSuccess, ParseErrorResult, PaseriError } from '../result.ts';
  * The abstract base class for all schemas, containing the [common](https://paseri.dev/reference/schema/common/)
  * interface.
  */
-abstract class Schema<OutputType> {
+abstract class Schema<OutputType> implements StandardSchemaV1<unknown, OutputType> {
+    get '~standard'(): StandardSchemaV1.Props<OutputType> {
+        // deno-lint-ignore no-this-alias
+        const self = this;
+
+        return {
+            version: 1,
+            vendor: 'paseri',
+            validate(
+                value: unknown,
+                options?: StandardSchemaV1.Options | undefined,
+            ): StandardSchemaV1.Result<OutputType> {
+                const result = self.safeParse(value);
+                if (result.ok) {
+                    return { value: result.value };
+                }
+
+                return { issues: result.messages(options?.libraryOptions?.locale as Translations | undefined) };
+            },
+        };
+    }
+
     protected abstract _clone(): Schema<OutputType>;
     public abstract _parse(value: unknown): InternalParseResult<OutputType>;
     parse(value: unknown): OutputType {
