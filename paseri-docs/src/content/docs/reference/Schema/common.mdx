@@ -116,3 +116,9 @@ const schema = p.object({
 type MySchema = p.Infer<typeof schema>;
 // MySchema will be { foo: string, bar: number }.
 ```
+
+## Standard Schema
+
+Paseri also provides an interface that's compatible with [Standard Schema](https://standardschema.dev/schema). This
+makes it possible to use Paseri with a number of tools and frameworks without having to write custom wrappers. See the
+link above for some examples.

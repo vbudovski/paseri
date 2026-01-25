@@ -2,10 +2,16 @@
   "version": "5",
   "specifiers": {
     "jsr:@badrap/valita@0.4.6": "0.4.6",
-    "jsr:@std/assert@^1.0.14": "1.0.15",
+    "jsr:@standard-schema/spec@^1.1.0": "1.1.0",
+    "jsr:@std/assert@^1.0.14": "1.0.17",
+    "jsr:@std/assert@^1.0.17": "1.0.17",
+    "jsr:@std/data-structures@^1.0.10": "1.0.10",
     "jsr:@std/expect@1.0.17": "1.0.17",
+    "jsr:@std/fs@^1.0.22": "1.0.22",
     "jsr:@std/internal@^1.0.10": "1.0.12",
     "jsr:@std/internal@^1.0.12": "1.0.12",
+    "jsr:@std/path@^1.1.4": "1.1.4",
+    "jsr:@std/testing@^1.0.17": "1.0.17",
     "npm:@biomejs/biome@*": "2.1.4",
     "npm:@commitlint/cli@*": "19.8.1",
     "npm:@commitlint/config-conventional@20": "20.0.0",
@@ -22,21 +28,55 @@
     "@badrap/valita@0.4.6": {
       "integrity": "969eb9bde94e6f4b6c922b8167bfd3f38815d85f992ae964fb027ab10720625d"
     },
+    "@standard-schema/spec@1.1.0": {
+      "integrity": "2ccd54513cd9c960bd155ab569b1a901bc99c6f9ad29559d3f38a28c91c1822d"
+    },
     "@std/assert@1.0.15": {
       "integrity": "d64018e951dbdfab9777335ecdb000c0b4e3df036984083be219ce5941e4703b",
       "dependencies": [
         "jsr:@std/internal@^1.0.12"
       ]
     },
+    "@std/assert@1.0.17": {
+      "integrity": "df5ebfffe77c03b3fa1401e11c762cc8f603d51021c56c4d15a8c7ab45e90dbe",
+      "dependencies": [
+        "jsr:@std/internal@^1.0.12"
+      ]
+    },
+    "@std/data-structures@1.0.10": {
+      "integrity": "f574f86b0e07c69b9edc555fcc814b57d29258bad39fd5a34ba8a80ecf033cfe"
+    },
     "@std/expect@1.0.17": {
       "integrity": "316b47dd65c33e3151344eb3267bf42efba17d1415425f07ed96185d67fc04d9",
       "dependencies": [
-        "jsr:@std/assert",
+        "jsr:@std/assert@^1.0.14",
         "jsr:@std/internal@^1.0.10"
+      ]
+    },
+    "@std/fs@1.0.22": {
+      "integrity": "de0f277a58a867147a8a01bc1b181d0dfa80bfddba8c9cf2bacd6747bcec9308",
+      "dependencies": [
+        "jsr:@std/path"
       ]
     },
     "@std/internal@1.0.12": {
       "integrity": "972a634fd5bc34b242024402972cd5143eac68d8dffaca5eaa4dba30ce17b027"
+    },
+    "@std/path@1.1.4": {
+      "integrity": "1d2d43f39efb1b42f0b1882a25486647cb851481862dc7313390b2bb044314b5",
+      "dependencies": [
+        "jsr:@std/internal@^1.0.12"
+      ]
+    },
+    "@std/testing@1.0.17": {
+      "integrity": "87bdc2700fa98249d48a17cd72413352d3d3680dcfbdb64947fd0982d6bbf681",
+      "dependencies": [
+        "jsr:@std/assert@^1.0.17",
+        "jsr:@std/data-structures",
+        "jsr:@std/fs",
+        "jsr:@std/internal@^1.0.12",
+        "jsr:@std/path"
+      ]
     }
   },
   "npm": {
@@ -934,7 +974,9 @@
       "paseri-lib": {
         "dependencies": [
           "jsr:@badrap/valita@0.4.6",
+          "jsr:@standard-schema/spec@^1.1.0",
           "jsr:@std/expect@1.0.17",
+          "jsr:@std/testing@^1.0.17",
           "npm:expect-type@1.2.2",
           "npm:fast-check@4.3.0",
           "npm:recheck@4.5.0",
