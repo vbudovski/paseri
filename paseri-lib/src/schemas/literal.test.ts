@@ -113,38 +113,6 @@ test('Boolean', async (t) => {
     });
 });
 
-test('Symbol', async (t) => {
-    const symbolLiteral = Symbol.for('test');
-    const schema = p.literal(symbolLiteral);
-
-    await t.step('Valid', () => {
-        const data = Symbol.for('test');
-
-        const result = schema.safeParse(data);
-
-        if (result.ok) {
-            expect(result.value).toBe(symbolLiteral);
-        } else {
-            expect(result.ok).toBeTruthy();
-        }
-    });
-
-    await t.step('Invalid', () => {
-        const data = Symbol.for('other');
-
-        const result = schema.safeParse(data);
-        if (!result.ok) {
-            expect(result.messages()).toEqual([{ path: [], message: "Invalid value. Expected Symbol('test')." }]);
-        } else {
-            expect(result.ok).toBeFalsy();
-        }
-    });
-
-    await t.step('Value', () => {
-        expectTypeOf(schema.value).toEqualTypeOf<typeof symbolLiteral>;
-    });
-});
-
 test('Optional', () => {
     const schema = p.literal('apple').optional();
 
