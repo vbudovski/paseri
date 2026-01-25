@@ -70,6 +70,17 @@ li a {
         color: var(--sl-color-black);
     }
 
+    td.label-right {
+        position: relative;
+    }
+
+    td.label-right > .data {
+        position: absolute;
+        left: calc(100% + 8px);
+        white-space: nowrap;
+        color: var(--sl-color-white);
+    }
+
     .title-main {
         font-size: var(--sl-text-h3);
         line-height: var(--sl-line-height-headings);

@@ -41,24 +41,22 @@ import 'charts.css';
   </Card>
 </CardGrid>
 
-<div className="performance-chart not-content">
-  <table className="charts-css bar show-labels show-primary-axis show-heading data-spacing-10 show-8-secondary-axes">
+<div class="performance-chart not-content">
+  <table class="charts-css bar multiple show-labels show-primary-axis show-heading data-spacing-10 show-8-secondary-axes">
     <caption>
-      <div className="title-main">Relative performance</div>
-      <div className="title-sub">(higher is better)</div>
+      <div class="title-main">Relative performance</div>
+      <div class="title-sub">(higher is better)</div>
     </caption>
     <tbody>
       <tr>
-        <th scope="row">Paseri</th>
-        <td style="--size: calc(5736440 / (739222 * 8));"><span className="data">×7.8</span></td>
+        <th scope="row">Valid input</th>
+        <td style="--size: 1;"><span class="data">Paseri (×2.23)</span></td>
+        <td style="--size: 0.4484304933;"><span class="data">Zod 4 (×1)</span></td>
       </tr>
       <tr>
-        <th scope="row">MyZod</th>
-        <td style="--size: calc(2856545 / (739222 * 8));"><span className="data">×3.9</span></td>
-      </tr>
-      <tr>
-        <th scope="row">Zod</th>
-        <td style="--size: calc(1 / 8);"><span className="data">×1</span></td>
+        <th scope="row">Invalid input</th>
+        <td style="--size: 1;"><span class="data">Paseri (×1326)</span></td>
+        <td class="label-right" style="--size: 0.01;"><span class="data">Zod 4 (×1)</span></td>
       </tr>
     </tbody>
   </table>
