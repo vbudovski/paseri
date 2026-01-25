@@ -4,7 +4,7 @@ import type { InternalParseResult } from '../result.ts';
 import { primitiveToString } from '../utils.ts';
 import { Schema } from './schema.ts';
 
-type LiteralType = string | number | bigint | boolean | symbol;
+type LiteralType = string | number | bigint | boolean;
 
 class LiteralSchema<OutputType extends LiteralType> extends Schema<OutputType> {
     private readonly _value: OutputType;
