@@ -24,11 +24,11 @@ bunx jsr add @vbudovski/paseri
 ```
 
 ```shell
-pnpx jsr add @vbudovski/paseri
+pnpm i jsr:@vbudovski/paseri
 ```
 
 ```shell
-yarn dlx jsr add @vbudovski/paseri
+yarn add jsr:@vbudovski/paseri
 ```
 
 ```shell
