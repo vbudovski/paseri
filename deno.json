@@ -1,7 +1,8 @@
 {
+  "$schema": "https://raw.githubusercontent.com/denoland/deno/main/cli/schemas/config-file.v1.json",
   "imports": {
-    "@biomejs/biome": "npm:@biomejs/biome@^2.4.12",
-    "@commitlint/cli": "npm:@commitlint/cli@^20.5.0",
+    "@biomejs/biome": "npm:@biomejs/biome@^2.4.13",
+    "@commitlint/cli": "npm:@commitlint/cli@^20.5.2",
     "@commitlint/config-conventional": "npm:@commitlint/config-conventional@^20.5.0",
     "@commitlint/types": "npm:@commitlint/types@^20.5.0",
     "husky": "npm:husky@^9.1.7",
@@ -14,11 +15,12 @@
     "check": "deno run --allow-env --allow-read --allow-run @biomejs/biome check",
     "commitlint": "deno run --allow-env --allow-sys --allow-read --allow-write --allow-run @commitlint/cli"
   },
-  "workspace": ["paseri-lib"],
-  "exclude": ["paseri-docs"],
+  "workspace": ["paseri-lib", "paseri-docs"],
   "nodeModulesDir": "auto",
+  "unstable": ["bare-node-builtins"],
   "compilerOptions": {
     "exactOptionalPropertyTypes": true,
     "isolatedDeclarations": true
-  }
+  },
+  "allowScripts": ["npm:esbuild@0.27.4", "npm:fsevents@2.3.3", "npm:sharp@0.34.5"]
 }

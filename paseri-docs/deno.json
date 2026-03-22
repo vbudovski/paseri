@@ -1,0 +1,36 @@
+{
+  "$schema": "https://raw.githubusercontent.com/denoland/deno/main/cli/schemas/config-file.v1.json",
+  "name": "@vbudovski/paseri-docs",
+  "license": "MIT",
+  "version": "0.0.1",
+  "exports": "./astro.config.ts",
+  "imports": {
+    "@astrojs/check": "npm:@astrojs/check@^0.9.8",
+    "@astrojs/preact": "npm:@astrojs/preact@^5.1.2",
+    "@astrojs/sitemap": "npm:@astrojs/sitemap@^3.7.2",
+    "@astrojs/starlight": "npm:@astrojs/starlight@^0.38.4",
+    "@lexical/code": "npm:@lexical/code@^0.44.0",
+    "@lexical/code-prism": "npm:@lexical/code-prism@^0.44.0",
+    "@lexical/markdown": "npm:@lexical/markdown@^0.44.0",
+    "@lexical/react": "npm:@lexical/react@^0.44.0",
+    "astro": "npm:astro@^6.1.9",
+    "charts.css": "npm:charts.css@^1.2.0",
+    "lexical": "npm:lexical@^0.44.0",
+    "preact": "npm:preact@^10.29.1",
+    "react": "npm:@preact/compat@18.3.2",
+    "react-dom": "npm:@preact/compat@18.3.2",
+    "rehype-external-links": "npm:rehype-external-links@^3.0.0",
+    "sharp": "npm:sharp@^0.34.5"
+  },
+  "tasks": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro check && astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "jsxImportSource": "preact"
+  }
+}
