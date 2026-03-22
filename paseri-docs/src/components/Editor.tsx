@@ -1,4 +1,5 @@
-import { CodeHighlightNode, CodeNode, registerCodeHighlighting } from '@lexical/code';
+import { CodeHighlightNode, CodeNode } from '@lexical/code';
+import { registerCodeHighlighting } from '@lexical/code-prism';
 import { $convertFromMarkdownString } from '@lexical/markdown';
 import { type InitialConfigType, LexicalComposer } from '@lexical/react/LexicalComposer';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';

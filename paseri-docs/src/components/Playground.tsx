@@ -169,7 +169,7 @@ function Playground(props: PlaygroundProps) {
                             <Editor
                                 id="result"
                                 isEditable={false}
-                                defaultValue={`\`\`\`typescript\n${formatResult(result.parsedData)}\`\`\``}
+                                defaultValue={`\`\`\`typescript\n${formatResult(result.parsedData)}`}
                             />
                         ) : (
                             <ul className={styles.errors}>
