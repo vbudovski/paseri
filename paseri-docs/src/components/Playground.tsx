@@ -165,7 +165,7 @@ function Playground(props: PlaygroundProps) {
                         Result
                     </div>
                     <div role="note" aria-labelledby="result">
-                        {result.ok ? (
+                        {result.ok === true ? (
                             <Editor
                                 id="result"
                                 isEditable={false}

@@ -1,4 +1,4 @@
-import react from '@astrojs/react';
+import preact from '@astrojs/preact';
 import sitemap from '@astrojs/sitemap';
 import starlight from '@astrojs/starlight';
 import { defineConfig } from 'astro/config';
@@ -34,7 +34,7 @@ export default defineConfig({
                 },
             ],
         }),
-        react(),
+        preact({ compat: true }),
         sitemap(),
     ],
     markdown: {
