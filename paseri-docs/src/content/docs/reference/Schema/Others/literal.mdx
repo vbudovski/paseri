@@ -73,18 +73,3 @@ if (result.ok) {
     // result.value typed as `true`.
 }
 ```
-
-## Symbol literal
-
-```typescript
-import * as p from '@vbudovski/paseri';
-
-const symbolLiteral = Symbol.for('bar');
-const schema = p.literal(symbolLiteral);
-const data = Symbol.for('bar');
-
-const result = schema.safeParse(data);
-if (result.ok) {
-    // result.value typed as `unique symbol`.
-}
-```
