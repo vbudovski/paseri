@@ -7,7 +7,7 @@
 
 # Paseri
 
-A TypeScript parsing, and validation library for structured data. Ensure that untrusted input from users or external
+A TypeScript parsing and validation library for structured data. Ensure that untrusted input from users or external
 APIs conforms to the expected format.
 
 Why the name? It's the Japanese name for parsley (パセリ), and also a play on words on parse/parsing, which is the goal
@@ -39,14 +39,16 @@ npx jsr add @vbudovski/paseri
 
 ### Zod
 
-This library wouldn't exist without [Zod](https://github.com/colinhacks/zod) as a source of inspiration, with its incredibly expressive, and
-straightforward API. Zod is an excellent, and very mature library, and if the highest possible performance isn't a key
-requirement, then it is a great choice.
+Paseri is heavily inspired by [Zod](https://github.com/colinhacks/zod)'s expressive API. While Zod is the industry
+standard for general-purpose validation, Paseri was built to bring that same developer experience to
+performance-critical applications and environments where Zod's architecture may be a bottleneck &mdash; all while
+maintaining a zero-compromise approach to security.
 
 ### Valita
 
-It sets an incredibly high bar for parsing performance, and is the current benchmark for this implementation. Some of
-the goals of this library differ from the goals of [Valita](https://github.com/badrap/valita), but it is nonetheless an excellent project.
+[Valita](https://github.com/badrap/valita) sets the high water-mark for performance in the TypeScript ecosystem[^1].
+Paseri matches or exceeds this raw efficiency while offering a more expansive, Zod-like feature set, and a focus on
+schema immutability.
 
 ## Goals
 
@@ -54,8 +56,8 @@ The list may be expanded in time, but for now the objectives are the following:
 
 * Parsing and validation of untrusted input to ensure it conforms to the expected format. A successful result will
   be typed with the narrowest possible definition to obviate the need to do additional validation at the point of
-  usage[^1].
-* High performance[^2], and usability in a strict
+  usage[^2].
+* High performance[^1] and usability in a strict
   [Content Security Policy (CSP)](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP) environment.
 * An API that is *reasonably* close to that of Zod. One-to-one compatibility is not the intention.
 * Immutability of schemas. This avoids a lot of bugs caused by mutating references to non-primitive types.
@@ -71,7 +73,7 @@ published to the [JSR registry](https://jsr.io/) only, and publishing is perform
 
 * `paseri-lib` contains the sources for the library.
 * `paseri-docs` contains the documentation, built with [Astro](https://astro.build/) and
-[Starlight](https://starlight.astro.build/).
+  [Starlight](https://starlight.astro.build/).
 
 ### Setup
 
@@ -95,10 +97,10 @@ deno bench
 
 ---
 
-[^1]: An [excellent article](https://lexi-lambda.github.io/blog/2019/11/05/parse-don-t-validate/) on the concept of
-type-driven design.
+[^1]: While higher performance is possible using dynamic code execution (JIT) or ahead-of-time (AOT) compilation, these
+approaches
+introduce [security risks](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/eval#never_use_direct_eval!)
+or added build complexity.
 
-[^2]: It's certainly possible to create much faster parsers using dynamic code execution or ahead-of-time compilation,
-but they each have drawbacks in the form of potential
-[security issues](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/eval#never_use_direct_eval!)
-or added complexity from requiring a manual compilation step.
+[^2]: An [excellent article](https://lexi-lambda.github.io/blog/2019/11/05/parse-don-t-validate/) on the concept of
+type-driven design.
