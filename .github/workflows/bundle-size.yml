@@ -1,0 +1,38 @@
+name: Bundle size
+
+on:
+  workflow_call:
+    secrets:
+      GIST_SECRET:
+        required: true
+
+jobs:
+  bundle-size:
+    name: Calculate bundle size
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: "^2.5.5"
+
+      - name: Calculate bundle size
+        id: bundle
+        working-directory: paseri-lib
+        run: |
+          echo "BUNDLE_SIZE=$(deno task calculate_bundle_size)" >> $GITHUB_OUTPUT
+          echo "GIST_PATH=$(echo "${{ github.repository }}/${{ github.ref_name }}" | sed 's/\//_/g')-bundlesize.svg" >> $GITHUB_OUTPUT
+
+      - name: Create bundle size badge
+        uses: schneegans/dynamic-badges-action@v1.7.0
+        with:
+          auth: ${{ secrets.GIST_SECRET }}
+          gistID: 80548a1b87f9f00fe1ae426ca6a2a517
+          filename: ${{ steps.bundle.outputs.GIST_PATH }}
+          label: minzip
+          message: ${{ steps.bundle.outputs.BUNDLE_SIZE }}
+          color: blue

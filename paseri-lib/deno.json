@@ -20,7 +20,8 @@
     "zod": "npm:zod@4.3.6"
   },
   "tasks": {
-    "generate_emoji": "deno run --allow-net --allow-write bin/generate_emoji.ts"
+    "generate_emoji": "deno run --allow-net --allow-write bin/generate_emoji.ts",
+    "calculate_bundle_size": "deno bundle --platform browser --minify src/index.ts | gzip | wc -c | numfmt --to=iec"
   },
   "lint": {
     "rules": {
