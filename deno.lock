@@ -3,23 +3,25 @@
   "specifiers": {
     "jsr:@badrap/valita@0.4.6": "0.4.6",
     "jsr:@standard-schema/spec@^1.1.0": "1.1.0",
-    "jsr:@std/assert@^1.0.14": "1.0.17",
-    "jsr:@std/assert@^1.0.17": "1.0.17",
-    "jsr:@std/expect@1.0.17": "1.0.17",
-    "jsr:@std/internal@^1.0.10": "1.0.12",
+    "jsr:@std/assert@^1.0.17": "1.0.19",
+    "jsr:@std/assert@^1.0.19": "1.0.19",
+    "jsr:@std/data-structures@^1.0.10": "1.0.10",
+    "jsr:@std/expect@1.0.18": "1.0.18",
+    "jsr:@std/fs@^1.0.22": "1.0.23",
     "jsr:@std/internal@^1.0.12": "1.0.12",
+    "jsr:@std/path@^1.1.4": "1.1.4",
     "jsr:@std/testing@^1.0.17": "1.0.17",
     "npm:@biomejs/biome@*": "2.3.12",
     "npm:@commitlint/cli@*": "20.3.1",
-    "npm:@commitlint/config-conventional@^20.3.1": "20.3.1",
-    "npm:@commitlint/types@^20.3.1": "20.3.1",
+    "npm:@commitlint/config-conventional@^20.5.0": "20.5.0",
+    "npm:@commitlint/types@^20.5.0": "20.5.0",
     "npm:expect-type@1.3.0": "1.3.0",
-    "npm:fast-check@4.5.3": "4.5.3",
+    "npm:fast-check@4.7.0": "4.7.0",
     "npm:husky@*": "9.1.7",
     "npm:lint-staged@*": "16.2.7",
     "npm:recheck@4.5.0": "4.5.0",
     "npm:regex@^6.1.0": "6.1.0",
-    "npm:type-fest@5.4.1": "5.4.1",
+    "npm:type-fest@5.6.0": "5.6.0",
     "npm:zod@4.3.6": "4.3.6"
   },
   "jsr": {
@@ -29,27 +31,46 @@
     "@standard-schema/spec@1.1.0": {
       "integrity": "2ccd54513cd9c960bd155ab569b1a901bc99c6f9ad29559d3f38a28c91c1822d"
     },
-    "@std/assert@1.0.17": {
-      "integrity": "df5ebfffe77c03b3fa1401e11c762cc8f603d51021c56c4d15a8c7ab45e90dbe",
+    "@std/assert@1.0.19": {
+      "integrity": "eaada96ee120cb980bc47e040f82814d786fe8162ecc53c91d8df60b8755991e",
       "dependencies": [
-        "jsr:@std/internal@^1.0.12"
+        "jsr:@std/internal"
       ]
     },
-    "@std/expect@1.0.17": {
-      "integrity": "316b47dd65c33e3151344eb3267bf42efba17d1415425f07ed96185d67fc04d9",
+    "@std/data-structures@1.0.10": {
+      "integrity": "f574f86b0e07c69b9edc555fcc814b57d29258bad39fd5a34ba8a80ecf033cfe"
+    },
+    "@std/expect@1.0.18": {
+      "integrity": "8566eab35200466f8609eb7e7aed062ed0db314e9a258d5d201b1b8997ce801a",
       "dependencies": [
-        "jsr:@std/assert@^1.0.14",
-        "jsr:@std/internal@^1.0.10"
+        "jsr:@std/assert@^1.0.19",
+        "jsr:@std/internal",
+        "jsr:@std/path"
+      ]
+    },
+    "@std/fs@1.0.23": {
+      "integrity": "3ecbae4ce4fee03b180fa710caff36bb5adb66631c46a6460aaad49515565a37",
+      "dependencies": [
+        "jsr:@std/path"
       ]
     },
     "@std/internal@1.0.12": {
       "integrity": "972a634fd5bc34b242024402972cd5143eac68d8dffaca5eaa4dba30ce17b027"
     },
+    "@std/path@1.1.4": {
+      "integrity": "1d2d43f39efb1b42f0b1882a25486647cb851481862dc7313390b2bb044314b5",
+      "dependencies": [
+        "jsr:@std/internal"
+      ]
+    },
     "@std/testing@1.0.17": {
       "integrity": "87bdc2700fa98249d48a17cd72413352d3d3680dcfbdb64947fd0982d6bbf681",
       "dependencies": [
         "jsr:@std/assert@^1.0.17",
-        "jsr:@std/internal@^1.0.12"
+        "jsr:@std/data-structures",
+        "jsr:@std/fs",
+        "jsr:@std/internal",
+        "jsr:@std/path"
       ]
     }
   },
@@ -132,8 +153,8 @@
       ],
       "bin": true
     },
-    "@commitlint/config-conventional@20.3.1": {
-      "integrity": "sha512-NCzwvxepstBZbmVXsvg49s+shCxlJDJPWxXqONVcAtJH9wWrOlkMQw/zyl+dJmt8lyVopt5mwQ3mR5M2N2rUWg==",
+    "@commitlint/config-conventional@20.5.0": {
+      "integrity": "sha512-t3Ni88rFw1XMa4nZHgOKJ8fIAT9M2j5TnKyTqJzsxea7FUetlNdYFus9dz+MhIRZmc16P0PPyEfh6X2d/qw8SA==",
       "dependencies": [
         "@commitlint/types",
         "conventional-changelog-conventionalcommits"
@@ -206,7 +227,7 @@
       "dependencies": [
         "@commitlint/types",
         "conventional-changelog-angular",
-        "conventional-commits-parser"
+        "conventional-commits-parser@5.0.0"
       ]
     },
     "@commitlint/read@20.3.1": {
@@ -248,21 +269,18 @@
         "find-up"
       ]
     },
-    "@commitlint/types@20.3.1": {
-      "integrity": "sha512-VmIFV/JkBRhDRRv7N5B7zEUkNZIx9Mp+8Pe65erz0rKycXLsi8Epcw0XJ+btSeRXgTzE7DyOyA9bkJ9mn/yqVQ==",
+    "@commitlint/types@20.5.0": {
+      "integrity": "sha512-ZJoS8oSq2CAZEpc/YI9SulLrdiIyXeHb/OGqGrkUP6Q7YV+0ouNAa7GjqRdXeQPncHQIDz/jbCTlHScvYvO/gA==",
       "dependencies": [
-        "@types/conventional-commits-parser",
-        "chalk"
+        "conventional-commits-parser@6.4.0",
+        "picocolors"
       ]
     },
     "@pkgr/core@0.1.2": {
       "integrity": "sha512-fdDH1LSGfZdTH2sxdpVMw31BanV28K/Gry0cVFxaNP77neJSkd82mM8ErPNYs9e+0O7SdHBLTDzDgwUuy18RnQ=="
     },
-    "@types/conventional-commits-parser@5.0.2": {
-      "integrity": "sha512-BgT2szDXnVypgpNxOK8aL5SGjUdaQbC++WZNjF1Qge3Og2+zhHj+RWhmehLhYyvQwqAmvezruVfOf8+3m74W+g==",
-      "dependencies": [
-        "@types/node"
-      ]
+    "@simple-libs/stream-utils@1.2.0": {
+      "integrity": "sha512-KxXvfapcixpz6rVEB6HPjOUZT22yN6v0vI0urQSk1L8MlEWPDFCZkhw2xmkyoTGYeFw7tWTZd7e3lVzRZRN/EA=="
     },
     "@types/node@25.0.10": {
       "integrity": "sha512-zWW5KPngR/yvakJgGOmZ5vTBemDoSqF3AcV/LrO5u5wTWyEAVVh+IT39G4gtyAkh3CtTZs8aX/yRM82OfzHJRg==",
@@ -375,8 +393,8 @@
         "compare-func"
       ]
     },
-    "conventional-changelog-conventionalcommits@7.0.2": {
-      "integrity": "sha512-NKXYmMR/Hr1DevQegFB4MwfM5Vv0m4UIxKZTTYuD98lpTknaZlSRrDOG4X7wIXpGkfsYxZTghUN+Qq+T0YQI7w==",
+    "conventional-changelog-conventionalcommits@9.3.1": {
+      "integrity": "sha512-dTYtpIacRpcZgrvBYvBfArMmK2xvIpv2TaxM0/ZI5CBtNUzvF2x0t15HsbRABWprS6UPmvj+PzHVjSx4qAVKyw==",
       "dependencies": [
         "compare-func"
       ]
@@ -386,8 +404,16 @@
       "dependencies": [
         "JSONStream",
         "is-text-path",
-        "meow",
+        "meow@12.1.1",
         "split2"
+      ],
+      "bin": true
+    },
+    "conventional-commits-parser@6.4.0": {
+      "integrity": "sha512-tvRg7FIBNlyPzjdG8wWRlPHQJJHI7DylhtRGeU9Lq+JuoPh5BKpPRX83ZdLrvXuOSu5Eo/e7SzOQhU4Hd2Miuw==",
+      "dependencies": [
+        "@simple-libs/stream-utils",
+        "meow@13.2.0"
       ],
       "bin": true
     },
@@ -449,8 +475,8 @@
     "expect-type@1.3.0": {
       "integrity": "sha512-knvyeauYhqjOYvQ66MznSMs83wmHrCycNEN6Ao+2AeYEfxUIkuiVxdEa1qlGEPK+We3n0THiDciYSsCcgW/DoA=="
     },
-    "fast-check@4.5.3": {
-      "integrity": "sha512-IE9csY7lnhxBnA8g/WI5eg/hygA6MGWJMSNfFRrBlXUciADEhS1EDB0SIsMSvzubzIlOBbVITSsypCsW717poA==",
+    "fast-check@4.7.0": {
+      "integrity": "sha512-NsZRtqvSSoCP0HbNjUD+r1JH8zqZalyp6gLY9e7OYs7NK9b6AHOs2baBFeBG7bVNsuoukh89x2Yg3rPsul8ziQ==",
       "dependencies": [
         "pure-rand"
       ]
@@ -485,9 +511,10 @@
       "integrity": "sha512-ICsMM1Wk8xSGMowkOmPrzo2Fgmfo4bMHLNX6ytHjajRJUqvHOw/TFapQ+QG75c3X/tTDDhOSRPGC52dDbNM8FQ==",
       "dependencies": [
         "dargs",
-        "meow",
+        "meow@12.1.1",
         "split2"
       ],
+      "deprecated": true,
       "bin": true
     },
     "global-directory@4.0.1": {
@@ -633,6 +660,9 @@
     "meow@12.1.1": {
       "integrity": "sha512-BhXM0Au22RwUneMPwSCnyhTOizdWoIEPU9sp0Aqa1PnDMR5Wv2FGXYDjuzJEIX+Eo2Rb8xuYe5jrnm5QowQFkw=="
     },
+    "meow@13.2.0": {
+      "integrity": "sha512-pxQJQzB6djGPXh08dacEloMFopsOqGVRKFPYvPOt9XDZ1HasbgDZA74CJGreSU4G3Ak7EFJGoiH2auq+yXISgA=="
+    },
     "micromatch@4.0.8": {
       "integrity": "sha512-PXwfBhYu0hBCPw8Dn0E+WDYb7af3dSLVWKi3HGv84IdF4TyFoC0ysxFd0Goxw7nSv4T/PzEJQxsYsEiFCKo2BA==",
       "dependencies": [
@@ -695,8 +725,8 @@
       "integrity": "sha512-eG2dWTVw5bzqGRztnHExczNxt5VGsE6OwTeCG3fdUf9KBsZzO3R5OIIIzWR+iZA0NtZ+RDVdaoE2dK1cn6jH4g==",
       "bin": true
     },
-    "pure-rand@7.0.1": {
-      "integrity": "sha512-oTUZM/NAZS8p7ANR3SHh30kXB+zK2r2BPcEn/awJIbOvq82WoMN4p62AWWp3Hhw50G0xMsw1mhIBLqHw64EcNQ=="
+    "pure-rand@8.4.0": {
+      "integrity": "sha512-IoM8YF/jY0hiugFo/wOWqfmarlE6J0wc6fDK1PhftMk7MGhVZl88sZimmqBBFomLOCSmcCCpsfj7wXASCpvK9A=="
     },
     "recheck-jar@4.5.0": {
       "integrity": "sha512-Ad7oCQmY8cQLzd3QVNXjzZ+S6MbImGhR4AaW2yiGzteOfMV45522rt6nSzFyt8p3mCEaMcm/4MoZrMSxUcCbrA=="
@@ -848,8 +878,8 @@
     "tslib@2.8.1": {
       "integrity": "sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w=="
     },
-    "type-fest@5.4.1": {
-      "integrity": "sha512-xygQcmneDyzsEuKZrFbRMne5HDqMs++aFzefrJTgEIKjQ3rekM+RPfFCVq2Gp1VIDqddoYeppCj4Pcb+RZW0GQ==",
+    "type-fest@5.6.0": {
+      "integrity": "sha512-8ZiHFm91orbSAe2PSAiSVBVko18pbhbiB3U9GglSzF/zCGkR+rxpHx6sEMCUm4kxY4LjDIUGgCfUMtwfZfjfUA==",
       "dependencies": [
         "tagged-tag"
       ]
@@ -911,21 +941,21 @@
   },
   "workspace": {
     "dependencies": [
-      "npm:@commitlint/config-conventional@^20.3.1",
-      "npm:@commitlint/types@^20.3.1"
+      "npm:@commitlint/config-conventional@^20.5.0",
+      "npm:@commitlint/types@^20.5.0"
     ],
     "members": {
       "paseri-lib": {
         "dependencies": [
           "jsr:@badrap/valita@0.4.6",
           "jsr:@standard-schema/spec@^1.1.0",
-          "jsr:@std/expect@1.0.17",
+          "jsr:@std/expect@1.0.18",
           "jsr:@std/testing@^1.0.17",
           "npm:expect-type@1.3.0",
-          "npm:fast-check@4.5.3",
+          "npm:fast-check@4.7.0",
           "npm:recheck@4.5.0",
           "npm:regex@^6.1.0",
-          "npm:type-fest@5.4.1",
+          "npm:type-fest@5.6.0",
           "npm:zod@4.3.6"
         ]
       }
