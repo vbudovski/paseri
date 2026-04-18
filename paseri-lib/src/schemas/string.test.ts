@@ -230,7 +230,11 @@ test('Invalid email', () => {
 
 test('Email ReDoS', async () => {
     const regex = emailRegex();
-    const diagnostics = await check(regex.source, regex.flags.replace('v', 'u'));
+    // TODO: recheck doesn't support the v flag yet (https://github.com/makenowjust-labs/recheck/issues/1359).
+    //  Remove this workaround when it does.
+    // Strip v-mode-specific escapes that are invalid in u-mode.
+    const source = regex.source.replace(/\\([&!#%,:;<=>@`~])/g, '$1');
+    const diagnostics = await check(source, regex.flags.replace('v', 'u'));
     if (diagnostics.status === 'vulnerable') {
         console.log(`Vulnerable pattern: ${diagnostics.attack.pattern}`);
     } else if (diagnostics.status === 'unknown') {
