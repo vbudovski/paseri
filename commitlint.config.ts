@@ -7,6 +7,6 @@ const config = {
         'type-enum': [RuleConfigSeverity.Error, 'always', ['feature', 'fix', 'test', 'doc', 'refactor']],
         'subject-case': [RuleConfigSeverity.Error, 'always', ['sentence-case']],
     },
-} satisfies UserConfig;
+} satisfies UserConfig as UserConfig;
 
 export default config;
