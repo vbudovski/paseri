@@ -5,6 +5,7 @@
     "jsr:@standard-schema/spec@^1.1.0": "1.1.0",
     "jsr:@std/assert@^1.0.17": "1.0.19",
     "jsr:@std/assert@^1.0.19": "1.0.19",
+    "jsr:@std/async@^1.1.0": "1.2.0",
     "jsr:@std/data-structures@^1.0.10": "1.0.10",
     "jsr:@std/expect@1.0.18": "1.0.18",
     "jsr:@std/fs@^1.0.22": "1.0.23",
@@ -21,7 +22,7 @@
     "npm:lint-staged@*": "16.2.7",
     "npm:recheck@4.5.0": "4.5.0",
     "npm:regex@^6.1.0": "6.1.0",
-    "npm:type-fest@5.6.0": "5.6.0",
+    "npm:type-fest@5.4.1": "5.4.1",
     "npm:zod@4.3.6": "4.3.6"
   },
   "jsr": {
@@ -36,6 +37,9 @@
       "dependencies": [
         "jsr:@std/internal"
       ]
+    },
+    "@std/async@1.2.0": {
+      "integrity": "c059c6f6d95ca7cc012ae8e8d7164d1697113d54b0b679e4372b354b11c2dee5"
     },
     "@std/data-structures@1.0.10": {
       "integrity": "f574f86b0e07c69b9edc555fcc814b57d29258bad39fd5a34ba8a80ecf033cfe"
@@ -67,6 +71,7 @@
       "integrity": "87bdc2700fa98249d48a17cd72413352d3d3680dcfbdb64947fd0982d6bbf681",
       "dependencies": [
         "jsr:@std/assert@^1.0.17",
+        "jsr:@std/async",
         "jsr:@std/data-structures",
         "jsr:@std/fs",
         "jsr:@std/internal",
@@ -878,8 +883,8 @@
     "tslib@2.8.1": {
       "integrity": "sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w=="
     },
-    "type-fest@5.6.0": {
-      "integrity": "sha512-8ZiHFm91orbSAe2PSAiSVBVko18pbhbiB3U9GglSzF/zCGkR+rxpHx6sEMCUm4kxY4LjDIUGgCfUMtwfZfjfUA==",
+    "type-fest@5.4.1": {
+      "integrity": "sha512-xygQcmneDyzsEuKZrFbRMne5HDqMs++aFzefrJTgEIKjQ3rekM+RPfFCVq2Gp1VIDqddoYeppCj4Pcb+RZW0GQ==",
       "dependencies": [
         "tagged-tag"
       ]
@@ -955,7 +960,7 @@
           "npm:fast-check@4.7.0",
           "npm:recheck@4.5.0",
           "npm:regex@^6.1.0",
-          "npm:type-fest@5.6.0",
+          "npm:type-fest@5.4.1",
           "npm:zod@4.3.6"
         ]
       }
