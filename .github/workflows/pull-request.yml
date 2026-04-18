@@ -18,3 +18,9 @@ jobs:
     uses: ./.github/workflows/test.yml
     secrets:
       GIST_SECRET: ${{ secrets.GIST_SECRET }}
+
+  bundle-size:
+    needs: [lint, commitlint]
+    uses: ./.github/workflows/bundle-size.yml
+    secrets:
+      GIST_SECRET: ${{ secrets.GIST_SECRET }}

@@ -13,6 +13,11 @@ jobs:
     secrets:
       GIST_SECRET: ${{ secrets.GIST_SECRET }}
 
+  bundle-size:
+    uses: ./.github/workflows/bundle-size.yml
+    secrets:
+      GIST_SECRET: ${{ secrets.GIST_SECRET }}
+
   publish:
     needs: test
     runs-on: ubuntu-latest
