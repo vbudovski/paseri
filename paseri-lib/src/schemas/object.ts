@@ -15,6 +15,7 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
     private readonly _shape: ShapeType;
     private readonly _shapeKeys: PropertyKey[];
     private readonly _shapeSize: number;
+    private readonly _requiredKeys: PropertyKey[];
     private _mode: Mode = 'strict';
 
     private readonly issues = {
@@ -29,6 +30,7 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
         this._shape = shape;
         this._shapeKeys = [...Object.keys(shape)];
         this._shapeSize = this._shapeKeys.length;
+        this._requiredKeys = this._shapeKeys.filter((key) => !(shape[key] instanceof OptionalSchema));
     }
     protected _clone(): ObjectSchema<ShapeType> {
         const cloned = new ObjectSchema(this._shape);
@@ -78,12 +80,7 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
         }
 
         if (seen < this._shapeSize) {
-            for (const key of this._shapeKeys) {
-                const schema = this._shape[key];
-                if (schema instanceof OptionalSchema) {
-                    continue;
-                }
-
+            for (const key of this._requiredKeys) {
                 if (value[key] === undefined) {
                     issue = addIssue(issue, {
                         type: 'nest',
