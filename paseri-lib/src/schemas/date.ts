@@ -2,10 +2,17 @@ import { issueCodes, type LeafNode, type TreeNode } from '../issue.ts';
 import type { InternalParseResult } from '../result.ts';
 import { Schema } from './schema.ts';
 
-type CheckFunction = (value: Date) => TreeNode | undefined;
+const TAG_MIN = 0;
+const TAG_MAX = 1;
+
+interface DateCheck {
+    tag: typeof TAG_MIN | typeof TAG_MAX;
+    param: Date;
+    issue: TreeNode;
+}
 
 class DateSchema extends Schema<Date> {
-    private _checks: CheckFunction[] | undefined = undefined;
+    private _checks: DateCheck[] | undefined = undefined;
 
     private readonly issues = {
         INVALID_TYPE: { type: 'leaf', code: issueCodes.INVALID_TYPE, expected: 'Date' },
@@ -30,10 +37,20 @@ class DateSchema extends Schema<Date> {
         }
 
         if (this._checks !== undefined) {
-            for (const check of this._checks) {
-                const issue = check(value);
-                if (issue) {
-                    return issue;
+            const checks = this._checks;
+            for (let i = 0; i < checks.length; i++) {
+                const { tag, param, issue } = checks[i];
+                switch (tag) {
+                    case TAG_MIN:
+                        if (value < param) {
+                            return issue;
+                        }
+                        break;
+                    case TAG_MAX:
+                        if (value > param) {
+                            return issue;
+                        }
+                        break;
                 }
             }
         }
@@ -43,22 +60,14 @@ class DateSchema extends Schema<Date> {
     min(value: Date): DateSchema {
         const cloned = this._clone();
         cloned._checks = this._checks || [];
-        cloned._checks.push((_value) => {
-            if (_value < value) {
-                return this.issues.TOO_DATED;
-            }
-        });
+        cloned._checks.push({ tag: TAG_MIN, param: value, issue: this.issues.TOO_DATED });
 
         return cloned;
     }
     max(length: Date): DateSchema {
         const cloned = this._clone();
         cloned._checks = this._checks || [];
-        cloned._checks.push((_value) => {
-            if (_value > length) {
-                return this.issues.TOO_RECENT;
-            }
-        });
+        cloned._checks.push({ tag: TAG_MAX, param: length, issue: this.issues.TOO_RECENT });
 
         return cloned;
     }
