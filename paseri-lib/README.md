@@ -87,7 +87,7 @@ deno task init
 ### Running tests
 
 ```shell
-deno test
+deno test -P
 ```
 
 ### Running benchmarks
