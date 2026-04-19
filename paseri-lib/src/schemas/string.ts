@@ -13,10 +13,20 @@ import {
 } from './regex.gen.ts';
 import { Schema } from './schema.ts';
 
-type CheckFunction = (value: string) => TreeNode | undefined;
+const TAG_MIN = 0;
+const TAG_MAX = 1;
+const TAG_REGEX = 2;
+const TAG_INCLUDES = 3;
+const TAG_STARTS_WITH = 4;
+const TAG_ENDS_WITH = 5;
+
+type StringCheck =
+    | { tag: typeof TAG_MIN | typeof TAG_MAX; param: number; issue: TreeNode }
+    | { tag: typeof TAG_REGEX; param: RegExp; issue: TreeNode }
+    | { tag: typeof TAG_INCLUDES | typeof TAG_STARTS_WITH | typeof TAG_ENDS_WITH; param: string; issue: TreeNode };
 
 class StringSchema extends Schema<string> {
-    private _checks: CheckFunction[] | undefined = undefined;
+    private _checks: StringCheck[] | undefined = undefined;
 
     private readonly issues = {
         INVALID_TYPE: { type: 'leaf', code: issueCodes.INVALID_TYPE, expected: 'string' },
@@ -49,10 +59,40 @@ class StringSchema extends Schema<string> {
         }
 
         if (this._checks !== undefined) {
-            for (const check of this._checks) {
-                const issue = check(value);
-                if (issue) {
-                    return issue;
+            const checks = this._checks;
+            for (let i = 0; i < checks.length; i++) {
+                const check = checks[i];
+                switch (check.tag) {
+                    case TAG_MIN:
+                        if (value.length < check.param) {
+                            return check.issue;
+                        }
+                        break;
+                    case TAG_MAX:
+                        if (value.length > check.param) {
+                            return check.issue;
+                        }
+                        break;
+                    case TAG_REGEX:
+                        if (!check.param.test(value)) {
+                            return check.issue;
+                        }
+                        break;
+                    case TAG_INCLUDES:
+                        if (!value.includes(check.param)) {
+                            return check.issue;
+                        }
+                        break;
+                    case TAG_STARTS_WITH:
+                        if (!value.startsWith(check.param)) {
+                            return check.issue;
+                        }
+                        break;
+                    case TAG_ENDS_WITH:
+                        if (!value.endsWith(check.param)) {
+                            return check.issue;
+                        }
+                        break;
                 }
             }
         }
@@ -62,37 +102,22 @@ class StringSchema extends Schema<string> {
     min(length: number): StringSchema {
         const cloned = this._clone();
         cloned._checks = this._checks || [];
-        cloned._checks.push((_value) => {
-            if (_value.length < length) {
-                return this.issues.TOO_SHORT;
-            }
-        });
+        cloned._checks.push({ tag: TAG_MIN, param: length, issue: this.issues.TOO_SHORT });
 
         return cloned;
     }
     max(length: number): StringSchema {
         const cloned = this._clone();
         cloned._checks = this._checks || [];
-        cloned._checks.push((_value) => {
-            if (_value.length > length) {
-                return this.issues.TOO_LONG;
-            }
-        });
+        cloned._checks.push({ tag: TAG_MAX, param: length, issue: this.issues.TOO_LONG });
 
         return cloned;
     }
     length(length: number): StringSchema {
         const cloned = this._clone();
         cloned._checks = this._checks || [];
-        cloned._checks.push((_value) => {
-            if (_value.length > length) {
-                return this.issues.TOO_LONG;
-            }
-
-            if (_value.length < length) {
-                return this.issues.TOO_SHORT;
-            }
-        });
+        cloned._checks.push({ tag: TAG_MAX, param: length, issue: this.issues.TOO_LONG });
+        cloned._checks.push({ tag: TAG_MIN, param: length, issue: this.issues.TOO_SHORT });
 
         return cloned;
     }
@@ -101,11 +126,7 @@ class StringSchema extends Schema<string> {
 
         const cloned = this._clone();
         cloned._checks = this._checks || [];
-        cloned._checks.push((_value) => {
-            if (!regex.test(_value)) {
-                return this.issues.INVALID_EMAIL;
-            }
-        });
+        cloned._checks.push({ tag: TAG_REGEX, param: regex, issue: this.issues.INVALID_EMAIL });
 
         return cloned;
     }
@@ -114,11 +135,7 @@ class StringSchema extends Schema<string> {
 
         const cloned = this._clone();
         cloned._checks = this._checks || [];
-        cloned._checks.push((_value) => {
-            if (!regex.test(_value)) {
-                return this.issues.INVALID_EMOJI;
-            }
-        });
+        cloned._checks.push({ tag: TAG_REGEX, param: regex, issue: this.issues.INVALID_EMOJI });
 
         return cloned;
     }
@@ -127,11 +144,7 @@ class StringSchema extends Schema<string> {
 
         const cloned = this._clone();
         cloned._checks = this._checks || [];
-        cloned._checks.push((_value) => {
-            if (!regex.test(_value)) {
-                return this.issues.INVALID_UUID;
-            }
-        });
+        cloned._checks.push({ tag: TAG_REGEX, param: regex, issue: this.issues.INVALID_UUID });
 
         return cloned;
     }
@@ -140,44 +153,28 @@ class StringSchema extends Schema<string> {
 
         const cloned = this._clone();
         cloned._checks = this._checks || [];
-        cloned._checks.push((_value) => {
-            if (!regex.test(_value)) {
-                return this.issues.INVALID_NANOID;
-            }
-        });
+        cloned._checks.push({ tag: TAG_REGEX, param: regex, issue: this.issues.INVALID_NANOID });
 
         return cloned;
     }
     includes(searchString: string): StringSchema {
         const cloned = this._clone();
         cloned._checks = this._checks || [];
-        cloned._checks.push((_value) => {
-            if (!_value.includes(searchString)) {
-                return this.issues.DOES_NOT_INCLUDE;
-            }
-        });
+        cloned._checks.push({ tag: TAG_INCLUDES, param: searchString, issue: this.issues.DOES_NOT_INCLUDE });
 
         return cloned;
     }
     startsWith(searchString: string): StringSchema {
         const cloned = this._clone();
         cloned._checks = this._checks || [];
-        cloned._checks.push((_value) => {
-            if (!_value.startsWith(searchString)) {
-                return this.issues.DOES_NOT_START_WITH;
-            }
-        });
+        cloned._checks.push({ tag: TAG_STARTS_WITH, param: searchString, issue: this.issues.DOES_NOT_START_WITH });
 
         return cloned;
     }
     endsWith(searchString: string): StringSchema {
         const cloned = this._clone();
         cloned._checks = this._checks || [];
-        cloned._checks.push((_value) => {
-            if (!_value.endsWith(searchString)) {
-                return this.issues.DOES_NOT_END_WITH;
-            }
-        });
+        cloned._checks.push({ tag: TAG_ENDS_WITH, param: searchString, issue: this.issues.DOES_NOT_END_WITH });
 
         return cloned;
     }
@@ -186,11 +183,7 @@ class StringSchema extends Schema<string> {
 
         const cloned = this._clone();
         cloned._checks = this._checks || [];
-        cloned._checks.push((_value) => {
-            if (!regex.test(_value)) {
-                return this.issues.INVALID_DATE_STRING;
-            }
-        });
+        cloned._checks.push({ tag: TAG_REGEX, param: regex, issue: this.issues.INVALID_DATE_STRING });
 
         return cloned;
     }
@@ -199,11 +192,7 @@ class StringSchema extends Schema<string> {
 
         const cloned = this._clone();
         cloned._checks = this._checks || [];
-        cloned._checks.push((_value) => {
-            if (!regex.test(_value)) {
-                return this.issues.INVALID_TIME_STRING;
-            }
-        });
+        cloned._checks.push({ tag: TAG_REGEX, param: regex, issue: this.issues.INVALID_TIME_STRING });
 
         return cloned;
     }
@@ -212,11 +201,7 @@ class StringSchema extends Schema<string> {
 
         const cloned = this._clone();
         cloned._checks = this._checks || [];
-        cloned._checks.push((_value) => {
-            if (!regex.test(_value)) {
-                return this.issues.INVALID_DATE_TIME_STRING;
-            }
-        });
+        cloned._checks.push({ tag: TAG_REGEX, param: regex, issue: this.issues.INVALID_DATE_TIME_STRING });
 
         return cloned;
     }
@@ -225,11 +210,7 @@ class StringSchema extends Schema<string> {
 
         const cloned = this._clone();
         cloned._checks = this._checks || [];
-        cloned._checks.push((_value) => {
-            if (!regex.test(_value)) {
-                return this.issues.INVALID_IP_ADDRESS;
-            }
-        });
+        cloned._checks.push({ tag: TAG_REGEX, param: regex, issue: this.issues.INVALID_IP_ADDRESS });
 
         return cloned;
     }
@@ -238,22 +219,14 @@ class StringSchema extends Schema<string> {
 
         const cloned = this._clone();
         cloned._checks = this._checks || [];
-        cloned._checks.push((_value) => {
-            if (!regex.test(_value)) {
-                return this.issues.INVALID_IP_ADDRESS_RANGE;
-            }
-        });
+        cloned._checks.push({ tag: TAG_REGEX, param: regex, issue: this.issues.INVALID_IP_ADDRESS_RANGE });
 
         return cloned;
     }
     regex(regex: RegExp): StringSchema {
         const cloned = this._clone();
         cloned._checks = this._checks || [];
-        cloned._checks.push((_value) => {
-            if (!regex.test(_value)) {
-                return this.issues.DOES_NOT_MATCH_REGEX;
-            }
-        });
+        cloned._checks.push({ tag: TAG_REGEX, param: regex, issue: this.issues.DOES_NOT_MATCH_REGEX });
 
         return cloned;
     }
