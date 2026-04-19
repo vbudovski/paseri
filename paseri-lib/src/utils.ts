@@ -21,10 +21,6 @@ function primitiveToString(value: Primitive): string {
         return `'${value}'`;
     }
 
-    if (typeof value === 'symbol') {
-        return value.description === 'undefined' ? 'Symbol()' : `Symbol('${value.description}')`;
-    }
-
     return String(value);
 }
 
