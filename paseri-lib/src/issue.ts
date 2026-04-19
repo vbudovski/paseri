@@ -103,5 +103,5 @@ function addIssue(node: TreeNode | undefined, newNode: TreeNode): TreeNode {
     return tree;
 }
 
+export type { CustomIssueCode, IssueCode, JoinNode, LeafNode, Message, TreeNode };
 export { addIssue, issueCodes };
-export type { TreeNode, LeafNode, JoinNode, IssueCode, CustomIssueCode, Message };

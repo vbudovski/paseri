@@ -174,7 +174,6 @@ function Playground(props: PlaygroundProps) {
                         ) : (
                             <ul className={styles.errors}>
                                 {result.errors.map((error: string, index: number) => (
-                                    // biome-ignore lint/suspicious/noArrayIndexKey: No better key.
                                     <li key={index}>{error}</li>
                                 ))}
                             </ul>

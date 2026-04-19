@@ -46,4 +46,4 @@ const literal = /* @__PURE__ */ <OutputType extends LiteralType>(
     ...args: ConstructorParameters<typeof LiteralSchema<OutputType>>
 ): LiteralSchema<OutputType> => new LiteralSchema(...args);
 
-export { literal, LiteralSchema };
+export { LiteralSchema, literal };

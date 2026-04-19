@@ -118,4 +118,4 @@ const ipCidrRegex = (version?: 4 | 6): RegExp => regex('i')`
     )
 `;
 
-export { emailRegex, emojiRegex, uuidRegex, nanoidRegex, dateRegex, timeRegex, datetimeRegex, ipRegex, ipCidrRegex };
+export { dateRegex, datetimeRegex, emailRegex, emojiRegex, ipCidrRegex, ipRegex, nanoidRegex, timeRegex, uuidRegex };

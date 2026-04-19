@@ -267,14 +267,14 @@ const singleton = /* @__PURE__ */ new StringSchema();
 const string = /* @__PURE__ */ (): StringSchema => singleton;
 
 export {
-    string,
+    dateRegex,
+    datetimeRegex,
     emailRegex,
     emojiRegex,
-    uuidRegex,
-    nanoidRegex,
-    dateRegex,
-    timeRegex,
-    datetimeRegex,
-    ipRegex,
     ipCidrRegex,
+    ipRegex,
+    nanoidRegex,
+    string,
+    timeRegex,
+    uuidRegex,
 };

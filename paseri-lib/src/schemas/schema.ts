@@ -152,5 +152,5 @@ class ChainSchema<FromOutputType, ToOutputType> extends Schema<ToOutputType> {
 
 type AnySchemaType = Schema<unknown>;
 
-export { Schema, OptionalSchema };
 export type { AnySchemaType };
+export { OptionalSchema, Schema };

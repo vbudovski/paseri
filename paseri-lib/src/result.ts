@@ -82,5 +82,5 @@ function isIssue(value: Record<string, any>): value is TreeNode {
     return typeof value.type === 'string';
 }
 
-export { isIssue, isParseSuccess, ok, err, PaseriError, ParseErrorResult };
 export type { InternalParseResult, ParseResult };
+export { err, isIssue, isParseSuccess, ok, ParseErrorResult, PaseriError };

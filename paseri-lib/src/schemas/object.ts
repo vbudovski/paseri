@@ -206,4 +206,4 @@ const object = /* @__PURE__ */ <ShapeType extends ValidShapeType<ShapeType>>(
     ...args: ConstructorParameters<typeof ObjectSchema<ShapeType>>
 ): ObjectSchema<ShapeType> => new ObjectSchema(...args);
 
-export { object, ObjectSchema };
+export { ObjectSchema, object };
