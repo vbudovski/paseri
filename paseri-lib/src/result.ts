@@ -16,7 +16,6 @@ interface ParseErrorResultInterface {
 class ParseErrorResult implements ParseErrorResultInterface {
     readonly ok = false as const;
     private readonly _issue: TreeNode;
-    private _messageList: readonly Message[] | undefined;
 
     constructor(issue: TreeNode) {
         this._issue = issue;
@@ -25,11 +24,7 @@ class ParseErrorResult implements ParseErrorResultInterface {
         return this._issue;
     }
     messages(locale: Translations = en): readonly Message[] {
-        if (this._messageList === undefined) {
-            this._messageList = messageList(this._issue, locale);
-        }
-
-        return this._messageList;
+        return messageList(this._issue, locale);
     }
 }
 
@@ -38,7 +33,6 @@ class ParseErrorResult implements ParseErrorResultInterface {
  */
 class PaseriError extends Error {
     private readonly _issue: TreeNode;
-    private _messageList: readonly Message[] | undefined;
 
     constructor(issue: TreeNode) {
         super('Failed to parse. See `e.messages()` for details.');
@@ -51,11 +45,7 @@ class PaseriError extends Error {
      * @param locale The locale to use for error messages.
      */
     messages(locale: Translations = en): readonly Message[] {
-        if (this._messageList === undefined) {
-            this._messageList = messageList(this._issue, locale);
-        }
-
-        return this._messageList;
+        return messageList(this._issue, locale);
     }
 }
 
