@@ -1,14 +1,18 @@
 {
   "imports": {
+    "@biomejs/biome": "npm:@biomejs/biome@^2.4.12",
+    "@commitlint/cli": "npm:@commitlint/cli@^20.5.0",
     "@commitlint/config-conventional": "npm:@commitlint/config-conventional@^20.5.0",
-    "@commitlint/types": "npm:@commitlint/types@^20.5.0"
+    "@commitlint/types": "npm:@commitlint/types@^20.5.0",
+    "husky": "npm:husky@^9.1.7",
+    "lint-staged": "npm:lint-staged@^16.4.0"
   },
   "tasks": {
-    "init": "deno run --allow-env --allow-read --allow-write --allow-run npm:husky",
-    "lint-staged": "deno run --allow-env --allow-read --allow-write --allow-sys --allow-run npm:lint-staged",
-    "ci": "deno run --allow-env --allow-read --allow-run npm:@biomejs/biome ci",
-    "check": "deno run --allow-env --allow-read --allow-run npm:@biomejs/biome check",
-    "commitlint": "deno run --allow-env --allow-sys --allow-read --allow-write --allow-run npm:@commitlint/cli"
+    "init": "deno run --allow-env --allow-read --allow-write --allow-run husky",
+    "lint-staged": "deno run --allow-env --allow-read --allow-write --allow-sys --allow-run lint-staged",
+    "ci": "deno run --allow-env --allow-read --allow-run @biomejs/biome ci",
+    "check": "deno run --allow-env --allow-read --allow-run @biomejs/biome check",
+    "commitlint": "deno run --allow-env --allow-sys --allow-read --allow-write --allow-run @commitlint/cli"
   },
   "workspace": ["paseri-lib"],
   "exclude": ["paseri-docs"],
