@@ -117,7 +117,7 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
                     continue;
                 }
 
-                if (modifiedValues[key] === undefined) {
+                if (!(key in modifiedValues)) {
                     sanitizedValue[key] = value[key];
                 } else {
                     sanitizedValue[key] = modifiedValues[key];
