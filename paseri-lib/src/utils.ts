@@ -1,15 +1,19 @@
 import type { Primitive } from 'type-fest';
 
 function isPlainObject(value: unknown): value is Record<PropertyKey, unknown> {
-    return !(
-        typeof value !== 'object' ||
-        value === null ||
-        Array.isArray(value) ||
-        value instanceof Promise ||
-        value instanceof Map ||
-        value instanceof Set ||
-        value instanceof Date
-    );
+    if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+        return false;
+    }
+
+    if (value.constructor === undefined) {
+        return true;
+    }
+
+    if (value.constructor !== Object && !Object.hasOwn(value, 'constructor')) {
+        return false;
+    }
+
+    return Object.getPrototypeOf(value) === Object.prototype || Object.getPrototypeOf(value) === null;
 }
 
 function primitiveToString(value: Primitive): string {
