@@ -45,8 +45,8 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
 
         let seen = 0;
         const modifiedValues: Record<PropertyKey, unknown> = {};
-        const unrecognisedKeys: Record<PropertyKey, boolean> = {};
-        let hasUnrecognisedKey = false;
+        // A Set avoids the __proto__ accessor issue that affects plain objects in browsers/Node.js.
+        let unrecognisedKeys: Set<string> | undefined;
         let hasModifiedChildValue = false;
 
         let issue: TreeNode | undefined;
@@ -74,8 +74,10 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
                     });
                 }
             } else {
-                hasUnrecognisedKey = true;
-                unrecognisedKeys[key] = true;
+                if (!unrecognisedKeys) {
+                    unrecognisedKeys = new Set();
+                }
+                unrecognisedKeys.add(key);
             }
         }
 
@@ -92,15 +94,13 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
         }
 
         // Collect any unrecognised key issues, if operating in strict mode.
-        if (hasUnrecognisedKey && this._mode === 'strict') {
-            for (const key in value) {
-                if (Object.hasOwn(unrecognisedKeys, key)) {
-                    issue = addIssue(issue, {
-                        type: 'nest',
-                        key,
-                        child: this.issues.UNRECOGNIZED_KEY,
-                    });
-                }
+        if (unrecognisedKeys && this._mode === 'strict') {
+            for (const key of unrecognisedKeys) {
+                issue = addIssue(issue, {
+                    type: 'nest',
+                    key,
+                    child: this.issues.UNRECOGNIZED_KEY,
+                });
             }
         }
 
@@ -110,10 +110,10 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
             return issue;
         }
 
-        if (hasUnrecognisedKey && this._mode === 'strip' && hasModifiedChildValue) {
+        if (unrecognisedKeys && this._mode === 'strip' && hasModifiedChildValue) {
             const sanitizedValue: Record<PropertyKey, unknown> = {};
             for (const key in value) {
-                if (Object.hasOwn(unrecognisedKeys, key)) {
+                if (unrecognisedKeys.has(key)) {
                     continue;
                 }
 
@@ -127,10 +127,10 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
             return { ok: true, value: sanitizedValue as Infer<ShapeType> };
         }
 
-        if (hasUnrecognisedKey && this._mode === 'strip' && !hasModifiedChildValue) {
+        if (unrecognisedKeys && this._mode === 'strip' && !hasModifiedChildValue) {
             const sanitizedValue: Record<PropertyKey, unknown> = {};
             for (const key in value) {
-                if (Object.hasOwn(unrecognisedKeys, key)) {
+                if (unrecognisedKeys.has(key)) {
                     continue;
                 }
 
