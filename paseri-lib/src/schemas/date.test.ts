@@ -1,4 +1,5 @@
 import { expect } from '@std/expect';
+import { describe, it } from '@std/testing/bdd';
 import { expectTypeOf } from 'expect-type';
 import fc from 'fast-check';
 import * as p from '../index.ts';
@@ -47,66 +48,94 @@ test('Invalid date', () => {
     }
 });
 
-test('Valid min', () => {
-    const schema = p.date().min(new Date(2020, 0, 1));
+describe('min', () => {
+    it('Valid', () => {
+        const schema = p.date().min(new Date(2020, 0, 1));
 
-    fc.assert(
-        fc.property(fc.date({ min: new Date(2020, 0, 1), noInvalidDate: true }), (data) => {
-            const result = schema.safeParse(data);
-            if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<Date>;
-                expect(result.value).toBe(data);
-            } else {
-                expect(result.ok).toBeTruthy();
-            }
-        }),
-    );
+        fc.assert(
+            fc.property(fc.date({ min: new Date(2020, 0, 1), noInvalidDate: true }), (data) => {
+                const result = schema.safeParse(data);
+                if (result.ok) {
+                    expectTypeOf(result.value).toEqualTypeOf<Date>;
+                    expect(result.value).toBe(data);
+                } else {
+                    expect(result.ok).toBeTruthy();
+                }
+            }),
+        );
+    });
+
+    it('Invalid', () => {
+        const schema = p.date().min(new Date(2020, 0, 1));
+
+        fc.assert(
+            fc.property(fc.date({ max: new Date(2019, 11, 31), noInvalidDate: true }), (data) => {
+                const result = schema.safeParse(data);
+                if (!result.ok) {
+                    expect(result.messages()).toEqual([{ path: [], message: 'Too dated.' }]);
+                } else {
+                    expect(result.ok).toBeFalsy();
+                }
+            }),
+        );
+    });
+
+    it('Invalid Date boundary', () => {
+        expect(() => p.date().min(new Date(Number.NaN))).toThrow();
+    });
+
+    it('Immutable', () => {
+        const original = p.date();
+        const modified = original.min(new Date(2020, 0, 1));
+        expect(modified).not.toEqual(original);
+        const branched = modified.max(new Date(2025, 0, 1));
+        expect(branched).not.toEqual(modified);
+    });
 });
 
-test('Invalid min', () => {
-    const schema = p.date().min(new Date(2020, 0, 1));
+describe('max', () => {
+    it('Valid', () => {
+        const schema = p.date().max(new Date(2020, 0, 1));
 
-    fc.assert(
-        fc.property(fc.date({ max: new Date(2019, 11, 31), noInvalidDate: true }), (data) => {
-            const result = schema.safeParse(data);
-            if (!result.ok) {
-                expect(result.messages()).toEqual([{ path: [], message: 'Too dated.' }]);
-            } else {
-                expect(result.ok).toBeFalsy();
-            }
-        }),
-    );
-});
+        fc.assert(
+            fc.property(fc.date({ max: new Date(2020, 0, 1), noInvalidDate: true }), (data) => {
+                const result = schema.safeParse(data);
+                if (result.ok) {
+                    expectTypeOf(result.value).toEqualTypeOf<Date>;
+                    expect(result.value).toBe(data);
+                } else {
+                    expect(result.ok).toBeTruthy();
+                }
+            }),
+        );
+    });
 
-test('Valid max', () => {
-    const schema = p.date().max(new Date(2020, 0, 1));
+    it('Invalid', () => {
+        const schema = p.date().max(new Date(2020, 0, 1));
 
-    fc.assert(
-        fc.property(fc.date({ max: new Date(2020, 0, 1), noInvalidDate: true }), (data) => {
-            const result = schema.safeParse(data);
-            if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<Date>;
-                expect(result.value).toBe(data);
-            } else {
-                expect(result.ok).toBeTruthy();
-            }
-        }),
-    );
-});
+        fc.assert(
+            fc.property(fc.date({ min: new Date(2020, 0, 2), noInvalidDate: true }), (data) => {
+                const result = schema.safeParse(data);
+                if (!result.ok) {
+                    expect(result.messages()).toEqual([{ path: [], message: 'Too recent.' }]);
+                } else {
+                    expect(result.ok).toBeFalsy();
+                }
+            }),
+        );
+    });
 
-test('Invalid max', () => {
-    const schema = p.date().max(new Date(2020, 0, 1));
+    it('Invalid Date boundary', () => {
+        expect(() => p.date().max(new Date(Number.NaN))).toThrow();
+    });
 
-    fc.assert(
-        fc.property(fc.date({ min: new Date(2020, 0, 2), noInvalidDate: true }), (data) => {
-            const result = schema.safeParse(data);
-            if (!result.ok) {
-                expect(result.messages()).toEqual([{ path: [], message: 'Too recent.' }]);
-            } else {
-                expect(result.ok).toBeFalsy();
-            }
-        }),
-    );
+    it('Immutable', () => {
+        const original = p.date();
+        const modified = original.max(new Date(2025, 0, 1));
+        expect(modified).not.toEqual(original);
+        const branched = modified.min(new Date(2020, 0, 1));
+        expect(branched).not.toEqual(modified);
+    });
 });
 
 test('Optional', () => {
@@ -139,22 +168,4 @@ test('Nullable', () => {
             }
         }),
     );
-});
-
-test('Immutable', async (t) => {
-    await t.step('min', () => {
-        const original = p.date();
-        const modified = original.min(new Date(2020, 0, 1));
-        expect(modified).not.toEqual(original);
-        const branched = modified.max(new Date(2025, 0, 1));
-        expect(branched).not.toEqual(modified);
-    });
-
-    await t.step('max', () => {
-        const original = p.date();
-        const modified = original.max(new Date(2025, 0, 1));
-        expect(modified).not.toEqual(original);
-        const branched = modified.min(new Date(2020, 0, 1));
-        expect(branched).not.toEqual(modified);
-    });
 });

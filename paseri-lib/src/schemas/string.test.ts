@@ -1,4 +1,5 @@
 import { expect } from '@std/expect';
+import { describe, it } from '@std/testing/bdd';
 import { expectTypeOf } from 'expect-type';
 import fc from 'fast-check';
 import { check } from 'recheck';
@@ -87,112 +88,154 @@ test('Invalid type', () => {
     );
 });
 
-test('Valid min', () => {
-    const schema = p.string().min(3);
+describe('min', () => {
+    it('Valid', () => {
+        const schema = p.string().min(3);
 
-    fc.assert(
-        fc.property(fc.string({ minLength: 3 }), (data) => {
-            const result = schema.safeParse(data);
-            if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<string>;
-                expect(result.value).toBe(data);
-            } else {
-                expect(result.ok).toBeTruthy();
-            }
-        }),
-    );
+        fc.assert(
+            fc.property(fc.string({ minLength: 3 }), (data) => {
+                const result = schema.safeParse(data);
+                if (result.ok) {
+                    expectTypeOf(result.value).toEqualTypeOf<string>;
+                    expect(result.value).toBe(data);
+                } else {
+                    expect(result.ok).toBeTruthy();
+                }
+            }),
+        );
+    });
+
+    it('Invalid', () => {
+        const schema = p.string().min(3);
+
+        fc.assert(
+            fc.property(fc.string({ maxLength: 2 }), (data) => {
+                const result = schema.safeParse(data);
+                if (!result.ok) {
+                    expect(result.messages()).toEqual([{ path: [], message: 'Too short.' }]);
+                } else {
+                    expect(result.ok).toBeFalsy();
+                }
+            }),
+        );
+    });
+
+    it('NaN', () => {
+        expect(() => p.string().min(NaN)).toThrow();
+    });
+
+    it('Immutable', () => {
+        const original = p.string();
+        const modified = original.min(3);
+        expect(modified).not.toEqual(original);
+        const branched = modified.max(5);
+        expect(branched).not.toEqual(modified);
+    });
 });
 
-test('Invalid min', () => {
-    const schema = p.string().min(3);
+describe('max', () => {
+    it('Valid', () => {
+        const schema = p.string().max(3);
 
-    fc.assert(
-        fc.property(fc.string({ maxLength: 2 }), (data) => {
-            const result = schema.safeParse(data);
-            if (!result.ok) {
-                expect(result.messages()).toEqual([{ path: [], message: 'Too short.' }]);
-            } else {
-                expect(result.ok).toBeFalsy();
-            }
-        }),
-    );
+        fc.assert(
+            fc.property(fc.string({ maxLength: 3 }), (data) => {
+                const result = schema.safeParse(data);
+                if (result.ok) {
+                    expectTypeOf(result.value).toEqualTypeOf<string>;
+                    expect(result.value).toBe(data);
+                } else {
+                    expect(result.ok).toBeTruthy();
+                }
+            }),
+        );
+    });
+
+    it('Invalid', () => {
+        const schema = p.string().max(3);
+
+        fc.assert(
+            fc.property(fc.string({ minLength: 4 }), (data) => {
+                const result = schema.safeParse(data);
+                if (!result.ok) {
+                    expect(result.messages()).toEqual([{ path: [], message: 'Too long.' }]);
+                } else {
+                    expect(result.ok).toBeFalsy();
+                }
+            }),
+        );
+    });
+
+    it('NaN', () => {
+        expect(() => p.string().max(NaN)).toThrow();
+    });
+
+    it('Immutable', () => {
+        const original = p.string();
+        const modified = original.max(3);
+        expect(modified).not.toEqual(original);
+        const branched = modified.min(1);
+        expect(branched).not.toEqual(modified);
+    });
 });
 
-test('Valid max', () => {
-    const schema = p.string().max(3);
+describe('length', () => {
+    it('Valid', () => {
+        const schema = p.string().length(3);
 
-    fc.assert(
-        fc.property(fc.string({ maxLength: 3 }), (data) => {
-            const result = schema.safeParse(data);
-            if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<string>;
-                expect(result.value).toBe(data);
-            } else {
-                expect(result.ok).toBeTruthy();
-            }
-        }),
-    );
-});
+        fc.assert(
+            fc.property(fc.string({ minLength: 3, maxLength: 3 }), (data) => {
+                const result = schema.safeParse(data);
+                if (result.ok) {
+                    expectTypeOf(result.value).toEqualTypeOf<string>;
+                    expect(result.value).toBe(data);
+                } else {
+                    expect(result.ok).toBeTruthy();
+                }
+            }),
+        );
+    });
 
-test('Invalid max', () => {
-    const schema = p.string().max(3);
+    it('Invalid (too long)', () => {
+        const schema = p.string().length(3);
 
-    fc.assert(
-        fc.property(fc.string({ minLength: 4 }), (data) => {
-            const result = schema.safeParse(data);
-            if (!result.ok) {
-                expect(result.messages()).toEqual([{ path: [], message: 'Too long.' }]);
-            } else {
-                expect(result.ok).toBeFalsy();
-            }
-        }),
-    );
-});
+        fc.assert(
+            fc.property(fc.string({ minLength: 4 }), (data) => {
+                const result = schema.safeParse(data);
+                if (!result.ok) {
+                    expect(result.messages()).toEqual([{ path: [], message: 'Too long.' }]);
+                } else {
+                    expect(result.ok).toBeFalsy();
+                }
+            }),
+        );
+    });
 
-test('Valid length', () => {
-    const schema = p.string().length(3);
+    it('Invalid (too short)', () => {
+        const schema = p.string().length(3);
 
-    fc.assert(
-        fc.property(fc.string({ minLength: 3, maxLength: 3 }), (data) => {
-            const result = schema.safeParse(data);
-            if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<string>;
-                expect(result.value).toBe(data);
-            } else {
-                expect(result.ok).toBeTruthy();
-            }
-        }),
-    );
-});
+        fc.assert(
+            fc.property(fc.string({ maxLength: 2 }), (data) => {
+                const result = schema.safeParse(data);
+                if (!result.ok) {
+                    expect(result.messages()).toEqual([{ path: [], message: 'Too short.' }]);
+                } else {
+                    expect(result.ok).toBeFalsy();
+                }
+            }),
+        );
+    });
 
-test('Invalid length (too long)', () => {
-    const schema = p.string().length(3);
+    it('NaN', () => {
+        expect(() => p.string().length(NaN)).toThrow();
+    });
 
-    fc.assert(
-        fc.property(fc.string({ minLength: 4 }), (data) => {
-            const result = schema.safeParse(data);
-            if (!result.ok) {
-                expect(result.messages()).toEqual([{ path: [], message: 'Too long.' }]);
-            } else {
-                expect(result.ok).toBeFalsy();
-            }
-        }),
-    );
-});
-
-test('Invalid length (too short)', () => {
-    const schema = p.string().length(3);
-
-    fc.assert(
-        fc.property(fc.string({ maxLength: 2 }), (data) => {
-            const result = schema.safeParse(data);
-            if (!result.ok) {
-                expect(result.messages()).toEqual([{ path: [], message: 'Too short.' }]);
-            } else {
-                expect(result.ok).toBeFalsy();
-            }
-        }),
-    );
+    it('Immutable', () => {
+        const original = p.string();
+        const modified = original.length(3);
+        expect(modified).not.toEqual(original);
+        const branched = modified.min(1);
+        expect(branched).not.toEqual(modified);
+    });
 });
 
 test('Valid email', () => {
@@ -889,30 +932,6 @@ test('Nullable', () => {
 });
 
 test('Immutable', async (t) => {
-    await t.step('min', () => {
-        const original = p.string();
-        const modified = original.min(3);
-        expect(modified).not.toEqual(original);
-        const branched = modified.max(5);
-        expect(branched).not.toEqual(modified);
-    });
-
-    await t.step('max', () => {
-        const original = p.string();
-        const modified = original.max(3);
-        expect(modified).not.toEqual(original);
-        const branched = modified.min(1);
-        expect(branched).not.toEqual(modified);
-    });
-
-    await t.step('length', () => {
-        const original = p.string();
-        const modified = original.length(3);
-        expect(modified).not.toEqual(original);
-        const branched = modified.min(1);
-        expect(branched).not.toEqual(modified);
-    });
-
     await t.step('email', () => {
         const original = p.string();
         const modified = original.email();

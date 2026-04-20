@@ -1,4 +1,5 @@
 import { expect } from '@std/expect';
+import { describe, it } from '@std/testing/bdd';
 import { expectTypeOf } from 'expect-type';
 import fc from 'fast-check';
 import * as p from '../index.ts';
@@ -42,128 +43,184 @@ test('Invalid type', () => {
     );
 });
 
-test('Valid gte', () => {
-    const schema = p.number().gte(10);
+describe('gte', () => {
+    it('Valid', () => {
+        const schema = p.number().gte(10);
 
-    fc.assert(
-        fc.property(fc.float({ noNaN: true, min: 10 }), (data) => {
-            const result = schema.safeParse(data);
-            if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<number>;
-                expect(result.value).toBe(data);
-            } else {
-                expect(result.ok).toBeTruthy();
-            }
-        }),
-    );
+        fc.assert(
+            fc.property(fc.float({ noNaN: true, min: 10 }), (data) => {
+                const result = schema.safeParse(data);
+                if (result.ok) {
+                    expectTypeOf(result.value).toEqualTypeOf<number>;
+                    expect(result.value).toBe(data);
+                } else {
+                    expect(result.ok).toBeTruthy();
+                }
+            }),
+        );
+    });
+
+    it('Invalid', () => {
+        const schema = p.number().gte(10);
+
+        fc.assert(
+            fc.property(fc.float({ noNaN: true, max: 10, maxExcluded: true }), (data) => {
+                const result = schema.safeParse(data);
+                if (!result.ok) {
+                    expect(result.messages()).toEqual([{ path: [], message: 'Too small.' }]);
+                } else {
+                    expect(result.ok).toBeFalsy();
+                }
+            }),
+        );
+    });
+
+    it('NaN boundary', () => {
+        expect(() => p.number().gte(NaN)).toThrow();
+    });
+
+    it('Immutable', () => {
+        const original = p.number();
+        const modified = original.gte(3);
+        expect(modified).not.toEqual(original);
+        const branched = modified.lte(10);
+        expect(branched).not.toEqual(modified);
+    });
 });
 
-test('Invalid gte', () => {
-    const schema = p.number().gte(10);
+describe('gt', () => {
+    it('Valid', () => {
+        const schema = p.number().gt(10);
 
-    fc.assert(
-        fc.property(fc.float({ noNaN: true, max: 10, maxExcluded: true }), (data) => {
-            const result = schema.safeParse(data);
-            if (!result.ok) {
-                expect(result.messages()).toEqual([{ path: [], message: 'Too small.' }]);
-            } else {
-                expect(result.ok).toBeFalsy();
-            }
-        }),
-    );
+        fc.assert(
+            fc.property(fc.float({ noNaN: true, min: 10, minExcluded: true }), (data) => {
+                const result = schema.safeParse(data);
+                if (result.ok) {
+                    expectTypeOf(result.value).toEqualTypeOf<number>;
+                    expect(result.value).toBe(data);
+                } else {
+                    expect(result.ok).toBeTruthy();
+                }
+            }),
+        );
+    });
+
+    it('Invalid', () => {
+        const schema = p.number().gt(10);
+
+        fc.assert(
+            fc.property(fc.float({ noNaN: true, max: 10 }), (data) => {
+                const result = schema.safeParse(data);
+                if (!result.ok) {
+                    expect(result.messages()).toEqual([{ path: [], message: 'Too small.' }]);
+                } else {
+                    expect(result.ok).toBeFalsy();
+                }
+            }),
+        );
+    });
+
+    it('NaN boundary', () => {
+        expect(() => p.number().gt(NaN)).toThrow();
+    });
+
+    it('Immutable', () => {
+        const original = p.number();
+        const modified = original.gt(3);
+        expect(modified).not.toEqual(original);
+        const branched = modified.lt(10);
+        expect(branched).not.toEqual(modified);
+    });
 });
 
-test('Valid gt', () => {
-    const schema = p.number().gt(10);
+describe('lte', () => {
+    it('Valid', () => {
+        const schema = p.number().lte(10);
 
-    fc.assert(
-        fc.property(fc.float({ noNaN: true, min: 10, minExcluded: true }), (data) => {
-            const result = schema.safeParse(data);
-            if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<number>;
-                expect(result.value).toBe(data);
-            } else {
-                expect(result.ok).toBeTruthy();
-            }
-        }),
-    );
+        fc.assert(
+            fc.property(fc.float({ noNaN: true, max: 10 }), (data) => {
+                const result = schema.safeParse(data);
+                if (result.ok) {
+                    expectTypeOf(result.value).toEqualTypeOf<number>;
+                    expect(result.value).toBe(data);
+                } else {
+                    expect(result.ok).toBeTruthy();
+                }
+            }),
+        );
+    });
+
+    it('Invalid', () => {
+        const schema = p.number().lte(10);
+
+        fc.assert(
+            fc.property(fc.float({ noNaN: true, min: 10, minExcluded: true }), (data) => {
+                const result = schema.safeParse(data);
+                if (!result.ok) {
+                    expect(result.messages()).toEqual([{ path: [], message: 'Too large.' }]);
+                } else {
+                    expect(result.ok).toBeFalsy();
+                }
+            }),
+        );
+    });
+
+    it('NaN boundary', () => {
+        expect(() => p.number().lte(NaN)).toThrow();
+    });
+
+    it('Immutable', () => {
+        const original = p.number();
+        const modified = original.lte(3);
+        expect(modified).not.toEqual(original);
+        const branched = modified.gte(0);
+        expect(branched).not.toEqual(modified);
+    });
 });
 
-test('Invalid gt', () => {
-    const schema = p.number().gt(10);
+describe('lt', () => {
+    it('Valid', () => {
+        const schema = p.number().lt(10);
 
-    fc.assert(
-        fc.property(fc.float({ noNaN: true, max: 10 }), (data) => {
-            const result = schema.safeParse(data);
-            if (!result.ok) {
-                expect(result.messages()).toEqual([{ path: [], message: 'Too small.' }]);
-            } else {
-                expect(result.ok).toBeFalsy();
-            }
-        }),
-    );
-});
+        fc.assert(
+            fc.property(fc.float({ noNaN: true, max: 10, maxExcluded: true }), (data) => {
+                const result = schema.safeParse(data);
+                if (result.ok) {
+                    expectTypeOf(result.value).toEqualTypeOf<number>;
+                    expect(result.value).toBe(data);
+                } else {
+                    expect(result.ok).toBeTruthy();
+                }
+            }),
+        );
+    });
 
-test('Valid lte', () => {
-    const schema = p.number().lte(10);
+    it('Invalid', () => {
+        const schema = p.number().lt(10);
 
-    fc.assert(
-        fc.property(fc.float({ noNaN: true, max: 10 }), (data) => {
-            const result = schema.safeParse(data);
-            if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<number>;
-                expect(result.value).toBe(data);
-            } else {
-                expect(result.ok).toBeTruthy();
-            }
-        }),
-    );
-});
+        fc.assert(
+            fc.property(fc.float({ noNaN: true, min: 10 }), (data) => {
+                const result = schema.safeParse(data);
+                if (!result.ok) {
+                    expect(result.messages()).toEqual([{ path: [], message: 'Too large.' }]);
+                } else {
+                    expect(result.ok).toBeFalsy();
+                }
+            }),
+        );
+    });
 
-test('Invalid lte', () => {
-    const schema = p.number().lte(10);
+    it('NaN boundary', () => {
+        expect(() => p.number().lt(NaN)).toThrow();
+    });
 
-    fc.assert(
-        fc.property(fc.float({ noNaN: true, min: 10, minExcluded: true }), (data) => {
-            const result = schema.safeParse(data);
-            if (!result.ok) {
-                expect(result.messages()).toEqual([{ path: [], message: 'Too large.' }]);
-            } else {
-                expect(result.ok).toBeFalsy();
-            }
-        }),
-    );
-});
-
-test('Valid lt', () => {
-    const schema = p.number().lt(10);
-
-    fc.assert(
-        fc.property(fc.float({ noNaN: true, max: 10, maxExcluded: true }), (data) => {
-            const result = schema.safeParse(data);
-            if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<number>;
-                expect(result.value).toBe(data);
-            } else {
-                expect(result.ok).toBeTruthy();
-            }
-        }),
-    );
-});
-
-test('Invalid lt', () => {
-    const schema = p.number().lt(10);
-
-    fc.assert(
-        fc.property(fc.float({ noNaN: true, min: 10 }), (data) => {
-            const result = schema.safeParse(data);
-            if (!result.ok) {
-                expect(result.messages()).toEqual([{ path: [], message: 'Too large.' }]);
-            } else {
-                expect(result.ok).toBeFalsy();
-            }
-        }),
-    );
+    it('Immutable', () => {
+        const original = p.number();
+        const modified = original.lt(3);
+        expect(modified).not.toEqual(original);
+        const branched = modified.gt(0);
+        expect(branched).not.toEqual(modified);
+    });
 });
 
 test('Valid int', () => {
@@ -294,40 +351,8 @@ test('Nullable', () => {
     );
 });
 
-test('Immutable', async (t) => {
-    await t.step('gte', () => {
-        const original = p.number();
-        const modified = original.gte(3);
-        expect(modified).not.toEqual(original);
-        const branched = modified.lte(10);
-        expect(branched).not.toEqual(modified);
-    });
-
-    await t.step('gt', () => {
-        const original = p.number();
-        const modified = original.gt(3);
-        expect(modified).not.toEqual(original);
-        const branched = modified.lt(10);
-        expect(branched).not.toEqual(modified);
-    });
-
-    await t.step('lte', () => {
-        const original = p.number();
-        const modified = original.lte(3);
-        expect(modified).not.toEqual(original);
-        const branched = modified.gte(0);
-        expect(branched).not.toEqual(modified);
-    });
-
-    await t.step('lt', () => {
-        const original = p.number();
-        const modified = original.lt(3);
-        expect(modified).not.toEqual(original);
-        const branched = modified.gt(0);
-        expect(branched).not.toEqual(modified);
-    });
-
-    await t.step('int', () => {
+describe('Immutable', () => {
+    it('int', () => {
         const original = p.number();
         const modified = original.int();
         expect(modified).not.toEqual(original);
@@ -335,7 +360,7 @@ test('Immutable', async (t) => {
         expect(branched).not.toEqual(modified);
     });
 
-    await t.step('finite', () => {
+    it('finite', () => {
         const original = p.number();
         const modified = original.finite();
         expect(modified).not.toEqual(original);
@@ -343,7 +368,7 @@ test('Immutable', async (t) => {
         expect(branched).not.toEqual(modified);
     });
 
-    await t.step('safe', () => {
+    it('safe', () => {
         const original = p.number();
         const modified = original.safe();
         expect(modified).not.toEqual(original);
