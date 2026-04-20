@@ -28,6 +28,13 @@ describe('isPlainObject', () => {
         );
     });
 
+    it('rejects objects with constructor set to undefined but non-null prototype', () => {
+        const obj = Object.create({ injected: 'value' });
+        obj.constructor = undefined;
+
+        expect(isPlainObject(obj)).toBe(false);
+    });
+
     it('rejects non-plain objects', () => {
         fc.assert(
             fc.property(
