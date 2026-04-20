@@ -94,7 +94,7 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
         // Collect any unrecognised key issues, if operating in strict mode.
         if (hasUnrecognisedKey && this._mode === 'strict') {
             for (const key in value) {
-                if (unrecognisedKeys[key]) {
+                if (Object.hasOwn(unrecognisedKeys, key)) {
                     issue = addIssue(issue, {
                         type: 'nest',
                         key,
@@ -113,11 +113,11 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
         if (hasUnrecognisedKey && this._mode === 'strip' && hasModifiedChildValue) {
             const sanitizedValue: Record<PropertyKey, unknown> = {};
             for (const key in value) {
-                if (unrecognisedKeys[key]) {
+                if (Object.hasOwn(unrecognisedKeys, key)) {
                     continue;
                 }
 
-                if (!(key in modifiedValues)) {
+                if (!Object.hasOwn(modifiedValues, key)) {
                     sanitizedValue[key] = value[key];
                 } else {
                     sanitizedValue[key] = modifiedValues[key];
@@ -130,7 +130,7 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
         if (hasUnrecognisedKey && this._mode === 'strip' && !hasModifiedChildValue) {
             const sanitizedValue: Record<PropertyKey, unknown> = {};
             for (const key in value) {
-                if (unrecognisedKeys[key]) {
+                if (Object.hasOwn(unrecognisedKeys, key)) {
                     continue;
                 }
 
