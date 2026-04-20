@@ -201,6 +201,10 @@ class StringSchema extends Schema<string> {
         return cloned;
     }
     time(options: { precision?: number } = {}): StringSchema {
+        if (options.precision !== undefined && (!Number.isInteger(options.precision) || options.precision < 0)) {
+            throw new Error('Precision must be a non-negative integer.');
+        }
+
         const regex = timeRegex(options.precision);
 
         const cloned = this._clone();
@@ -210,6 +214,10 @@ class StringSchema extends Schema<string> {
         return cloned;
     }
     datetime(options: { precision?: number; offset?: boolean; local?: boolean } = {}): StringSchema {
+        if (options.precision !== undefined && (!Number.isInteger(options.precision) || options.precision < 0)) {
+            throw new Error('Precision must be a non-negative integer.');
+        }
+
         const regex = datetimeRegex(options.precision, options.offset, options.local);
 
         const cloned = this._clone();
