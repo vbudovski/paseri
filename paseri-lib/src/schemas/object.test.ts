@@ -198,6 +198,36 @@ test('Optional key is not flagged as missing', () => {
     }
 });
 
+test('Optional wrapped in nullable is not flagged as missing', () => {
+    const schema = p.object({ field: p.string().optional().nullable(), required: p.string() });
+    const data = { required: 'hello' };
+
+    const result = schema.safeParse(data);
+    if (result.ok) {
+        expect(result.value).toEqual({ required: 'hello' });
+    } else {
+        expect(result.ok).toBeTruthy();
+    }
+});
+
+test('Chained optional is still required', () => {
+    const schema = p.object({
+        field: p
+            .string()
+            .optional()
+            .chain(p.string(), (v) => p.ok(v ?? 'default')),
+        required: p.string(),
+    });
+    const data = { required: 'hello' };
+
+    const result = schema.safeParse(data);
+    if (!result.ok) {
+        expect(result.messages()).toEqual([{ path: ['field'], message: 'Missing value.' }]);
+    } else {
+        expect(result.ok).toBeFalsy();
+    }
+});
+
 test('Optional', () => {
     const schema = p
         .object({
