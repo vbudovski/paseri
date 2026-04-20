@@ -208,6 +208,18 @@ test('Nullable', () => {
     );
 });
 
+test('Modified child returns new value', () => {
+    const schema = p.array(p.object({ foo: p.string() }).strip());
+    const data = [{ foo: 'bar', extra: 'baz' }];
+
+    const result = schema.safeParse(data);
+    if (result.ok) {
+        expect(result.value).toEqual([{ foo: 'bar' }]);
+    } else {
+        expect(result.ok).toBeTruthy();
+    }
+});
+
 test('Immutable', async (t) => {
     await t.step('min', () => {
         const original = p.array(p.string());

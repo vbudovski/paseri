@@ -198,6 +198,18 @@ test('Invalid elements', () => {
     }
 });
 
+test('Modified child returns new value', () => {
+    const schema = p.set(p.object({ foo: p.string() }).strip());
+    const data = new Set([{ foo: 'bar', extra: 'baz' }]);
+
+    const result = schema.safeParse(data);
+    if (result.ok) {
+        expect(result.value).toEqual(new Set([{ foo: 'bar' }]));
+    } else {
+        expect(result.ok).toBeTruthy();
+    }
+});
+
 test('Optional', () => {
     const schema = p.set(p.number()).optional();
 

@@ -78,6 +78,21 @@ test('Invalid elements', () => {
     }
 });
 
+test('Modified child returns new value', () => {
+    const schema = p.tuple(p.object({ foo: p.string() }).strip(), p.object({ bar: p.number() }).strip());
+    const data = [
+        { foo: 'hello', extra1: 'baz' },
+        { bar: 123, extra2: 'qux' },
+    ];
+
+    const result = schema.safeParse(data);
+    if (result.ok) {
+        expect(result.value).toEqual([{ foo: 'hello' }, { bar: 123 }]);
+    } else {
+        expect(result.ok).toBeTruthy();
+    }
+});
+
 test('Optional', () => {
     const schema = p.tuple(p.number(), p.string(), p.literal(123n)).optional();
 

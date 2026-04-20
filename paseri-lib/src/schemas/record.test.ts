@@ -54,6 +54,18 @@ test('Invalid elements', () => {
     }
 });
 
+test('Modified child returns new value', () => {
+    const schema = p.record(p.object({ foo: p.string() }).strip());
+    const data = { key1: { foo: 'bar', extra: 'baz' }, key2: { foo: 'qux', extra: 'quux' } };
+
+    const result = schema.safeParse(data);
+    if (result.ok) {
+        expect(result.value).toEqual({ key1: { foo: 'bar' }, key2: { foo: 'qux' } });
+    } else {
+        expect(result.ok).toBeTruthy();
+    }
+});
+
 test('Optional', () => {
     const schema = p.record(p.number()).optional();
 

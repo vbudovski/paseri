@@ -220,6 +220,26 @@ test('Invalid elements', () => {
     }
 });
 
+test('Modified child value returns new value', () => {
+    const schema = p.map(p.string(), p.object({ foo: p.number() }).strip());
+    const data = new Map<string, Record<string, unknown>>([
+        ['a', { foo: 1, extra: 'baz' }],
+        ['b', { foo: 2, extra: 'qux' }],
+    ]);
+
+    const result = schema.safeParse(data);
+    if (result.ok) {
+        expect(result.value).toEqual(
+            new Map([
+                ['a', { foo: 1 }],
+                ['b', { foo: 2 }],
+            ]),
+        );
+    } else {
+        expect(result.ok).toBeTruthy();
+    }
+});
+
 test('Optional', () => {
     const schema = p.map(p.number(), p.string()).optional();
 
