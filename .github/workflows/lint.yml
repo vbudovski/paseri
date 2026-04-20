@@ -7,7 +7,7 @@ jobs:
     name: Lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -22,7 +22,7 @@ jobs:
         run: |
           echo "DENO_DIR=$(deno info | grep DENO_DIR | sed 's/\x1B\[[0-9;]\{1,\}[A-Za-z]//g' | cut -d ':' -f 2 | xargs)" >> $GITHUB_OUTPUT
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         name: Setup Deno cache
         with:
           path: ${{ steps.deno-cache.outputs.DENO_DIR }}
