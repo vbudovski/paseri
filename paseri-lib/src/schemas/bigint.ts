@@ -66,28 +66,28 @@ class BigIntSchema extends Schema<bigint> {
     }
     gte(value: bigint): BigIntSchema {
         const cloned = this._clone();
-        cloned._checks = this._checks || [];
+        cloned._checks = cloned._checks || [];
         cloned._checks.push({ tag: TAG_GTE, param: value, issue: this.issues.TOO_SMALL });
 
         return cloned;
     }
     gt(value: bigint): BigIntSchema {
         const cloned = this._clone();
-        cloned._checks = this._checks || [];
+        cloned._checks = cloned._checks || [];
         cloned._checks.push({ tag: TAG_GT, param: value, issue: this.issues.TOO_SMALL });
 
         return cloned;
     }
     lte(value: bigint): BigIntSchema {
         const cloned = this._clone();
-        cloned._checks = this._checks || [];
+        cloned._checks = cloned._checks || [];
         cloned._checks.push({ tag: TAG_LTE, param: value, issue: this.issues.TOO_LARGE });
 
         return cloned;
     }
     lt(value: bigint): BigIntSchema {
         const cloned = this._clone();
-        cloned._checks = this._checks || [];
+        cloned._checks = cloned._checks || [];
         cloned._checks.push({ tag: TAG_LT, param: value, issue: this.issues.TOO_LARGE });
 
         return cloned;

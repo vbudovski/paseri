@@ -101,21 +101,21 @@ class StringSchema extends Schema<string> {
     }
     min(length: number): StringSchema {
         const cloned = this._clone();
-        cloned._checks = this._checks || [];
+        cloned._checks = cloned._checks || [];
         cloned._checks.push({ tag: TAG_MIN, param: length, issue: this.issues.TOO_SHORT });
 
         return cloned;
     }
     max(length: number): StringSchema {
         const cloned = this._clone();
-        cloned._checks = this._checks || [];
+        cloned._checks = cloned._checks || [];
         cloned._checks.push({ tag: TAG_MAX, param: length, issue: this.issues.TOO_LONG });
 
         return cloned;
     }
     length(length: number): StringSchema {
         const cloned = this._clone();
-        cloned._checks = this._checks || [];
+        cloned._checks = cloned._checks || [];
         cloned._checks.push({ tag: TAG_MAX, param: length, issue: this.issues.TOO_LONG });
         cloned._checks.push({ tag: TAG_MIN, param: length, issue: this.issues.TOO_SHORT });
 
@@ -125,7 +125,7 @@ class StringSchema extends Schema<string> {
         const regex = emailRegex();
 
         const cloned = this._clone();
-        cloned._checks = this._checks || [];
+        cloned._checks = cloned._checks || [];
         cloned._checks.push({ tag: TAG_REGEX, param: regex, issue: this.issues.INVALID_EMAIL });
 
         return cloned;
@@ -134,7 +134,7 @@ class StringSchema extends Schema<string> {
         const regex = emojiRegex();
 
         const cloned = this._clone();
-        cloned._checks = this._checks || [];
+        cloned._checks = cloned._checks || [];
         cloned._checks.push({ tag: TAG_REGEX, param: regex, issue: this.issues.INVALID_EMOJI });
 
         return cloned;
@@ -143,7 +143,7 @@ class StringSchema extends Schema<string> {
         const regex = uuidRegex();
 
         const cloned = this._clone();
-        cloned._checks = this._checks || [];
+        cloned._checks = cloned._checks || [];
         cloned._checks.push({ tag: TAG_REGEX, param: regex, issue: this.issues.INVALID_UUID });
 
         return cloned;
@@ -152,28 +152,28 @@ class StringSchema extends Schema<string> {
         const regex = nanoidRegex();
 
         const cloned = this._clone();
-        cloned._checks = this._checks || [];
+        cloned._checks = cloned._checks || [];
         cloned._checks.push({ tag: TAG_REGEX, param: regex, issue: this.issues.INVALID_NANOID });
 
         return cloned;
     }
     includes(searchString: string): StringSchema {
         const cloned = this._clone();
-        cloned._checks = this._checks || [];
+        cloned._checks = cloned._checks || [];
         cloned._checks.push({ tag: TAG_INCLUDES, param: searchString, issue: this.issues.DOES_NOT_INCLUDE });
 
         return cloned;
     }
     startsWith(searchString: string): StringSchema {
         const cloned = this._clone();
-        cloned._checks = this._checks || [];
+        cloned._checks = cloned._checks || [];
         cloned._checks.push({ tag: TAG_STARTS_WITH, param: searchString, issue: this.issues.DOES_NOT_START_WITH });
 
         return cloned;
     }
     endsWith(searchString: string): StringSchema {
         const cloned = this._clone();
-        cloned._checks = this._checks || [];
+        cloned._checks = cloned._checks || [];
         cloned._checks.push({ tag: TAG_ENDS_WITH, param: searchString, issue: this.issues.DOES_NOT_END_WITH });
 
         return cloned;
@@ -182,7 +182,7 @@ class StringSchema extends Schema<string> {
         const regex = dateRegex();
 
         const cloned = this._clone();
-        cloned._checks = this._checks || [];
+        cloned._checks = cloned._checks || [];
         cloned._checks.push({ tag: TAG_REGEX, param: regex, issue: this.issues.INVALID_DATE_STRING });
 
         return cloned;
@@ -191,7 +191,7 @@ class StringSchema extends Schema<string> {
         const regex = timeRegex(options.precision);
 
         const cloned = this._clone();
-        cloned._checks = this._checks || [];
+        cloned._checks = cloned._checks || [];
         cloned._checks.push({ tag: TAG_REGEX, param: regex, issue: this.issues.INVALID_TIME_STRING });
 
         return cloned;
@@ -200,7 +200,7 @@ class StringSchema extends Schema<string> {
         const regex = datetimeRegex(options.precision, options.offset, options.local);
 
         const cloned = this._clone();
-        cloned._checks = this._checks || [];
+        cloned._checks = cloned._checks || [];
         cloned._checks.push({ tag: TAG_REGEX, param: regex, issue: this.issues.INVALID_DATE_TIME_STRING });
 
         return cloned;
@@ -209,7 +209,7 @@ class StringSchema extends Schema<string> {
         const regex = ipRegex(options.version);
 
         const cloned = this._clone();
-        cloned._checks = this._checks || [];
+        cloned._checks = cloned._checks || [];
         cloned._checks.push({ tag: TAG_REGEX, param: regex, issue: this.issues.INVALID_IP_ADDRESS });
 
         return cloned;
@@ -218,14 +218,14 @@ class StringSchema extends Schema<string> {
         const regex = ipCidrRegex(options.version);
 
         const cloned = this._clone();
-        cloned._checks = this._checks || [];
+        cloned._checks = cloned._checks || [];
         cloned._checks.push({ tag: TAG_REGEX, param: regex, issue: this.issues.INVALID_IP_ADDRESS_RANGE });
 
         return cloned;
     }
     regex(regex: RegExp): StringSchema {
         const cloned = this._clone();
-        cloned._checks = this._checks || [];
+        cloned._checks = cloned._checks || [];
         cloned._checks.push({ tag: TAG_REGEX, param: regex, issue: this.issues.DOES_NOT_MATCH_REGEX });
 
         return cloned;

@@ -59,14 +59,14 @@ class DateSchema extends Schema<Date> {
     }
     min(value: Date): DateSchema {
         const cloned = this._clone();
-        cloned._checks = this._checks || [];
+        cloned._checks = cloned._checks || [];
         cloned._checks.push({ tag: TAG_MIN, param: value, issue: this.issues.TOO_DATED });
 
         return cloned;
     }
     max(length: Date): DateSchema {
         const cloned = this._clone();
-        cloned._checks = this._checks || [];
+        cloned._checks = cloned._checks || [];
         cloned._checks.push({ tag: TAG_MAX, param: length, issue: this.issues.TOO_RECENT });
 
         return cloned;
