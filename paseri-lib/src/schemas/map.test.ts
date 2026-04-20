@@ -220,6 +220,26 @@ test('Invalid elements', () => {
     }
 });
 
+test('Modified child value returns new value', () => {
+    const schema = p.map(p.string(), p.object({ foo: p.number() }).strip());
+    const data = new Map<string, Record<string, unknown>>([
+        ['a', { foo: 1, extra: 'baz' }],
+        ['b', { foo: 2, extra: 'qux' }],
+    ]);
+
+    const result = schema.safeParse(data);
+    if (result.ok) {
+        expect(result.value).toEqual(
+            new Map([
+                ['a', { foo: 1 }],
+                ['b', { foo: 2 }],
+            ]),
+        );
+    } else {
+        expect(result.ok).toBeTruthy();
+    }
+});
+
 test('Optional', () => {
     const schema = p.map(p.number(), p.string()).optional();
 
@@ -264,17 +284,23 @@ test('Immutable', async (t) => {
         const original = p.map(p.number(), p.string());
         const modified = original.min(3);
         expect(modified).not.toEqual(original);
+        const branched = modified.max(10);
+        expect(branched).not.toEqual(modified);
     });
 
     await t.step('max', () => {
         const original = p.map(p.number(), p.string());
         const modified = original.max(3);
         expect(modified).not.toEqual(original);
+        const branched = modified.min(1);
+        expect(branched).not.toEqual(modified);
     });
 
     await t.step('size', () => {
         const original = p.map(p.number(), p.string());
         const modified = original.size(3);
         expect(modified).not.toEqual(original);
+        const branched = modified.min(1);
+        expect(branched).not.toEqual(modified);
     });
 });

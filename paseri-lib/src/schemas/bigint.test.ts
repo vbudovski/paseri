@@ -222,23 +222,31 @@ test('Immutable', async (t) => {
         const original = p.bigint();
         const modified = original.gte(3n);
         expect(modified).not.toEqual(original);
+        const branched = modified.lte(10n);
+        expect(branched).not.toEqual(modified);
     });
 
     await t.step('gt', () => {
         const original = p.bigint();
         const modified = original.gt(3n);
         expect(modified).not.toEqual(original);
+        const branched = modified.lt(10n);
+        expect(branched).not.toEqual(modified);
     });
 
     await t.step('lte', () => {
         const original = p.bigint();
         const modified = original.lte(3n);
         expect(modified).not.toEqual(original);
+        const branched = modified.gte(0n);
+        expect(branched).not.toEqual(modified);
     });
 
     await t.step('lt', () => {
         const original = p.bigint();
         const modified = original.lt(3n);
         expect(modified).not.toEqual(original);
+        const branched = modified.gt(0n);
+        expect(branched).not.toEqual(modified);
     });
 });

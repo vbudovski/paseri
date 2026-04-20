@@ -1,6 +1,6 @@
 import type { Infer } from '../infer.ts';
 import { addIssue, issueCodes, type LeafNode, type TreeNode } from '../issue.ts';
-import { type InternalParseResult, isIssue } from '../result.ts';
+import { type InternalParseResult, isParseSuccess } from '../result.ts';
 import { type AnySchemaType, Schema } from './schema.ts';
 
 type ValidTupleSchemaType = [AnySchemaType, ...AnySchemaType[]];
@@ -40,17 +40,33 @@ class TupleSchema<TupleSchemaType extends ValidTupleSchemaType> extends Schema<I
         }
 
         let issue: TreeNode | undefined;
+        let newArray: unknown[] | undefined;
         for (let i = 0; i < length; i++) {
             const schema = this._schemas[i];
             const elementValue = value[i];
             const issueOrSuccess = schema._parse(elementValue);
-            if (issueOrSuccess !== undefined && isIssue(issueOrSuccess)) {
+            if (issueOrSuccess === undefined) {
+                newArray?.push(elementValue);
+                continue;
+            }
+
+            if (isParseSuccess(issueOrSuccess)) {
+                if (!newArray) {
+                    newArray = value.slice(0, i);
+                }
+                newArray.push(issueOrSuccess.value);
+            } else {
+                newArray?.push(elementValue);
                 issue = addIssue(issue, { type: 'nest', key: i, child: issueOrSuccess });
             }
         }
 
         if (issue) {
             return issue;
+        }
+
+        if (newArray) {
+            return { ok: true, value: newArray as Infer<TupleSchemaType> };
         }
 
         return undefined;

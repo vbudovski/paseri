@@ -94,49 +94,49 @@ class NumberSchema extends Schema<number> {
     }
     gte(value: number): NumberSchema {
         const cloned = this._clone();
-        cloned._checks = this._checks || [];
+        cloned._checks = cloned._checks || [];
         cloned._checks.push({ tag: TAG_GTE, param: value, issue: this.issues.TOO_SMALL });
 
         return cloned;
     }
     gt(value: number): NumberSchema {
         const cloned = this._clone();
-        cloned._checks = this._checks || [];
+        cloned._checks = cloned._checks || [];
         cloned._checks.push({ tag: TAG_GT, param: value, issue: this.issues.TOO_SMALL });
 
         return cloned;
     }
     lte(value: number): NumberSchema {
         const cloned = this._clone();
-        cloned._checks = this._checks || [];
+        cloned._checks = cloned._checks || [];
         cloned._checks.push({ tag: TAG_LTE, param: value, issue: this.issues.TOO_LARGE });
 
         return cloned;
     }
     lt(value: number): NumberSchema {
         const cloned = this._clone();
-        cloned._checks = this._checks || [];
+        cloned._checks = cloned._checks || [];
         cloned._checks.push({ tag: TAG_LT, param: value, issue: this.issues.TOO_LARGE });
 
         return cloned;
     }
     int(): NumberSchema {
         const cloned = this._clone();
-        cloned._checks = this._checks || [];
+        cloned._checks = cloned._checks || [];
         cloned._checks.push({ tag: TAG_INT, param: 0, issue: this.issues.INVALID_INTEGER });
 
         return cloned;
     }
     finite(): NumberSchema {
         const cloned = this._clone();
-        cloned._checks = this._checks || [];
+        cloned._checks = cloned._checks || [];
         cloned._checks.push({ tag: TAG_FINITE, param: 0, issue: this.issues.INVALID_FINITE });
 
         return cloned;
     }
     safe(): NumberSchema {
         const cloned = this._clone();
-        cloned._checks = this._checks || [];
+        cloned._checks = cloned._checks || [];
         cloned._checks.push({ tag: TAG_SAFE, param: 0, issue: this.issues.INVALID_SAFE_INTEGER });
 
         return cloned;

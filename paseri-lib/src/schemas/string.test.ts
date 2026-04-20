@@ -861,95 +861,127 @@ test('Immutable', async (t) => {
         const original = p.string();
         const modified = original.min(3);
         expect(modified).not.toEqual(original);
+        const branched = modified.max(5);
+        expect(branched).not.toEqual(modified);
     });
 
     await t.step('max', () => {
         const original = p.string();
         const modified = original.max(3);
         expect(modified).not.toEqual(original);
+        const branched = modified.min(1);
+        expect(branched).not.toEqual(modified);
     });
 
     await t.step('length', () => {
         const original = p.string();
         const modified = original.length(3);
         expect(modified).not.toEqual(original);
+        const branched = modified.min(1);
+        expect(branched).not.toEqual(modified);
     });
 
     await t.step('email', () => {
         const original = p.string();
         const modified = original.email();
         expect(modified).not.toEqual(original);
+        const branched = modified.min(1);
+        expect(branched).not.toEqual(modified);
     });
 
     await t.step('emoji', () => {
         const original = p.string();
         const modified = original.emoji();
         expect(modified).not.toEqual(original);
+        const branched = modified.min(1);
+        expect(branched).not.toEqual(modified);
     });
 
     await t.step('uuid', () => {
         const original = p.string();
         const modified = original.uuid();
         expect(modified).not.toEqual(original);
+        const branched = modified.min(1);
+        expect(branched).not.toEqual(modified);
     });
 
     await t.step('nanoid', () => {
         const original = p.string();
         const modified = original.nanoid();
         expect(modified).not.toEqual(original);
+        const branched = modified.min(1);
+        expect(branched).not.toEqual(modified);
     });
 
     await t.step('includes', () => {
         const original = p.string();
         const modified = original.includes('foo');
         expect(modified).not.toEqual(original);
+        const branched = modified.min(1);
+        expect(branched).not.toEqual(modified);
     });
 
     await t.step('startsWith', () => {
         const original = p.string();
         const modified = original.startsWith('foo');
         expect(modified).not.toEqual(original);
+        const branched = modified.min(1);
+        expect(branched).not.toEqual(modified);
     });
 
     await t.step('endsWith', () => {
         const original = p.string();
         const modified = original.endsWith('foo');
         expect(modified).not.toEqual(original);
+        const branched = modified.min(1);
+        expect(branched).not.toEqual(modified);
     });
 
     await t.step('date', () => {
         const original = p.string();
         const modified = original.date();
         expect(modified).not.toEqual(original);
+        const branched = modified.min(1);
+        expect(branched).not.toEqual(modified);
     });
 
     await t.step('time', () => {
         const original = p.string();
         const modified = original.time();
         expect(modified).not.toEqual(original);
+        const branched = modified.min(1);
+        expect(branched).not.toEqual(modified);
     });
 
     await t.step('datetime', () => {
         const original = p.string();
         const modified = original.datetime();
         expect(modified).not.toEqual(original);
+        const branched = modified.min(1);
+        expect(branched).not.toEqual(modified);
     });
 
     await t.step('ip', () => {
         const original = p.string();
         const modified = original.ip();
         expect(modified).not.toEqual(original);
+        const branched = modified.min(1);
+        expect(branched).not.toEqual(modified);
     });
 
     await t.step('cidr', () => {
         const original = p.string();
         const modified = original.cidr();
         expect(modified).not.toEqual(original);
+        const branched = modified.min(1);
+        expect(branched).not.toEqual(modified);
     });
 
     await t.step('regex', () => {
         const original = p.string();
         const modified = original.regex(/a+/);
         expect(modified).not.toEqual(original);
+        const branched = modified.min(1);
+        expect(branched).not.toEqual(modified);
     });
 });

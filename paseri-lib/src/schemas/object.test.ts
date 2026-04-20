@@ -1,4 +1,5 @@
 import { expect } from '@std/expect';
+import { describe, it } from '@std/testing/bdd';
 import { expectTypeOf } from 'expect-type';
 import fc from 'fast-check';
 import * as p from '../index.ts';
@@ -198,6 +199,36 @@ test('Optional key is not flagged as missing', () => {
     }
 });
 
+test('Optional wrapped in nullable is not flagged as missing', () => {
+    const schema = p.object({ field: p.string().optional().nullable(), required: p.string() });
+    const data = { required: 'hello' };
+
+    const result = schema.safeParse(data);
+    if (result.ok) {
+        expect(result.value).toEqual({ required: 'hello' });
+    } else {
+        expect(result.ok).toBeTruthy();
+    }
+});
+
+test('Chained optional is still required', () => {
+    const schema = p.object({
+        field: p
+            .string()
+            .optional()
+            .chain(p.string(), (v) => p.ok(v ?? 'default')),
+        required: p.string(),
+    });
+    const data = { required: 'hello' };
+
+    const result = schema.safeParse(data);
+    if (!result.ok) {
+        expect(result.messages()).toEqual([{ path: ['field'], message: 'Missing value.' }]);
+    } else {
+        expect(result.ok).toBeFalsy();
+    }
+});
+
 test('Optional', () => {
     const schema = p
         .object({
@@ -302,6 +333,22 @@ test('White-box', async (t) => {
         const issueOrSuccess = schema._parse(data);
         expect(issueOrSuccess).toEqual({ ok: true, value: { child: { foo: 'bar' } } });
     });
+
+    await t.step('Strip with child transformed to undefined preserves transform', () => {
+        const schema = p
+            .object({
+                foo: p.string().chain(p.unknown(), () => p.ok(undefined)),
+            })
+            .strip();
+        const data = { foo: 'bar', extra: 'baz' };
+
+        const result = schema.safeParse(data);
+        if (result.ok) {
+            expect(result.value).toEqual({ foo: undefined });
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
+    });
 });
 
 test('Immutable', async (t) => {
@@ -309,18 +356,24 @@ test('Immutable', async (t) => {
         const original = p.object({ foo: p.string() });
         const modified = original.strip();
         expect(modified).not.toBe(original);
+        const branched = modified.strict();
+        expect(branched).not.toEqual(modified);
     });
 
     await t.step('strict', () => {
         const original = p.object({ foo: p.string() });
         const modified = original.strict();
         expect(modified).not.toBe(original);
+        const branched = modified.passthrough();
+        expect(branched).not.toEqual(modified);
     });
 
     await t.step('passthrough', () => {
         const original = p.object({ foo: p.string() });
         const modified = original.passthrough();
         expect(modified).not.toBe(original);
+        const branched = modified.strip();
+        expect(branched).not.toEqual(modified);
     });
 });
 
@@ -415,5 +468,72 @@ test('Omit', () => {
         expect(result.value).toEqual(data);
     } else {
         expect(result.ok).toBeTruthy();
+    }
+});
+
+describe('Input with Object.prototype keys should not crash', () => {
+    for (const protoKey of Object.getOwnPropertyNames(Object.getPrototypeOf({}))) {
+        it(protoKey, () => {
+            const schema = p.object({ name: p.string() });
+            const data = Object.create(null);
+            data.name = 'alice';
+            data[protoKey] = 'boom';
+
+            const result = schema.safeParse(data);
+            expect(result.ok).toBeFalsy();
+        });
+    }
+});
+
+describe('Required key matching Object.prototype property should be flagged as missing', () => {
+    for (const protoKey of Object.getOwnPropertyNames(Object.getPrototypeOf({}))) {
+        it(protoKey, () => {
+            const schema = p.object({ [protoKey]: p.string() });
+
+            const result = schema.safeParse({});
+            if (!result.ok) {
+                expect(result.messages()).toEqual([{ path: [protoKey], message: 'Missing value.' }]);
+            } else {
+                expect(result.ok).toBeFalsy();
+            }
+        });
+    }
+});
+
+describe('Strict mode should only flag truly unrecognized keys, not Object.prototype collisions', () => {
+    for (const protoKey of Object.getOwnPropertyNames(Object.getPrototypeOf({}))) {
+        it(protoKey, () => {
+            const schema = p.object({ [protoKey]: p.string() });
+            const data = Object.create(null);
+            data[protoKey] = 'valid';
+            data.extra = 'unrecognized';
+
+            const result = schema.safeParse(data);
+            if (!result.ok) {
+                expect(result.messages()).toEqual([{ path: ['extra'], message: 'Unrecognised key.' }]);
+            } else {
+                expect(result.ok).toBeFalsy();
+            }
+        });
+    }
+});
+
+describe('Strip mode should not strip keys that collide with Object.prototype names', () => {
+    for (const protoKey of Object.getOwnPropertyNames(Object.getPrototypeOf({}))) {
+        it(protoKey, () => {
+            const schema = p.object({ [protoKey]: p.string() }).strip();
+            const data = Object.create(null);
+            data[protoKey] = 'valid';
+            data.extra = 'strip me';
+
+            const result = schema.safeParse(data);
+            if (result.ok) {
+                const expected = Object.create(null);
+                expected[protoKey] = 'valid';
+                expect(result.value).toEqual(expected);
+            } else {
+                expect(result.ok).toBeTruthy();
+            }
+        });
     }
 });

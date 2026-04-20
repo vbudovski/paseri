@@ -31,6 +31,10 @@ abstract class Schema<OutputType> implements StandardSchemaV1<unknown, OutputTyp
 
     protected abstract _clone(): Schema<OutputType>;
     public abstract _parse(value: unknown): InternalParseResult<OutputType>;
+    // This is to allow optional and nullable to be used together in any order.
+    public _isOptional(): boolean {
+        return false;
+    }
     parse(value: unknown): OutputType {
         const result = this.safeParse(value);
         if (result.ok) {
@@ -84,6 +88,9 @@ class OptionalSchema<OutputType> extends Schema<OutputType | undefined> {
 
         return this._schema._parse(value);
     }
+    override _isOptional(): boolean {
+        return true;
+    }
 }
 
 class NullableSchema<OutputType> extends Schema<OutputType | null> {
@@ -103,6 +110,9 @@ class NullableSchema<OutputType> extends Schema<OutputType | null> {
         }
 
         return this._schema._parse(value);
+    }
+    override _isOptional(): boolean {
+        return this._schema._isOptional();
     }
 }
 

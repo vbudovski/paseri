@@ -3,7 +3,7 @@ import type { Infer } from '../infer.ts';
 import { addIssue, issueCodes, type LeafNode, type TreeNode } from '../issue.ts';
 import { type InternalParseResult, isParseSuccess } from '../result.ts';
 import { isPlainObject } from '../utils.ts';
-import { type AnySchemaType, OptionalSchema, Schema } from './schema.ts';
+import { type AnySchemaType, Schema } from './schema.ts';
 
 type ValidShapeType<ShapeType> = NonEmptyObject<{
     [Key in keyof ShapeType]: ShapeType[Key] extends Schema<infer OutputType> ? Schema<OutputType> : never;
@@ -30,7 +30,7 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
         this._shape = shape;
         this._shapeKeys = [...Object.keys(shape)];
         this._shapeSize = this._shapeKeys.length;
-        this._requiredKeys = this._shapeKeys.filter((key) => !(shape[key] instanceof OptionalSchema));
+        this._requiredKeys = this._shapeKeys.filter((key) => !shape[key]._isOptional());
     }
     protected _clone(): ObjectSchema<ShapeType> {
         const cloned = new ObjectSchema(this._shape);
@@ -52,7 +52,7 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
         let issue: TreeNode | undefined;
         for (const key in value) {
             const schema = this._shape[key];
-            if (schema) {
+            if (schema?._parse) {
                 seen++;
 
                 const childValue = value[key];
@@ -81,7 +81,7 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
 
         if (seen < this._shapeSize) {
             for (const key of this._requiredKeys) {
-                if (value[key] === undefined) {
+                if (!Object.hasOwn(value, key)) {
                     issue = addIssue(issue, {
                         type: 'nest',
                         key,
@@ -94,7 +94,7 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
         // Collect any unrecognised key issues, if operating in strict mode.
         if (hasUnrecognisedKey && this._mode === 'strict') {
             for (const key in value) {
-                if (unrecognisedKeys[key]) {
+                if (Object.hasOwn(unrecognisedKeys, key)) {
                     issue = addIssue(issue, {
                         type: 'nest',
                         key,
@@ -113,11 +113,11 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
         if (hasUnrecognisedKey && this._mode === 'strip' && hasModifiedChildValue) {
             const sanitizedValue: Record<PropertyKey, unknown> = {};
             for (const key in value) {
-                if (unrecognisedKeys[key]) {
+                if (Object.hasOwn(unrecognisedKeys, key)) {
                     continue;
                 }
 
-                if (modifiedValues[key] === undefined) {
+                if (!Object.hasOwn(modifiedValues, key)) {
                     sanitizedValue[key] = value[key];
                 } else {
                     sanitizedValue[key] = modifiedValues[key];
@@ -130,7 +130,7 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
         if (hasUnrecognisedKey && this._mode === 'strip' && !hasModifiedChildValue) {
             const sanitizedValue: Record<PropertyKey, unknown> = {};
             for (const key in value) {
-                if (unrecognisedKeys[key]) {
+                if (Object.hasOwn(unrecognisedKeys, key)) {
                     continue;
                 }
 

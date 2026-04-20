@@ -208,22 +208,40 @@ test('Nullable', () => {
     );
 });
 
+test('Modified child returns new value', () => {
+    const schema = p.array(p.object({ foo: p.string() }).strip());
+    const data = [{ foo: 'bar', extra: 'baz' }];
+
+    const result = schema.safeParse(data);
+    if (result.ok) {
+        expect(result.value).toEqual([{ foo: 'bar' }]);
+    } else {
+        expect(result.ok).toBeTruthy();
+    }
+});
+
 test('Immutable', async (t) => {
     await t.step('min', () => {
         const original = p.array(p.string());
         const modified = original.min(3);
         expect(modified).not.toEqual(original);
+        const branched = modified.max(10);
+        expect(branched).not.toEqual(modified);
     });
 
     await t.step('max', () => {
         const original = p.array(p.string());
         const modified = original.max(3);
         expect(modified).not.toEqual(original);
+        const branched = modified.min(1);
+        expect(branched).not.toEqual(modified);
     });
 
     await t.step('length', () => {
         const original = p.array(p.string());
         const modified = original.length(3);
         expect(modified).not.toEqual(original);
+        const branched = modified.min(1);
+        expect(branched).not.toEqual(modified);
     });
 });

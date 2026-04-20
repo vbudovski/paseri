@@ -198,6 +198,18 @@ test('Invalid elements', () => {
     }
 });
 
+test('Modified child returns new value', () => {
+    const schema = p.set(p.object({ foo: p.string() }).strip());
+    const data = new Set([{ foo: 'bar', extra: 'baz' }]);
+
+    const result = schema.safeParse(data);
+    if (result.ok) {
+        expect(result.value).toEqual(new Set([{ foo: 'bar' }]));
+    } else {
+        expect(result.ok).toBeTruthy();
+    }
+});
+
 test('Optional', () => {
     const schema = p.set(p.number()).optional();
 
@@ -239,17 +251,23 @@ test('Immutable', async (t) => {
         const original = p.set(p.string());
         const modified = original.min(3);
         expect(modified).not.toEqual(original);
+        const branched = modified.max(10);
+        expect(branched).not.toEqual(modified);
     });
 
     await t.step('max', () => {
         const original = p.set(p.string());
         const modified = original.max(3);
         expect(modified).not.toEqual(original);
+        const branched = modified.min(1);
+        expect(branched).not.toEqual(modified);
     });
 
     await t.step('size', () => {
         const original = p.set(p.string());
         const modified = original.size(3);
         expect(modified).not.toEqual(original);
+        const branched = modified.min(1);
+        expect(branched).not.toEqual(modified);
     });
 });

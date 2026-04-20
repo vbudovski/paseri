@@ -1,6 +1,6 @@
 import type { Infer } from '../infer.ts';
 import { addIssue, issueCodes, type LeafNode, type TreeNode } from '../issue.ts';
-import { type InternalParseResult, isIssue } from '../result.ts';
+import { type InternalParseResult, isParseSuccess } from '../result.ts';
 import type { AnySchemaType } from './schema.ts';
 import { Schema } from './schema.ts';
 
@@ -47,10 +47,25 @@ class SetSchema<ElementSchemaType extends AnySchemaType> extends Schema<Infer<Se
         const schema = this._element;
 
         let issue: TreeNode | undefined;
+        let newSet: Set<unknown> | undefined;
         let i = 0;
         for (const childValue of value) {
             const issueOrSuccess = schema._parse(childValue);
-            if (issueOrSuccess !== undefined && isIssue(issueOrSuccess)) {
+            if (issueOrSuccess === undefined) {
+                newSet?.add(childValue);
+            } else if (isParseSuccess(issueOrSuccess)) {
+                if (!newSet) {
+                    newSet = new Set<unknown>();
+                    let j = 0;
+                    for (const prev of value) {
+                        if (j >= i) break;
+                        newSet.add(prev);
+                        j++;
+                    }
+                }
+                newSet.add(issueOrSuccess.value);
+            } else {
+                newSet?.add(childValue);
                 issue = addIssue(issue, { type: 'nest', key: i, child: issueOrSuccess });
             }
             i++;
@@ -58,6 +73,10 @@ class SetSchema<ElementSchemaType extends AnySchemaType> extends Schema<Infer<Se
 
         if (issue) {
             return issue;
+        }
+
+        if (newSet) {
+            return { ok: true, value: newSet as Infer<Set<ElementSchemaType>> };
         }
 
         return undefined;
