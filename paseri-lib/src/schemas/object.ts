@@ -52,7 +52,7 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
         let issue: TreeNode | undefined;
         for (const key in value) {
             const schema = this._shape[key];
-            if (schema) {
+            if (schema?._parse) {
                 seen++;
 
                 const childValue = value[key];
