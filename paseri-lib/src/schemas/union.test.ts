@@ -170,6 +170,15 @@ test('findDiscriminator', async (t) => {
         expect(discriminators).toEqual({ found: false });
     });
 
+    await t.step('Duplicate discriminator values', () => {
+        const elements = [
+            p.object({ type: p.literal('dog'), name: p.string() }),
+            p.object({ type: p.literal('dog'), bark: p.boolean() }),
+            p.object({ type: p.literal('cat'), purrs: p.boolean() }),
+        ] as const;
+        expect(() => findDiscriminator(...elements)).toThrow();
+    });
+
     await t.step('Two common keys', () => {
         const elements = [
             p.object({ foo: p.literal('foo1'), bar: p.literal('bar1') }),
