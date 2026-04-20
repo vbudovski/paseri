@@ -49,6 +49,10 @@ function findDiscriminator<TupleType extends ValidTupleType>(...elements: TupleT
     for (const element of elements) {
         const value = (element.shape[key] as LiteralSchema<never>).value;
 
+        if (schemas.has(value)) {
+            throw new Error(`Duplicate discriminator value ${primitiveToString(value)} for key '${key}'.`);
+        }
+
         schemas.set(value, element);
         options.push(primitiveToString(value));
     }
