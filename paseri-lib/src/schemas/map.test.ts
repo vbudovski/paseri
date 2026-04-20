@@ -1,4 +1,5 @@
 import { expect } from '@std/expect';
+import { describe, it } from '@std/testing/bdd';
 import { expectTypeOf } from 'expect-type';
 import fc from 'fast-check';
 import * as p from '../index.ts';
@@ -38,161 +39,215 @@ test('Invalid type', () => {
     );
 });
 
-test('Valid min', () => {
-    const schema = p.map(p.number(), p.string()).min(3);
+describe('min', () => {
+    it('Valid', () => {
+        const schema = p.map(p.number(), p.string()).min(3);
 
-    fc.assert(
-        fc.property(
-            fc
-                .array(fc.tuple(fc.float({ noNaN: true }), fc.string()), { minLength: 3 })
-                .filter((value) => new Map(value).size >= 3),
-            (data) => {
-                const dataAsMap = new Map(data);
+        fc.assert(
+            fc.property(
+                fc
+                    .array(fc.tuple(fc.float({ noNaN: true }), fc.string()), { minLength: 3 })
+                    .filter((value) => new Map(value).size >= 3),
+                (data) => {
+                    const dataAsMap = new Map(data);
 
-                const result = schema.safeParse(dataAsMap);
-                if (result.ok) {
-                    expectTypeOf(result.value).toEqualTypeOf<Map<number, string>>;
-                    expect(result.value).toBe(dataAsMap);
-                } else {
-                    expect(result.ok).toBeTruthy();
-                }
-            },
-        ),
-    );
+                    const result = schema.safeParse(dataAsMap);
+                    if (result.ok) {
+                        expectTypeOf(result.value).toEqualTypeOf<Map<number, string>>;
+                        expect(result.value).toBe(dataAsMap);
+                    } else {
+                        expect(result.ok).toBeTruthy();
+                    }
+                },
+            ),
+        );
+    });
+
+    it('Invalid', () => {
+        const schema = p.map(p.number(), p.string()).min(3);
+
+        fc.assert(
+            fc.property(
+                fc
+                    .array(fc.tuple(fc.float({ noNaN: true }), fc.string()), { maxLength: 2 })
+                    .filter((value) => new Map(value).size <= 2),
+                (data) => {
+                    const dataAsMap = new Map(data);
+
+                    const result = schema.safeParse(dataAsMap);
+                    if (!result.ok) {
+                        expect(result.messages()).toEqual([{ path: [], message: 'Too short.' }]);
+                    } else {
+                        expect(result.ok).toBeFalsy();
+                    }
+                },
+            ),
+        );
+    });
+
+    it('Invalid after key transformation causes deduplication', () => {
+        const lower = p.string().chain(p.string(), (value) => p.ok(value.toLowerCase()));
+        const schema = p.map(lower, p.number()).min(2);
+        const data = new Map([
+            ['A', 1],
+            ['a', 2],
+        ]); // size 2, but keys collapse → size 1
+
+        const result = schema.safeParse(data);
+        expect(result.ok).toBe(false);
+    });
+
+    it('NaN', () => {
+        expect(() => p.map(p.number(), p.string()).min(NaN)).toThrow();
+    });
+
+    it('Immutable', () => {
+        const original = p.map(p.number(), p.string());
+        const modified = original.min(3);
+        expect(modified).not.toEqual(original);
+        const branched = modified.max(10);
+        expect(branched).not.toEqual(modified);
+    });
 });
 
-test('Invalid min', () => {
-    const schema = p.map(p.number(), p.string()).min(3);
+describe('max', () => {
+    it('Valid', () => {
+        const schema = p.map(p.number(), p.string()).max(3);
 
-    fc.assert(
-        fc.property(
-            fc
-                .array(fc.tuple(fc.float({ noNaN: true }), fc.string()), { maxLength: 2 })
-                .filter((value) => new Map(value).size <= 2),
-            (data) => {
-                const dataAsMap = new Map(data);
+        fc.assert(
+            fc.property(
+                fc
+                    .array(fc.tuple(fc.float({ noNaN: true }), fc.string()), { maxLength: 3 })
+                    .filter((value) => new Map(value).size <= 3),
+                (data) => {
+                    const dataAsMap = new Map(data);
 
-                const result = schema.safeParse(dataAsMap);
-                if (!result.ok) {
-                    expect(result.messages()).toEqual([{ path: [], message: 'Too short.' }]);
-                } else {
-                    expect(result.ok).toBeFalsy();
-                }
-            },
-        ),
-    );
+                    const result = schema.safeParse(dataAsMap);
+                    if (result.ok) {
+                        expectTypeOf(result.value).toEqualTypeOf<Map<number, string>>;
+                        expect(result.value).toBe(dataAsMap);
+                    } else {
+                        expect(result.ok).toBeTruthy();
+                    }
+                },
+            ),
+        );
+    });
+
+    it('Invalid', () => {
+        const schema = p.map(p.number(), p.string()).max(3);
+
+        fc.assert(
+            fc.property(
+                fc
+                    .array(fc.tuple(fc.float({ noNaN: true }), fc.string()), { minLength: 4 })
+                    .filter((value) => new Map(value).size >= 4),
+                (data) => {
+                    const dataAsMap = new Map(data);
+
+                    const result = schema.safeParse(dataAsMap);
+                    if (!result.ok) {
+                        expect(result.messages()).toEqual([{ path: [], message: 'Too long.' }]);
+                    } else {
+                        expect(result.ok).toBeFalsy();
+                    }
+                },
+            ),
+        );
+    });
+
+    it('NaN', () => {
+        expect(() => p.map(p.number(), p.string()).max(NaN)).toThrow();
+    });
+
+    it('Immutable', () => {
+        const original = p.map(p.number(), p.string());
+        const modified = original.max(3);
+        expect(modified).not.toEqual(original);
+        const branched = modified.min(1);
+        expect(branched).not.toEqual(modified);
+    });
 });
 
-test('Valid max', () => {
-    const schema = p.map(p.number(), p.string()).max(3);
+describe('size', () => {
+    it('Valid', () => {
+        const schema = p.map(p.number(), p.string()).size(3);
 
-    fc.assert(
-        fc.property(
-            fc
-                .array(fc.tuple(fc.float({ noNaN: true }), fc.string()), { maxLength: 3 })
-                .filter((value) => new Map(value).size <= 3),
-            (data) => {
-                const dataAsMap = new Map(data);
+        fc.assert(
+            fc.property(
+                fc
+                    .array(fc.tuple(fc.float({ noNaN: true }), fc.string()), { minLength: 3, maxLength: 3 })
+                    .filter((value) => new Map(value).size === 3),
+                (data) => {
+                    const dataAsMap = new Map(data);
 
-                const result = schema.safeParse(dataAsMap);
-                if (result.ok) {
-                    expectTypeOf(result.value).toEqualTypeOf<Map<number, string>>;
-                    expect(result.value).toBe(dataAsMap);
-                } else {
-                    expect(result.ok).toBeTruthy();
-                }
-            },
-        ),
-    );
-});
+                    const result = schema.safeParse(dataAsMap);
+                    if (result.ok) {
+                        expectTypeOf(result.value).toEqualTypeOf<Map<number, string>>;
+                        expect(result.value).toBe(dataAsMap);
+                    } else {
+                        expect(result.ok).toBeTruthy();
+                    }
+                },
+            ),
+        );
+    });
 
-test('Invalid max', () => {
-    const schema = p.map(p.number(), p.string()).max(3);
+    it('Invalid (too long)', () => {
+        const schema = p.map(p.number(), p.string()).size(3);
 
-    fc.assert(
-        fc.property(
-            fc
-                .array(fc.tuple(fc.float({ noNaN: true }), fc.string()), { minLength: 4 })
-                .filter((value) => new Map(value).size >= 4),
-            (data) => {
-                const dataAsMap = new Map(data);
+        fc.assert(
+            fc.property(
+                fc
+                    .array(fc.tuple(fc.float({ noNaN: true }), fc.string()), { minLength: 4 })
+                    .filter((value) => new Map(value).size >= 4),
+                (data) => {
+                    const dataAsMap = new Map(data);
 
-                const result = schema.safeParse(dataAsMap);
-                if (!result.ok) {
-                    expect(result.messages()).toEqual([{ path: [], message: 'Too long.' }]);
-                } else {
-                    expect(result.ok).toBeFalsy();
-                }
-            },
-        ),
-    );
-});
+                    const result = schema.safeParse(dataAsMap);
+                    if (!result.ok) {
+                        expect(result.messages()).toEqual([{ path: [], message: 'Too long.' }]);
+                    } else {
+                        expect(result.ok).toBeFalsy();
+                    }
+                },
+            ),
+        );
+    });
 
-test('Valid size', () => {
-    const schema = p.map(p.number(), p.string()).size(3);
+    it('Invalid (too short)', () => {
+        const schema = p.map(p.number(), p.string()).size(3);
 
-    fc.assert(
-        fc.property(
-            fc
-                .array(fc.tuple(fc.float({ noNaN: true }), fc.string()), { minLength: 3, maxLength: 3 })
-                .filter((value) => new Map(value).size === 3),
-            (data) => {
-                const dataAsMap = new Map(data);
+        fc.assert(
+            fc.property(
+                fc
+                    .array(fc.tuple(fc.float({ noNaN: true }), fc.string()), { maxLength: 2 })
+                    .filter((value) => new Map(value).size <= 2),
+                (data) => {
+                    const dataAsMap = new Map(data);
 
-                const result = schema.safeParse(dataAsMap);
-                if (result.ok) {
-                    expectTypeOf(result.value).toEqualTypeOf<Map<number, string>>;
-                    expect(result.value).toBe(dataAsMap);
-                } else {
-                    expect(result.ok).toBeTruthy();
-                }
-            },
-        ),
-    );
-});
+                    const result = schema.safeParse(dataAsMap);
+                    if (!result.ok) {
+                        expect(result.messages()).toEqual([{ path: [], message: 'Too short.' }]);
+                    } else {
+                        expect(result.ok).toBeFalsy();
+                    }
+                },
+            ),
+        );
+    });
 
-test('Invalid size (too long)', () => {
-    const schema = p.map(p.number(), p.string()).size(3);
+    it('NaN', () => {
+        expect(() => p.map(p.number(), p.string()).size(NaN)).toThrow();
+    });
 
-    fc.assert(
-        fc.property(
-            fc
-                .array(fc.tuple(fc.float({ noNaN: true }), fc.string()), { minLength: 4 })
-                .filter((value) => new Map(value).size >= 4),
-            (data) => {
-                const dataAsMap = new Map(data);
-
-                const result = schema.safeParse(dataAsMap);
-                if (!result.ok) {
-                    expect(result.messages()).toEqual([{ path: [], message: 'Too long.' }]);
-                } else {
-                    expect(result.ok).toBeFalsy();
-                }
-            },
-        ),
-    );
-});
-
-test('Invalid size (too short)', () => {
-    const schema = p.map(p.number(), p.string()).size(3);
-
-    fc.assert(
-        fc.property(
-            fc
-                .array(fc.tuple(fc.float({ noNaN: true }), fc.string()), { maxLength: 2 })
-                .filter((value) => new Map(value).size <= 2),
-            (data) => {
-                const dataAsMap = new Map(data);
-
-                const result = schema.safeParse(dataAsMap);
-                if (!result.ok) {
-                    expect(result.messages()).toEqual([{ path: [], message: 'Too short.' }]);
-                } else {
-                    expect(result.ok).toBeFalsy();
-                }
-            },
-        ),
-    );
+    it('Immutable', () => {
+        const original = p.map(p.number(), p.string());
+        const modified = original.size(3);
+        expect(modified).not.toEqual(original);
+        const branched = modified.min(1);
+        expect(branched).not.toEqual(modified);
+    });
 });
 
 test('Invalid elements', () => {
@@ -277,30 +332,4 @@ test('Nullable', () => {
             }
         }),
     );
-});
-
-test('Immutable', async (t) => {
-    await t.step('min', () => {
-        const original = p.map(p.number(), p.string());
-        const modified = original.min(3);
-        expect(modified).not.toEqual(original);
-        const branched = modified.max(10);
-        expect(branched).not.toEqual(modified);
-    });
-
-    await t.step('max', () => {
-        const original = p.map(p.number(), p.string());
-        const modified = original.max(3);
-        expect(modified).not.toEqual(original);
-        const branched = modified.min(1);
-        expect(branched).not.toEqual(modified);
-    });
-
-    await t.step('size', () => {
-        const original = p.map(p.number(), p.string());
-        const modified = original.size(3);
-        expect(modified).not.toEqual(original);
-        const branched = modified.min(1);
-        expect(branched).not.toEqual(modified);
-    });
 });

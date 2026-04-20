@@ -76,24 +76,40 @@ class SetSchema<ElementSchemaType extends AnySchemaType> extends Schema<Infer<Se
         }
 
         if (newSet) {
+            if (newSet.size < minSize) {
+                return this.issues.TOO_SHORT;
+            }
+
             return { ok: true, value: newSet as Infer<Set<ElementSchemaType>> };
         }
 
         return undefined;
     }
     min(size: number): SetSchema<ElementSchemaType> {
+        if (Number.isNaN(size)) {
+            throw new Error('NaN is not a valid size.');
+        }
+
         const cloned = this._clone();
         cloned._minSize = size;
 
         return cloned;
     }
     max(size: number): SetSchema<ElementSchemaType> {
+        if (Number.isNaN(size)) {
+            throw new Error('NaN is not a valid size.');
+        }
+
         const cloned = this._clone();
         cloned._maxSize = size;
 
         return cloned;
     }
     size(size: number): SetSchema<ElementSchemaType> {
+        if (Number.isNaN(size)) {
+            throw new Error('NaN is not a valid size.');
+        }
+
         const cloned = this._clone();
         cloned._minSize = size;
         cloned._maxSize = size;

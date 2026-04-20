@@ -1,4 +1,5 @@
 import { expect } from '@std/expect';
+import { describe, it } from '@std/testing/bdd';
 import { expectTypeOf } from 'expect-type';
 import fc from 'fast-check';
 import { check } from 'recheck';
@@ -37,7 +38,9 @@ function formatTime(value: Date, precision?: number): string {
     const fractionString =
         precision === undefined
             ? String(fraction).slice(1)
-            : `.${fraction.toFixed(precision).slice(2).padEnd(precision, '0')}`;
+            : precision === 0
+              ? ''
+              : `.${fraction.toFixed(precision).slice(2).padEnd(precision, '0')}`;
 
     return `${hour}:${minute}:${second}${fractionString}`;
 }
@@ -85,112 +88,154 @@ test('Invalid type', () => {
     );
 });
 
-test('Valid min', () => {
-    const schema = p.string().min(3);
+describe('min', () => {
+    it('Valid', () => {
+        const schema = p.string().min(3);
 
-    fc.assert(
-        fc.property(fc.string({ minLength: 3 }), (data) => {
-            const result = schema.safeParse(data);
-            if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<string>;
-                expect(result.value).toBe(data);
-            } else {
-                expect(result.ok).toBeTruthy();
-            }
-        }),
-    );
+        fc.assert(
+            fc.property(fc.string({ minLength: 3 }), (data) => {
+                const result = schema.safeParse(data);
+                if (result.ok) {
+                    expectTypeOf(result.value).toEqualTypeOf<string>;
+                    expect(result.value).toBe(data);
+                } else {
+                    expect(result.ok).toBeTruthy();
+                }
+            }),
+        );
+    });
+
+    it('Invalid', () => {
+        const schema = p.string().min(3);
+
+        fc.assert(
+            fc.property(fc.string({ maxLength: 2 }), (data) => {
+                const result = schema.safeParse(data);
+                if (!result.ok) {
+                    expect(result.messages()).toEqual([{ path: [], message: 'Too short.' }]);
+                } else {
+                    expect(result.ok).toBeFalsy();
+                }
+            }),
+        );
+    });
+
+    it('NaN', () => {
+        expect(() => p.string().min(NaN)).toThrow();
+    });
+
+    it('Immutable', () => {
+        const original = p.string();
+        const modified = original.min(3);
+        expect(modified).not.toEqual(original);
+        const branched = modified.max(5);
+        expect(branched).not.toEqual(modified);
+    });
 });
 
-test('Invalid min', () => {
-    const schema = p.string().min(3);
+describe('max', () => {
+    it('Valid', () => {
+        const schema = p.string().max(3);
 
-    fc.assert(
-        fc.property(fc.string({ maxLength: 2 }), (data) => {
-            const result = schema.safeParse(data);
-            if (!result.ok) {
-                expect(result.messages()).toEqual([{ path: [], message: 'Too short.' }]);
-            } else {
-                expect(result.ok).toBeFalsy();
-            }
-        }),
-    );
+        fc.assert(
+            fc.property(fc.string({ maxLength: 3 }), (data) => {
+                const result = schema.safeParse(data);
+                if (result.ok) {
+                    expectTypeOf(result.value).toEqualTypeOf<string>;
+                    expect(result.value).toBe(data);
+                } else {
+                    expect(result.ok).toBeTruthy();
+                }
+            }),
+        );
+    });
+
+    it('Invalid', () => {
+        const schema = p.string().max(3);
+
+        fc.assert(
+            fc.property(fc.string({ minLength: 4 }), (data) => {
+                const result = schema.safeParse(data);
+                if (!result.ok) {
+                    expect(result.messages()).toEqual([{ path: [], message: 'Too long.' }]);
+                } else {
+                    expect(result.ok).toBeFalsy();
+                }
+            }),
+        );
+    });
+
+    it('NaN', () => {
+        expect(() => p.string().max(NaN)).toThrow();
+    });
+
+    it('Immutable', () => {
+        const original = p.string();
+        const modified = original.max(3);
+        expect(modified).not.toEqual(original);
+        const branched = modified.min(1);
+        expect(branched).not.toEqual(modified);
+    });
 });
 
-test('Valid max', () => {
-    const schema = p.string().max(3);
+describe('length', () => {
+    it('Valid', () => {
+        const schema = p.string().length(3);
 
-    fc.assert(
-        fc.property(fc.string({ maxLength: 3 }), (data) => {
-            const result = schema.safeParse(data);
-            if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<string>;
-                expect(result.value).toBe(data);
-            } else {
-                expect(result.ok).toBeTruthy();
-            }
-        }),
-    );
-});
+        fc.assert(
+            fc.property(fc.string({ minLength: 3, maxLength: 3 }), (data) => {
+                const result = schema.safeParse(data);
+                if (result.ok) {
+                    expectTypeOf(result.value).toEqualTypeOf<string>;
+                    expect(result.value).toBe(data);
+                } else {
+                    expect(result.ok).toBeTruthy();
+                }
+            }),
+        );
+    });
 
-test('Invalid max', () => {
-    const schema = p.string().max(3);
+    it('Invalid (too long)', () => {
+        const schema = p.string().length(3);
 
-    fc.assert(
-        fc.property(fc.string({ minLength: 4 }), (data) => {
-            const result = schema.safeParse(data);
-            if (!result.ok) {
-                expect(result.messages()).toEqual([{ path: [], message: 'Too long.' }]);
-            } else {
-                expect(result.ok).toBeFalsy();
-            }
-        }),
-    );
-});
+        fc.assert(
+            fc.property(fc.string({ minLength: 4 }), (data) => {
+                const result = schema.safeParse(data);
+                if (!result.ok) {
+                    expect(result.messages()).toEqual([{ path: [], message: 'Too long.' }]);
+                } else {
+                    expect(result.ok).toBeFalsy();
+                }
+            }),
+        );
+    });
 
-test('Valid length', () => {
-    const schema = p.string().length(3);
+    it('Invalid (too short)', () => {
+        const schema = p.string().length(3);
 
-    fc.assert(
-        fc.property(fc.string({ minLength: 3, maxLength: 3 }), (data) => {
-            const result = schema.safeParse(data);
-            if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<string>;
-                expect(result.value).toBe(data);
-            } else {
-                expect(result.ok).toBeTruthy();
-            }
-        }),
-    );
-});
+        fc.assert(
+            fc.property(fc.string({ maxLength: 2 }), (data) => {
+                const result = schema.safeParse(data);
+                if (!result.ok) {
+                    expect(result.messages()).toEqual([{ path: [], message: 'Too short.' }]);
+                } else {
+                    expect(result.ok).toBeFalsy();
+                }
+            }),
+        );
+    });
 
-test('Invalid length (too long)', () => {
-    const schema = p.string().length(3);
+    it('NaN', () => {
+        expect(() => p.string().length(NaN)).toThrow();
+    });
 
-    fc.assert(
-        fc.property(fc.string({ minLength: 4 }), (data) => {
-            const result = schema.safeParse(data);
-            if (!result.ok) {
-                expect(result.messages()).toEqual([{ path: [], message: 'Too long.' }]);
-            } else {
-                expect(result.ok).toBeFalsy();
-            }
-        }),
-    );
-});
-
-test('Invalid length (too short)', () => {
-    const schema = p.string().length(3);
-
-    fc.assert(
-        fc.property(fc.string({ maxLength: 2 }), (data) => {
-            const result = schema.safeParse(data);
-            if (!result.ok) {
-                expect(result.messages()).toEqual([{ path: [], message: 'Too short.' }]);
-            } else {
-                expect(result.ok).toBeFalsy();
-            }
-        }),
-    );
+    it('Immutable', () => {
+        const original = p.string();
+        const modified = original.length(3);
+        expect(modified).not.toEqual(original);
+        const branched = modified.min(1);
+        expect(branched).not.toEqual(modified);
+    });
 });
 
 test('Valid email', () => {
@@ -547,126 +592,62 @@ test('Date ReDoS', async () => {
     expect(diagnostics.status).toBe('safe');
 });
 
-test('Valid time', () => {
-    fc.assert(
-        fc.property(
-            fc.date({ min: new Date(0, 0, 1), max: new Date(9999, 11, 31), noInvalidDate: true }),
-            fc.option(fc.integer({ min: 0, max: 8 }), { nil: undefined }),
-            (date, precision) => {
-                const data = formatTime(date, precision);
-                const options: { precision?: number } = {};
-                if (precision !== undefined) {
-                    options.precision = precision;
-                }
+describe('time', () => {
+    it('Valid', () => {
+        fc.assert(
+            fc.property(
+                fc.date({ min: new Date(0, 0, 1), max: new Date(9999, 11, 31), noInvalidDate: true }),
+                fc.option(fc.integer({ min: 0, max: 8 }), { nil: undefined }),
+                (date, precision) => {
+                    const data = formatTime(date, precision);
+                    const options: { precision?: number } = {};
+                    if (precision !== undefined) {
+                        options.precision = precision;
+                    }
 
-                const schema = p.string().time(options);
-                const result = schema.safeParse(data);
-                if (result.ok) {
-                    expectTypeOf(result.value).toEqualTypeOf<string>;
-                    expect(result.value).toBe(data);
-                } else {
-                    expect(result.ok).toBeTruthy();
-                }
-            },
-        ),
-    );
-});
+                    const schema = p.string().time(options);
+                    const result = schema.safeParse(data);
+                    if (result.ok) {
+                        expectTypeOf(result.value).toEqualTypeOf<string>;
+                        expect(result.value).toBe(data);
+                    } else {
+                        expect(result.ok).toBeTruthy();
+                    }
+                },
+            ),
+        );
+    });
 
-test('Invalid time', () => {
-    const schema = p.string().time();
+    it('Invalid', () => {
+        const schema = p.string().time();
 
-    fc.assert(
-        fc.property(
-            fc.string().filter((value) => !timeRegex().test(value)),
-            (data) => {
-                const result = schema.safeParse(data);
-                if (!result.ok) {
-                    expect(result.messages()).toEqual([{ path: [], message: 'Invalid time string.' }]);
-                } else {
-                    expect(result.ok).toBeFalsy();
-                }
-            },
-        ),
-    );
-});
+        fc.assert(
+            fc.property(
+                fc.string().filter((value) => !timeRegex().test(value)),
+                (data) => {
+                    const result = schema.safeParse(data);
+                    if (!result.ok) {
+                        expect(result.messages()).toEqual([{ path: [], message: 'Invalid time string.' }]);
+                    } else {
+                        expect(result.ok).toBeFalsy();
+                    }
+                },
+            ),
+        );
+    });
 
-test('Time ReDoS', () => {
-    fc.assert(
-        fc.property(fc.option(fc.integer({ min: 0, max: 8 }), { nil: undefined }), (precision) => {
-            const regex = timeRegex(precision);
-            check(regex.source, regex.flags.replace('v', 'u')).then((diagnostics) => {
-                if (diagnostics.status === 'vulnerable') {
-                    console.log(`Vulnerable pattern: ${diagnostics.attack.pattern}`);
-                } else if (diagnostics.status === 'unknown') {
-                    console.log(`Error: ${diagnostics.error.kind}.`);
-                }
-                expect(diagnostics.status).toBe('safe');
-            });
-        }),
-        { ignoreEqualValues: true },
-    );
-});
+    it('Invalid precision', () => {
+        fc.assert(
+            fc.property(fc.oneof(fc.float({ noInteger: true }), fc.integer({ max: -1 })), (precision) => {
+                expect(() => p.string().time({ precision })).toThrow();
+            }),
+        );
+    });
 
-test('Valid datetime', () => {
-    fc.assert(
-        fc.property(
-            fc.date({ min: new Date(0, 0, 1), max: new Date(9999, 11, 31), noInvalidDate: true }),
-            fc.integer({ min: -1000, max: 1000 }),
-            fc.option(fc.integer({ min: 0, max: 8 }), { nil: undefined }),
-            fc.boolean(),
-            fc.boolean(),
-            (date, timezone, precision, offset, local) => {
-                const data = formatDatetime(date, timezone, precision, offset, local);
-                const options: { precision?: number; offset?: boolean; local?: boolean } = {};
-                if (precision !== undefined) {
-                    options.precision = precision;
-                }
-                if (offset !== undefined) {
-                    options.offset = offset;
-                }
-                if (local !== undefined) {
-                    options.local = local;
-                }
-
-                const schema = p.string().datetime(options);
-                const result = schema.safeParse(data);
-                if (result.ok) {
-                    expectTypeOf(result.value).toEqualTypeOf<string>;
-                    expect(result.value).toBe(data);
-                } else {
-                    expect(result.ok).toBeTruthy();
-                }
-            },
-        ),
-    );
-});
-
-test('Invalid datetime', () => {
-    const schema = p.string().datetime();
-
-    fc.assert(
-        fc.property(
-            fc.string().filter((value) => !datetimeRegex().test(value)),
-            (data) => {
-                const result = schema.safeParse(data);
-                if (!result.ok) {
-                    expect(result.messages()).toEqual([{ path: [], message: 'Invalid datetime string.' }]);
-                } else {
-                    expect(result.ok).toBeFalsy();
-                }
-            },
-        ),
-    );
-});
-
-test('Datetime ReDoS', () => {
-    fc.assert(
-        fc.property(
-            fc.option(fc.integer({ min: 0, max: 8 }), { nil: undefined }),
-            fc.boolean(),
-            fc.boolean(),
-            (precision, offset, local) => {
-                const regex = datetimeRegex(precision, offset, local);
+    it('ReDoS', () => {
+        fc.assert(
+            fc.property(fc.option(fc.integer({ min: 0, max: 8 }), { nil: undefined }), (precision) => {
+                const regex = timeRegex(precision);
                 check(regex.source, regex.flags.replace('v', 'u')).then((diagnostics) => {
                     if (diagnostics.status === 'vulnerable') {
                         console.log(`Vulnerable pattern: ${diagnostics.attack.pattern}`);
@@ -675,10 +656,94 @@ test('Datetime ReDoS', () => {
                     }
                     expect(diagnostics.status).toBe('safe');
                 });
-            },
-        ),
-        { ignoreEqualValues: true },
-    );
+            }),
+            { ignoreEqualValues: true },
+        );
+    });
+});
+
+describe('datetime', () => {
+    it('Valid', () => {
+        fc.assert(
+            fc.property(
+                fc.date({ min: new Date(0, 0, 1), max: new Date(9999, 11, 31), noInvalidDate: true }),
+                fc.integer({ min: -1000, max: 1000 }),
+                fc.option(fc.integer({ min: 0, max: 8 }), { nil: undefined }),
+                fc.boolean(),
+                fc.boolean(),
+                (date, timezone, precision, offset, local) => {
+                    const data = formatDatetime(date, timezone, precision, offset, local);
+                    const options: { precision?: number; offset?: boolean; local?: boolean } = {};
+                    if (precision !== undefined) {
+                        options.precision = precision;
+                    }
+                    if (offset !== undefined) {
+                        options.offset = offset;
+                    }
+                    if (local !== undefined) {
+                        options.local = local;
+                    }
+
+                    const schema = p.string().datetime(options);
+                    const result = schema.safeParse(data);
+                    if (result.ok) {
+                        expectTypeOf(result.value).toEqualTypeOf<string>;
+                        expect(result.value).toBe(data);
+                    } else {
+                        expect(result.ok).toBeTruthy();
+                    }
+                },
+            ),
+        );
+    });
+
+    it('Invalid', () => {
+        const schema = p.string().datetime();
+
+        fc.assert(
+            fc.property(
+                fc.string().filter((value) => !datetimeRegex().test(value)),
+                (data) => {
+                    const result = schema.safeParse(data);
+                    if (!result.ok) {
+                        expect(result.messages()).toEqual([{ path: [], message: 'Invalid datetime string.' }]);
+                    } else {
+                        expect(result.ok).toBeFalsy();
+                    }
+                },
+            ),
+        );
+    });
+
+    it('Invalid precision', () => {
+        fc.assert(
+            fc.property(fc.oneof(fc.float({ noInteger: true }), fc.integer({ max: -1 })), (precision) => {
+                expect(() => p.string().datetime({ precision })).toThrow();
+            }),
+        );
+    });
+
+    it('ReDoS', () => {
+        fc.assert(
+            fc.property(
+                fc.option(fc.integer({ min: 0, max: 8 }), { nil: undefined }),
+                fc.boolean(),
+                fc.boolean(),
+                (precision, offset, local) => {
+                    const regex = datetimeRegex(precision, offset, local);
+                    check(regex.source, regex.flags.replace('v', 'u')).then((diagnostics) => {
+                        if (diagnostics.status === 'vulnerable') {
+                            console.log(`Vulnerable pattern: ${diagnostics.attack.pattern}`);
+                        } else if (diagnostics.status === 'unknown') {
+                            console.log(`Error: ${diagnostics.error.kind}.`);
+                        }
+                        expect(diagnostics.status).toBe('safe');
+                    });
+                },
+            ),
+            { ignoreEqualValues: true },
+        );
+    });
 });
 
 test('Valid ip', () => {
@@ -824,6 +889,36 @@ test('Invalid regex', () => {
     );
 });
 
+test('Regex with global flag produces consistent results', () => {
+    const schema = p.string().regex(/^a+$/g);
+
+    fc.assert(
+        fc.property(fc.string({ minLength: 1, unit: fc.constantFrom('a') }), (data) => {
+            const result = schema.safeParse(data);
+            if (result.ok) {
+                expect(result.value).toBe(data);
+            } else {
+                expect(result.ok).toBeTruthy();
+            }
+        }),
+    );
+});
+
+test('Regex with sticky flag produces consistent results', () => {
+    const schema = p.string().regex(/^a+$/y);
+
+    fc.assert(
+        fc.property(fc.string({ minLength: 1, unit: fc.constantFrom('a') }), (data) => {
+            const result = schema.safeParse(data);
+            if (result.ok) {
+                expect(result.value).toBe(data);
+            } else {
+                expect(result.ok).toBeTruthy();
+            }
+        }),
+    );
+});
+
 test('Optional', () => {
     const schema = p.string().optional();
 
@@ -857,30 +952,6 @@ test('Nullable', () => {
 });
 
 test('Immutable', async (t) => {
-    await t.step('min', () => {
-        const original = p.string();
-        const modified = original.min(3);
-        expect(modified).not.toEqual(original);
-        const branched = modified.max(5);
-        expect(branched).not.toEqual(modified);
-    });
-
-    await t.step('max', () => {
-        const original = p.string();
-        const modified = original.max(3);
-        expect(modified).not.toEqual(original);
-        const branched = modified.min(1);
-        expect(branched).not.toEqual(modified);
-    });
-
-    await t.step('length', () => {
-        const original = p.string();
-        const modified = original.length(3);
-        expect(modified).not.toEqual(original);
-        const branched = modified.min(1);
-        expect(branched).not.toEqual(modified);
-    });
-
     await t.step('email', () => {
         const original = p.string();
         const modified = original.email();

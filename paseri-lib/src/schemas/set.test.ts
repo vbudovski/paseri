@@ -1,4 +1,5 @@
 import { expect } from '@std/expect';
+import { describe, it } from '@std/testing/bdd';
 import { expectTypeOf } from 'expect-type';
 import fc from 'fast-check';
 import * as p from '../index.ts';
@@ -38,149 +39,200 @@ test('Invalid type', () => {
     );
 });
 
-test('Valid min', () => {
-    const schema = p.set(p.number()).min(3);
+describe('min', () => {
+    it('Valid', () => {
+        const schema = p.set(p.number()).min(3);
 
-    fc.assert(
-        fc.property(
-            fc.array(fc.float({ noNaN: true }), { minLength: 3 }).filter((value) => new Set(value).size >= 3),
-            (data) => {
-                const dataAsSet = new Set(data);
+        fc.assert(
+            fc.property(
+                fc.array(fc.float({ noNaN: true }), { minLength: 3 }).filter((value) => new Set(value).size >= 3),
+                (data) => {
+                    const dataAsSet = new Set(data);
 
-                const result = schema.safeParse(dataAsSet);
-                if (result.ok) {
-                    expectTypeOf(result.value).toEqualTypeOf<Set<number>>;
-                    expect(result.value).toBe(dataAsSet);
-                } else {
-                    expect(result.ok).toBeTruthy();
-                }
-            },
-        ),
-    );
+                    const result = schema.safeParse(dataAsSet);
+                    if (result.ok) {
+                        expectTypeOf(result.value).toEqualTypeOf<Set<number>>;
+                        expect(result.value).toBe(dataAsSet);
+                    } else {
+                        expect(result.ok).toBeTruthy();
+                    }
+                },
+            ),
+        );
+    });
+
+    it('Invalid', () => {
+        const schema = p.set(p.number()).min(3);
+
+        fc.assert(
+            fc.property(
+                fc.array(fc.float({ noNaN: true }), { maxLength: 2 }).filter((value) => new Set(value).size <= 2),
+                (data) => {
+                    const dataAsSet = new Set(data);
+
+                    const result = schema.safeParse(dataAsSet);
+                    if (!result.ok) {
+                        expect(result.messages()).toEqual([{ path: [], message: 'Too short.' }]);
+                    } else {
+                        expect(result.ok).toBeFalsy();
+                    }
+                },
+            ),
+        );
+    });
+
+    it('Invalid after element transformation causes deduplication', () => {
+        const lower = p.string().chain(p.string(), (value) => p.ok(value.toLowerCase()));
+        const schema = p.set(lower).min(2);
+        const data = new Set(['A', 'a']); // size 2, but both lowercase to "a" → size 1
+
+        const result = schema.safeParse(data);
+        expect(result.ok).toBe(false);
+    });
+
+    it('NaN', () => {
+        expect(() => p.set(p.string()).min(NaN)).toThrow();
+    });
+
+    it('Immutable', () => {
+        const original = p.set(p.string());
+        const modified = original.min(3);
+        expect(modified).not.toEqual(original);
+        const branched = modified.max(10);
+        expect(branched).not.toEqual(modified);
+    });
 });
 
-test('Invalid min', () => {
-    const schema = p.set(p.number()).min(3);
+describe('max', () => {
+    it('Valid', () => {
+        const schema = p.set(p.number()).max(3);
 
-    fc.assert(
-        fc.property(
-            fc.array(fc.float({ noNaN: true }), { maxLength: 2 }).filter((value) => new Set(value).size <= 2),
-            (data) => {
-                const dataAsSet = new Set(data);
+        fc.assert(
+            fc.property(
+                fc.array(fc.float({ noNaN: true }), { maxLength: 3 }).filter((value) => new Set(value).size <= 3),
+                (data) => {
+                    const dataAsSet = new Set(data);
 
-                const result = schema.safeParse(dataAsSet);
-                if (!result.ok) {
-                    expect(result.messages()).toEqual([{ path: [], message: 'Too short.' }]);
-                } else {
-                    expect(result.ok).toBeFalsy();
-                }
-            },
-        ),
-    );
+                    const result = schema.safeParse(dataAsSet);
+                    if (result.ok) {
+                        expectTypeOf(result.value).toEqualTypeOf<Set<number>>;
+                        expect(result.value).toBe(dataAsSet);
+                    } else {
+                        expect(result.ok).toBeTruthy();
+                    }
+                },
+            ),
+        );
+    });
+
+    it('Invalid', () => {
+        const schema = p.set(p.number()).max(3);
+
+        fc.assert(
+            fc.property(
+                fc.array(fc.float({ noNaN: true }), { minLength: 4 }).filter((value) => new Set(value).size >= 4),
+                (data) => {
+                    const dataAsSet = new Set(data);
+
+                    const result = schema.safeParse(dataAsSet);
+                    if (!result.ok) {
+                        expect(result.messages()).toEqual([{ path: [], message: 'Too long.' }]);
+                    } else {
+                        expect(result.ok).toBeFalsy();
+                    }
+                },
+            ),
+        );
+    });
+
+    it('NaN', () => {
+        expect(() => p.set(p.string()).max(NaN)).toThrow();
+    });
+
+    it('Immutable', () => {
+        const original = p.set(p.string());
+        const modified = original.max(3);
+        expect(modified).not.toEqual(original);
+        const branched = modified.min(1);
+        expect(branched).not.toEqual(modified);
+    });
 });
 
-test('Valid max', () => {
-    const schema = p.set(p.number()).max(3);
+describe('size', () => {
+    it('Valid', () => {
+        const schema = p.set(p.number()).size(3);
 
-    fc.assert(
-        fc.property(
-            fc.array(fc.float({ noNaN: true }), { maxLength: 3 }).filter((value) => new Set(value).size <= 3),
-            (data) => {
-                const dataAsSet = new Set(data);
+        fc.assert(
+            fc.property(
+                fc
+                    .array(fc.float({ noNaN: true }), { minLength: 3, maxLength: 3 })
+                    .filter((value) => new Set(value).size === 3),
+                (data) => {
+                    const dataAsSet = new Set(data);
 
-                const result = schema.safeParse(dataAsSet);
-                if (result.ok) {
-                    expectTypeOf(result.value).toEqualTypeOf<Set<number>>;
-                    expect(result.value).toBe(dataAsSet);
-                } else {
-                    expect(result.ok).toBeTruthy();
-                }
-            },
-        ),
-    );
-});
+                    const result = schema.safeParse(dataAsSet);
+                    if (result.ok) {
+                        expectTypeOf(result.value).toEqualTypeOf<Set<number>>;
+                        expect(result.value).toBe(dataAsSet);
+                    } else {
+                        expect(result.ok).toBeTruthy();
+                    }
+                },
+            ),
+        );
+    });
 
-test('Invalid max', () => {
-    const schema = p.set(p.number()).max(3);
+    it('Invalid (too long)', () => {
+        const schema = p.set(p.number()).size(3);
 
-    fc.assert(
-        fc.property(
-            fc.array(fc.float({ noNaN: true }), { minLength: 4 }).filter((value) => new Set(value).size >= 4),
-            (data) => {
-                const dataAsSet = new Set(data);
+        fc.assert(
+            fc.property(
+                fc.array(fc.float({ noNaN: true }), { minLength: 4 }).filter((value) => new Set(value).size >= 4),
+                (data) => {
+                    const dataAsSet = new Set(data);
 
-                const result = schema.safeParse(dataAsSet);
-                if (!result.ok) {
-                    expect(result.messages()).toEqual([{ path: [], message: 'Too long.' }]);
-                } else {
-                    expect(result.ok).toBeFalsy();
-                }
-            },
-        ),
-    );
-});
+                    const result = schema.safeParse(dataAsSet);
+                    if (!result.ok) {
+                        expect(result.messages()).toEqual([{ path: [], message: 'Too long.' }]);
+                    } else {
+                        expect(result.ok).toBeFalsy();
+                    }
+                },
+            ),
+        );
+    });
 
-test('Valid size', () => {
-    const schema = p.set(p.number()).size(3);
+    it('Invalid (too short)', () => {
+        const schema = p.set(p.number()).size(3);
 
-    fc.assert(
-        fc.property(
-            fc
-                .array(fc.float({ noNaN: true }), { minLength: 3, maxLength: 3 })
-                .filter((value) => new Set(value).size === 3),
-            (data) => {
-                const dataAsSet = new Set(data);
+        fc.assert(
+            fc.property(
+                fc.array(fc.float({ noNaN: true }), { maxLength: 2 }).filter((value) => new Set(value).size <= 2),
+                (data) => {
+                    const dataAsSet = new Set(data);
 
-                const result = schema.safeParse(dataAsSet);
-                if (result.ok) {
-                    expectTypeOf(result.value).toEqualTypeOf<Set<number>>;
-                    expect(result.value).toBe(dataAsSet);
-                } else {
-                    expect(result.ok).toBeTruthy();
-                }
-            },
-        ),
-    );
-});
+                    const result = schema.safeParse(dataAsSet);
+                    if (!result.ok) {
+                        expect(result.messages()).toEqual([{ path: [], message: 'Too short.' }]);
+                    } else {
+                        expect(result.ok).toBeFalsy();
+                    }
+                },
+            ),
+        );
+    });
 
-test('Invalid size (too long)', () => {
-    const schema = p.set(p.number()).size(3);
+    it('NaN', () => {
+        expect(() => p.set(p.string()).size(NaN)).toThrow();
+    });
 
-    fc.assert(
-        fc.property(
-            fc.array(fc.float({ noNaN: true }), { minLength: 4 }).filter((value) => new Set(value).size >= 4),
-            (data) => {
-                const dataAsSet = new Set(data);
-
-                const result = schema.safeParse(dataAsSet);
-                if (!result.ok) {
-                    expect(result.messages()).toEqual([{ path: [], message: 'Too long.' }]);
-                } else {
-                    expect(result.ok).toBeFalsy();
-                }
-            },
-        ),
-    );
-});
-
-test('Invalid size (too short)', () => {
-    const schema = p.set(p.number()).size(3);
-
-    fc.assert(
-        fc.property(
-            fc.array(fc.float({ noNaN: true }), { maxLength: 2 }).filter((value) => new Set(value).size <= 2),
-            (data) => {
-                const dataAsSet = new Set(data);
-
-                const result = schema.safeParse(dataAsSet);
-                if (!result.ok) {
-                    expect(result.messages()).toEqual([{ path: [], message: 'Too short.' }]);
-                } else {
-                    expect(result.ok).toBeFalsy();
-                }
-            },
-        ),
-    );
+    it('Immutable', () => {
+        const original = p.set(p.string());
+        const modified = original.size(3);
+        expect(modified).not.toEqual(original);
+        const branched = modified.min(1);
+        expect(branched).not.toEqual(modified);
+    });
 });
 
 test('Invalid elements', () => {
@@ -244,30 +296,4 @@ test('Nullable', () => {
             }
         }),
     );
-});
-
-test('Immutable', async (t) => {
-    await t.step('min', () => {
-        const original = p.set(p.string());
-        const modified = original.min(3);
-        expect(modified).not.toEqual(original);
-        const branched = modified.max(10);
-        expect(branched).not.toEqual(modified);
-    });
-
-    await t.step('max', () => {
-        const original = p.set(p.string());
-        const modified = original.max(3);
-        expect(modified).not.toEqual(original);
-        const branched = modified.min(1);
-        expect(branched).not.toEqual(modified);
-    });
-
-    await t.step('size', () => {
-        const original = p.set(p.string());
-        const modified = original.size(3);
-        expect(modified).not.toEqual(original);
-        const branched = modified.min(1);
-        expect(branched).not.toEqual(modified);
-    });
 });

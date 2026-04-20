@@ -483,6 +483,16 @@ describe('Input with Object.prototype keys should not crash', () => {
             expect(result.ok).toBeFalsy();
         });
     }
+
+    it('__proto__', () => {
+        const schema = p.object({ name: p.string() });
+        const data = Object.create(null);
+        data.name = 'alice';
+        data.__proto__ = 'boom';
+
+        const result = schema.safeParse(data);
+        expect(result.ok).toBeFalsy();
+    });
 });
 
 describe('Required key matching Object.prototype property should be flagged as missing', () => {
@@ -498,6 +508,17 @@ describe('Required key matching Object.prototype property should be flagged as m
             }
         });
     }
+
+    it('__proto__', () => {
+        const schema = p.object({ ['__proto__']: p.string() });
+
+        const result = schema.safeParse({});
+        if (!result.ok) {
+            expect(result.messages()).toEqual([{ path: ['__proto__'], message: 'Missing value.' }]);
+        } else {
+            expect(result.ok).toBeFalsy();
+        }
+    });
 });
 
 describe('Strict mode should only flag truly unrecognized keys, not Object.prototype collisions', () => {
@@ -516,6 +537,20 @@ describe('Strict mode should only flag truly unrecognized keys, not Object.proto
             }
         });
     }
+
+    it('__proto__', () => {
+        const schema = p.object({ ['__proto__']: p.string() });
+        const data = Object.create(null);
+        data.__proto__ = 'valid';
+        data.extra = 'unrecognized';
+
+        const result = schema.safeParse(data);
+        if (!result.ok) {
+            expect(result.messages()).toEqual([{ path: ['extra'], message: 'Unrecognised key.' }]);
+        } else {
+            expect(result.ok).toBeFalsy();
+        }
+    });
 });
 
 describe('Strip mode should not strip keys that collide with Object.prototype names', () => {
@@ -536,4 +571,56 @@ describe('Strip mode should not strip keys that collide with Object.prototype na
             }
         });
     }
+
+    it('__proto__', () => {
+        const schema = p.object({ ['__proto__']: p.string() }).strip();
+        const data = Object.create(null);
+        data.__proto__ = 'valid';
+        data.extra = 'strip me';
+
+        const result = schema.safeParse(data);
+        if (result.ok) {
+            const expected = Object.create(null);
+            expected.__proto__ = 'valid';
+            expect(result.value).toEqual(expected);
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
+    });
+});
+
+// In Annex B environments (browsers, Node.js), __proto__ is an accessor on Object.prototype. Bracket-notation
+// assignment on a plain {} triggers the setter instead of creating an own property, which can cause __proto__ to
+// bypass unrecognized-key detection and strip-mode sanitization. These tests use Object.create(null) for input data
+// (where __proto__ is a regular own property) to verify the schema handles the key correctly regardless of runtime.
+describe('Strip mode should strip unrecognized __proto__ key', () => {
+    it('without modified child values', () => {
+        const schema = p.object({ name: p.string() }).strip();
+        const data = Object.create(null);
+        data.name = 'alice';
+        data.__proto__ = { isAdmin: true };
+
+        const result = schema.safeParse(data);
+        if (result.ok) {
+            expect(result.value).toEqual({ name: 'alice' });
+            expect(Object.hasOwn(result.value, '__proto__')).toBe(false);
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
+    });
+
+    it('with modified child values', () => {
+        const schema = p.object({ child: p.object({ foo: p.string() }).strip() }).strip();
+        const data = Object.create(null);
+        data.child = { foo: 'bar', extra: 'baz' };
+        data.__proto__ = { isAdmin: true };
+
+        const result = schema.safeParse(data);
+        if (result.ok) {
+            expect(result.value).toEqual({ child: { foo: 'bar' } });
+            expect(Object.hasOwn(result.value, '__proto__')).toBe(false);
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
+    });
 });

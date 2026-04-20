@@ -44,7 +44,7 @@ const timeRegex = (precision?: number): RegExp => regex`
         (?<hours> ([01]\d | 2[0-3]))
         (?<minutes> [0-5]\d)
         (?<seconds> [0-5]\d)
-        (?<fractional-seconds> ${precision === undefined ? pattern`(\.\d+)?` : pattern`\.\d{${String(precision)}}`})
+        (?<fractional-seconds> ${precision === undefined ? pattern`(\.\d+)?` : precision === 0 ? pattern`` : pattern`\.\d{${String(precision)}}`})
     )
 `;
 const datetimeRegex = (precision?: number, offset?: boolean, local?: boolean): RegExp => regex`
@@ -61,7 +61,7 @@ const datetimeRegex = (precision?: number, offset?: boolean, local?: boolean): R
         (?<hours> ([01]\d | 2[0-3]))
         (?<minutes> [0-5]\d)
         (?<seconds> [0-5]\d)
-        (?<fractional-seconds> ${precision === undefined ? pattern`(\.\d+)?` : pattern`\.\d{${String(precision)}}`})
+        (?<fractional-seconds> ${precision === undefined ? pattern`(\.\d+)?` : precision === 0 ? pattern`` : pattern`\.\d{${String(precision)}}`})
         (?<timezone> ${offset && local ? pattern`(\g<offset> | Z?)` : offset ? pattern`(\g<offset> | Z)` : local ? pattern`Z?` : pattern`Z`})
         (?<offset> [+\-][0-5]\d:[0-5]\d)
     )

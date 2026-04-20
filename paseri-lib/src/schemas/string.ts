@@ -74,6 +74,7 @@ class StringSchema extends Schema<string> {
                         }
                         break;
                     case TAG_REGEX:
+                        check.param.lastIndex = 0;
                         if (!check.param.test(value)) {
                             return check.issue;
                         }
@@ -100,6 +101,10 @@ class StringSchema extends Schema<string> {
         return undefined;
     }
     min(length: number): StringSchema {
+        if (Number.isNaN(length)) {
+            throw new Error('NaN is not a valid length.');
+        }
+
         const cloned = this._clone();
         cloned._checks = cloned._checks || [];
         cloned._checks.push({ tag: TAG_MIN, param: length, issue: this.issues.TOO_SHORT });
@@ -107,6 +112,10 @@ class StringSchema extends Schema<string> {
         return cloned;
     }
     max(length: number): StringSchema {
+        if (Number.isNaN(length)) {
+            throw new Error('NaN is not a valid length.');
+        }
+
         const cloned = this._clone();
         cloned._checks = cloned._checks || [];
         cloned._checks.push({ tag: TAG_MAX, param: length, issue: this.issues.TOO_LONG });
@@ -114,6 +123,10 @@ class StringSchema extends Schema<string> {
         return cloned;
     }
     length(length: number): StringSchema {
+        if (Number.isNaN(length)) {
+            throw new Error('NaN is not a valid length.');
+        }
+
         const cloned = this._clone();
         cloned._checks = cloned._checks || [];
         cloned._checks.push({ tag: TAG_MAX, param: length, issue: this.issues.TOO_LONG });
@@ -188,6 +201,10 @@ class StringSchema extends Schema<string> {
         return cloned;
     }
     time(options: { precision?: number } = {}): StringSchema {
+        if (options.precision !== undefined && (!Number.isInteger(options.precision) || options.precision < 0)) {
+            throw new Error('Precision must be a non-negative integer.');
+        }
+
         const regex = timeRegex(options.precision);
 
         const cloned = this._clone();
@@ -197,6 +214,10 @@ class StringSchema extends Schema<string> {
         return cloned;
     }
     datetime(options: { precision?: number; offset?: boolean; local?: boolean } = {}): StringSchema {
+        if (options.precision !== undefined && (!Number.isInteger(options.precision) || options.precision < 0)) {
+            throw new Error('Precision must be a non-negative integer.');
+        }
+
         const regex = datetimeRegex(options.precision, options.offset, options.local);
 
         const cloned = this._clone();

@@ -93,6 +93,10 @@ class NumberSchema extends Schema<number> {
         return undefined;
     }
     gte(value: number): NumberSchema {
+        if (Number.isNaN(value)) {
+            throw new Error('NaN is not a valid boundary value.');
+        }
+
         const cloned = this._clone();
         cloned._checks = cloned._checks || [];
         cloned._checks.push({ tag: TAG_GTE, param: value, issue: this.issues.TOO_SMALL });
@@ -100,6 +104,10 @@ class NumberSchema extends Schema<number> {
         return cloned;
     }
     gt(value: number): NumberSchema {
+        if (Number.isNaN(value)) {
+            throw new Error('NaN is not a valid boundary value.');
+        }
+
         const cloned = this._clone();
         cloned._checks = cloned._checks || [];
         cloned._checks.push({ tag: TAG_GT, param: value, issue: this.issues.TOO_SMALL });
@@ -107,6 +115,10 @@ class NumberSchema extends Schema<number> {
         return cloned;
     }
     lte(value: number): NumberSchema {
+        if (Number.isNaN(value)) {
+            throw new Error('NaN is not a valid boundary value.');
+        }
+
         const cloned = this._clone();
         cloned._checks = cloned._checks || [];
         cloned._checks.push({ tag: TAG_LTE, param: value, issue: this.issues.TOO_LARGE });
@@ -114,6 +126,10 @@ class NumberSchema extends Schema<number> {
         return cloned;
     }
     lt(value: number): NumberSchema {
+        if (Number.isNaN(value)) {
+            throw new Error('NaN is not a valid boundary value.');
+        }
+
         const cloned = this._clone();
         cloned._checks = cloned._checks || [];
         cloned._checks.push({ tag: TAG_LT, param: value, issue: this.issues.TOO_LARGE });
