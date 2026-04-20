@@ -104,6 +104,10 @@ class MapSchema<
         }
 
         if (newMap) {
+            if (newMap.size < minSize) {
+                return this.issues.TOO_SHORT;
+            }
+
             return { ok: true, value: newMap as Infer<Map<ElementKeySchemaType, ElementValueSchemaType>> };
         }
 

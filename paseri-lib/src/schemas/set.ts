@@ -76,6 +76,10 @@ class SetSchema<ElementSchemaType extends AnySchemaType> extends Schema<Infer<Se
         }
 
         if (newSet) {
+            if (newSet.size < minSize) {
+                return this.issues.TOO_SHORT;
+            }
+
             return { ok: true, value: newSet as Infer<Set<ElementSchemaType>> };
         }
 
