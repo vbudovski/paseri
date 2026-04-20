@@ -484,3 +484,18 @@ describe('Input with Object.prototype keys should not crash', () => {
         });
     }
 });
+
+describe('Required key matching Object.prototype property should be flagged as missing', () => {
+    for (const protoKey of Object.getOwnPropertyNames(Object.getPrototypeOf({}))) {
+        it(protoKey, () => {
+            const schema = p.object({ [protoKey]: p.string() });
+
+            const result = schema.safeParse({});
+            if (!result.ok) {
+                expect(result.messages()).toEqual([{ path: [protoKey], message: 'Missing value.' }]);
+            } else {
+                expect(result.ok).toBeFalsy();
+            }
+        });
+    }
+});
