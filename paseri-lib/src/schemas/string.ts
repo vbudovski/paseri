@@ -74,6 +74,7 @@ class StringSchema extends Schema<string> {
                         }
                         break;
                     case TAG_REGEX:
+                        check.param.lastIndex = 0;
                         if (!check.param.test(value)) {
                             return check.issue;
                         }
