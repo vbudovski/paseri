@@ -1,6 +1,6 @@
 import type { Infer } from '../infer.ts';
 import { addIssue, issueCodes, type LeafNode, type TreeNode } from '../issue.ts';
-import { type InternalParseResult, isIssue } from '../result.ts';
+import { type InternalParseResult, isParseSuccess } from '../result.ts';
 import type { AnySchemaType } from './schema.ts';
 import { Schema } from './schema.ts';
 
@@ -50,22 +50,50 @@ class MapSchema<
         const [elementKeySchema, elementValueSchema] = this._element;
 
         let issue: TreeNode | undefined;
+        let newMap: Map<unknown, unknown> | undefined;
         let i = 0;
         for (const [childKey, childValue] of value) {
             let childIssue: TreeNode | undefined;
+            let modifiedKey: unknown = childKey;
+            let modifiedValue: unknown = childValue;
+            let entryModified = false;
 
             let issueOrSuccess = elementKeySchema._parse(childKey);
-            if (issueOrSuccess !== undefined && isIssue(issueOrSuccess)) {
+            if (issueOrSuccess === undefined) {
+                // Key unmodified.
+            } else if (isParseSuccess(issueOrSuccess)) {
+                entryModified = true;
+                modifiedKey = issueOrSuccess.value;
+            } else {
                 childIssue = addIssue(childIssue, { type: 'nest', key: 0, child: issueOrSuccess });
             }
 
             issueOrSuccess = elementValueSchema._parse(childValue);
-            if (issueOrSuccess !== undefined && isIssue(issueOrSuccess)) {
+            if (issueOrSuccess === undefined) {
+                // Value unmodified.
+            } else if (isParseSuccess(issueOrSuccess)) {
+                entryModified = true;
+                modifiedValue = issueOrSuccess.value;
+            } else {
                 childIssue = addIssue(childIssue, { type: 'nest', key: 1, child: issueOrSuccess });
             }
 
             if (childIssue !== undefined) {
+                newMap?.set(childKey, childValue);
                 issue = addIssue(issue, { type: 'nest', key: i, child: childIssue });
+            } else if (entryModified) {
+                if (!newMap) {
+                    newMap = new Map<unknown, unknown>();
+                    let j = 0;
+                    for (const [prevKey, prevValue] of value) {
+                        if (j >= i) break;
+                        newMap.set(prevKey, prevValue);
+                        j++;
+                    }
+                }
+                newMap.set(modifiedKey, modifiedValue);
+            } else {
+                newMap?.set(childKey, childValue);
             }
 
             i++;
@@ -73,6 +101,10 @@ class MapSchema<
 
         if (issue) {
             return issue;
+        }
+
+        if (newMap) {
+            return { ok: true, value: newMap as Infer<Map<ElementKeySchemaType, ElementValueSchemaType>> };
         }
 
         return undefined;
