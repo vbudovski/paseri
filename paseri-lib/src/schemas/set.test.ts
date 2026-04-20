@@ -81,6 +81,15 @@ describe('min', () => {
         );
     });
 
+    it('Invalid after element transformation causes deduplication', () => {
+        const lower = p.string().chain(p.string(), (value) => p.ok(value.toLowerCase()));
+        const schema = p.set(lower).min(2);
+        const data = new Set(['A', 'a']); // size 2, but both lowercase to "a" → size 1
+
+        const result = schema.safeParse(data);
+        expect(result.ok).toBe(false);
+    });
+
     it('NaN', () => {
         expect(() => p.set(p.string()).min(NaN)).toThrow();
     });

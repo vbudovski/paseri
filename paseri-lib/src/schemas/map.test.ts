@@ -85,6 +85,18 @@ describe('min', () => {
         );
     });
 
+    it('Invalid after key transformation causes deduplication', () => {
+        const lower = p.string().chain(p.string(), (value) => p.ok(value.toLowerCase()));
+        const schema = p.map(lower, p.number()).min(2);
+        const data = new Map([
+            ['A', 1],
+            ['a', 2],
+        ]); // size 2, but keys collapse → size 1
+
+        const result = schema.safeParse(data);
+        expect(result.ok).toBe(false);
+    });
+
     it('NaN', () => {
         expect(() => p.map(p.number(), p.string()).min(NaN)).toThrow();
     });
