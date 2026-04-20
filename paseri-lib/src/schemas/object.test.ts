@@ -499,3 +499,41 @@ describe('Required key matching Object.prototype property should be flagged as m
         });
     }
 });
+
+describe('Strict mode should only flag truly unrecognized keys, not Object.prototype collisions', () => {
+    for (const protoKey of Object.getOwnPropertyNames(Object.getPrototypeOf({}))) {
+        it(protoKey, () => {
+            const schema = p.object({ [protoKey]: p.string() });
+            const data = Object.create(null);
+            data[protoKey] = 'valid';
+            data.extra = 'unrecognized';
+
+            const result = schema.safeParse(data);
+            if (!result.ok) {
+                expect(result.messages()).toEqual([{ path: ['extra'], message: 'Unrecognised key.' }]);
+            } else {
+                expect(result.ok).toBeFalsy();
+            }
+        });
+    }
+});
+
+describe('Strip mode should not strip keys that collide with Object.prototype names', () => {
+    for (const protoKey of Object.getOwnPropertyNames(Object.getPrototypeOf({}))) {
+        it(protoKey, () => {
+            const schema = p.object({ [protoKey]: p.string() }).strip();
+            const data = Object.create(null);
+            data[protoKey] = 'valid';
+            data.extra = 'strip me';
+
+            const result = schema.safeParse(data);
+            if (result.ok) {
+                const expected = Object.create(null);
+                expected[protoKey] = 'valid';
+                expect(result.value).toEqual(expected);
+            } else {
+                expect(result.ok).toBeTruthy();
+            }
+        });
+    }
+});
