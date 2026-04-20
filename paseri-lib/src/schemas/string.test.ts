@@ -824,6 +824,36 @@ test('Invalid regex', () => {
     );
 });
 
+test('Regex with global flag produces consistent results', () => {
+    const schema = p.string().regex(/^a+$/g);
+
+    fc.assert(
+        fc.property(fc.string({ minLength: 1, unit: fc.constantFrom('a') }), (data) => {
+            const result = schema.safeParse(data);
+            if (result.ok) {
+                expect(result.value).toBe(data);
+            } else {
+                expect(result.ok).toBeTruthy();
+            }
+        }),
+    );
+});
+
+test('Regex with sticky flag produces consistent results', () => {
+    const schema = p.string().regex(/^a+$/y);
+
+    fc.assert(
+        fc.property(fc.string({ minLength: 1, unit: fc.constantFrom('a') }), (data) => {
+            const result = schema.safeParse(data);
+            if (result.ok) {
+                expect(result.value).toBe(data);
+            } else {
+                expect(result.ok).toBeTruthy();
+            }
+        }),
+    );
+});
+
 test('Optional', () => {
     const schema = p.string().optional();
 
