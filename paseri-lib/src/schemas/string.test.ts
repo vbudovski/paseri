@@ -37,7 +37,9 @@ function formatTime(value: Date, precision?: number): string {
     const fractionString =
         precision === undefined
             ? String(fraction).slice(1)
-            : `.${fraction.toFixed(precision).slice(2).padEnd(precision, '0')}`;
+            : precision === 0
+              ? ''
+              : `.${fraction.toFixed(precision).slice(2).padEnd(precision, '0')}`;
 
     return `${hour}:${minute}:${second}${fractionString}`;
 }
