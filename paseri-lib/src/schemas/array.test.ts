@@ -213,17 +213,23 @@ test('Immutable', async (t) => {
         const original = p.array(p.string());
         const modified = original.min(3);
         expect(modified).not.toEqual(original);
+        const branched = modified.max(10);
+        expect(branched).not.toEqual(modified);
     });
 
     await t.step('max', () => {
         const original = p.array(p.string());
         const modified = original.max(3);
         expect(modified).not.toEqual(original);
+        const branched = modified.min(1);
+        expect(branched).not.toEqual(modified);
     });
 
     await t.step('length', () => {
         const original = p.array(p.string());
         const modified = original.length(3);
         expect(modified).not.toEqual(original);
+        const branched = modified.min(1);
+        expect(branched).not.toEqual(modified);
     });
 });

@@ -146,11 +146,15 @@ test('Immutable', async (t) => {
         const original = p.date();
         const modified = original.min(new Date(2020, 0, 1));
         expect(modified).not.toEqual(original);
+        const branched = modified.max(new Date(2025, 0, 1));
+        expect(branched).not.toEqual(modified);
     });
 
     await t.step('max', () => {
         const original = p.date();
-        const modified = original.max(new Date(2020, 0, 1));
+        const modified = original.max(new Date(2025, 0, 1));
         expect(modified).not.toEqual(original);
+        const branched = modified.min(new Date(2020, 0, 1));
+        expect(branched).not.toEqual(modified);
     });
 });

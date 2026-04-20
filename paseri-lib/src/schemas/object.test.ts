@@ -309,18 +309,24 @@ test('Immutable', async (t) => {
         const original = p.object({ foo: p.string() });
         const modified = original.strip();
         expect(modified).not.toBe(original);
+        const branched = modified.strict();
+        expect(branched).not.toEqual(modified);
     });
 
     await t.step('strict', () => {
         const original = p.object({ foo: p.string() });
         const modified = original.strict();
         expect(modified).not.toBe(original);
+        const branched = modified.passthrough();
+        expect(branched).not.toEqual(modified);
     });
 
     await t.step('passthrough', () => {
         const original = p.object({ foo: p.string() });
         const modified = original.passthrough();
         expect(modified).not.toBe(original);
+        const branched = modified.strip();
+        expect(branched).not.toEqual(modified);
     });
 });
 
