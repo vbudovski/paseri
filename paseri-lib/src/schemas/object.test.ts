@@ -302,6 +302,22 @@ test('White-box', async (t) => {
         const issueOrSuccess = schema._parse(data);
         expect(issueOrSuccess).toEqual({ ok: true, value: { child: { foo: 'bar' } } });
     });
+
+    await t.step('Strip with child transformed to undefined preserves transform', () => {
+        const schema = p
+            .object({
+                foo: p.string().chain(p.unknown(), () => p.ok(undefined)),
+            })
+            .strip();
+        const data = { foo: 'bar', extra: 'baz' };
+
+        const result = schema.safeParse(data);
+        if (result.ok) {
+            expect(result.value).toEqual({ foo: undefined });
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
+    });
 });
 
 test('Immutable', async (t) => {
