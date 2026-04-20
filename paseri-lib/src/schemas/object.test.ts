@@ -1,4 +1,5 @@
 import { expect } from '@std/expect';
+import { describe, it } from '@std/testing/bdd';
 import { expectTypeOf } from 'expect-type';
 import fc from 'fast-check';
 import * as p from '../index.ts';
@@ -467,5 +468,19 @@ test('Omit', () => {
         expect(result.value).toEqual(data);
     } else {
         expect(result.ok).toBeTruthy();
+    }
+});
+
+describe('Input with Object.prototype keys should not crash', () => {
+    for (const protoKey of Object.getOwnPropertyNames(Object.getPrototypeOf({}))) {
+        it(protoKey, () => {
+            const schema = p.object({ name: p.string() });
+            const data = Object.create(null);
+            data.name = 'alice';
+            data[protoKey] = 'boom';
+
+            const result = schema.safeParse(data);
+            expect(result.ok).toBeFalsy();
+        });
     }
 });
