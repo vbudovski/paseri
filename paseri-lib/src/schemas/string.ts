@@ -101,6 +101,10 @@ class StringSchema extends Schema<string> {
         return undefined;
     }
     min(length: number): StringSchema {
+        if (Number.isNaN(length)) {
+            throw new Error('NaN is not a valid length.');
+        }
+
         const cloned = this._clone();
         cloned._checks = cloned._checks || [];
         cloned._checks.push({ tag: TAG_MIN, param: length, issue: this.issues.TOO_SHORT });
@@ -108,6 +112,10 @@ class StringSchema extends Schema<string> {
         return cloned;
     }
     max(length: number): StringSchema {
+        if (Number.isNaN(length)) {
+            throw new Error('NaN is not a valid length.');
+        }
+
         const cloned = this._clone();
         cloned._checks = cloned._checks || [];
         cloned._checks.push({ tag: TAG_MAX, param: length, issue: this.issues.TOO_LONG });
@@ -115,6 +123,10 @@ class StringSchema extends Schema<string> {
         return cloned;
     }
     length(length: number): StringSchema {
+        if (Number.isNaN(length)) {
+            throw new Error('NaN is not a valid length.');
+        }
+
         const cloned = this._clone();
         cloned._checks = cloned._checks || [];
         cloned._checks.push({ tag: TAG_MAX, param: length, issue: this.issues.TOO_LONG });

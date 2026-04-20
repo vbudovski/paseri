@@ -58,6 +58,10 @@ class DateSchema extends Schema<Date> {
         return undefined;
     }
     min(value: Date): DateSchema {
+        if (Number.isNaN(value.getTime())) {
+            throw new Error('Invalid Date is not a valid boundary value.');
+        }
+
         const cloned = this._clone();
         cloned._checks = cloned._checks || [];
         cloned._checks.push({ tag: TAG_MIN, param: value, issue: this.issues.TOO_DATED });
@@ -65,6 +69,10 @@ class DateSchema extends Schema<Date> {
         return cloned;
     }
     max(length: Date): DateSchema {
+        if (Number.isNaN(length.getTime())) {
+            throw new Error('Invalid Date is not a valid boundary value.');
+        }
+
         const cloned = this._clone();
         cloned._checks = cloned._checks || [];
         cloned._checks.push({ tag: TAG_MAX, param: length, issue: this.issues.TOO_RECENT });

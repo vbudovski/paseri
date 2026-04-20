@@ -110,18 +110,30 @@ class MapSchema<
         return undefined;
     }
     min(size: number): MapSchema<ElementKeySchemaType, ElementValueSchemaType> {
+        if (Number.isNaN(size)) {
+            throw new Error('NaN is not a valid size.');
+        }
+
         const cloned = this._clone();
         cloned._minSize = size;
 
         return cloned;
     }
     max(size: number): MapSchema<ElementKeySchemaType, ElementValueSchemaType> {
+        if (Number.isNaN(size)) {
+            throw new Error('NaN is not a valid size.');
+        }
+
         const cloned = this._clone();
         cloned._maxSize = size;
 
         return cloned;
     }
     size(size: number): MapSchema<ElementKeySchemaType, ElementValueSchemaType> {
+        if (Number.isNaN(size)) {
+            throw new Error('NaN is not a valid size.');
+        }
+
         const cloned = this._clone();
         cloned._minSize = size;
         cloned._maxSize = size;
