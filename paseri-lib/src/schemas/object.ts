@@ -81,7 +81,7 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
 
         if (seen < this._shapeSize) {
             for (const key of this._requiredKeys) {
-                if (value[key] === undefined) {
+                if (!Object.hasOwn(value, key)) {
                     issue = addIssue(issue, {
                         type: 'nest',
                         key,
