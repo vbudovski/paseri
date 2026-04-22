@@ -45,6 +45,18 @@ it('rejects invalid types', () => {
     );
 });
 
+it('returns modified value from transforming union member', () => {
+    const schema = p.union(p.object({ foo: p.string() }).strip(), p.number());
+    const data = { foo: 'bar', extra: 'strip me' };
+
+    const result = schema.safeParse(data);
+    if (result.ok) {
+        expect(result.value).toEqual({ foo: 'bar' });
+    } else {
+        expect(result.ok).toBeTruthy();
+    }
+});
+
 it('accepts optional values', () => {
     const schema = p.union(p.string(), p.number(), p.literal(123n)).optional();
 

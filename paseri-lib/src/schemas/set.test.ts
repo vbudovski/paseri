@@ -269,6 +269,42 @@ it('returns new value when child is modified', () => {
     }
 });
 
+it('preserves unmodified elements before a modified element', () => {
+    const schema = p.set(p.object({ foo: p.string() }).strip());
+    const data = new Set([{ foo: 'a' }, { foo: 'b' }, { foo: 'c', extra: 'strip me' }]);
+
+    const result = schema.safeParse(data);
+    if (result.ok) {
+        expect(result.value).toEqual(new Set([{ foo: 'a' }, { foo: 'b' }, { foo: 'c' }]));
+    } else {
+        expect(result.ok).toBeTruthy();
+    }
+});
+
+it('preserves unmodified elements after a modified element', () => {
+    const schema = p.set(p.object({ foo: p.string() }).strip());
+    const data = new Set([{ foo: 'a', extra: 'strip me' }, { foo: 'b' }, { foo: 'c' }]);
+
+    const result = schema.safeParse(data);
+    if (result.ok) {
+        expect(result.value).toEqual(new Set([{ foo: 'a' }, { foo: 'b' }, { foo: 'c' }]));
+    } else {
+        expect(result.ok).toBeTruthy();
+    }
+});
+
+it('reports invalid elements after a modified element', () => {
+    const schema = p.set(p.object({ foo: p.string() }).strip());
+    const data = new Set([{ foo: 'a', extra: 'strip me' }, 'invalid']);
+
+    const result = schema.safeParse(data);
+    if (!result.ok) {
+        expect(result.messages()).toEqual([{ path: [1], message: 'Invalid type. Expected object.' }]);
+    } else {
+        expect(result.ok).toBeFalsy();
+    }
+});
+
 it('accepts optional values', () => {
     const schema = p.set(p.number()).optional();
 

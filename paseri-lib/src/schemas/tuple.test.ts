@@ -92,6 +92,42 @@ it('returns new value when child is modified', () => {
     }
 });
 
+it('preserves unmodified elements before a modified element', () => {
+    const schema = p.tuple(p.string(), p.object({ foo: p.string() }).strip());
+    const data = ['hello', { foo: 'bar', extra: 'strip me' }];
+
+    const result = schema.safeParse(data);
+    if (result.ok) {
+        expect(result.value).toEqual(['hello', { foo: 'bar' }]);
+    } else {
+        expect(result.ok).toBeTruthy();
+    }
+});
+
+it('preserves unmodified elements after a modified element', () => {
+    const schema = p.tuple(p.object({ foo: p.string() }).strip(), p.string());
+    const data = [{ foo: 'bar', extra: 'strip me' }, 'hello'];
+
+    const result = schema.safeParse(data);
+    if (result.ok) {
+        expect(result.value).toEqual([{ foo: 'bar' }, 'hello']);
+    } else {
+        expect(result.ok).toBeTruthy();
+    }
+});
+
+it('reports invalid elements after a modified element', () => {
+    const schema = p.tuple(p.object({ foo: p.string() }).strip(), p.number());
+    const data = [{ foo: 'bar', extra: 'strip me' }, 'invalid'];
+
+    const result = schema.safeParse(data);
+    if (!result.ok) {
+        expect(result.messages()).toEqual([{ path: [1], message: 'Invalid type. Expected number.' }]);
+    } else {
+        expect(result.ok).toBeFalsy();
+    }
+});
+
 it('accepts optional values', () => {
     const schema = p.tuple(p.number(), p.string(), p.literal(123n)).optional();
 

@@ -305,6 +305,65 @@ it('returns new value when child value is modified', () => {
     }
 });
 
+it('preserves unmodified entries before a modified entry', () => {
+    const schema = p.map(p.string(), p.object({ foo: p.number() }).strip());
+    const data = new Map<string, Record<string, unknown>>([
+        ['a', { foo: 1 }],
+        ['b', { foo: 2 }],
+        ['c', { foo: 3, extra: 'strip me' }],
+    ]);
+
+    const result = schema.safeParse(data);
+    if (result.ok) {
+        expect(result.value).toEqual(
+            new Map([
+                ['a', { foo: 1 }],
+                ['b', { foo: 2 }],
+                ['c', { foo: 3 }],
+            ]),
+        );
+    } else {
+        expect(result.ok).toBeTruthy();
+    }
+});
+
+it('preserves unmodified entries after a modified entry', () => {
+    const schema = p.map(p.string(), p.object({ foo: p.number() }).strip());
+    const data = new Map<string, Record<string, unknown>>([
+        ['a', { foo: 1, extra: 'strip me' }],
+        ['b', { foo: 2 }],
+        ['c', { foo: 3 }],
+    ]);
+
+    const result = schema.safeParse(data);
+    if (result.ok) {
+        expect(result.value).toEqual(
+            new Map([
+                ['a', { foo: 1 }],
+                ['b', { foo: 2 }],
+                ['c', { foo: 3 }],
+            ]),
+        );
+    } else {
+        expect(result.ok).toBeTruthy();
+    }
+});
+
+it('reports invalid entries after a modified entry', () => {
+    const schema = p.map(p.string(), p.object({ foo: p.number() }).strip());
+    const data = new Map<string, unknown>([
+        ['a', { foo: 1, extra: 'strip me' }],
+        ['b', 'invalid'],
+    ]);
+
+    const result = schema.safeParse(data);
+    if (!result.ok) {
+        expect(result.messages()).toEqual([{ path: [1, 1], message: 'Invalid type. Expected object.' }]);
+    } else {
+        expect(result.ok).toBeFalsy();
+    }
+});
+
 it('accepts optional values', () => {
     const schema = p.map(p.number(), p.string()).optional();
 
