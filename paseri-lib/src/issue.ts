@@ -93,14 +93,11 @@ interface Message {
 }
 
 function addIssue(node: TreeNode | undefined, newNode: TreeNode): TreeNode {
-    let tree: TreeNode | undefined = node;
-    if (!tree) {
-        tree = newNode;
-    } else {
-        tree = { type: 'join', left: tree, right: newNode };
+    if (!node) {
+        return newNode;
     }
 
-    return tree;
+    return { type: 'join', left: node, right: newNode };
 }
 
 export type { CustomIssueCode, IssueCode, JoinNode, LeafNode, Message, TreeNode };
