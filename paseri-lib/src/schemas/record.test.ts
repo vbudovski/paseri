@@ -102,3 +102,43 @@ it('accepts nullable values', () => {
         ),
     );
 });
+
+it('accepts values with Object.prototype key names', () => {
+    const prototypeKeys = [...Object.getOwnPropertyNames(Object.getPrototypeOf({})), '__proto__'];
+
+    fc.assert(
+        fc.property(fc.constantFrom(...prototypeKeys), (key) => {
+            const schema = p.record(p.string());
+            const data = Object.create(null);
+            data[key] = 'valid';
+
+            const result = schema.safeParse(data);
+            if (result.ok) {
+                const expected = Object.create(null);
+                expected[key] = 'valid';
+                expect(result.value).toEqual(expected);
+            } else {
+                expect(result.ok).toBeTruthy();
+            }
+        }),
+    );
+});
+
+it('rejects invalid values with Object.prototype key names', () => {
+    const prototypeKeys = [...Object.getOwnPropertyNames(Object.getPrototypeOf({})), '__proto__'];
+
+    fc.assert(
+        fc.property(fc.constantFrom(...prototypeKeys), (key) => {
+            const schema = p.record(p.number());
+            const data = Object.create(null);
+            data[key] = 'not a number';
+
+            const result = schema.safeParse(data);
+            if (!result.ok) {
+                expect(result.messages()).toEqual([{ path: [key], message: 'Invalid type. Expected number.' }]);
+            } else {
+                expect(result.ok).toBeFalsy();
+            }
+        }),
+    );
+});
