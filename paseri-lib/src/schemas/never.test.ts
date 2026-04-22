@@ -1,10 +1,9 @@
 import { expect } from '@std/expect';
+import { it } from '@std/testing/bdd';
 import fc from 'fast-check';
 import * as p from '../index.ts';
 
-const { test } = Deno;
-
-test('Everything fails', () => {
+it('rejects all values', () => {
     const schema = p.never();
 
     fc.assert(

@@ -1,11 +1,10 @@
 import { expect } from '@std/expect';
+import { it } from '@std/testing/bdd';
 import { expectTypeOf } from 'expect-type';
 import fc from 'fast-check';
 import * as p from '../index.ts';
 
-const { test } = Deno;
-
-test('Valid type', () => {
+it('accepts valid types', () => {
     const schema = p.boolean();
 
     fc.assert(
@@ -21,7 +20,7 @@ test('Valid type', () => {
     );
 });
 
-test('Invalid type', () => {
+it('rejects invalid types', () => {
     const schema = p.boolean();
 
     fc.assert(
@@ -39,7 +38,7 @@ test('Invalid type', () => {
     );
 });
 
-test('Optional', () => {
+it('accepts optional values', () => {
     const schema = p.boolean().optional();
 
     fc.assert(
@@ -55,7 +54,7 @@ test('Optional', () => {
     );
 });
 
-test('Nullable', () => {
+it('accepts nullable values', () => {
     const schema = p.boolean().nullable();
 
     fc.assert(

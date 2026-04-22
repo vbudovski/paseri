@@ -1,11 +1,10 @@
 import { expect } from '@std/expect';
+import { it } from '@std/testing/bdd';
 import { expectTypeOf } from 'expect-type';
 import fc from 'fast-check';
 import * as p from '../index.ts';
 
-const { test } = Deno;
-
-test('Everything succeeds', () => {
+it('accepts all values', () => {
     const schema = p.unknown();
 
     fc.assert(

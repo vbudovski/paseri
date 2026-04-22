@@ -4,9 +4,7 @@ import { expectTypeOf } from 'expect-type';
 import fc from 'fast-check';
 import * as p from '../index.ts';
 
-const { test } = Deno;
-
-test('Valid type', () => {
+it('accepts valid types', () => {
     const schema = p.number();
 
     fc.assert(
@@ -22,7 +20,7 @@ test('Valid type', () => {
     );
 });
 
-test('Invalid type', () => {
+it('rejects invalid types', () => {
     const schema = p.number();
 
     fc.assert(
@@ -44,7 +42,7 @@ test('Invalid type', () => {
 });
 
 describe('gte', () => {
-    it('Valid', () => {
+    it('accepts valid values', () => {
         const schema = p.number().gte(10);
 
         fc.assert(
@@ -60,7 +58,7 @@ describe('gte', () => {
         );
     });
 
-    it('Invalid', () => {
+    it('rejects invalid values', () => {
         const schema = p.number().gte(10);
 
         fc.assert(
@@ -75,11 +73,11 @@ describe('gte', () => {
         );
     });
 
-    it('NaN boundary', () => {
+    it('throws on NaN boundary', () => {
         expect(() => p.number().gte(NaN)).toThrow();
     });
 
-    it('Immutable', () => {
+    it('is immutable', () => {
         const original = p.number();
         const modified = original.gte(3);
         expect(modified).not.toEqual(original);
@@ -89,7 +87,7 @@ describe('gte', () => {
 });
 
 describe('gt', () => {
-    it('Valid', () => {
+    it('accepts valid values', () => {
         const schema = p.number().gt(10);
 
         fc.assert(
@@ -105,7 +103,7 @@ describe('gt', () => {
         );
     });
 
-    it('Invalid', () => {
+    it('rejects invalid values', () => {
         const schema = p.number().gt(10);
 
         fc.assert(
@@ -120,11 +118,11 @@ describe('gt', () => {
         );
     });
 
-    it('NaN boundary', () => {
+    it('throws on NaN boundary', () => {
         expect(() => p.number().gt(NaN)).toThrow();
     });
 
-    it('Immutable', () => {
+    it('is immutable', () => {
         const original = p.number();
         const modified = original.gt(3);
         expect(modified).not.toEqual(original);
@@ -134,7 +132,7 @@ describe('gt', () => {
 });
 
 describe('lte', () => {
-    it('Valid', () => {
+    it('accepts valid values', () => {
         const schema = p.number().lte(10);
 
         fc.assert(
@@ -150,7 +148,7 @@ describe('lte', () => {
         );
     });
 
-    it('Invalid', () => {
+    it('rejects invalid values', () => {
         const schema = p.number().lte(10);
 
         fc.assert(
@@ -165,11 +163,11 @@ describe('lte', () => {
         );
     });
 
-    it('NaN boundary', () => {
+    it('throws on NaN boundary', () => {
         expect(() => p.number().lte(NaN)).toThrow();
     });
 
-    it('Immutable', () => {
+    it('is immutable', () => {
         const original = p.number();
         const modified = original.lte(3);
         expect(modified).not.toEqual(original);
@@ -179,7 +177,7 @@ describe('lte', () => {
 });
 
 describe('lt', () => {
-    it('Valid', () => {
+    it('accepts valid values', () => {
         const schema = p.number().lt(10);
 
         fc.assert(
@@ -195,7 +193,7 @@ describe('lt', () => {
         );
     });
 
-    it('Invalid', () => {
+    it('rejects invalid values', () => {
         const schema = p.number().lt(10);
 
         fc.assert(
@@ -210,11 +208,11 @@ describe('lt', () => {
         );
     });
 
-    it('NaN boundary', () => {
+    it('throws on NaN boundary', () => {
         expect(() => p.number().lt(NaN)).toThrow();
     });
 
-    it('Immutable', () => {
+    it('is immutable', () => {
         const original = p.number();
         const modified = original.lt(3);
         expect(modified).not.toEqual(original);
@@ -223,103 +221,136 @@ describe('lt', () => {
     });
 });
 
-test('Valid int', () => {
-    const schema = p.number().int();
+describe('int', () => {
+    it('accepts valid values', () => {
+        const schema = p.number().int();
 
-    fc.assert(
-        fc.property(fc.integer(), (data) => {
-            const result = schema.safeParse(data);
-            if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<number>;
-                expect(result.value).toBe(data);
-            } else {
-                expect(result.ok).toBeTruthy();
-            }
-        }),
-    );
-});
+        fc.assert(
+            fc.property(fc.integer(), (data) => {
+                const result = schema.safeParse(data);
+                if (result.ok) {
+                    expectTypeOf(result.value).toEqualTypeOf<number>;
+                    expect(result.value).toBe(data);
+                } else {
+                    expect(result.ok).toBeTruthy();
+                }
+            }),
+        );
+    });
 
-test('Invalid int', () => {
-    const schema = p.number().int();
+    it('rejects invalid values', () => {
+        const schema = p.number().int();
 
-    fc.assert(
-        fc.property(fc.float({ noNaN: true, noInteger: true }), (data) => {
-            const result = schema.safeParse(data);
-            if (!result.ok) {
-                expect(result.messages()).toEqual([{ path: [], message: 'Number must be an integer.' }]);
-            } else {
-                expect(result.ok).toBeFalsy();
-            }
-        }),
-    );
-});
-
-test('Valid finite', () => {
-    const schema = p.number().finite();
-
-    fc.assert(
-        fc.property(fc.float({ noNaN: true, noDefaultInfinity: true }), (data) => {
-            const result = schema.safeParse(data);
-            if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<number>;
-                expect(result.value).toBe(data);
-            } else {
-                expect(result.ok).toBeTruthy();
-            }
-        }),
-    );
-});
-
-test('Invalid finite', () => {
-    const schema = p.number().finite();
-
-    fc.assert(
-        fc.property(fc.oneof(fc.constant(Number.POSITIVE_INFINITY), fc.constant(Number.NEGATIVE_INFINITY)), (data) => {
-            const result = schema.safeParse(data);
-            if (!result.ok) {
-                expect(result.messages()).toEqual([{ path: [], message: 'Number must be finite.' }]);
-            } else {
-                expect(result.ok).toBeFalsy();
-            }
-        }),
-    );
-});
-
-test('Valid safe', () => {
-    const schema = p.number().safe();
-
-    fc.assert(
-        fc.property(fc.maxSafeInteger(), (data) => {
-            const result = schema.safeParse(data);
-            if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<number>;
-                expect(result.value).toBe(data);
-            } else {
-                expect(result.ok).toBeTruthy();
-            }
-        }),
-    );
-});
-
-test('Invalid safe', () => {
-    const schema = p.number().safe();
-
-    fc.assert(
-        fc.property(
-            fc.oneof(fc.constant(Number.MAX_SAFE_INTEGER + 1), fc.constant(Number.MIN_SAFE_INTEGER - 1)),
-            (data) => {
+        fc.assert(
+            fc.property(fc.float({ noNaN: true, noInteger: true }), (data) => {
                 const result = schema.safeParse(data);
                 if (!result.ok) {
-                    expect(result.messages()).toEqual([{ path: [], message: 'Number must be a safe integer.' }]);
+                    expect(result.messages()).toEqual([{ path: [], message: 'Number must be an integer.' }]);
                 } else {
                     expect(result.ok).toBeFalsy();
                 }
-            },
-        ),
-    );
+            }),
+        );
+    });
+
+    it('is immutable', () => {
+        const original = p.number();
+        const modified = original.int();
+        expect(modified).not.toEqual(original);
+        const branched = modified.gte(0);
+        expect(branched).not.toEqual(modified);
+    });
 });
 
-test('Optional', () => {
+describe('finite', () => {
+    it('accepts valid values', () => {
+        const schema = p.number().finite();
+
+        fc.assert(
+            fc.property(fc.float({ noNaN: true, noDefaultInfinity: true }), (data) => {
+                const result = schema.safeParse(data);
+                if (result.ok) {
+                    expectTypeOf(result.value).toEqualTypeOf<number>;
+                    expect(result.value).toBe(data);
+                } else {
+                    expect(result.ok).toBeTruthy();
+                }
+            }),
+        );
+    });
+
+    it('rejects invalid values', () => {
+        const schema = p.number().finite();
+
+        fc.assert(
+            fc.property(
+                fc.oneof(fc.constant(Number.POSITIVE_INFINITY), fc.constant(Number.NEGATIVE_INFINITY)),
+                (data) => {
+                    const result = schema.safeParse(data);
+                    if (!result.ok) {
+                        expect(result.messages()).toEqual([{ path: [], message: 'Number must be finite.' }]);
+                    } else {
+                        expect(result.ok).toBeFalsy();
+                    }
+                },
+            ),
+        );
+    });
+
+    it('is immutable', () => {
+        const original = p.number();
+        const modified = original.finite();
+        expect(modified).not.toEqual(original);
+        const branched = modified.gte(0);
+        expect(branched).not.toEqual(modified);
+    });
+});
+
+describe('safe', () => {
+    it('accepts valid values', () => {
+        const schema = p.number().safe();
+
+        fc.assert(
+            fc.property(fc.maxSafeInteger(), (data) => {
+                const result = schema.safeParse(data);
+                if (result.ok) {
+                    expectTypeOf(result.value).toEqualTypeOf<number>;
+                    expect(result.value).toBe(data);
+                } else {
+                    expect(result.ok).toBeTruthy();
+                }
+            }),
+        );
+    });
+
+    it('rejects invalid values', () => {
+        const schema = p.number().safe();
+
+        fc.assert(
+            fc.property(
+                fc.oneof(fc.constant(Number.MAX_SAFE_INTEGER + 1), fc.constant(Number.MIN_SAFE_INTEGER - 1)),
+                (data) => {
+                    const result = schema.safeParse(data);
+                    if (!result.ok) {
+                        expect(result.messages()).toEqual([{ path: [], message: 'Number must be a safe integer.' }]);
+                    } else {
+                        expect(result.ok).toBeFalsy();
+                    }
+                },
+            ),
+        );
+    });
+
+    it('is immutable', () => {
+        const original = p.number();
+        const modified = original.safe();
+        expect(modified).not.toEqual(original);
+        const branched = modified.gte(0);
+        expect(branched).not.toEqual(modified);
+    });
+});
+
+it('accepts optional values', () => {
     const schema = p.number().optional();
 
     fc.assert(
@@ -335,7 +366,7 @@ test('Optional', () => {
     );
 });
 
-test('Nullable', () => {
+it('accepts nullable values', () => {
     const schema = p.number().nullable();
 
     fc.assert(
@@ -349,30 +380,4 @@ test('Nullable', () => {
             }
         }),
     );
-});
-
-describe('Immutable', () => {
-    it('int', () => {
-        const original = p.number();
-        const modified = original.int();
-        expect(modified).not.toEqual(original);
-        const branched = modified.gte(0);
-        expect(branched).not.toEqual(modified);
-    });
-
-    it('finite', () => {
-        const original = p.number();
-        const modified = original.finite();
-        expect(modified).not.toEqual(original);
-        const branched = modified.gte(0);
-        expect(branched).not.toEqual(modified);
-    });
-
-    it('safe', () => {
-        const original = p.number();
-        const modified = original.safe();
-        expect(modified).not.toEqual(original);
-        const branched = modified.gte(0);
-        expect(branched).not.toEqual(modified);
-    });
 });

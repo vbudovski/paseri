@@ -1,10 +1,9 @@
 import { expect } from '@std/expect';
+import { it } from '@std/testing/bdd';
 import { expectTypeOf } from 'expect-type';
 import * as p from '../index.ts';
 
-const { test } = Deno;
-
-test('Success', () => {
+it('returns ok result on success', () => {
     const schema = p.string();
     const result = schema.safeParse('foo');
     if (result.ok) {
@@ -15,7 +14,7 @@ test('Success', () => {
     }
 });
 
-test('Failure', () => {
+it('returns error result on failure', () => {
     const schema = p.string();
     const result = schema.safeParse(123);
     if (!result.ok) {

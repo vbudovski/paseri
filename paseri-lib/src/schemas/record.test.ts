@@ -1,11 +1,10 @@
 import { expect } from '@std/expect';
+import { it } from '@std/testing/bdd';
 import { expectTypeOf } from 'expect-type';
 import fc from 'fast-check';
 import * as p from '../index.ts';
 
-const { test } = Deno;
-
-test('Valid type', () => {
+it('accepts valid types', () => {
     const schema = p.record(p.number());
 
     fc.assert(
@@ -21,7 +20,7 @@ test('Valid type', () => {
     );
 });
 
-test('Invalid type', () => {
+it('rejects invalid types', () => {
     const schema = p.record(p.number());
 
     fc.assert(
@@ -39,7 +38,7 @@ test('Invalid type', () => {
     );
 });
 
-test('Invalid elements', () => {
+it('rejects invalid elements', () => {
     const schema = p.record(p.number());
     const data = { foo: 123, bad1: 'hello', bar: 456, bad2: 'world' };
 
@@ -54,7 +53,7 @@ test('Invalid elements', () => {
     }
 });
 
-test('Modified child returns new value', () => {
+it('returns new value when child is modified', () => {
     const schema = p.record(p.object({ foo: p.string() }).strip());
     const data = { key1: { foo: 'bar', extra: 'baz' }, key2: { foo: 'qux', extra: 'quux' } };
 
@@ -66,7 +65,7 @@ test('Modified child returns new value', () => {
     }
 });
 
-test('Optional', () => {
+it('accepts optional values', () => {
     const schema = p.record(p.number()).optional();
 
     fc.assert(
@@ -85,7 +84,7 @@ test('Optional', () => {
     );
 });
 
-test('Nullable', () => {
+it('accepts nullable values', () => {
     const schema = p.record(p.number()).nullable();
 
     fc.assert(
@@ -101,5 +100,45 @@ test('Nullable', () => {
                 }
             },
         ),
+    );
+});
+
+it('accepts values with Object.prototype key names', () => {
+    const prototypeKeys = [...Object.getOwnPropertyNames(Object.getPrototypeOf({})), '__proto__'];
+
+    fc.assert(
+        fc.property(fc.constantFrom(...prototypeKeys), (key) => {
+            const schema = p.record(p.string());
+            const data = Object.create(null);
+            data[key] = 'valid';
+
+            const result = schema.safeParse(data);
+            if (result.ok) {
+                const expected = Object.create(null);
+                expected[key] = 'valid';
+                expect(result.value).toEqual(expected);
+            } else {
+                expect(result.ok).toBeTruthy();
+            }
+        }),
+    );
+});
+
+it('rejects invalid values with Object.prototype key names', () => {
+    const prototypeKeys = [...Object.getOwnPropertyNames(Object.getPrototypeOf({})), '__proto__'];
+
+    fc.assert(
+        fc.property(fc.constantFrom(...prototypeKeys), (key) => {
+            const schema = p.record(p.number());
+            const data = Object.create(null);
+            data[key] = 'not a number';
+
+            const result = schema.safeParse(data);
+            if (!result.ok) {
+                expect(result.messages()).toEqual([{ path: [key], message: 'Invalid type. Expected number.' }]);
+            } else {
+                expect(result.ok).toBeFalsy();
+            }
+        }),
     );
 });

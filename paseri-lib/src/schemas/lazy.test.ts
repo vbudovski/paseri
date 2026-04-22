@@ -1,12 +1,11 @@
 import { expect } from '@std/expect';
+import { it } from '@std/testing/bdd';
 import { expectTypeOf } from 'expect-type';
 import fc from 'fast-check';
 import * as p from '../index.ts';
 import type { Message } from '../issue.ts';
 
-const { test } = Deno;
-
-test('Valid type', () => {
+it('accepts valid types', () => {
     type T = string | T[];
     const schema: p.Schema<T> = p.lazy(() => p.union(p.string(), p.array(schema)));
 
@@ -29,7 +28,7 @@ test('Valid type', () => {
     );
 });
 
-test('Invalid type', () => {
+it('rejects invalid types', () => {
     type T = string | T[];
     const schema: p.Schema<T> = p.lazy(() => p.union(p.string(), p.array(schema)));
 

@@ -1,10 +1,9 @@
 import { expect } from '@std/expect';
+import { it } from '@std/testing/bdd';
 import { expectTypeOf } from 'expect-type';
 import fc from 'fast-check';
 import * as p from '../index.ts';
 import { en } from '../locales/index.ts';
-
-const { test } = Deno;
 
 function numberToString(value: number): string {
     // As per the ECMA specification
@@ -14,7 +13,7 @@ function numberToString(value: number): string {
     return 1 / value === Number.NEGATIVE_INFINITY ? `-${String(value)}` : String(value);
 }
 
-test('Chain from schema fail', () => {
+it('rejects when source schema fails', () => {
     const schema = p.string().chain(p.number(), (value) => {
         return p.ok(Number(value));
     });
@@ -34,7 +33,7 @@ test('Chain from schema fail', () => {
     );
 });
 
-test('Chain to schema fail', () => {
+it('rejects when target schema fails', () => {
     const schema = p.string().chain(p.number(), (value) => {
         // We're lying about the type here, as we want to simulate failure of chained schema.
         return p.ok(value as unknown as number);
@@ -52,7 +51,7 @@ test('Chain to schema fail', () => {
     );
 });
 
-test('Chain transform fail', () => {
+it('rejects when transform fails', () => {
     const schema = p.string().chain(p.number(), (_value) => {
         return p.err('foo');
     });
@@ -70,7 +69,7 @@ test('Chain transform fail', () => {
     );
 });
 
-test('Chain primitive to primitive', () => {
+it('transforms primitive to primitive', () => {
     const schema = p.string().chain(p.number(), (value) => {
         return p.ok(Number(value));
     });
@@ -90,7 +89,7 @@ test('Chain primitive to primitive', () => {
     );
 });
 
-test('Chain primitive to Array', () => {
+it('transforms primitive to array', () => {
     const schema = p.string().chain(p.array(p.number()), (value) => {
         return p.ok(value.split(',').map((v) => Number(v)));
     });
@@ -110,7 +109,7 @@ test('Chain primitive to Array', () => {
     );
 });
 
-test('Chain Array to primitive', () => {
+it('transforms array to primitive', () => {
     const schema = p.array(p.number()).chain(p.string(), (value) => {
         return p.ok(value.map((v) => numberToString(v)).join(','));
     });
@@ -129,7 +128,7 @@ test('Chain Array to primitive', () => {
     );
 });
 
-test('Chain primitive to Object with unrecognised keys', () => {
+it('transforms primitive to object, stripping unrecognised keys', () => {
     const schema = p.string().chain(p.object({ foo: p.number(), bar: p.number() }).strip(), (value) => {
         const [foo, bar, ...other] = value.split(',');
         const extra = Object.fromEntries(other.map((o) => [o, Number(o)]));
@@ -152,7 +151,7 @@ test('Chain primitive to Object with unrecognised keys', () => {
     );
 });
 
-test('Chain Object with unrecognised keys to primitive', () => {
+it('transforms object with unrecognised keys to primitive', () => {
     const schema = p
         .object({ foo: p.number(), bar: p.number() })
         .strip()

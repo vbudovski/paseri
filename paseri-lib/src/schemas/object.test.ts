@@ -5,9 +5,7 @@ import fc from 'fast-check';
 import * as p from '../index.ts';
 import { isPlainObject } from '../utils.ts';
 
-const { test } = Deno;
-
-test('Valid type', () => {
+it('accepts valid types', () => {
     const bar = Symbol.for('bar');
     const schema = p.object({ foo: p.string(), 1: p.number(), [bar]: p.number() });
 
@@ -24,7 +22,7 @@ test('Valid type', () => {
     );
 });
 
-test('Invalid type', () => {
+it('rejects invalid types', () => {
     const schema = p.object({ foo: p.string() });
 
     fc.assert(
@@ -42,108 +40,278 @@ test('Invalid type', () => {
     );
 });
 
-test('Value', () => {
+it('exposes the shape', () => {
     const shape = { foo: p.string(), bar: p.number(), baz: p.literal(123n) };
     const schema = p.object(shape);
     expectTypeOf(schema.shape).toEqualTypeOf<typeof shape>;
 });
 
-test('Strip', () => {
-    const schema = p
-        .object({
-            foo: p.string(),
-            bar: p
-                .object({
-                    baz: p.number(),
-                })
-                .strip(),
-        })
-        .strip();
+describe('strip', () => {
+    it('strips unrecognised keys', () => {
+        const schema = p
+            .object({
+                foo: p.string(),
+                bar: p
+                    .object({
+                        baz: p.number(),
+                    })
+                    .strip(),
+            })
+            .strip();
 
-    fc.assert(
-        fc.property(
-            fc.record({
-                foo: fc.string(),
-                bar: fc.record({ baz: fc.float({ noNaN: true }), extra2: fc.anything() }),
-                extra1: fc.anything(),
-            }),
-            (data) => {
+        fc.assert(
+            fc.property(
+                fc.record({
+                    foo: fc.string(),
+                    bar: fc.record({ baz: fc.float({ noNaN: true }), extra2: fc.anything() }),
+                    extra1: fc.anything(),
+                }),
+                (data) => {
+                    const result = schema.safeParse(data);
+                    if (result.ok) {
+                        expectTypeOf(result.value).toEqualTypeOf<{ foo: string; bar: { baz: number } }>;
+                        const expectedResult = { foo: data.foo, bar: { baz: data.bar.baz } };
+                        expect(result.value).toEqual(expectedResult);
+                    } else {
+                        expect(result.ok).toBeTruthy();
+                    }
+                },
+            ),
+        );
+    });
+
+    it('is immutable', () => {
+        const original = p.object({ foo: p.string() });
+        const modified = original.strip();
+        expect(modified).not.toBe(original);
+        const branched = modified.strict();
+        expect(branched).not.toEqual(modified);
+    });
+
+    it('returns undefined when object is unmodified', () => {
+        const schema = p.object({ foo: p.string() }).strip();
+        const data = Object.freeze({ foo: 'bar' });
+
+        const issueOrSuccess = schema._parse(data);
+        expect(issueOrSuccess).toBe(undefined);
+    });
+
+    it('returns new value when child is modified', () => {
+        const schema = p.object({ child: p.object({ foo: p.string() }).strip() }).strip();
+        const data = Object.freeze({ child: { foo: 'bar', extra: 'baz' } });
+
+        const issueOrSuccess = schema._parse(data);
+        expect(issueOrSuccess).toEqual({ ok: true, value: { child: { foo: 'bar' } } });
+    });
+
+    it('preserves transform when child is transformed to undefined', () => {
+        const schema = p
+            .object({
+                foo: p.string().chain(p.unknown(), () => p.ok(undefined)),
+            })
+            .strip();
+        const data = { foo: 'bar', extra: 'baz' };
+
+        const result = schema.safeParse(data);
+        if (result.ok) {
+            expect(result.value).toEqual({ foo: undefined });
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
+    });
+
+    it('does not strip keys that collide with Object.prototype names', () => {
+        const prototypeKeys = [...Object.getOwnPropertyNames(Object.getPrototypeOf({})), '__proto__'];
+
+        fc.assert(
+            fc.property(fc.constantFrom(...prototypeKeys), (protoKey) => {
+                const schema = p.object({ [protoKey]: p.string() }).strip();
+                const data = Object.create(null);
+                data[protoKey] = 'valid';
+                data.extra = 'strip me';
+
                 const result = schema.safeParse(data);
                 if (result.ok) {
-                    expectTypeOf(result.value).toEqualTypeOf<{ foo: string; bar: { baz: number } }>;
-                    const expectedResult = { foo: data.foo, bar: { baz: data.bar.baz } };
-                    expect(result.value).toEqual(expectedResult);
+                    const expected = Object.create(null);
+                    expected[protoKey] = 'valid';
+                    expect(result.value).toEqual(expected);
                 } else {
                     expect(result.ok).toBeTruthy();
                 }
-            },
-        ),
-    );
-});
-
-test('Strict', () => {
-    const schema = p.object({
-        foo: p.string(),
-        bar: p.object({
-            baz: p.number(),
-        }),
+            }),
+        );
     });
 
-    fc.assert(
-        fc.property(
-            fc.record({
-                foo: fc.string(),
-                bar: fc.record({ baz: fc.float({ noNaN: true }), extra2: fc.anything() }),
-                extra1: fc.anything(),
+    // In Annex B environments (browsers, Node.js), __proto__ is an accessor on Object.prototype. Bracket-notation
+    // assignment on a plain {} triggers the setter instead of creating an own property, which can cause __proto__ to
+    // bypass unrecognized-key detection and strip-mode sanitization. These tests use Object.create(null) for input data
+    // (where __proto__ is a regular own property) to verify the schema handles the key correctly regardless of runtime.
+    it('strips unrecognized __proto__ key without modified children', () => {
+        const schema = p.object({ name: p.string() }).strip();
+        const data = Object.create(null);
+        data.name = 'alice';
+        data.__proto__ = { isAdmin: true };
+
+        const result = schema.safeParse(data);
+        if (result.ok) {
+            expect(result.value).toEqual({ name: 'alice' });
+            expect(Object.hasOwn(result.value, '__proto__')).toBe(false);
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
+    });
+
+    it('strips unrecognized __proto__ key with modified children', () => {
+        const schema = p.object({ child: p.object({ foo: p.string() }).strip() }).strip();
+        const data = Object.create(null);
+        data.child = { foo: 'bar', extra: 'baz' };
+        data.__proto__ = { isAdmin: true };
+
+        const result = schema.safeParse(data);
+        if (result.ok) {
+            expect(result.value).toEqual({ child: { foo: 'bar' } });
+            expect(Object.hasOwn(result.value, '__proto__')).toBe(false);
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
+    });
+});
+
+describe('strict', () => {
+    it('rejects unrecognised keys', () => {
+        const schema = p.object({
+            foo: p.string(),
+            bar: p.object({
+                baz: p.number(),
             }),
-            (data) => {
+        });
+
+        fc.assert(
+            fc.property(
+                fc.record({
+                    foo: fc.string(),
+                    bar: fc.record({ baz: fc.float({ noNaN: true }), extra2: fc.anything() }),
+                    extra1: fc.anything(),
+                }),
+                (data) => {
+                    const result = schema.safeParse(data);
+                    if (!result.ok) {
+                        expect(result.messages()).toEqual([
+                            { path: ['bar', 'extra2'], message: 'Unrecognised key.' },
+                            { path: ['extra1'], message: 'Unrecognised key.' },
+                        ]);
+                    } else {
+                        expect(result.ok).toBeFalsy();
+                    }
+                },
+            ),
+        );
+    });
+
+    it('is immutable', () => {
+        const original = p.object({ foo: p.string() });
+        const modified = original.strict();
+        expect(modified).not.toBe(original);
+        const branched = modified.passthrough();
+        expect(branched).not.toEqual(modified);
+    });
+
+    it('returns undefined when object is unmodified', () => {
+        const schema = p.object({ foo: p.string() });
+        const data = Object.freeze({ foo: 'bar' });
+
+        const issueOrSuccess = schema._parse(data);
+        expect(issueOrSuccess).toBe(undefined);
+    });
+
+    it('does not crash on Object.prototype keys', () => {
+        const prototypeKeys = [...Object.getOwnPropertyNames(Object.getPrototypeOf({})), '__proto__'];
+
+        fc.assert(
+            fc.property(fc.constantFrom(...prototypeKeys), (protoKey) => {
+                const schema = p.object({ name: p.string() });
+                const data = Object.create(null);
+                data.name = 'alice';
+                data[protoKey] = 'boom';
+
+                const result = schema.safeParse(data);
+                expect(result.ok).toBeFalsy();
+            }),
+        );
+    });
+
+    it('only flags truly unrecognized keys, not Object.prototype collisions', () => {
+        const prototypeKeys = [...Object.getOwnPropertyNames(Object.getPrototypeOf({})), '__proto__'];
+
+        fc.assert(
+            fc.property(fc.constantFrom(...prototypeKeys), (protoKey) => {
+                const schema = p.object({ [protoKey]: p.string() });
+                const data = Object.create(null);
+                data[protoKey] = 'valid';
+                data.extra = 'unrecognized';
+
                 const result = schema.safeParse(data);
                 if (!result.ok) {
-                    expect(result.messages()).toEqual([
-                        { path: ['bar', 'extra2'], message: 'Unrecognised key.' },
-                        { path: ['extra1'], message: 'Unrecognised key.' },
-                    ]);
+                    expect(result.messages()).toEqual([{ path: ['extra'], message: 'Unrecognised key.' }]);
                 } else {
                     expect(result.ok).toBeFalsy();
                 }
-            },
-        ),
-    );
-});
-
-test('Passthrough', () => {
-    const schema = p
-        .object({
-            foo: p.string(),
-            bar: p
-                .object({
-                    baz: p.number(),
-                })
-                .passthrough(),
-        })
-        .passthrough();
-
-    fc.assert(
-        fc.property(
-            fc.record({
-                foo: fc.string(),
-                bar: fc.record({ baz: fc.float({ noNaN: true }), extra2: fc.anything() }),
-                extra1: fc.anything(),
             }),
-            (data) => {
-                const result = schema.safeParse(data);
-                if (result.ok) {
-                    expectTypeOf(result.value).toEqualTypeOf<{ foo: string; bar: { baz: number } }>;
-                    expect(result.value).toEqual(data);
-                } else {
-                    expect(result.ok).toBeTruthy();
-                }
-            },
-        ),
-    );
+        );
+    });
 });
 
-test('Missing keys', () => {
+describe('passthrough', () => {
+    it('passes through unrecognised keys', () => {
+        const schema = p
+            .object({
+                foo: p.string(),
+                bar: p
+                    .object({
+                        baz: p.number(),
+                    })
+                    .passthrough(),
+            })
+            .passthrough();
+
+        fc.assert(
+            fc.property(
+                fc.record({
+                    foo: fc.string(),
+                    bar: fc.record({ baz: fc.float({ noNaN: true }), extra2: fc.anything() }),
+                    extra1: fc.anything(),
+                }),
+                (data) => {
+                    const result = schema.safeParse(data);
+                    if (result.ok) {
+                        expectTypeOf(result.value).toEqualTypeOf<{ foo: string; bar: { baz: number } }>;
+                        expect(result.value).toEqual(data);
+                    } else {
+                        expect(result.ok).toBeTruthy();
+                    }
+                },
+            ),
+        );
+    });
+
+    it('is immutable', () => {
+        const original = p.object({ foo: p.string() });
+        const modified = original.passthrough();
+        expect(modified).not.toBe(original);
+        const branched = modified.strip();
+        expect(branched).not.toEqual(modified);
+    });
+
+    it('returns undefined when object is unmodified', () => {
+        const schema = p.object({ foo: p.string() }).passthrough();
+        const data = Object.freeze({ foo: 'bar' });
+
+        const issueOrSuccess = schema._parse(data);
+        expect(issueOrSuccess).toBe(undefined);
+    });
+});
+
+it('rejects missing keys', () => {
     const schema = p.object({
         child1: p.string(),
         child2: p.string(),
@@ -162,7 +330,7 @@ test('Missing keys', () => {
     }
 });
 
-test('Deep missing keys', () => {
+it('rejects deeply missing keys', () => {
     const schema = p.object({
         string1: p.string(),
         object1: p.object({ string2: p.string(), number1: p.number() }),
@@ -187,7 +355,24 @@ test('Deep missing keys', () => {
     }
 });
 
-test('Optional key is not flagged as missing', () => {
+it('flags required keys matching Object.prototype properties as missing', () => {
+    const prototypeKeys = [...Object.getOwnPropertyNames(Object.getPrototypeOf({})), '__proto__'];
+
+    fc.assert(
+        fc.property(fc.constantFrom(...prototypeKeys), (protoKey) => {
+            const schema = p.object({ [protoKey]: p.string() });
+
+            const result = schema.safeParse({});
+            if (!result.ok) {
+                expect(result.messages()).toEqual([{ path: [protoKey], message: 'Missing value.' }]);
+            } else {
+                expect(result.ok).toBeFalsy();
+            }
+        }),
+    );
+});
+
+it('does not flag optional keys as missing', () => {
     const schema = p.object({ optional: p.string().optional(), required: p.string() });
     const data = Object.freeze({});
 
@@ -199,7 +384,7 @@ test('Optional key is not flagged as missing', () => {
     }
 });
 
-test('Optional wrapped in nullable is not flagged as missing', () => {
+it('does not flag optional-wrapped-in-nullable as missing', () => {
     const schema = p.object({ field: p.string().optional().nullable(), required: p.string() });
     const data = { required: 'hello' };
 
@@ -211,7 +396,7 @@ test('Optional wrapped in nullable is not flagged as missing', () => {
     }
 });
 
-test('Chained optional is still required', () => {
+it('treats chained optional as required', () => {
     const schema = p.object({
         field: p
             .string()
@@ -229,7 +414,7 @@ test('Chained optional is still required', () => {
     }
 });
 
-test('Optional', () => {
+it('accepts optional values', () => {
     const schema = p
         .object({
             foo: p.string(),
@@ -267,7 +452,7 @@ test('Optional', () => {
     );
 });
 
-test('Nullable', () => {
+it('accepts nullable values', () => {
     const schema = p
         .object({
             foo: p.string(),
@@ -301,120 +486,44 @@ test('Nullable', () => {
     );
 });
 
-test('White-box', async (t) => {
-    await t.step('Strip success returns undefined', () => {
-        const schema = p.object({ foo: p.string() }).strip();
-        const data = Object.freeze({ foo: 'bar' });
+describe('merge', () => {
+    it('merges without overlap', () => {
+        const schema = p.object({ foo: p.number() });
+        const schemaOther = p.object({ bar: p.string() });
+        const schemaMerged = schema.merge(schemaOther);
 
-        const issueOrSuccess = schema._parse(data);
-        expect(issueOrSuccess).toBe(undefined);
+        fc.assert(
+            fc.property(fc.record({ foo: fc.float({ noNaN: true }), bar: fc.string() }), (data) => {
+                const result = schemaMerged.safeParse(data);
+                if (result.ok) {
+                    expectTypeOf(result.value).toEqualTypeOf<{ foo: number; bar: string }>;
+                    expect(result.value).toEqual(data);
+                } else {
+                    expect(result.ok).toBeTruthy();
+                }
+            }),
+        );
     });
 
-    await t.step('Strict success returns undefined', () => {
-        const schema = p.object({ foo: p.string() });
-        const data = Object.freeze({ foo: 'bar' });
+    it('merges with overlap', () => {
+        const schema = p.object({ foo: p.number() });
+        const schemaOther = p.object({ foo: p.string() });
+        const schemaMerged = schema.merge(schemaOther);
 
-        const issueOrSuccess = schema._parse(data);
-        expect(issueOrSuccess).toBe(undefined);
+        fc.assert(
+            fc.property(fc.record({ foo: fc.string() }), (data) => {
+                const result = schemaMerged.safeParse(data);
+                if (result.ok) {
+                    expectTypeOf(result.value).toEqualTypeOf<{ foo: string }>;
+                    expect(result.value).toEqual(data);
+                } else {
+                    expect(result.ok).toBeTruthy();
+                }
+            }),
+        );
     });
 
-    await t.step('Passthrough success returns undefined', () => {
-        const schema = p.object({ foo: p.string() }).passthrough();
-        const data = Object.freeze({ foo: 'bar' });
-
-        const issueOrSuccess = schema._parse(data);
-        expect(issueOrSuccess).toBe(undefined);
-    });
-
-    await t.step('Modified child returns new value', () => {
-        const schema = p.object({ child: p.object({ foo: p.string() }).strip() }).strip();
-        const data = Object.freeze({ child: { foo: 'bar', extra: 'baz' } });
-
-        const issueOrSuccess = schema._parse(data);
-        expect(issueOrSuccess).toEqual({ ok: true, value: { child: { foo: 'bar' } } });
-    });
-
-    await t.step('Strip with child transformed to undefined preserves transform', () => {
-        const schema = p
-            .object({
-                foo: p.string().chain(p.unknown(), () => p.ok(undefined)),
-            })
-            .strip();
-        const data = { foo: 'bar', extra: 'baz' };
-
-        const result = schema.safeParse(data);
-        if (result.ok) {
-            expect(result.value).toEqual({ foo: undefined });
-        } else {
-            expect(result.ok).toBeTruthy();
-        }
-    });
-});
-
-test('Immutable', async (t) => {
-    await t.step('strip', () => {
-        const original = p.object({ foo: p.string() });
-        const modified = original.strip();
-        expect(modified).not.toBe(original);
-        const branched = modified.strict();
-        expect(branched).not.toEqual(modified);
-    });
-
-    await t.step('strict', () => {
-        const original = p.object({ foo: p.string() });
-        const modified = original.strict();
-        expect(modified).not.toBe(original);
-        const branched = modified.passthrough();
-        expect(branched).not.toEqual(modified);
-    });
-
-    await t.step('passthrough', () => {
-        const original = p.object({ foo: p.string() });
-        const modified = original.passthrough();
-        expect(modified).not.toBe(original);
-        const branched = modified.strip();
-        expect(branched).not.toEqual(modified);
-    });
-});
-
-test('Merge (without overlap)', () => {
-    const schema = p.object({ foo: p.number() });
-    const schemaOther = p.object({ bar: p.string() });
-    const schemaMerged = schema.merge(schemaOther);
-
-    fc.assert(
-        fc.property(fc.record({ foo: fc.float({ noNaN: true }), bar: fc.string() }), (data) => {
-            const result = schemaMerged.safeParse(data);
-            if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<{ foo: number; bar: string }>;
-                expect(result.value).toEqual(data);
-            } else {
-                expect(result.ok).toBeTruthy();
-            }
-        }),
-    );
-});
-
-test('Merge (with overlap)', () => {
-    const schema = p.object({ foo: p.number() });
-    const schemaOther = p.object({ foo: p.string() });
-    const schemaMerged = schema.merge(schemaOther);
-
-    fc.assert(
-        fc.property(fc.record({ foo: fc.string() }), (data) => {
-            const result = schemaMerged.safeParse(data);
-            if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<{ foo: string }>;
-                expect(result.value).toEqual(data);
-            } else {
-                expect(result.ok).toBeTruthy();
-            }
-        }),
-    );
-});
-
-test('Merge (mode)', async (t) => {
-    await t.step('strip', () => {
+    it('adopts strip from merged schema', () => {
         const schema = p.object({ foo: p.string() }).strict();
         const schemaOther = p.object({ foo: p.number() }).strip();
         const schemaMerged = schema.merge(schemaOther);
@@ -423,7 +532,7 @@ test('Merge (mode)', async (t) => {
         expect(result).toEqual({ foo: 123 });
     });
 
-    await t.step('strict', () => {
+    it('adopts strict from merged schema', () => {
         const schema = p.object({ foo: p.string() }).strip();
         const schemaOther = p.object({ foo: p.number() }).strict();
         const schemaMerged = schema.merge(schemaOther);
@@ -433,7 +542,7 @@ test('Merge (mode)', async (t) => {
         }).toThrow('Failed to parse. See `e.messages()` for details.');
     });
 
-    await t.step('passthrough', () => {
+    it('adopts passthrough from merged schema', () => {
         const schema = p.object({ foo: p.string() }).strict();
         const schemaOther = p.object({ foo: p.number() }).passthrough();
         const schemaMerged = schema.merge(schemaOther);
@@ -441,186 +550,54 @@ test('Merge (mode)', async (t) => {
         const result = schemaMerged.parse({ foo: 123, bar: 'hello' });
         expect(result).toEqual({ foo: 123, bar: 'hello' });
     });
-});
 
-test('Pick', () => {
-    const schema = p.object({ foo: p.string(), bar: p.number() });
-    const schemaPicked = schema.pick('foo');
-
-    const data = { foo: 'hello' };
-    const result = schemaPicked.safeParse(data);
-    if (result.ok) {
-        expectTypeOf(result.value).toEqualTypeOf<{ foo: string }>;
-        expect(result.value).toEqual(data);
-    } else {
-        expect(result.ok).toBeTruthy();
-    }
-});
-
-test('Omit', () => {
-    const schema = p.object({ foo: p.string(), bar: p.number() });
-    const schemaOmitted = schema.omit('foo');
-
-    const data = { bar: 123 };
-    const result = schemaOmitted.safeParse(data);
-    if (result.ok) {
-        expectTypeOf(result.value).toEqualTypeOf<{ bar: number }>;
-        expect(result.value).toEqual(data);
-    } else {
-        expect(result.ok).toBeTruthy();
-    }
-});
-
-describe('Input with Object.prototype keys should not crash', () => {
-    for (const protoKey of Object.getOwnPropertyNames(Object.getPrototypeOf({}))) {
-        it(protoKey, () => {
-            const schema = p.object({ name: p.string() });
-            const data = Object.create(null);
-            data.name = 'alice';
-            data[protoKey] = 'boom';
-
-            const result = schema.safeParse(data);
-            expect(result.ok).toBeFalsy();
-        });
-    }
-
-    it('__proto__', () => {
-        const schema = p.object({ name: p.string() });
-        const data = Object.create(null);
-        data.name = 'alice';
-        data.__proto__ = 'boom';
-
-        const result = schema.safeParse(data);
-        expect(result.ok).toBeFalsy();
+    it('is immutable', () => {
+        const original = p.object({ foo: p.string() });
+        const merged = original.merge(p.object({ bar: p.number() }));
+        expect(merged).not.toBe(original);
     });
 });
 
-describe('Required key matching Object.prototype property should be flagged as missing', () => {
-    for (const protoKey of Object.getOwnPropertyNames(Object.getPrototypeOf({}))) {
-        it(protoKey, () => {
-            const schema = p.object({ [protoKey]: p.string() });
+describe('pick', () => {
+    it('picks specified keys', () => {
+        const schema = p.object({ foo: p.string(), bar: p.number() });
+        const schemaPicked = schema.pick('foo');
 
-            const result = schema.safeParse({});
-            if (!result.ok) {
-                expect(result.messages()).toEqual([{ path: [protoKey], message: 'Missing value.' }]);
-            } else {
-                expect(result.ok).toBeFalsy();
-            }
-        });
-    }
-
-    it('__proto__', () => {
-        const schema = p.object({ ['__proto__']: p.string() });
-
-        const result = schema.safeParse({});
-        if (!result.ok) {
-            expect(result.messages()).toEqual([{ path: ['__proto__'], message: 'Missing value.' }]);
-        } else {
-            expect(result.ok).toBeFalsy();
-        }
-    });
-});
-
-describe('Strict mode should only flag truly unrecognized keys, not Object.prototype collisions', () => {
-    for (const protoKey of Object.getOwnPropertyNames(Object.getPrototypeOf({}))) {
-        it(protoKey, () => {
-            const schema = p.object({ [protoKey]: p.string() });
-            const data = Object.create(null);
-            data[protoKey] = 'valid';
-            data.extra = 'unrecognized';
-
-            const result = schema.safeParse(data);
-            if (!result.ok) {
-                expect(result.messages()).toEqual([{ path: ['extra'], message: 'Unrecognised key.' }]);
-            } else {
-                expect(result.ok).toBeFalsy();
-            }
-        });
-    }
-
-    it('__proto__', () => {
-        const schema = p.object({ ['__proto__']: p.string() });
-        const data = Object.create(null);
-        data.__proto__ = 'valid';
-        data.extra = 'unrecognized';
-
-        const result = schema.safeParse(data);
-        if (!result.ok) {
-            expect(result.messages()).toEqual([{ path: ['extra'], message: 'Unrecognised key.' }]);
-        } else {
-            expect(result.ok).toBeFalsy();
-        }
-    });
-});
-
-describe('Strip mode should not strip keys that collide with Object.prototype names', () => {
-    for (const protoKey of Object.getOwnPropertyNames(Object.getPrototypeOf({}))) {
-        it(protoKey, () => {
-            const schema = p.object({ [protoKey]: p.string() }).strip();
-            const data = Object.create(null);
-            data[protoKey] = 'valid';
-            data.extra = 'strip me';
-
-            const result = schema.safeParse(data);
-            if (result.ok) {
-                const expected = Object.create(null);
-                expected[protoKey] = 'valid';
-                expect(result.value).toEqual(expected);
-            } else {
-                expect(result.ok).toBeTruthy();
-            }
-        });
-    }
-
-    it('__proto__', () => {
-        const schema = p.object({ ['__proto__']: p.string() }).strip();
-        const data = Object.create(null);
-        data.__proto__ = 'valid';
-        data.extra = 'strip me';
-
-        const result = schema.safeParse(data);
+        const data = { foo: 'hello' };
+        const result = schemaPicked.safeParse(data);
         if (result.ok) {
-            const expected = Object.create(null);
-            expected.__proto__ = 'valid';
-            expect(result.value).toEqual(expected);
-        } else {
-            expect(result.ok).toBeTruthy();
-        }
-    });
-});
-
-// In Annex B environments (browsers, Node.js), __proto__ is an accessor on Object.prototype. Bracket-notation
-// assignment on a plain {} triggers the setter instead of creating an own property, which can cause __proto__ to
-// bypass unrecognized-key detection and strip-mode sanitization. These tests use Object.create(null) for input data
-// (where __proto__ is a regular own property) to verify the schema handles the key correctly regardless of runtime.
-describe('Strip mode should strip unrecognized __proto__ key', () => {
-    it('without modified child values', () => {
-        const schema = p.object({ name: p.string() }).strip();
-        const data = Object.create(null);
-        data.name = 'alice';
-        data.__proto__ = { isAdmin: true };
-
-        const result = schema.safeParse(data);
-        if (result.ok) {
-            expect(result.value).toEqual({ name: 'alice' });
-            expect(Object.hasOwn(result.value, '__proto__')).toBe(false);
+            expectTypeOf(result.value).toEqualTypeOf<{ foo: string }>;
+            expect(result.value).toEqual(data);
         } else {
             expect(result.ok).toBeTruthy();
         }
     });
 
-    it('with modified child values', () => {
-        const schema = p.object({ child: p.object({ foo: p.string() }).strip() }).strip();
-        const data = Object.create(null);
-        data.child = { foo: 'bar', extra: 'baz' };
-        data.__proto__ = { isAdmin: true };
+    it('is immutable', () => {
+        const original = p.object({ foo: p.string(), bar: p.number() });
+        const picked = original.pick('foo');
+        expect(picked).not.toBe(original);
+    });
+});
 
-        const result = schema.safeParse(data);
+describe('omit', () => {
+    it('omits specified keys', () => {
+        const schema = p.object({ foo: p.string(), bar: p.number() });
+        const schemaOmitted = schema.omit('foo');
+
+        const data = { bar: 123 };
+        const result = schemaOmitted.safeParse(data);
         if (result.ok) {
-            expect(result.value).toEqual({ child: { foo: 'bar' } });
-            expect(Object.hasOwn(result.value, '__proto__')).toBe(false);
+            expectTypeOf(result.value).toEqualTypeOf<{ bar: number }>;
+            expect(result.value).toEqual(data);
         } else {
             expect(result.ok).toBeTruthy();
         }
+    });
+
+    it('is immutable', () => {
+        const original = p.object({ foo: p.string(), bar: p.number() });
+        const omitted = original.omit('foo');
+        expect(omitted).not.toBe(original);
     });
 });
