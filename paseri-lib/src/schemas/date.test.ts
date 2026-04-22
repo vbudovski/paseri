@@ -4,9 +4,7 @@ import { expectTypeOf } from 'expect-type';
 import fc from 'fast-check';
 import * as p from '../index.ts';
 
-const { test } = Deno;
-
-test('Valid type', () => {
+it('accepts valid types', () => {
     const schema = p.date();
 
     fc.assert(
@@ -22,7 +20,7 @@ test('Valid type', () => {
     );
 });
 
-test('Invalid type', () => {
+it('rejects invalid types', () => {
     const schema = p.date();
 
     fc.assert(
@@ -37,7 +35,7 @@ test('Invalid type', () => {
     );
 });
 
-test('Invalid date', () => {
+it('rejects invalid dates', () => {
     const schema = p.date();
 
     const result = schema.safeParse(new Date(Number.NaN));
@@ -49,7 +47,7 @@ test('Invalid date', () => {
 });
 
 describe('min', () => {
-    it('Valid', () => {
+    it('accepts valid values', () => {
         const schema = p.date().min(new Date(2020, 0, 1));
 
         fc.assert(
@@ -65,7 +63,7 @@ describe('min', () => {
         );
     });
 
-    it('Invalid', () => {
+    it('rejects invalid values', () => {
         const schema = p.date().min(new Date(2020, 0, 1));
 
         fc.assert(
@@ -80,11 +78,11 @@ describe('min', () => {
         );
     });
 
-    it('Invalid Date boundary', () => {
+    it('throws on invalid Date boundary', () => {
         expect(() => p.date().min(new Date(Number.NaN))).toThrow();
     });
 
-    it('Immutable', () => {
+    it('is immutable', () => {
         const original = p.date();
         const modified = original.min(new Date(2020, 0, 1));
         expect(modified).not.toEqual(original);
@@ -94,7 +92,7 @@ describe('min', () => {
 });
 
 describe('max', () => {
-    it('Valid', () => {
+    it('accepts valid values', () => {
         const schema = p.date().max(new Date(2020, 0, 1));
 
         fc.assert(
@@ -110,7 +108,7 @@ describe('max', () => {
         );
     });
 
-    it('Invalid', () => {
+    it('rejects invalid values', () => {
         const schema = p.date().max(new Date(2020, 0, 1));
 
         fc.assert(
@@ -125,11 +123,11 @@ describe('max', () => {
         );
     });
 
-    it('Invalid Date boundary', () => {
+    it('throws on invalid Date boundary', () => {
         expect(() => p.date().max(new Date(Number.NaN))).toThrow();
     });
 
-    it('Immutable', () => {
+    it('is immutable', () => {
         const original = p.date();
         const modified = original.max(new Date(2025, 0, 1));
         expect(modified).not.toEqual(original);
@@ -138,7 +136,7 @@ describe('max', () => {
     });
 });
 
-test('Optional', () => {
+it('accepts optional values', () => {
     const schema = p.date().optional();
 
     fc.assert(
@@ -154,7 +152,7 @@ test('Optional', () => {
     );
 });
 
-test('Nullable', () => {
+it('accepts nullable values', () => {
     const schema = p.date().nullable();
 
     fc.assert(

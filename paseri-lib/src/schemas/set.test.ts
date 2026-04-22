@@ -4,9 +4,7 @@ import { expectTypeOf } from 'expect-type';
 import fc from 'fast-check';
 import * as p from '../index.ts';
 
-const { test } = Deno;
-
-test('Valid type', () => {
+it('accepts valid types', () => {
     const schema = p.set(p.number());
 
     fc.assert(
@@ -24,7 +22,7 @@ test('Valid type', () => {
     );
 });
 
-test('Invalid type', () => {
+it('rejects invalid types', () => {
     const schema = p.set(p.number());
 
     fc.assert(
@@ -40,7 +38,7 @@ test('Invalid type', () => {
 });
 
 describe('min', () => {
-    it('Valid', () => {
+    it('accepts valid values', () => {
         const schema = p.set(p.number()).min(3);
 
         fc.assert(
@@ -61,7 +59,7 @@ describe('min', () => {
         );
     });
 
-    it('Invalid', () => {
+    it('rejects invalid values', () => {
         const schema = p.set(p.number()).min(3);
 
         fc.assert(
@@ -81,7 +79,7 @@ describe('min', () => {
         );
     });
 
-    it('Invalid after element transformation causes deduplication', () => {
+    it('rejects when transformation causes deduplication below minimum', () => {
         const lower = p.string().chain(p.string(), (value) => p.ok(value.toLowerCase()));
         const schema = p.set(lower).min(2);
         const data = new Set(['A', 'a']); // size 2, but both lowercase to "a" → size 1
@@ -90,11 +88,11 @@ describe('min', () => {
         expect(result.ok).toBe(false);
     });
 
-    it('NaN', () => {
+    it('throws on NaN', () => {
         expect(() => p.set(p.string()).min(NaN)).toThrow();
     });
 
-    it('Immutable', () => {
+    it('is immutable', () => {
         const original = p.set(p.string());
         const modified = original.min(3);
         expect(modified).not.toEqual(original);
@@ -104,7 +102,7 @@ describe('min', () => {
 });
 
 describe('max', () => {
-    it('Valid', () => {
+    it('accepts valid values', () => {
         const schema = p.set(p.number()).max(3);
 
         fc.assert(
@@ -125,7 +123,7 @@ describe('max', () => {
         );
     });
 
-    it('Invalid', () => {
+    it('rejects invalid values', () => {
         const schema = p.set(p.number()).max(3);
 
         fc.assert(
@@ -145,11 +143,11 @@ describe('max', () => {
         );
     });
 
-    it('NaN', () => {
+    it('throws on NaN', () => {
         expect(() => p.set(p.string()).max(NaN)).toThrow();
     });
 
-    it('Immutable', () => {
+    it('is immutable', () => {
         const original = p.set(p.string());
         const modified = original.max(3);
         expect(modified).not.toEqual(original);
@@ -159,7 +157,7 @@ describe('max', () => {
 });
 
 describe('size', () => {
-    it('Valid', () => {
+    it('accepts valid values', () => {
         const schema = p.set(p.number()).size(3);
 
         fc.assert(
@@ -182,7 +180,7 @@ describe('size', () => {
         );
     });
 
-    it('Invalid (too long)', () => {
+    it('rejects values that are too long', () => {
         const schema = p.set(p.number()).size(3);
 
         fc.assert(
@@ -202,7 +200,7 @@ describe('size', () => {
         );
     });
 
-    it('Invalid (too short)', () => {
+    it('rejects values that are too short', () => {
         const schema = p.set(p.number()).size(3);
 
         fc.assert(
@@ -222,11 +220,11 @@ describe('size', () => {
         );
     });
 
-    it('NaN', () => {
+    it('throws on NaN', () => {
         expect(() => p.set(p.string()).size(NaN)).toThrow();
     });
 
-    it('Immutable', () => {
+    it('is immutable', () => {
         const original = p.set(p.string());
         const modified = original.size(3);
         expect(modified).not.toEqual(original);
@@ -235,7 +233,7 @@ describe('size', () => {
     });
 });
 
-test('Invalid elements', () => {
+it('rejects invalid elements', () => {
     const schema = p.set(p.number());
     const data = new Set([1, 'foo', 2, 'bar']);
 
@@ -250,7 +248,7 @@ test('Invalid elements', () => {
     }
 });
 
-test('Modified child returns new value', () => {
+it('returns new value when child is modified', () => {
     const schema = p.set(p.object({ foo: p.string() }).strip());
     const data = new Set([{ foo: 'bar', extra: 'baz' }]);
 
@@ -262,7 +260,7 @@ test('Modified child returns new value', () => {
     }
 });
 
-test('Optional', () => {
+it('accepts optional values', () => {
     const schema = p.set(p.number()).optional();
 
     fc.assert(
@@ -280,7 +278,7 @@ test('Optional', () => {
     );
 });
 
-test('Nullable', () => {
+it('accepts nullable values', () => {
     const schema = p.set(p.number()).nullable();
 
     fc.assert(

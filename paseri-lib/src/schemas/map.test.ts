@@ -4,9 +4,7 @@ import { expectTypeOf } from 'expect-type';
 import fc from 'fast-check';
 import * as p from '../index.ts';
 
-const { test } = Deno;
-
-test('Valid type', () => {
+it('accepts valid types', () => {
     const schema = p.map(p.number(), p.string());
 
     fc.assert(
@@ -24,7 +22,7 @@ test('Valid type', () => {
     );
 });
 
-test('Invalid type', () => {
+it('rejects invalid types', () => {
     const schema = p.map(p.number(), p.string());
 
     fc.assert(
@@ -40,7 +38,7 @@ test('Invalid type', () => {
 });
 
 describe('min', () => {
-    it('Valid', () => {
+    it('accepts valid values', () => {
         const schema = p.map(p.number(), p.string()).min(3);
 
         fc.assert(
@@ -63,7 +61,7 @@ describe('min', () => {
         );
     });
 
-    it('Invalid', () => {
+    it('rejects invalid values', () => {
         const schema = p.map(p.number(), p.string()).min(3);
 
         fc.assert(
@@ -85,7 +83,7 @@ describe('min', () => {
         );
     });
 
-    it('Invalid after key transformation causes deduplication', () => {
+    it('rejects when transformation causes deduplication below minimum', () => {
         const lower = p.string().chain(p.string(), (value) => p.ok(value.toLowerCase()));
         const schema = p.map(lower, p.number()).min(2);
         const data = new Map([
@@ -97,11 +95,11 @@ describe('min', () => {
         expect(result.ok).toBe(false);
     });
 
-    it('NaN', () => {
+    it('throws on NaN', () => {
         expect(() => p.map(p.number(), p.string()).min(NaN)).toThrow();
     });
 
-    it('Immutable', () => {
+    it('is immutable', () => {
         const original = p.map(p.number(), p.string());
         const modified = original.min(3);
         expect(modified).not.toEqual(original);
@@ -111,7 +109,7 @@ describe('min', () => {
 });
 
 describe('max', () => {
-    it('Valid', () => {
+    it('accepts valid values', () => {
         const schema = p.map(p.number(), p.string()).max(3);
 
         fc.assert(
@@ -134,7 +132,7 @@ describe('max', () => {
         );
     });
 
-    it('Invalid', () => {
+    it('rejects invalid values', () => {
         const schema = p.map(p.number(), p.string()).max(3);
 
         fc.assert(
@@ -156,11 +154,11 @@ describe('max', () => {
         );
     });
 
-    it('NaN', () => {
+    it('throws on NaN', () => {
         expect(() => p.map(p.number(), p.string()).max(NaN)).toThrow();
     });
 
-    it('Immutable', () => {
+    it('is immutable', () => {
         const original = p.map(p.number(), p.string());
         const modified = original.max(3);
         expect(modified).not.toEqual(original);
@@ -170,7 +168,7 @@ describe('max', () => {
 });
 
 describe('size', () => {
-    it('Valid', () => {
+    it('accepts valid values', () => {
         const schema = p.map(p.number(), p.string()).size(3);
 
         fc.assert(
@@ -193,7 +191,7 @@ describe('size', () => {
         );
     });
 
-    it('Invalid (too long)', () => {
+    it('rejects values that are too long', () => {
         const schema = p.map(p.number(), p.string()).size(3);
 
         fc.assert(
@@ -215,7 +213,7 @@ describe('size', () => {
         );
     });
 
-    it('Invalid (too short)', () => {
+    it('rejects values that are too short', () => {
         const schema = p.map(p.number(), p.string()).size(3);
 
         fc.assert(
@@ -237,11 +235,11 @@ describe('size', () => {
         );
     });
 
-    it('NaN', () => {
+    it('throws on NaN', () => {
         expect(() => p.map(p.number(), p.string()).size(NaN)).toThrow();
     });
 
-    it('Immutable', () => {
+    it('is immutable', () => {
         const original = p.map(p.number(), p.string());
         const modified = original.size(3);
         expect(modified).not.toEqual(original);
@@ -250,7 +248,7 @@ describe('size', () => {
     });
 });
 
-test('Invalid elements', () => {
+it('rejects invalid elements', () => {
     const schema = p.map(p.number(), p.string());
     const data = new Map<unknown, unknown>([
         [1, 'valid1'], // Valid.
@@ -275,7 +273,7 @@ test('Invalid elements', () => {
     }
 });
 
-test('Modified child value returns new value', () => {
+it('returns new value when child value is modified', () => {
     const schema = p.map(p.string(), p.object({ foo: p.number() }).strip());
     const data = new Map<string, Record<string, unknown>>([
         ['a', { foo: 1, extra: 'baz' }],
@@ -295,7 +293,7 @@ test('Modified child value returns new value', () => {
     }
 });
 
-test('Optional', () => {
+it('accepts optional values', () => {
     const schema = p.map(p.number(), p.string()).optional();
 
     fc.assert(
@@ -316,7 +314,7 @@ test('Optional', () => {
     );
 });
 
-test('Nullable', () => {
+it('accepts nullable values', () => {
     const schema = p.map(p.number(), p.string()).nullable();
 
     fc.assert(

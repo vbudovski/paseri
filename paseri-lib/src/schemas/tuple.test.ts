@@ -1,11 +1,10 @@
 import { expect } from '@std/expect';
+import { it } from '@std/testing/bdd';
 import { expectTypeOf } from 'expect-type';
 import fc from 'fast-check';
 import * as p from '../index.ts';
 
-const { test } = Deno;
-
-test('Valid type', () => {
+it('accepts valid types', () => {
     const schema = p.tuple(p.number(), p.string(), p.literal(123n));
 
     fc.assert(
@@ -21,7 +20,7 @@ test('Valid type', () => {
     );
 });
 
-test('Invalid type', () => {
+it('rejects invalid types', () => {
     const schema = p.tuple(p.number(), p.string(), p.literal(123n));
 
     fc.assert(
@@ -39,7 +38,7 @@ test('Invalid type', () => {
     );
 });
 
-test('Too long', () => {
+it('rejects tuples that are too long', () => {
     const schema = p.tuple(p.number(), p.string(), p.literal(123n));
     const data = [1, 'foo', 123n, 'bad'];
 
@@ -51,7 +50,7 @@ test('Too long', () => {
     }
 });
 
-test('Too short', () => {
+it('rejects tuples that are too short', () => {
     const schema = p.tuple(p.number(), p.string(), p.literal(123n));
     const data = [1, 'foo'];
 
@@ -63,7 +62,7 @@ test('Too short', () => {
     }
 });
 
-test('Invalid elements', () => {
+it('rejects invalid elements', () => {
     const schema = p.tuple(p.number(), p.string(), p.literal(123n), p.number());
     const data = [123, 666, 123n, 'foo'];
 
@@ -78,7 +77,7 @@ test('Invalid elements', () => {
     }
 });
 
-test('Modified child returns new value', () => {
+it('returns new value when child is modified', () => {
     const schema = p.tuple(p.object({ foo: p.string() }).strip(), p.object({ bar: p.number() }).strip());
     const data = [
         { foo: 'hello', extra1: 'baz' },
@@ -93,7 +92,7 @@ test('Modified child returns new value', () => {
     }
 });
 
-test('Optional', () => {
+it('accepts optional values', () => {
     const schema = p.tuple(p.number(), p.string(), p.literal(123n)).optional();
 
     fc.assert(
@@ -112,7 +111,7 @@ test('Optional', () => {
     );
 });
 
-test('Nullable', () => {
+it('accepts nullable values', () => {
     const schema = p.tuple(p.number(), p.string(), p.literal(123n)).nullable();
 
     fc.assert(

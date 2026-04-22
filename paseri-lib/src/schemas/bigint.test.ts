@@ -1,11 +1,10 @@
 import { expect } from '@std/expect';
+import { describe, it } from '@std/testing/bdd';
 import { expectTypeOf } from 'expect-type';
 import fc from 'fast-check';
 import * as p from '../index.ts';
 
-const { test } = Deno;
-
-test('Valid type', () => {
+it('accepts valid types', () => {
     const schema = p.bigint();
 
     fc.assert(
@@ -21,7 +20,7 @@ test('Valid type', () => {
     );
 });
 
-test('Invalid type', () => {
+it('rejects invalid types', () => {
     const schema = p.bigint();
 
     fc.assert(
@@ -39,131 +38,171 @@ test('Invalid type', () => {
     );
 });
 
-test('Valid gte', () => {
-    const schema = p.bigint().gte(10n);
+describe('gte', () => {
+    it('accepts valid values', () => {
+        const schema = p.bigint().gte(10n);
 
-    fc.assert(
-        fc.property(fc.bigInt({ min: 10n }), (data) => {
-            const result = schema.safeParse(data);
-            if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<bigint>;
-                expect(result.value).toBe(data);
-            } else {
-                expect(result.ok).toBeTruthy();
-            }
-        }),
-    );
+        fc.assert(
+            fc.property(fc.bigInt({ min: 10n }), (data) => {
+                const result = schema.safeParse(data);
+                if (result.ok) {
+                    expectTypeOf(result.value).toEqualTypeOf<bigint>;
+                    expect(result.value).toBe(data);
+                } else {
+                    expect(result.ok).toBeTruthy();
+                }
+            }),
+        );
+    });
+
+    it('rejects invalid values', () => {
+        const schema = p.bigint().gte(10n);
+
+        fc.assert(
+            fc.property(fc.bigInt({ max: 9n }), (data) => {
+                const result = schema.safeParse(data);
+                if (!result.ok) {
+                    expect(result.messages()).toEqual([{ path: [], message: 'Too small.' }]);
+                } else {
+                    expect(result.ok).toBeFalsy();
+                }
+            }),
+        );
+    });
+
+    it('is immutable', () => {
+        const original = p.bigint();
+        const modified = original.gte(3n);
+        expect(modified).not.toEqual(original);
+        const branched = modified.lte(10n);
+        expect(branched).not.toEqual(modified);
+    });
 });
 
-test('Invalid gte', () => {
-    const schema = p.bigint().gte(10n);
+describe('gt', () => {
+    it('accepts valid values', () => {
+        const schema = p.bigint().gt(10n);
 
-    fc.assert(
-        fc.property(fc.bigInt({ max: 9n }), (data) => {
-            const result = schema.safeParse(data);
-            if (!result.ok) {
-                expect(result.messages()).toEqual([{ path: [], message: 'Too small.' }]);
-            } else {
-                expect(result.ok).toBeFalsy();
-            }
-        }),
-    );
+        fc.assert(
+            fc.property(fc.bigInt({ min: 11n }), (data) => {
+                const result = schema.safeParse(data);
+                if (result.ok) {
+                    expectTypeOf(result.value).toEqualTypeOf<bigint>;
+                    expect(result.value).toBe(data);
+                } else {
+                    expect(result.ok).toBeTruthy();
+                }
+            }),
+        );
+    });
+
+    it('rejects invalid values', () => {
+        const schema = p.bigint().gt(10n);
+
+        fc.assert(
+            fc.property(fc.bigInt({ max: 10n }), (data) => {
+                const result = schema.safeParse(data);
+                if (!result.ok) {
+                    expect(result.messages()).toEqual([{ path: [], message: 'Too small.' }]);
+                } else {
+                    expect(result.ok).toBeFalsy();
+                }
+            }),
+        );
+    });
+
+    it('is immutable', () => {
+        const original = p.bigint();
+        const modified = original.gt(3n);
+        expect(modified).not.toEqual(original);
+        const branched = modified.lt(10n);
+        expect(branched).not.toEqual(modified);
+    });
 });
 
-test('Valid gt', () => {
-    const schema = p.bigint().gt(10n);
+describe('lte', () => {
+    it('accepts valid values', () => {
+        const schema = p.bigint().lte(10n);
 
-    fc.assert(
-        fc.property(fc.bigInt({ min: 11n }), (data) => {
-            const result = schema.safeParse(data);
-            if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<bigint>;
-                expect(result.value).toBe(data);
-            } else {
-                expect(result.ok).toBeTruthy();
-            }
-        }),
-    );
+        fc.assert(
+            fc.property(fc.bigInt({ max: 10n }), (data) => {
+                const result = schema.safeParse(data);
+                if (result.ok) {
+                    expectTypeOf(result.value).toEqualTypeOf<bigint>;
+                    expect(result.value).toBe(data);
+                } else {
+                    expect(result.ok).toBeTruthy();
+                }
+            }),
+        );
+    });
+
+    it('rejects invalid values', () => {
+        const schema = p.bigint().lte(10n);
+
+        fc.assert(
+            fc.property(fc.bigInt({ min: 11n }), (data) => {
+                const result = schema.safeParse(data);
+                if (!result.ok) {
+                    expect(result.messages()).toEqual([{ path: [], message: 'Too large.' }]);
+                } else {
+                    expect(result.ok).toBeFalsy();
+                }
+            }),
+        );
+    });
+
+    it('is immutable', () => {
+        const original = p.bigint();
+        const modified = original.lte(3n);
+        expect(modified).not.toEqual(original);
+        const branched = modified.gte(0n);
+        expect(branched).not.toEqual(modified);
+    });
 });
 
-test('Invalid gt', () => {
-    const schema = p.bigint().gt(10n);
+describe('lt', () => {
+    it('accepts valid values', () => {
+        const schema = p.bigint().lt(10n);
 
-    fc.assert(
-        fc.property(fc.bigInt({ max: 10n }), (data) => {
-            const result = schema.safeParse(data);
-            if (!result.ok) {
-                expect(result.messages()).toEqual([{ path: [], message: 'Too small.' }]);
-            } else {
-                expect(result.ok).toBeFalsy();
-            }
-        }),
-    );
+        fc.assert(
+            fc.property(fc.bigInt({ max: 9n }), (data) => {
+                const result = schema.safeParse(data);
+                if (result.ok) {
+                    expectTypeOf(result.value).toEqualTypeOf<bigint>;
+                    expect(result.value).toBe(data);
+                } else {
+                    expect(result.ok).toBeTruthy();
+                }
+            }),
+        );
+    });
+
+    it('rejects invalid values', () => {
+        const schema = p.bigint().lt(10n);
+
+        fc.assert(
+            fc.property(fc.bigInt({ min: 10n }), (data) => {
+                const result = schema.safeParse(data);
+                if (!result.ok) {
+                    expect(result.messages()).toEqual([{ path: [], message: 'Too large.' }]);
+                } else {
+                    expect(result.ok).toBeFalsy();
+                }
+            }),
+        );
+    });
+
+    it('is immutable', () => {
+        const original = p.bigint();
+        const modified = original.lt(3n);
+        expect(modified).not.toEqual(original);
+        const branched = modified.gt(0n);
+        expect(branched).not.toEqual(modified);
+    });
 });
 
-test('Valid lte', () => {
-    const schema = p.bigint().lte(10n);
-
-    fc.assert(
-        fc.property(fc.bigInt({ max: 10n }), (data) => {
-            const result = schema.safeParse(data);
-            if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<bigint>;
-                expect(result.value).toBe(data);
-            } else {
-                expect(result.ok).toBeTruthy();
-            }
-        }),
-    );
-});
-
-test('Invalid lte', () => {
-    const schema = p.bigint().lte(10n);
-
-    fc.assert(
-        fc.property(fc.bigInt({ min: 11n }), (data) => {
-            const result = schema.safeParse(data);
-            if (!result.ok) {
-                expect(result.messages()).toEqual([{ path: [], message: 'Too large.' }]);
-            } else {
-                expect(result.ok).toBeFalsy();
-            }
-        }),
-    );
-});
-
-test('Valid lt', () => {
-    const schema = p.bigint().lt(10n);
-
-    fc.assert(
-        fc.property(fc.bigInt({ max: 9n }), (data) => {
-            const result = schema.safeParse(data);
-            if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<bigint>;
-                expect(result.value).toBe(data);
-            } else {
-                expect(result.ok).toBeTruthy();
-            }
-        }),
-    );
-});
-
-test('Invalid lt', () => {
-    const schema = p.bigint().lt(10n);
-
-    fc.assert(
-        fc.property(fc.bigInt({ min: 10n }), (data) => {
-            const result = schema.safeParse(data);
-            if (!result.ok) {
-                expect(result.messages()).toEqual([{ path: [], message: 'Too large.' }]);
-            } else {
-                expect(result.ok).toBeFalsy();
-            }
-        }),
-    );
-});
-
-test('Optional', () => {
+it('accepts optional values', () => {
     const schema = p.bigint().optional();
 
     fc.assert(
@@ -179,7 +218,7 @@ test('Optional', () => {
     );
 });
 
-test('Nullable', () => {
+it('accepts nullable values', () => {
     const schema = p.bigint().nullable();
 
     fc.assert(
@@ -193,60 +232,4 @@ test('Nullable', () => {
             }
         }),
     );
-});
-
-test('Optional', () => {
-    const schema = p.bigint().optional();
-    const result = schema.safeParse(undefined);
-    if (result.ok) {
-        expectTypeOf(result.value).toEqualTypeOf<bigint | undefined>;
-        expect(result.value).toBe(undefined);
-    } else {
-        expect(result.ok).toBeTruthy();
-    }
-});
-
-test('Nullable', () => {
-    const schema = p.bigint().nullable();
-    const result = schema.safeParse(null);
-    if (result.ok) {
-        expectTypeOf(result.value).toEqualTypeOf<bigint | null>;
-        expect(result.value).toBe(null);
-    } else {
-        expect(result.ok).toBeTruthy();
-    }
-});
-
-test('Immutable', async (t) => {
-    await t.step('gte', () => {
-        const original = p.bigint();
-        const modified = original.gte(3n);
-        expect(modified).not.toEqual(original);
-        const branched = modified.lte(10n);
-        expect(branched).not.toEqual(modified);
-    });
-
-    await t.step('gt', () => {
-        const original = p.bigint();
-        const modified = original.gt(3n);
-        expect(modified).not.toEqual(original);
-        const branched = modified.lt(10n);
-        expect(branched).not.toEqual(modified);
-    });
-
-    await t.step('lte', () => {
-        const original = p.bigint();
-        const modified = original.lte(3n);
-        expect(modified).not.toEqual(original);
-        const branched = modified.gte(0n);
-        expect(branched).not.toEqual(modified);
-    });
-
-    await t.step('lt', () => {
-        const original = p.bigint();
-        const modified = original.lt(3n);
-        expect(modified).not.toEqual(original);
-        const branched = modified.gt(0n);
-        expect(branched).not.toEqual(modified);
-    });
 });

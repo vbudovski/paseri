@@ -17,8 +17,6 @@ import {
     uuidRegex,
 } from './string.ts';
 
-const { test } = Deno;
-
 function formatDate(value: Date): string {
     const year =
         value.getFullYear() >= 0
@@ -54,7 +52,7 @@ function formatDatetime(value: Date, timezone: number, precision?: number, offse
     return `${formatDate(value)}T${formatTime(value, precision)}${local ? '' : offset ? timezoneString : 'Z'}`;
 }
 
-test('Valid type', () => {
+it('accepts valid types', () => {
     const schema = p.string();
 
     fc.assert(
@@ -70,7 +68,7 @@ test('Valid type', () => {
     );
 });
 
-test('Invalid type', () => {
+it('rejects invalid types', () => {
     const schema = p.string();
 
     fc.assert(
@@ -89,7 +87,7 @@ test('Invalid type', () => {
 });
 
 describe('min', () => {
-    it('Valid', () => {
+    it('accepts valid values', () => {
         const schema = p.string().min(3);
 
         fc.assert(
@@ -105,7 +103,7 @@ describe('min', () => {
         );
     });
 
-    it('Invalid', () => {
+    it('rejects invalid values', () => {
         const schema = p.string().min(3);
 
         fc.assert(
@@ -120,11 +118,11 @@ describe('min', () => {
         );
     });
 
-    it('NaN', () => {
+    it('throws on NaN', () => {
         expect(() => p.string().min(NaN)).toThrow();
     });
 
-    it('Immutable', () => {
+    it('is immutable', () => {
         const original = p.string();
         const modified = original.min(3);
         expect(modified).not.toEqual(original);
@@ -134,7 +132,7 @@ describe('min', () => {
 });
 
 describe('max', () => {
-    it('Valid', () => {
+    it('accepts valid values', () => {
         const schema = p.string().max(3);
 
         fc.assert(
@@ -150,7 +148,7 @@ describe('max', () => {
         );
     });
 
-    it('Invalid', () => {
+    it('rejects invalid values', () => {
         const schema = p.string().max(3);
 
         fc.assert(
@@ -165,11 +163,11 @@ describe('max', () => {
         );
     });
 
-    it('NaN', () => {
+    it('throws on NaN', () => {
         expect(() => p.string().max(NaN)).toThrow();
     });
 
-    it('Immutable', () => {
+    it('is immutable', () => {
         const original = p.string();
         const modified = original.max(3);
         expect(modified).not.toEqual(original);
@@ -179,7 +177,7 @@ describe('max', () => {
 });
 
 describe('length', () => {
-    it('Valid', () => {
+    it('accepts valid values', () => {
         const schema = p.string().length(3);
 
         fc.assert(
@@ -195,7 +193,7 @@ describe('length', () => {
         );
     });
 
-    it('Invalid (too long)', () => {
+    it('rejects values that are too long', () => {
         const schema = p.string().length(3);
 
         fc.assert(
@@ -210,7 +208,7 @@ describe('length', () => {
         );
     });
 
-    it('Invalid (too short)', () => {
+    it('rejects values that are too short', () => {
         const schema = p.string().length(3);
 
         fc.assert(
@@ -225,11 +223,11 @@ describe('length', () => {
         );
     });
 
-    it('NaN', () => {
+    it('throws on NaN', () => {
         expect(() => p.string().length(NaN)).toThrow();
     });
 
-    it('Immutable', () => {
+    it('is immutable', () => {
         const original = p.string();
         const modified = original.length(3);
         expect(modified).not.toEqual(original);
@@ -238,68 +236,12 @@ describe('length', () => {
     });
 });
 
-test('Valid email', () => {
-    const schema = p.string().email();
+describe('email', () => {
+    it('accepts valid values', () => {
+        const schema = p.string().email();
 
-    fc.assert(
-        fc.property(fc.emailAddress(), (data) => {
-            const result = schema.safeParse(data);
-            if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<string>;
-                expect(result.value).toBe(data);
-            } else {
-                expect(result.ok).toBeTruthy();
-            }
-        }),
-    );
-});
-
-test('Invalid email', () => {
-    const schema = p.string().email();
-    const regex = emailRegex();
-
-    fc.assert(
-        fc.property(
-            fc.string().filter((value) => !regex.test(value)),
-            (data) => {
-                const result = schema.safeParse(data);
-                if (!result.ok) {
-                    expect(result.messages()).toEqual([{ path: [], message: 'Invalid email.' }]);
-                } else {
-                    expect(result.ok).toBeFalsy();
-                }
-            },
-        ),
-    );
-});
-
-test('Email ReDoS', async () => {
-    const regex = emailRegex();
-    // TODO: recheck doesn't support the v flag yet (https://github.com/makenowjust-labs/recheck/issues/1359).
-    //  Remove this workaround when it does.
-    // Strip v-mode-specific escapes that are invalid in u-mode.
-    const source = regex.source.replace(/\\([&!#%,:;<=>@`~])/g, '$1');
-    const diagnostics = await check(source, regex.flags.replace('v', 'u'));
-    if (diagnostics.status === 'vulnerable') {
-        console.log(`Vulnerable pattern: ${diagnostics.attack.pattern}`);
-    } else if (diagnostics.status === 'unknown') {
-        console.log(`Error: ${diagnostics.error.kind}.`);
-    }
-    expect(diagnostics.status).toBe('safe');
-});
-
-test('Valid emoji', () => {
-    const schema = p.string().emoji();
-
-    fc.assert(
-        fc.property(
-            fc.string({
-                minLength: 1,
-                unit: fc.mapToConstant(
-                    ...emoji.map((e) => ({ num: e.count, build: (v: number) => String.fromCodePoint(v + e.start) })),
-                ),
-            }),
-            (data) => {
+        fc.assert(
+            fc.property(fc.emailAddress(), (data) => {
                 const result = schema.safeParse(data);
                 if (result.ok) {
                     expectTypeOf(result.value).toEqualTypeOf<string>;
@@ -307,249 +249,126 @@ test('Valid emoji', () => {
                 } else {
                     expect(result.ok).toBeTruthy();
                 }
-            },
-        ),
-    );
-});
-
-test('Invalid emoji', () => {
-    const schema = p.string().emoji();
-    const regex = emojiRegex();
-
-    fc.assert(
-        fc.property(
-            fc.string().filter((value) => !regex.test(value)),
-            (data) => {
-                const result = schema.safeParse(data);
-                if (!result.ok) {
-                    expect(result.messages()).toEqual([{ path: [], message: 'Invalid emoji.' }]);
-                } else {
-                    expect(result.ok).toBeFalsy();
-                }
-            },
-        ),
-    );
-});
-
-test('Emoji ReDoS', async () => {
-    const regex = emojiRegex();
-    const diagnostics = await check(regex.source, regex.flags.replace('v', 'u'));
-    if (diagnostics.status === 'vulnerable') {
-        console.log(`Vulnerable pattern: ${diagnostics.attack.pattern}`);
-    } else if (diagnostics.status === 'unknown') {
-        console.log(`Error: ${diagnostics.error.kind}.`);
-    }
-    expect(diagnostics.status).toBe('safe');
-});
-
-test('Valid UUID', () => {
-    const schema = p.string().uuid();
-
-    fc.assert(
-        fc.property(fc.uuid(), (data) => {
-            const result = schema.safeParse(data);
-            if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<string>;
-                expect(result.value).toBe(data);
-            } else {
-                expect(result.ok).toBeTruthy();
-            }
-        }),
-    );
-});
-
-test('Invalid UUID', () => {
-    const schema = p.string().uuid();
-    const regex = uuidRegex();
-
-    fc.assert(
-        fc.property(
-            fc.string().filter((value) => !regex.test(value)),
-            (data) => {
-                const result = schema.safeParse(data);
-                if (!result.ok) {
-                    expect(result.messages()).toEqual([{ path: [], message: 'Invalid UUID.' }]);
-                } else {
-                    expect(result.ok).toBeFalsy();
-                }
-            },
-        ),
-    );
-});
-
-test('UUID ReDoS', async () => {
-    const regex = uuidRegex();
-    const diagnostics = await check(regex.source, regex.flags.replace('v', 'u'));
-    if (diagnostics.status === 'vulnerable') {
-        console.log(`Vulnerable pattern: ${diagnostics.attack.pattern}`);
-    } else if (diagnostics.status === 'unknown') {
-        console.log(`Error: ${diagnostics.error.kind}.`);
-    }
-    expect(diagnostics.status).toBe('safe');
-});
-
-test('Valid Nano ID', () => {
-    const schema = p.string().nanoid();
-    // FIXME: fast-check doesn't like case-insensitive regexes.
-    const regex = new RegExp(nanoidRegex().source);
-
-    fc.assert(
-        fc.property(fc.stringMatching(regex), (data) => {
-            const result = schema.safeParse(data);
-            if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<string>;
-                expect(result.value).toBe(data);
-            } else {
-                expect(result.ok).toBeTruthy();
-            }
-        }),
-    );
-});
-
-test('Invalid Nano ID', () => {
-    const schema = p.string().nanoid();
-    const regex = nanoidRegex();
-
-    fc.assert(
-        fc.property(
-            fc.string().filter((value) => !regex.test(value)),
-            (data) => {
-                const result = schema.safeParse(data);
-                if (!result.ok) {
-                    expect(result.messages()).toEqual([{ path: [], message: 'Invalid Nano ID.' }]);
-                } else {
-                    expect(result.ok).toBeFalsy();
-                }
-            },
-        ),
-    );
-});
-
-test('Nano ID ReDoS', async () => {
-    const regex = nanoidRegex();
-    const diagnostics = await check(regex.source, regex.flags);
-    if (diagnostics.status === 'vulnerable') {
-        console.log(`Vulnerable pattern: ${diagnostics.attack.pattern}`);
-    } else if (diagnostics.status === 'unknown') {
-        console.log(`Error: ${diagnostics.error.kind}.`);
-    }
-    expect(diagnostics.status).toBe('safe');
-});
-
-test('Valid includes', () => {
-    const schema = p.string().includes('foo');
-
-    fc.assert(
-        fc.property(fc.string(), fc.string(), (prefix, suffix) => {
-            const data = `${prefix}foo${suffix}`;
-            const result = schema.safeParse(data);
-            if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<string>;
-                expect(result.value).toBe(data);
-            } else {
-                expect(result.ok).toBeTruthy();
-            }
-        }),
-    );
-});
-
-test('Invalid includes', () => {
-    const schema = p.string().includes('foo');
-
-    fc.assert(
-        fc.property(
-            fc.string().filter((value) => !value.includes('foo')),
-            (data) => {
-                const result = schema.safeParse(data);
-                if (!result.ok) {
-                    expect(result.messages()).toEqual([{ path: [], message: 'Does not include search string.' }]);
-                } else {
-                    expect(result.ok).toBeFalsy();
-                }
-            },
-        ),
-    );
-});
-
-test('Valid startsWith', () => {
-    const schema = p.string().startsWith('foo');
-
-    fc.assert(
-        fc.property(fc.string(), (suffix) => {
-            const data = `foo${suffix}`;
-            const result = schema.safeParse(data);
-            if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<string>;
-                expect(result.value).toBe(data);
-            } else {
-                expect(result.ok).toBeTruthy();
-            }
-        }),
-    );
-});
-
-test('Invalid startsWith', () => {
-    const schema = p.string().startsWith('foo');
-
-    fc.assert(
-        fc.property(
-            fc.string().filter((value) => !value.startsWith('foo')),
-            (data) => {
-                const result = schema.safeParse(data);
-                if (!result.ok) {
-                    expect(result.messages()).toEqual([{ path: [], message: 'Does not start with search string.' }]);
-                } else {
-                    expect(result.ok).toBeFalsy();
-                }
-            },
-        ),
-    );
-});
-
-test('Valid endsWith', () => {
-    const schema = p.string().endsWith('foo');
-
-    fc.assert(
-        fc.property(fc.string(), (prefix) => {
-            const data = `${prefix}foo`;
-            const result = schema.safeParse(data);
-            if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<string>;
-                expect(result.value).toBe(data);
-            } else {
-                expect(result.ok).toBeTruthy();
-            }
-        }),
-    );
-});
-
-test('Invalid endsWith', () => {
-    const schema = p.string().endsWith('foo');
-
-    fc.assert(
-        fc.property(
-            fc.string().filter((value) => !value.endsWith('foo')),
-            (data) => {
-                const result = schema.safeParse(data);
-                if (!result.ok) {
-                    expect(result.messages()).toEqual([{ path: [], message: 'Does not end with search string.' }]);
-                } else {
-                    expect(result.ok).toBeFalsy();
-                }
-            },
-        ),
-    );
-});
-
-test('Valid date', () => {
-    const schema = p.string().date();
-
-    fc.assert(
-        fc.property(
-            fc.date({ min: new Date(0, 0, 1), max: new Date(9999, 11, 31), noInvalidDate: true }).map((value) => {
-                return formatDate(value);
             }),
-            (data) => {
+        );
+    });
+
+    it('rejects invalid values', () => {
+        const schema = p.string().email();
+        const regex = emailRegex();
+
+        fc.assert(
+            fc.property(
+                fc.string().filter((value) => !regex.test(value)),
+                (data) => {
+                    const result = schema.safeParse(data);
+                    if (!result.ok) {
+                        expect(result.messages()).toEqual([{ path: [], message: 'Invalid email.' }]);
+                    } else {
+                        expect(result.ok).toBeFalsy();
+                    }
+                },
+            ),
+        );
+    });
+
+    it('is safe from ReDoS', async () => {
+        const regex = emailRegex();
+        // TODO: recheck doesn't support the v flag yet (https://github.com/makenowjust-labs/recheck/issues/1359).
+        //  Remove this workaround when it does.
+        // Strip v-mode-specific escapes that are invalid in u-mode.
+        const source = regex.source.replace(/\\([&!#%,:;<=>@`~])/g, '$1');
+        const diagnostics = await check(source, regex.flags.replace('v', 'u'));
+        if (diagnostics.status === 'vulnerable') {
+            console.log(`Vulnerable pattern: ${diagnostics.attack.pattern}`);
+        } else if (diagnostics.status === 'unknown') {
+            console.log(`Error: ${diagnostics.error.kind}.`);
+        }
+        expect(diagnostics.status).toBe('safe');
+    });
+
+    it('is immutable', () => {
+        const original = p.string();
+        const modified = original.email();
+        expect(modified).not.toEqual(original);
+        const branched = modified.min(1);
+        expect(branched).not.toEqual(modified);
+    });
+});
+
+describe('emoji', () => {
+    it('accepts valid values', () => {
+        const schema = p.string().emoji();
+
+        fc.assert(
+            fc.property(
+                fc.string({
+                    minLength: 1,
+                    unit: fc.mapToConstant(
+                        ...emoji.map((e) => ({
+                            num: e.count,
+                            build: (v: number) => String.fromCodePoint(v + e.start),
+                        })),
+                    ),
+                }),
+                (data) => {
+                    const result = schema.safeParse(data);
+                    if (result.ok) {
+                        expectTypeOf(result.value).toEqualTypeOf<string>;
+                        expect(result.value).toBe(data);
+                    } else {
+                        expect(result.ok).toBeTruthy();
+                    }
+                },
+            ),
+        );
+    });
+
+    it('rejects invalid values', () => {
+        const schema = p.string().emoji();
+        const regex = emojiRegex();
+
+        fc.assert(
+            fc.property(
+                fc.string().filter((value) => !regex.test(value)),
+                (data) => {
+                    const result = schema.safeParse(data);
+                    if (!result.ok) {
+                        expect(result.messages()).toEqual([{ path: [], message: 'Invalid emoji.' }]);
+                    } else {
+                        expect(result.ok).toBeFalsy();
+                    }
+                },
+            ),
+        );
+    });
+
+    it('is safe from ReDoS', async () => {
+        const regex = emojiRegex();
+        const diagnostics = await check(regex.source, regex.flags.replace('v', 'u'));
+        if (diagnostics.status === 'vulnerable') {
+            console.log(`Vulnerable pattern: ${diagnostics.attack.pattern}`);
+        } else if (diagnostics.status === 'unknown') {
+            console.log(`Error: ${diagnostics.error.kind}.`);
+        }
+        expect(diagnostics.status).toBe('safe');
+    });
+
+    it('is immutable', () => {
+        const original = p.string();
+        const modified = original.emoji();
+        expect(modified).not.toEqual(original);
+        const branched = modified.min(1);
+        expect(branched).not.toEqual(modified);
+    });
+});
+
+describe('uuid', () => {
+    it('accepts valid values', () => {
+        const schema = p.string().uuid();
+
+        fc.assert(
+            fc.property(fc.uuid(), (data) => {
                 const result = schema.safeParse(data);
                 if (result.ok) {
                     expectTypeOf(result.value).toEqualTypeOf<string>;
@@ -557,43 +376,307 @@ test('Valid date', () => {
                 } else {
                     expect(result.ok).toBeTruthy();
                 }
-            },
-        ),
-    );
+            }),
+        );
+    });
+
+    it('rejects invalid values', () => {
+        const schema = p.string().uuid();
+        const regex = uuidRegex();
+
+        fc.assert(
+            fc.property(
+                fc.string().filter((value) => !regex.test(value)),
+                (data) => {
+                    const result = schema.safeParse(data);
+                    if (!result.ok) {
+                        expect(result.messages()).toEqual([{ path: [], message: 'Invalid UUID.' }]);
+                    } else {
+                        expect(result.ok).toBeFalsy();
+                    }
+                },
+            ),
+        );
+    });
+
+    it('is safe from ReDoS', async () => {
+        const regex = uuidRegex();
+        const diagnostics = await check(regex.source, regex.flags.replace('v', 'u'));
+        if (diagnostics.status === 'vulnerable') {
+            console.log(`Vulnerable pattern: ${diagnostics.attack.pattern}`);
+        } else if (diagnostics.status === 'unknown') {
+            console.log(`Error: ${diagnostics.error.kind}.`);
+        }
+        expect(diagnostics.status).toBe('safe');
+    });
+
+    it('is immutable', () => {
+        const original = p.string();
+        const modified = original.uuid();
+        expect(modified).not.toEqual(original);
+        const branched = modified.min(1);
+        expect(branched).not.toEqual(modified);
+    });
 });
 
-test('Invalid date', () => {
-    const schema = p.string().date();
-    const regex = dateRegex();
+describe('nanoid', () => {
+    it('accepts valid values', () => {
+        const schema = p.string().nanoid();
+        // FIXME: fast-check doesn't like case-insensitive regexes.
+        const regex = new RegExp(nanoidRegex().source);
 
-    fc.assert(
-        fc.property(
-            fc.string().filter((value) => !regex.test(value)),
-            (data) => {
+        fc.assert(
+            fc.property(fc.stringMatching(regex), (data) => {
                 const result = schema.safeParse(data);
-                if (!result.ok) {
-                    expect(result.messages()).toEqual([{ path: [], message: 'Invalid date string.' }]);
+                if (result.ok) {
+                    expectTypeOf(result.value).toEqualTypeOf<string>;
+                    expect(result.value).toBe(data);
                 } else {
-                    expect(result.ok).toBeFalsy();
+                    expect(result.ok).toBeTruthy();
                 }
-            },
-        ),
-    );
+            }),
+        );
+    });
+
+    it('rejects invalid values', () => {
+        const schema = p.string().nanoid();
+        const regex = nanoidRegex();
+
+        fc.assert(
+            fc.property(
+                fc.string().filter((value) => !regex.test(value)),
+                (data) => {
+                    const result = schema.safeParse(data);
+                    if (!result.ok) {
+                        expect(result.messages()).toEqual([{ path: [], message: 'Invalid Nano ID.' }]);
+                    } else {
+                        expect(result.ok).toBeFalsy();
+                    }
+                },
+            ),
+        );
+    });
+
+    it('is safe from ReDoS', async () => {
+        const regex = nanoidRegex();
+        const diagnostics = await check(regex.source, regex.flags);
+        if (diagnostics.status === 'vulnerable') {
+            console.log(`Vulnerable pattern: ${diagnostics.attack.pattern}`);
+        } else if (diagnostics.status === 'unknown') {
+            console.log(`Error: ${diagnostics.error.kind}.`);
+        }
+        expect(diagnostics.status).toBe('safe');
+    });
+
+    it('is immutable', () => {
+        const original = p.string();
+        const modified = original.nanoid();
+        expect(modified).not.toEqual(original);
+        const branched = modified.min(1);
+        expect(branched).not.toEqual(modified);
+    });
 });
 
-test('Date ReDoS', async () => {
-    const regex = dateRegex();
-    const diagnostics = await check(regex.source, regex.flags.replace('v', 'u'));
-    if (diagnostics.status === 'vulnerable') {
-        console.log(`Vulnerable pattern: ${diagnostics.attack.pattern}`);
-    } else if (diagnostics.status === 'unknown') {
-        console.log(`Error: ${diagnostics.error.kind}.`);
-    }
-    expect(diagnostics.status).toBe('safe');
+describe('includes', () => {
+    it('accepts valid values', () => {
+        const schema = p.string().includes('foo');
+
+        fc.assert(
+            fc.property(fc.string(), fc.string(), (prefix, suffix) => {
+                const data = `${prefix}foo${suffix}`;
+                const result = schema.safeParse(data);
+                if (result.ok) {
+                    expectTypeOf(result.value).toEqualTypeOf<string>;
+                    expect(result.value).toBe(data);
+                } else {
+                    expect(result.ok).toBeTruthy();
+                }
+            }),
+        );
+    });
+
+    it('rejects invalid values', () => {
+        const schema = p.string().includes('foo');
+
+        fc.assert(
+            fc.property(
+                fc.string().filter((value) => !value.includes('foo')),
+                (data) => {
+                    const result = schema.safeParse(data);
+                    if (!result.ok) {
+                        expect(result.messages()).toEqual([{ path: [], message: 'Does not include search string.' }]);
+                    } else {
+                        expect(result.ok).toBeFalsy();
+                    }
+                },
+            ),
+        );
+    });
+
+    it('is immutable', () => {
+        const original = p.string();
+        const modified = original.includes('foo');
+        expect(modified).not.toEqual(original);
+        const branched = modified.min(1);
+        expect(branched).not.toEqual(modified);
+    });
+});
+
+describe('startsWith', () => {
+    it('accepts valid values', () => {
+        const schema = p.string().startsWith('foo');
+
+        fc.assert(
+            fc.property(fc.string(), (suffix) => {
+                const data = `foo${suffix}`;
+                const result = schema.safeParse(data);
+                if (result.ok) {
+                    expectTypeOf(result.value).toEqualTypeOf<string>;
+                    expect(result.value).toBe(data);
+                } else {
+                    expect(result.ok).toBeTruthy();
+                }
+            }),
+        );
+    });
+
+    it('rejects invalid values', () => {
+        const schema = p.string().startsWith('foo');
+
+        fc.assert(
+            fc.property(
+                fc.string().filter((value) => !value.startsWith('foo')),
+                (data) => {
+                    const result = schema.safeParse(data);
+                    if (!result.ok) {
+                        expect(result.messages()).toEqual([
+                            { path: [], message: 'Does not start with search string.' },
+                        ]);
+                    } else {
+                        expect(result.ok).toBeFalsy();
+                    }
+                },
+            ),
+        );
+    });
+
+    it('is immutable', () => {
+        const original = p.string();
+        const modified = original.startsWith('foo');
+        expect(modified).not.toEqual(original);
+        const branched = modified.min(1);
+        expect(branched).not.toEqual(modified);
+    });
+});
+
+describe('endsWith', () => {
+    it('accepts valid values', () => {
+        const schema = p.string().endsWith('foo');
+
+        fc.assert(
+            fc.property(fc.string(), (prefix) => {
+                const data = `${prefix}foo`;
+                const result = schema.safeParse(data);
+                if (result.ok) {
+                    expectTypeOf(result.value).toEqualTypeOf<string>;
+                    expect(result.value).toBe(data);
+                } else {
+                    expect(result.ok).toBeTruthy();
+                }
+            }),
+        );
+    });
+
+    it('rejects invalid values', () => {
+        const schema = p.string().endsWith('foo');
+
+        fc.assert(
+            fc.property(
+                fc.string().filter((value) => !value.endsWith('foo')),
+                (data) => {
+                    const result = schema.safeParse(data);
+                    if (!result.ok) {
+                        expect(result.messages()).toEqual([{ path: [], message: 'Does not end with search string.' }]);
+                    } else {
+                        expect(result.ok).toBeFalsy();
+                    }
+                },
+            ),
+        );
+    });
+
+    it('is immutable', () => {
+        const original = p.string();
+        const modified = original.endsWith('foo');
+        expect(modified).not.toEqual(original);
+        const branched = modified.min(1);
+        expect(branched).not.toEqual(modified);
+    });
+});
+
+describe('date (string)', () => {
+    it('accepts valid values', () => {
+        const schema = p.string().date();
+
+        fc.assert(
+            fc.property(
+                fc.date({ min: new Date(0, 0, 1), max: new Date(9999, 11, 31), noInvalidDate: true }).map((value) => {
+                    return formatDate(value);
+                }),
+                (data) => {
+                    const result = schema.safeParse(data);
+                    if (result.ok) {
+                        expectTypeOf(result.value).toEqualTypeOf<string>;
+                        expect(result.value).toBe(data);
+                    } else {
+                        expect(result.ok).toBeTruthy();
+                    }
+                },
+            ),
+        );
+    });
+
+    it('rejects invalid values', () => {
+        const schema = p.string().date();
+        const regex = dateRegex();
+
+        fc.assert(
+            fc.property(
+                fc.string().filter((value) => !regex.test(value)),
+                (data) => {
+                    const result = schema.safeParse(data);
+                    if (!result.ok) {
+                        expect(result.messages()).toEqual([{ path: [], message: 'Invalid date string.' }]);
+                    } else {
+                        expect(result.ok).toBeFalsy();
+                    }
+                },
+            ),
+        );
+    });
+
+    it('is safe from ReDoS', async () => {
+        const regex = dateRegex();
+        const diagnostics = await check(regex.source, regex.flags.replace('v', 'u'));
+        if (diagnostics.status === 'vulnerable') {
+            console.log(`Vulnerable pattern: ${diagnostics.attack.pattern}`);
+        } else if (diagnostics.status === 'unknown') {
+            console.log(`Error: ${diagnostics.error.kind}.`);
+        }
+        expect(diagnostics.status).toBe('safe');
+    });
+
+    it('is immutable', () => {
+        const original = p.string();
+        const modified = original.date();
+        expect(modified).not.toEqual(original);
+        const branched = modified.min(1);
+        expect(branched).not.toEqual(modified);
+    });
 });
 
 describe('time', () => {
-    it('Valid', () => {
+    it('accepts valid values', () => {
         fc.assert(
             fc.property(
                 fc.date({ min: new Date(0, 0, 1), max: new Date(9999, 11, 31), noInvalidDate: true }),
@@ -618,7 +701,7 @@ describe('time', () => {
         );
     });
 
-    it('Invalid', () => {
+    it('rejects invalid values', () => {
         const schema = p.string().time();
 
         fc.assert(
@@ -636,7 +719,7 @@ describe('time', () => {
         );
     });
 
-    it('Invalid precision', () => {
+    it('throws on invalid precision', () => {
         fc.assert(
             fc.property(fc.oneof(fc.float({ noInteger: true }), fc.integer({ max: -1 })), (precision) => {
                 expect(() => p.string().time({ precision })).toThrow();
@@ -644,7 +727,7 @@ describe('time', () => {
         );
     });
 
-    it('ReDoS', () => {
+    it('is safe from ReDoS', () => {
         fc.assert(
             fc.property(fc.option(fc.integer({ min: 0, max: 8 }), { nil: undefined }), (precision) => {
                 const regex = timeRegex(precision);
@@ -660,10 +743,18 @@ describe('time', () => {
             { ignoreEqualValues: true },
         );
     });
+
+    it('is immutable', () => {
+        const original = p.string();
+        const modified = original.time();
+        expect(modified).not.toEqual(original);
+        const branched = modified.min(1);
+        expect(branched).not.toEqual(modified);
+    });
 });
 
 describe('datetime', () => {
-    it('Valid', () => {
+    it('accepts valid values', () => {
         fc.assert(
             fc.property(
                 fc.date({ min: new Date(0, 0, 1), max: new Date(9999, 11, 31), noInvalidDate: true }),
@@ -697,7 +788,7 @@ describe('datetime', () => {
         );
     });
 
-    it('Invalid', () => {
+    it('rejects invalid values', () => {
         const schema = p.string().datetime();
 
         fc.assert(
@@ -715,7 +806,7 @@ describe('datetime', () => {
         );
     });
 
-    it('Invalid precision', () => {
+    it('throws on invalid precision', () => {
         fc.assert(
             fc.property(fc.oneof(fc.float({ noInteger: true }), fc.integer({ max: -1 })), (precision) => {
                 expect(() => p.string().datetime({ precision })).toThrow();
@@ -723,7 +814,7 @@ describe('datetime', () => {
         );
     });
 
-    it('ReDoS', () => {
+    it('is safe from ReDoS', () => {
         fc.assert(
             fc.property(
                 fc.option(fc.integer({ min: 0, max: 8 }), { nil: undefined }),
@@ -744,69 +835,22 @@ describe('datetime', () => {
             { ignoreEqualValues: true },
         );
     });
+
+    it('is immutable', () => {
+        const original = p.string();
+        const modified = original.datetime();
+        expect(modified).not.toEqual(original);
+        const branched = modified.min(1);
+        expect(branched).not.toEqual(modified);
+    });
 });
 
-test('Valid ip', () => {
-    const schema = p.string().ip();
+describe('ip', () => {
+    it('accepts valid values', () => {
+        const schema = p.string().ip();
 
-    fc.assert(
-        fc.property(fc.oneof(fc.ipV4(), fc.ipV6()), (data) => {
-            const result = schema.safeParse(data);
-            if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<string>;
-                expect(result.value).toBe(data);
-            } else {
-                expect(result.ok).toBeTruthy();
-            }
-        }),
-    );
-});
-
-test('Invalid ip', () => {
-    const schema = p.string().ip();
-
-    fc.assert(
-        fc.property(
-            fc.string().filter((value) => !ipRegex().test(value)),
-            (data) => {
-                const result = schema.safeParse(data);
-                if (!result.ok) {
-                    expect(result.messages()).toEqual([{ path: [], message: 'Invalid IP address.' }]);
-                } else {
-                    expect(result.ok).toBeFalsy();
-                }
-            },
-        ),
-    );
-});
-
-test('ip ReDoS', () => {
-    fc.assert(
-        fc.property(fc.constantFrom(4 as const, 6 as const, undefined), (version) => {
-            const regex = ipRegex(version);
-            check(regex.source, regex.flags.replace('v', 'u'), { timeout: 20_000 }).then((diagnostics) => {
-                if (diagnostics.status === 'vulnerable') {
-                    console.log(`Vulnerable pattern: ${diagnostics.attack.pattern}`);
-                } else if (diagnostics.status === 'unknown') {
-                    console.log(`Error: ${diagnostics.error.kind}.`);
-                }
-                expect(diagnostics.status).toBe('safe');
-            });
-        }),
-        { ignoreEqualValues: true },
-    );
-});
-
-test('Valid cidr', () => {
-    const schema = p.string().cidr();
-
-    fc.assert(
-        fc.property(
-            fc.oneof(
-                fc.tuple(fc.ipV4(), fc.integer({ min: 1, max: 32 })).map(([ip, bits]) => `${ip}/${bits}`),
-                fc.tuple(fc.ipV6(), fc.integer({ min: 1, max: 128 })).map(([ip, bits]) => `${ip}/${bits}`),
-            ),
-            (data) => {
+        fc.assert(
+            fc.property(fc.oneof(fc.ipV4(), fc.ipV6()), (data) => {
                 const result = schema.safeParse(data);
                 if (result.ok) {
                     expectTypeOf(result.value).toEqualTypeOf<string>;
@@ -814,112 +858,197 @@ test('Valid cidr', () => {
                 } else {
                     expect(result.ok).toBeTruthy();
                 }
-            },
-        ),
-    );
+            }),
+        );
+    });
+
+    it('rejects invalid values', () => {
+        const schema = p.string().ip();
+
+        fc.assert(
+            fc.property(
+                fc.string().filter((value) => !ipRegex().test(value)),
+                (data) => {
+                    const result = schema.safeParse(data);
+                    if (!result.ok) {
+                        expect(result.messages()).toEqual([{ path: [], message: 'Invalid IP address.' }]);
+                    } else {
+                        expect(result.ok).toBeFalsy();
+                    }
+                },
+            ),
+        );
+    });
+
+    it('is safe from ReDoS', () => {
+        fc.assert(
+            fc.property(fc.constantFrom(4 as const, 6 as const, undefined), (version) => {
+                const regex = ipRegex(version);
+                check(regex.source, regex.flags.replace('v', 'u'), { timeout: 20_000 }).then((diagnostics) => {
+                    if (diagnostics.status === 'vulnerable') {
+                        console.log(`Vulnerable pattern: ${diagnostics.attack.pattern}`);
+                    } else if (diagnostics.status === 'unknown') {
+                        console.log(`Error: ${diagnostics.error.kind}.`);
+                    }
+                    expect(diagnostics.status).toBe('safe');
+                });
+            }),
+            { ignoreEqualValues: true },
+        );
+    });
+
+    it('is immutable', () => {
+        const original = p.string();
+        const modified = original.ip();
+        expect(modified).not.toEqual(original);
+        const branched = modified.min(1);
+        expect(branched).not.toEqual(modified);
+    });
 });
 
-test('Invalid cidr', () => {
-    const schema = p.string().cidr();
+describe('cidr', () => {
+    it('accepts valid values', () => {
+        const schema = p.string().cidr();
 
-    fc.assert(
-        fc.property(
-            fc.string().filter((value) => !ipCidrRegex().test(value)),
-            (data) => {
+        fc.assert(
+            fc.property(
+                fc.oneof(
+                    fc.tuple(fc.ipV4(), fc.integer({ min: 1, max: 32 })).map(([ip, bits]) => `${ip}/${bits}`),
+                    fc.tuple(fc.ipV6(), fc.integer({ min: 1, max: 128 })).map(([ip, bits]) => `${ip}/${bits}`),
+                ),
+                (data) => {
+                    const result = schema.safeParse(data);
+                    if (result.ok) {
+                        expectTypeOf(result.value).toEqualTypeOf<string>;
+                        expect(result.value).toBe(data);
+                    } else {
+                        expect(result.ok).toBeTruthy();
+                    }
+                },
+            ),
+        );
+    });
+
+    it('rejects invalid values', () => {
+        const schema = p.string().cidr();
+
+        fc.assert(
+            fc.property(
+                fc.string().filter((value) => !ipCidrRegex().test(value)),
+                (data) => {
+                    const result = schema.safeParse(data);
+                    if (!result.ok) {
+                        expect(result.messages()).toEqual([{ path: [], message: 'Invalid IP address range.' }]);
+                    } else {
+                        expect(result.ok).toBeFalsy();
+                    }
+                },
+            ),
+        );
+    });
+
+    it('is safe from ReDoS', () => {
+        fc.assert(
+            fc.property(fc.constantFrom(4 as const, 6 as const, undefined), (version) => {
+                const regex = ipCidrRegex(version);
+                check(regex.source, regex.flags.replace('v', 'u'), { timeout: 20_000 }).then((diagnostics) => {
+                    if (diagnostics.status === 'vulnerable') {
+                        console.log(`Vulnerable pattern: ${diagnostics.attack.pattern}`);
+                    } else if (diagnostics.status === 'unknown') {
+                        console.log(`Error: ${diagnostics.error.kind}.`);
+                    }
+                    expect(diagnostics.status).toBe('safe');
+                });
+            }),
+            { ignoreEqualValues: true },
+        );
+    });
+
+    it('is immutable', () => {
+        const original = p.string();
+        const modified = original.cidr();
+        expect(modified).not.toEqual(original);
+        const branched = modified.min(1);
+        expect(branched).not.toEqual(modified);
+    });
+});
+
+describe('regex', () => {
+    it('accepts valid values', () => {
+        const schema = p.string().regex(/^a+$/);
+
+        fc.assert(
+            fc.property(fc.string({ minLength: 1, unit: fc.constantFrom('a') }), (data) => {
                 const result = schema.safeParse(data);
-                if (!result.ok) {
-                    expect(result.messages()).toEqual([{ path: [], message: 'Invalid IP address range.' }]);
+                if (result.ok) {
+                    expectTypeOf(result.value).toEqualTypeOf<string>;
+                    expect(result.value).toBe(data);
                 } else {
-                    expect(result.ok).toBeFalsy();
+                    expect(result.ok).toBeTruthy();
                 }
-            },
-        ),
-    );
-});
+            }),
+        );
+    });
 
-test('cidr ReDoS', () => {
-    fc.assert(
-        fc.property(fc.constantFrom(4 as const, 6 as const, undefined), (version) => {
-            const regex = ipCidrRegex(version);
-            check(regex.source, regex.flags.replace('v', 'u'), { timeout: 20_000 }).then((diagnostics) => {
-                if (diagnostics.status === 'vulnerable') {
-                    console.log(`Vulnerable pattern: ${diagnostics.attack.pattern}`);
-                } else if (diagnostics.status === 'unknown') {
-                    console.log(`Error: ${diagnostics.error.kind}.`);
-                }
-                expect(diagnostics.status).toBe('safe');
-            });
-        }),
-        { ignoreEqualValues: true },
-    );
-});
+    it('rejects invalid values', () => {
+        const regex = /^a+$/;
+        const schema = p.string().regex(regex);
 
-test('Valid regex', () => {
-    const schema = p.string().regex(/^a+$/);
+        fc.assert(
+            fc.property(
+                fc.string().filter((value) => !regex.test(value)),
+                (data) => {
+                    const result = schema.safeParse(data);
+                    if (!result.ok) {
+                        expect(result.messages()).toEqual([{ path: [], message: 'Does not match regex.' }]);
+                    } else {
+                        expect(result.ok).toBeFalsy();
+                    }
+                },
+            ),
+        );
+    });
 
-    fc.assert(
-        fc.property(fc.string({ minLength: 1, unit: fc.constantFrom('a') }), (data) => {
-            const result = schema.safeParse(data);
-            if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<string>;
-                expect(result.value).toBe(data);
-            } else {
-                expect(result.ok).toBeTruthy();
-            }
-        }),
-    );
-});
+    it('produces consistent results with global flag', () => {
+        const schema = p.string().regex(/^a+$/g);
 
-test('Invalid regex', () => {
-    const regex = /^a+$/;
-    const schema = p.string().regex(regex);
-
-    fc.assert(
-        fc.property(
-            fc.string().filter((value) => !regex.test(value)),
-            (data) => {
+        fc.assert(
+            fc.property(fc.string({ minLength: 1, unit: fc.constantFrom('a') }), (data) => {
                 const result = schema.safeParse(data);
-                if (!result.ok) {
-                    expect(result.messages()).toEqual([{ path: [], message: 'Does not match regex.' }]);
+                if (result.ok) {
+                    expect(result.value).toBe(data);
                 } else {
-                    expect(result.ok).toBeFalsy();
+                    expect(result.ok).toBeTruthy();
                 }
-            },
-        ),
-    );
+            }),
+        );
+    });
+
+    it('produces consistent results with sticky flag', () => {
+        const schema = p.string().regex(/^a+$/y);
+
+        fc.assert(
+            fc.property(fc.string({ minLength: 1, unit: fc.constantFrom('a') }), (data) => {
+                const result = schema.safeParse(data);
+                if (result.ok) {
+                    expect(result.value).toBe(data);
+                } else {
+                    expect(result.ok).toBeTruthy();
+                }
+            }),
+        );
+    });
+
+    it('is immutable', () => {
+        const original = p.string();
+        const modified = original.regex(/a+/);
+        expect(modified).not.toEqual(original);
+        const branched = modified.min(1);
+        expect(branched).not.toEqual(modified);
+    });
 });
 
-test('Regex with global flag produces consistent results', () => {
-    const schema = p.string().regex(/^a+$/g);
-
-    fc.assert(
-        fc.property(fc.string({ minLength: 1, unit: fc.constantFrom('a') }), (data) => {
-            const result = schema.safeParse(data);
-            if (result.ok) {
-                expect(result.value).toBe(data);
-            } else {
-                expect(result.ok).toBeTruthy();
-            }
-        }),
-    );
-});
-
-test('Regex with sticky flag produces consistent results', () => {
-    const schema = p.string().regex(/^a+$/y);
-
-    fc.assert(
-        fc.property(fc.string({ minLength: 1, unit: fc.constantFrom('a') }), (data) => {
-            const result = schema.safeParse(data);
-            if (result.ok) {
-                expect(result.value).toBe(data);
-            } else {
-                expect(result.ok).toBeTruthy();
-            }
-        }),
-    );
-});
-
-test('Optional', () => {
+it('accepts optional values', () => {
     const schema = p.string().optional();
 
     fc.assert(
@@ -935,7 +1064,7 @@ test('Optional', () => {
     );
 });
 
-test('Nullable', () => {
+it('accepts nullable values', () => {
     const schema = p.string().nullable();
 
     fc.assert(
@@ -949,110 +1078,4 @@ test('Nullable', () => {
             }
         }),
     );
-});
-
-test('Immutable', async (t) => {
-    await t.step('email', () => {
-        const original = p.string();
-        const modified = original.email();
-        expect(modified).not.toEqual(original);
-        const branched = modified.min(1);
-        expect(branched).not.toEqual(modified);
-    });
-
-    await t.step('emoji', () => {
-        const original = p.string();
-        const modified = original.emoji();
-        expect(modified).not.toEqual(original);
-        const branched = modified.min(1);
-        expect(branched).not.toEqual(modified);
-    });
-
-    await t.step('uuid', () => {
-        const original = p.string();
-        const modified = original.uuid();
-        expect(modified).not.toEqual(original);
-        const branched = modified.min(1);
-        expect(branched).not.toEqual(modified);
-    });
-
-    await t.step('nanoid', () => {
-        const original = p.string();
-        const modified = original.nanoid();
-        expect(modified).not.toEqual(original);
-        const branched = modified.min(1);
-        expect(branched).not.toEqual(modified);
-    });
-
-    await t.step('includes', () => {
-        const original = p.string();
-        const modified = original.includes('foo');
-        expect(modified).not.toEqual(original);
-        const branched = modified.min(1);
-        expect(branched).not.toEqual(modified);
-    });
-
-    await t.step('startsWith', () => {
-        const original = p.string();
-        const modified = original.startsWith('foo');
-        expect(modified).not.toEqual(original);
-        const branched = modified.min(1);
-        expect(branched).not.toEqual(modified);
-    });
-
-    await t.step('endsWith', () => {
-        const original = p.string();
-        const modified = original.endsWith('foo');
-        expect(modified).not.toEqual(original);
-        const branched = modified.min(1);
-        expect(branched).not.toEqual(modified);
-    });
-
-    await t.step('date', () => {
-        const original = p.string();
-        const modified = original.date();
-        expect(modified).not.toEqual(original);
-        const branched = modified.min(1);
-        expect(branched).not.toEqual(modified);
-    });
-
-    await t.step('time', () => {
-        const original = p.string();
-        const modified = original.time();
-        expect(modified).not.toEqual(original);
-        const branched = modified.min(1);
-        expect(branched).not.toEqual(modified);
-    });
-
-    await t.step('datetime', () => {
-        const original = p.string();
-        const modified = original.datetime();
-        expect(modified).not.toEqual(original);
-        const branched = modified.min(1);
-        expect(branched).not.toEqual(modified);
-    });
-
-    await t.step('ip', () => {
-        const original = p.string();
-        const modified = original.ip();
-        expect(modified).not.toEqual(original);
-        const branched = modified.min(1);
-        expect(branched).not.toEqual(modified);
-    });
-
-    await t.step('cidr', () => {
-        const original = p.string();
-        const modified = original.cidr();
-        expect(modified).not.toEqual(original);
-        const branched = modified.min(1);
-        expect(branched).not.toEqual(modified);
-    });
-
-    await t.step('regex', () => {
-        const original = p.string();
-        const modified = original.regex(/a+/);
-        expect(modified).not.toEqual(original);
-        const branched = modified.min(1);
-        expect(branched).not.toEqual(modified);
-    });
 });

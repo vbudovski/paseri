@@ -1,14 +1,12 @@
 import { expect } from '@std/expect';
+import { describe, it } from '@std/testing/bdd';
 import { expectTypeOf } from 'expect-type';
 import fc from 'fast-check';
 import * as p from '../index.ts';
 
-const { test } = Deno;
-
-test('String', async (t) => {
-    const schema = p.literal('apple');
-
-    await t.step('Valid', () => {
+describe('String', () => {
+    it('accepts valid values', () => {
+        const schema = p.literal('apple');
         const result = schema.safeParse('apple');
         if (result.ok) {
             expectTypeOf(result.value).toEqualTypeOf<'apple'>;
@@ -18,7 +16,8 @@ test('String', async (t) => {
         }
     });
 
-    await t.step('Invalid', () => {
+    it('rejects invalid values', () => {
+        const schema = p.literal('apple');
         const result = schema.safeParse('banana');
         if (!result.ok) {
             expect(result.messages()).toEqual([{ path: [], message: "Invalid value. Expected 'apple'." }]);
@@ -27,15 +26,15 @@ test('String', async (t) => {
         }
     });
 
-    await t.step('Value', () => {
+    it('exposes the literal value type', () => {
+        const schema = p.literal('apple');
         expectTypeOf(schema.value).toEqualTypeOf<'apple'>;
     });
 });
 
-test('Number', async (t) => {
-    const schema = p.literal(123);
-
-    await t.step('Valid', () => {
+describe('Number', () => {
+    it('accepts valid values', () => {
+        const schema = p.literal(123);
         const result = schema.safeParse(123);
         if (result.ok) {
             expectTypeOf(result.value).toEqualTypeOf<123>;
@@ -45,7 +44,8 @@ test('Number', async (t) => {
         }
     });
 
-    await t.step('Invalid', () => {
+    it('rejects invalid values', () => {
+        const schema = p.literal(123);
         const result = schema.safeParse(456);
         if (!result.ok) {
             expect(result.messages()).toEqual([{ path: [], message: 'Invalid value. Expected 123.' }]);
@@ -54,15 +54,15 @@ test('Number', async (t) => {
         }
     });
 
-    await t.step('Value', () => {
+    it('exposes the literal value type', () => {
+        const schema = p.literal(123);
         expectTypeOf(schema.value).toEqualTypeOf<123>;
     });
 });
 
-test('BigInt', async (t) => {
-    const schema = p.literal(123n);
-
-    await t.step('Valid', () => {
+describe('BigInt', () => {
+    it('accepts valid values', () => {
+        const schema = p.literal(123n);
         const result = schema.safeParse(123n);
         if (result.ok) {
             expectTypeOf(result.value).toEqualTypeOf<123n>;
@@ -72,7 +72,8 @@ test('BigInt', async (t) => {
         }
     });
 
-    await t.step('Invalid', () => {
+    it('rejects invalid values', () => {
+        const schema = p.literal(123n);
         const result = schema.safeParse(456n);
         if (!result.ok) {
             expect(result.messages()).toEqual([{ path: [], message: 'Invalid value. Expected 123n.' }]);
@@ -81,15 +82,15 @@ test('BigInt', async (t) => {
         }
     });
 
-    await t.step('Value', () => {
+    it('exposes the literal value type', () => {
+        const schema = p.literal(123n);
         expectTypeOf(schema.value).toEqualTypeOf<123n>;
     });
 });
 
-test('Boolean', async (t) => {
-    const schema = p.literal(true);
-
-    await t.step('Valid', () => {
+describe('Boolean', () => {
+    it('accepts valid values', () => {
+        const schema = p.literal(true);
         const result = schema.safeParse(true);
         if (result.ok) {
             expectTypeOf(result.value).toEqualTypeOf<true>;
@@ -99,7 +100,8 @@ test('Boolean', async (t) => {
         }
     });
 
-    await t.step('Invalid', () => {
+    it('rejects invalid values', () => {
+        const schema = p.literal(true);
         const result = schema.safeParse(false);
         if (!result.ok) {
             expect(result.messages()).toEqual([{ path: [], message: 'Invalid value. Expected true.' }]);
@@ -108,12 +110,13 @@ test('Boolean', async (t) => {
         }
     });
 
-    await t.step('Value', () => {
+    it('exposes the literal value type', () => {
+        const schema = p.literal(true);
         expectTypeOf(schema.value).toEqualTypeOf<true>;
     });
 });
 
-test('Optional', () => {
+it('accepts optional values', () => {
     const schema = p.literal('apple').optional();
 
     fc.assert(
@@ -129,7 +132,7 @@ test('Optional', () => {
     );
 });
 
-test('Nullable', () => {
+it('accepts nullable values', () => {
     const schema = p.literal('apple').nullable();
 
     fc.assert(

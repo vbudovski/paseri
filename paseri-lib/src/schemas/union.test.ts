@@ -1,12 +1,11 @@
 import { expect } from '@std/expect';
+import { describe, it } from '@std/testing/bdd';
 import { expectTypeOf } from 'expect-type';
 import fc from 'fast-check';
 import * as p from '../index.ts';
 import { findDiscriminator } from './union.ts';
 
-const { test } = Deno;
-
-test('Valid type', () => {
+it('accepts valid types', () => {
     const schema = p.union(p.string(), p.number(), p.literal(123n));
 
     fc.assert(
@@ -22,7 +21,7 @@ test('Valid type', () => {
     );
 });
 
-test('Invalid type', () => {
+it('rejects invalid types', () => {
     const schema = p.union(p.string(), p.number(), p.literal(123n));
 
     fc.assert(
@@ -46,7 +45,7 @@ test('Invalid type', () => {
     );
 });
 
-test('Optional', () => {
+it('accepts optional values', () => {
     const schema = p.union(p.string(), p.number(), p.literal(123n)).optional();
 
     fc.assert(
@@ -65,7 +64,7 @@ test('Optional', () => {
     );
 });
 
-test('Nullable', () => {
+it('accepts nullable values', () => {
     const schema = p.union(p.string(), p.number(), p.literal(123n)).nullable();
 
     fc.assert(
@@ -84,7 +83,7 @@ test('Nullable', () => {
     );
 });
 
-test('Discriminated union', () => {
+it('accepts valid discriminated union values', () => {
     const schema = p.union(
         p.object({ shape: p.literal('circle'), radius: p.number() }),
         p.object({ shape: p.literal('rectangle'), width: p.number(), height: p.number() }),
@@ -115,7 +114,7 @@ test('Discriminated union', () => {
     );
 });
 
-test('Invalid discriminator', () => {
+it('rejects invalid discriminator values', () => {
     const schema = p.union(
         p.object({ shape: p.literal('circle'), radius: p.number() }),
         p.object({ shape: p.literal('rectangle'), width: p.number(), height: p.number() }),
@@ -131,20 +130,20 @@ test('Invalid discriminator', () => {
     }
 });
 
-test('findDiscriminator', async (t) => {
-    await t.step('No objects', () => {
+describe('findDiscriminator', () => {
+    it('returns false when no objects are present', () => {
         const elements = [p.number(), p.string()] as const;
         const discriminators = findDiscriminator(...elements);
         expect(discriminators).toEqual({ found: false });
     });
 
-    await t.step('No common keys', () => {
+    it('returns false when no common keys exist', () => {
         const elements = [p.object({ foo: p.literal('foo') }), p.object({ bar: p.literal('bar') })] as const;
         const discriminators = findDiscriminator(...elements);
         expect(discriminators).toEqual({ found: false });
     });
 
-    await t.step('One common key', () => {
+    it('finds discriminator with one common key', () => {
         const elements = [
             p.object({ foo: p.literal('foo'), bar: p.literal('bar1') }),
             p.object({ bar: p.literal('bar2'), baz: p.literal('baz') }),
@@ -161,7 +160,7 @@ test('findDiscriminator', async (t) => {
         });
     });
 
-    await t.step('One common key not literal', () => {
+    it('returns false when common key is not a literal', () => {
         const elements = [
             p.object({ foo: p.literal('foo'), bar: p.literal('bar1') }),
             p.object({ bar: p.string(), baz: p.literal('baz') }),
@@ -170,7 +169,7 @@ test('findDiscriminator', async (t) => {
         expect(discriminators).toEqual({ found: false });
     });
 
-    await t.step('Duplicate discriminator values', () => {
+    it('throws on duplicate discriminator values', () => {
         const elements = [
             p.object({ type: p.literal('dog'), name: p.string() }),
             p.object({ type: p.literal('dog'), bark: p.boolean() }),
@@ -179,7 +178,7 @@ test('findDiscriminator', async (t) => {
         expect(() => findDiscriminator(...elements)).toThrow();
     });
 
-    await t.step('Two common keys', () => {
+    it('finds discriminator with two common keys', () => {
         const elements = [
             p.object({ foo: p.literal('foo1'), bar: p.literal('bar1') }),
             p.object({ bar: p.literal('bar2'), baz: p.literal('baz'), foo: p.literal('foo2') }),
