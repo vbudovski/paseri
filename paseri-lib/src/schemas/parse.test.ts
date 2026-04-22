@@ -14,3 +14,17 @@ it('throws on failure', () => {
         schema.parse(123);
     }).toThrow('Failed to parse. See `e.messages()` for details.');
 });
+
+it('exposes error messages on thrown PaseriError', () => {
+    const schema = p.string();
+    try {
+        schema.parse(123);
+    } catch (e) {
+        expect(e).toBeInstanceOf(p.PaseriError);
+        if (e instanceof p.PaseriError) {
+            expect(e.messages()).toEqual([{ path: [], message: 'Invalid type. Expected string.' }]);
+        }
+        return;
+    }
+    throw new Error('Expected parse to throw');
+});
