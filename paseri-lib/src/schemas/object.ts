@@ -110,31 +110,18 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
             return issue;
         }
 
-        if (unrecognisedKeys && this._mode === 'strip' && hasModifiedChildValue) {
+        if (unrecognisedKeys && this._mode === 'strip') {
             const sanitizedValue: Record<PropertyKey, unknown> = {};
             for (const key in value) {
                 if (unrecognisedKeys.has(key)) {
                     continue;
                 }
 
-                if (!Object.hasOwn(modifiedValues, key)) {
-                    sanitizedValue[key] = value[key];
-                } else {
+                if (hasModifiedChildValue && Object.hasOwn(modifiedValues, key)) {
                     sanitizedValue[key] = modifiedValues[key];
+                } else {
+                    sanitizedValue[key] = value[key];
                 }
-            }
-
-            return { ok: true, value: sanitizedValue as Infer<ShapeType> };
-        }
-
-        if (unrecognisedKeys && this._mode === 'strip' && !hasModifiedChildValue) {
-            const sanitizedValue: Record<PropertyKey, unknown> = {};
-            for (const key in value) {
-                if (unrecognisedKeys.has(key)) {
-                    continue;
-                }
-
-                sanitizedValue[key] = value[key];
             }
 
             return { ok: true, value: sanitizedValue as Infer<ShapeType> };
