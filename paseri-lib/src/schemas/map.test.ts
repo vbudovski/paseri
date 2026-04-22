@@ -235,6 +235,18 @@ describe('size', () => {
         );
     });
 
+    it('rejects when transformation causes deduplication below exact size', () => {
+        const lower = p.string().chain(p.string(), (value) => p.ok(value.toLowerCase()));
+        const schema = p.map(lower, p.number()).size(2);
+        const data = new Map([
+            ['A', 1],
+            ['a', 2],
+        ]); // size 2, but keys collapse → size 1
+
+        const result = schema.safeParse(data);
+        expect(result.ok).toBe(false);
+    });
+
     it('throws on NaN', () => {
         expect(() => p.map(p.number(), p.string()).size(NaN)).toThrow();
     });
