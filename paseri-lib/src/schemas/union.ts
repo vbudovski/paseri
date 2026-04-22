@@ -64,23 +64,21 @@ class UnionSchema<TupleType extends ValidTupleType> extends Schema<Infer<TupleTo
     private readonly _elements: TupleType;
     private readonly _discriminator: DiscriminatorResult;
 
-    private readonly issues = {
-        INVALID_TYPE: { type: 'leaf', code: issueCodes.INVALID_TYPE, expected: 'object' },
-        INVALID_DISCRIMINATOR_VALUE: {
-            type: 'leaf',
-            code: issueCodes.INVALID_DISCRIMINATOR_VALUE,
-            expected: [] as string[],
-        },
-    } satisfies Record<string, LeafNode>;
+    private readonly issues;
 
     constructor(...elements: TupleType) {
         super();
 
         this._elements = elements;
         this._discriminator = findDiscriminator(...this._elements);
-        if (this._discriminator.found) {
-            this.issues.INVALID_DISCRIMINATOR_VALUE.expected = this._discriminator.options;
-        }
+        this.issues = {
+            INVALID_TYPE: { type: 'leaf', code: issueCodes.INVALID_TYPE, expected: 'object' },
+            INVALID_DISCRIMINATOR_VALUE: {
+                type: 'leaf',
+                code: issueCodes.INVALID_DISCRIMINATOR_VALUE,
+                expected: this._discriminator.found ? this._discriminator.options : [],
+            },
+        } as const satisfies Record<string, LeafNode>;
     }
     protected _clone(): UnionSchema<TupleType> {
         return new UnionSchema(...this._elements);
