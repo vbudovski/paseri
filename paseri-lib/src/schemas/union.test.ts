@@ -130,6 +130,27 @@ it('rejects invalid discriminator values', () => {
     }
 });
 
+it('rejects non-object input to discriminated union', () => {
+    const schema = p.union(
+        p.object({ shape: p.literal('circle'), radius: p.number() }),
+        p.object({ shape: p.literal('rectangle'), width: p.number(), height: p.number() }),
+    );
+
+    fc.assert(
+        fc.property(
+            fc.anything().filter((value) => !(typeof value === 'object' && value !== null)),
+            (data) => {
+                const result = schema.safeParse(data);
+                if (!result.ok) {
+                    expect(result.messages()).toEqual([{ path: [], message: 'Invalid type. Expected object.' }]);
+                } else {
+                    expect(result.ok).toBeFalsy();
+                }
+            },
+        ),
+    );
+});
+
 describe('findDiscriminator', () => {
     it('returns false when no objects are present', () => {
         const elements = [p.number(), p.string()] as const;
