@@ -35,7 +35,7 @@ if (result.ok) {
 Greater than or equal to `value`.
 
 ```typescript
-p.string().gte(5);
+p.number().gte(5);
 ```
 
 ### `gt`
@@ -43,7 +43,7 @@ p.string().gte(5);
 Greater than `value`.
 
 ```typescript
-p.string().gt(5);
+p.number().gt(5);
 ```
 
 ### `lte`
@@ -51,7 +51,7 @@ p.string().gt(5);
 Less than or equal to `value`.
 
 ```typescript
-p.string().lte(5);
+p.number().lte(5);
 ```
 
 ### `lt`
@@ -59,7 +59,7 @@ p.string().lte(5);
 Less than `value`.
 
 ```typescript
-p.string().lt(5);
+p.number().lt(5);
 ```
 
 ### `int`
@@ -67,7 +67,7 @@ p.string().lt(5);
 A valid integer.
 
 ```typescript
-p.string().int();
+p.number().int();
 ```
 
 ### `finite`
@@ -75,7 +75,7 @@ p.string().int();
 A finite number, excluding `Number.NEGATIVE_INFINITY` and `Number.POSITIVE_INFINITY`.
 
 ```typescript
-p.string().int();
+p.number().finite();
 ```
 
 ### `safe`
@@ -83,5 +83,5 @@ p.string().int();
 A valid integer between `Number.MIN_SAFE_INTEGER` and `Number.MAX_SAFE_INTEGER`.
 
 ```typescript
-p.string().int();
+p.number().safe();
 ```
