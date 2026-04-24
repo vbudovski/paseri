@@ -4,6 +4,7 @@
  * This module contains the messages for all available locales.
  */
 
+export type { Translations } from '../message.ts';
 export { en } from './en.ts';
 export { en_AU } from './en-AU.ts';
 export { en_GB } from './en-GB.ts';
