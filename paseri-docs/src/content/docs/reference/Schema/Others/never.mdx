@@ -4,7 +4,8 @@ sidebar:
     order: 44
 ---
 
-This schema rejects all values, and corresponds to the `never` TypeScript type.
+This schema rejects all values, and corresponds to the `never` TypeScript type. It can be useful in object schemas to
+forbid a specific key, ensuring that parsing fails if the key is present in the input.
 
 import { Playground } from "../../../../../components/Playground.tsx";
 

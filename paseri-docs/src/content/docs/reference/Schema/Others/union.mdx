@@ -27,3 +27,29 @@ if (result.ok) {
     dataDefaultValue={"```typescript\n'foo'\n```"}
     client:idle
 />
+
+## Discriminated unions
+
+If every member of a union is an object schema and they share a common literal field, Paseri automatically uses that
+field as a discriminator.
+
+```typescript
+import * as p from '@vbudovski/paseri';
+
+const schema = p.union(
+    p.object({
+        type: p.literal('circle'),
+        radius: p.number(),
+    }),
+    p.object({
+        type: p.literal('square'),
+        side: p.number(),
+    }),
+);
+
+const result = schema.safeParse({ type: 'circle', radius: 5 });
+if (result.ok) {
+    // result.value typed as
+    // { type: 'circle'; radius: number } | { type: 'square'; side: number }.
+}
+```

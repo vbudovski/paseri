@@ -49,6 +49,7 @@ const result = schema.safeParse(data);
 if (result.ok) {
     console.log(`Hello ${result.value.hello}!`);
 } else {
-    throw new Error('issues parsing data.');
+    const messages = result.messages();
+    throw new Error(`Parsing failed: ${messages}`);
 }
 ```

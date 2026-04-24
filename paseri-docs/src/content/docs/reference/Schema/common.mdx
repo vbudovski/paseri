@@ -52,7 +52,7 @@ Allow any schema to accept `undefined` as a valid value.
 import * as p from '@vbudovski/paseri';
 
 const schema = p.string().optional();
-const result = schema.safeParse(undefined)
+const result = schema.safeParse(undefined);
 if (result.ok) {
     // result.value is of type `string | undefined`.
 }
@@ -66,7 +66,7 @@ Allow any schema to accept `null` as a valid value.
 import * as p from '@vbudovski/paseri';
 
 const schema = p.string().nullable();
-const result = schema.safeParse(null)
+const result = schema.safeParse(null);
 if (result.ok) {
     // result.value is of type `string | null`.
 }
@@ -92,11 +92,16 @@ const schema = p.string().chain(p.bigint(), (value) => {
     }
 });
 // Number.MAX_SAFE_INTEGER + 1 as a string.
-const result = schema.safeParse('9007199254740992')
+const result = schema.safeParse('9007199254740992');
 if (result.ok) {
     // result.value is of type `bigint`.
 }
 ```
+
+:::note
+The error code `'invalid_bigint'` is a custom code. Custom error codes require a
+[custom messages object](/reference/messages/#custom-error-codes) to work with `result.messages()`.
+:::
 
 ## Types
 
@@ -120,5 +125,4 @@ type MySchema = p.Infer<typeof schema>;
 ## Standard Schema
 
 Paseri also provides an interface that's compatible with [Standard Schema](https://standardschema.dev/schema). This
-makes it possible to use Paseri with a number of tools and frameworks without having to write custom wrappers. See the
-link above for some examples.
+makes it possible to use Paseri with a number of tools and frameworks without having to write custom wrappers.

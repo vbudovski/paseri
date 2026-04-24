@@ -114,7 +114,8 @@ const data = {
 const result = schema.safeParse(data);
 if (result.ok) {
     // result.value typed as `{foo: string; bar: number}`.
-    // `other` is preserved in `result.value`.
+    // `other` is preserved in `result.value` at runtime, but is not
+    // reflected in the TypeScript type.
 }
 ```
 

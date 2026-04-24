@@ -16,7 +16,7 @@ type Node =
     | { type: 'file'; name: string }
     | { type: 'directory'; name: string; nodes: Node[] };
 
-// Give TypeScript a hint about the recursive structure.
+// The explicit type annotation is required for recursive schemas.
 const schema: p.Schema<Node> = p.lazy(() =>
     p.union(
         p.object({
