@@ -4,7 +4,7 @@ import * as p from '../../src/index.ts';
 
 const { bench } = Deno;
 
-const paseriSchema = p.string().min(3);
+const paseriSchema = p.string(p.minLength(3));
 const zodSchema = z.string().min(3);
 const valitaSchema = v.string().assert((value) => value.length >= 3);
 

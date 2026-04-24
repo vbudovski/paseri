@@ -125,8 +125,10 @@ class UnionSchema<TupleType extends ValidTupleType> extends Schema<Infer<TupleTo
 /**
  * [Union](https://paseri.dev/reference/schema/others/union/) schema.
  */
-const union = /* @__PURE__ */ <TupleType extends ValidTupleType>(
-    ...args: ConstructorParameters<typeof UnionSchema<TupleType>>
-): UnionSchema<TupleType> => new UnionSchema(...args);
+const union =
+    /* @__PURE__ */
+        <TupleType extends ValidTupleType>(...elements: TupleType) =>
+        (): UnionSchema<TupleType> =>
+            new UnionSchema(...elements);
 
 export { findDiscriminator, union };

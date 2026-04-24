@@ -4,7 +4,7 @@ import * as p from '../src/index.ts';
 
 const { bench } = Deno;
 
-const paseriSchema = p.string().chain(p.bigint(), (value) => {
+const paseriSchema = p.chain(p.string(), p.bigint(), (value) => {
     try {
         return p.ok(BigInt(value));
     } catch {

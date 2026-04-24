@@ -11,7 +11,7 @@ import { Playground } from "../../../../../components/Playground.tsx";
 ```typescript
 import * as p from '@vbudovski/paseri';
 
-const schema = p.array(p.number());
+const schema = p.array(p.number())();
 const data = [1, 2, 3];
 
 const result = schema.safeParse(data);
@@ -23,33 +23,36 @@ if (result.ok) {
 ## Playground
 
 <Playground
-    schemaDefaultValue={"p.array(p.number())"}
+    schemaDefaultValue={"p.array(p.number())()"}
     dataDefaultValue={"[1, 2, 3]"}
     client:idle
 />
 
 ## Validators
 
-### `min`
+### `minLength`
 
 Consists of at least `length` elements.
 
 ```typescript
-p.array(p.number()).min(3);
+p.array(p.number())(p.minLength(3));
 ```
 
-### `max`
+### `maxLength`
 
 Consists of at most `length` elements.
 
 ```typescript
-p.array(p.number()).max(3);
+p.array(p.number())(p.maxLength(3));
 ```
 
-### `length`
+### Exact length
 
 Consists of exactly `length` elements.
 
 ```typescript
-p.array(p.number()).length(3);
+p.array(p.number())(
+    p.minLength(3),
+    p.maxLength(3),
+);
 ```

@@ -40,7 +40,7 @@ it('rejects invalid types', () => {
 
 describe('gte', () => {
     it('accepts valid values', () => {
-        const schema = p.bigint().gte(10n);
+        const schema = p.bigint(p.gte(10n));
 
         fc.assert(
             fc.property(fc.bigInt({ min: 10n }), (data) => {
@@ -56,7 +56,7 @@ describe('gte', () => {
     });
 
     it('rejects invalid values', () => {
-        const schema = p.bigint().gte(10n);
+        const schema = p.bigint(p.gte(10n));
 
         fc.assert(
             fc.property(fc.bigInt({ max: 9n }), (data) => {
@@ -72,16 +72,16 @@ describe('gte', () => {
 
     it('is immutable', () => {
         const original = p.bigint();
-        const modified = original.gte(3n);
+        const modified = p.bigint(p.gte(3n));
         expect(modified).not.toEqual(original);
-        const branched = modified.lte(10n);
+        const branched = p.bigint(p.gte(3n), p.lte(10n));
         expect(branched).not.toEqual(modified);
     });
 });
 
 describe('gt', () => {
     it('accepts valid values', () => {
-        const schema = p.bigint().gt(10n);
+        const schema = p.bigint(p.gt(10n));
 
         fc.assert(
             fc.property(fc.bigInt({ min: 11n }), (data) => {
@@ -97,7 +97,7 @@ describe('gt', () => {
     });
 
     it('rejects invalid values', () => {
-        const schema = p.bigint().gt(10n);
+        const schema = p.bigint(p.gt(10n));
 
         fc.assert(
             fc.property(fc.bigInt({ max: 10n }), (data) => {
@@ -113,16 +113,16 @@ describe('gt', () => {
 
     it('is immutable', () => {
         const original = p.bigint();
-        const modified = original.gt(3n);
+        const modified = p.bigint(p.gt(3n));
         expect(modified).not.toEqual(original);
-        const branched = modified.lt(10n);
+        const branched = p.bigint(p.gt(3n), p.lt(10n));
         expect(branched).not.toEqual(modified);
     });
 });
 
 describe('lte', () => {
     it('accepts valid values', () => {
-        const schema = p.bigint().lte(10n);
+        const schema = p.bigint(p.lte(10n));
 
         fc.assert(
             fc.property(fc.bigInt({ max: 10n }), (data) => {
@@ -138,7 +138,7 @@ describe('lte', () => {
     });
 
     it('rejects invalid values', () => {
-        const schema = p.bigint().lte(10n);
+        const schema = p.bigint(p.lte(10n));
 
         fc.assert(
             fc.property(fc.bigInt({ min: 11n }), (data) => {
@@ -154,16 +154,16 @@ describe('lte', () => {
 
     it('is immutable', () => {
         const original = p.bigint();
-        const modified = original.lte(3n);
+        const modified = p.bigint(p.lte(3n));
         expect(modified).not.toEqual(original);
-        const branched = modified.gte(0n);
+        const branched = p.bigint(p.lte(3n), p.gte(0n));
         expect(branched).not.toEqual(modified);
     });
 });
 
 describe('lt', () => {
     it('accepts valid values', () => {
-        const schema = p.bigint().lt(10n);
+        const schema = p.bigint(p.lt(10n));
 
         fc.assert(
             fc.property(fc.bigInt({ max: 9n }), (data) => {
@@ -179,7 +179,7 @@ describe('lt', () => {
     });
 
     it('rejects invalid values', () => {
-        const schema = p.bigint().lt(10n);
+        const schema = p.bigint(p.lt(10n));
 
         fc.assert(
             fc.property(fc.bigInt({ min: 10n }), (data) => {
@@ -195,15 +195,15 @@ describe('lt', () => {
 
     it('is immutable', () => {
         const original = p.bigint();
-        const modified = original.lt(3n);
+        const modified = p.bigint(p.lt(3n));
         expect(modified).not.toEqual(original);
-        const branched = modified.gt(0n);
+        const branched = p.bigint(p.lt(3n), p.gt(0n));
         expect(branched).not.toEqual(modified);
     });
 });
 
 it('accepts optional values', () => {
-    const schema = p.bigint().optional();
+    const schema = p.optional(p.bigint());
 
     fc.assert(
         fc.property(fc.option(fc.bigInt(), { nil: undefined }), (data) => {
@@ -219,7 +219,7 @@ it('accepts optional values', () => {
 });
 
 it('accepts nullable values', () => {
-    const schema = p.bigint().nullable();
+    const schema = p.nullable(p.bigint());
 
     fc.assert(
         fc.property(fc.option(fc.bigInt(), { nil: null }), (data) => {

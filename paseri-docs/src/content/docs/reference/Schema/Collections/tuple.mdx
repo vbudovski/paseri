@@ -15,7 +15,10 @@ too many elements will result in a parsing error.
 ```typescript
 import * as p from '@vbudovski/paseri';
 
-const schema = p.tuple(p.number(), p.string());
+const schema = p.tuple(
+    p.number(),
+    p.string(),
+)();
 const data = [1, 'foo'];
 
 const result = schema.safeParse(data);
@@ -27,7 +30,7 @@ if (result.ok) {
 ## Playground
 
 <Playground
-    schemaDefaultValue={"p.tuple(p.number(), p.string())"}
+    schemaDefaultValue={"p.tuple(p.number(), p.string())()"}
     dataDefaultValue={"[1, 'foo']"}
     client:idle
 />

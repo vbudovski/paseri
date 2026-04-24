@@ -43,7 +43,7 @@ it('rejects invalid types', () => {
 
 describe('gte', () => {
     it('accepts valid values', () => {
-        const schema = p.number().gte(10);
+        const schema = p.number(p.gte(10));
 
         fc.assert(
             fc.property(fc.float({ noNaN: true, min: 10 }), (data) => {
@@ -59,7 +59,7 @@ describe('gte', () => {
     });
 
     it('rejects invalid values', () => {
-        const schema = p.number().gte(10);
+        const schema = p.number(p.gte(10));
 
         fc.assert(
             fc.property(fc.float({ noNaN: true, max: 10, maxExcluded: true }), (data) => {
@@ -74,21 +74,21 @@ describe('gte', () => {
     });
 
     it('throws on NaN boundary', () => {
-        expect(() => p.number().gte(NaN)).toThrow();
+        expect(() => p.gte(NaN)).toThrow();
     });
 
     it('is immutable', () => {
         const original = p.number();
-        const modified = original.gte(3);
+        const modified = p.number(p.gte(3));
         expect(modified).not.toEqual(original);
-        const branched = modified.lte(10);
+        const branched = p.number(p.gte(3), p.lte(10));
         expect(branched).not.toEqual(modified);
     });
 });
 
 describe('gt', () => {
     it('accepts valid values', () => {
-        const schema = p.number().gt(10);
+        const schema = p.number(p.gt(10));
 
         fc.assert(
             fc.property(fc.float({ noNaN: true, min: 10, minExcluded: true }), (data) => {
@@ -104,7 +104,7 @@ describe('gt', () => {
     });
 
     it('rejects invalid values', () => {
-        const schema = p.number().gt(10);
+        const schema = p.number(p.gt(10));
 
         fc.assert(
             fc.property(fc.float({ noNaN: true, max: 10 }), (data) => {
@@ -119,21 +119,21 @@ describe('gt', () => {
     });
 
     it('throws on NaN boundary', () => {
-        expect(() => p.number().gt(NaN)).toThrow();
+        expect(() => p.gt(NaN)).toThrow();
     });
 
     it('is immutable', () => {
         const original = p.number();
-        const modified = original.gt(3);
+        const modified = p.number(p.gt(3));
         expect(modified).not.toEqual(original);
-        const branched = modified.lt(10);
+        const branched = p.number(p.gt(3), p.lt(10));
         expect(branched).not.toEqual(modified);
     });
 });
 
 describe('lte', () => {
     it('accepts valid values', () => {
-        const schema = p.number().lte(10);
+        const schema = p.number(p.lte(10));
 
         fc.assert(
             fc.property(fc.float({ noNaN: true, max: 10 }), (data) => {
@@ -149,7 +149,7 @@ describe('lte', () => {
     });
 
     it('rejects invalid values', () => {
-        const schema = p.number().lte(10);
+        const schema = p.number(p.lte(10));
 
         fc.assert(
             fc.property(fc.float({ noNaN: true, min: 10, minExcluded: true }), (data) => {
@@ -164,21 +164,21 @@ describe('lte', () => {
     });
 
     it('throws on NaN boundary', () => {
-        expect(() => p.number().lte(NaN)).toThrow();
+        expect(() => p.lte(NaN)).toThrow();
     });
 
     it('is immutable', () => {
         const original = p.number();
-        const modified = original.lte(3);
+        const modified = p.number(p.lte(3));
         expect(modified).not.toEqual(original);
-        const branched = modified.gte(0);
+        const branched = p.number(p.lte(3), p.gte(0));
         expect(branched).not.toEqual(modified);
     });
 });
 
 describe('lt', () => {
     it('accepts valid values', () => {
-        const schema = p.number().lt(10);
+        const schema = p.number(p.lt(10));
 
         fc.assert(
             fc.property(fc.float({ noNaN: true, max: 10, maxExcluded: true }), (data) => {
@@ -194,7 +194,7 @@ describe('lt', () => {
     });
 
     it('rejects invalid values', () => {
-        const schema = p.number().lt(10);
+        const schema = p.number(p.lt(10));
 
         fc.assert(
             fc.property(fc.float({ noNaN: true, min: 10 }), (data) => {
@@ -209,21 +209,21 @@ describe('lt', () => {
     });
 
     it('throws on NaN boundary', () => {
-        expect(() => p.number().lt(NaN)).toThrow();
+        expect(() => p.lt(NaN)).toThrow();
     });
 
     it('is immutable', () => {
         const original = p.number();
-        const modified = original.lt(3);
+        const modified = p.number(p.lt(3));
         expect(modified).not.toEqual(original);
-        const branched = modified.gt(0);
+        const branched = p.number(p.lt(3), p.gt(0));
         expect(branched).not.toEqual(modified);
     });
 });
 
 describe('int', () => {
     it('accepts valid values', () => {
-        const schema = p.number().int();
+        const schema = p.number(p.int());
 
         fc.assert(
             fc.property(fc.integer(), (data) => {
@@ -239,7 +239,7 @@ describe('int', () => {
     });
 
     it('rejects invalid values', () => {
-        const schema = p.number().int();
+        const schema = p.number(p.int());
 
         fc.assert(
             fc.property(fc.float({ noNaN: true, noInteger: true }), (data) => {
@@ -255,16 +255,16 @@ describe('int', () => {
 
     it('is immutable', () => {
         const original = p.number();
-        const modified = original.int();
+        const modified = p.number(p.int());
         expect(modified).not.toEqual(original);
-        const branched = modified.gte(0);
+        const branched = p.number(p.int(), p.gte(0));
         expect(branched).not.toEqual(modified);
     });
 });
 
 describe('finite', () => {
     it('accepts valid values', () => {
-        const schema = p.number().finite();
+        const schema = p.number(p.finite());
 
         fc.assert(
             fc.property(fc.float({ noNaN: true, noDefaultInfinity: true }), (data) => {
@@ -280,7 +280,7 @@ describe('finite', () => {
     });
 
     it('rejects invalid values', () => {
-        const schema = p.number().finite();
+        const schema = p.number(p.finite());
 
         fc.assert(
             fc.property(
@@ -299,16 +299,16 @@ describe('finite', () => {
 
     it('is immutable', () => {
         const original = p.number();
-        const modified = original.finite();
+        const modified = p.number(p.finite());
         expect(modified).not.toEqual(original);
-        const branched = modified.gte(0);
+        const branched = p.number(p.finite(), p.gte(0));
         expect(branched).not.toEqual(modified);
     });
 });
 
 describe('safe', () => {
     it('accepts valid values', () => {
-        const schema = p.number().safe();
+        const schema = p.number(p.safeInt());
 
         fc.assert(
             fc.property(fc.maxSafeInteger(), (data) => {
@@ -324,7 +324,7 @@ describe('safe', () => {
     });
 
     it('rejects invalid values', () => {
-        const schema = p.number().safe();
+        const schema = p.number(p.safeInt());
 
         fc.assert(
             fc.property(
@@ -343,15 +343,15 @@ describe('safe', () => {
 
     it('is immutable', () => {
         const original = p.number();
-        const modified = original.safe();
+        const modified = p.number(p.safeInt());
         expect(modified).not.toEqual(original);
-        const branched = modified.gte(0);
+        const branched = p.number(p.safeInt(), p.gte(0));
         expect(branched).not.toEqual(modified);
     });
 });
 
 it('accepts optional values', () => {
-    const schema = p.number().optional();
+    const schema = p.optional(p.number());
 
     fc.assert(
         fc.property(fc.option(fc.float({ noNaN: true }), { nil: undefined }), (data) => {
@@ -367,7 +367,7 @@ it('accepts optional values', () => {
 });
 
 it('accepts nullable values', () => {
-    const schema = p.number().nullable();
+    const schema = p.nullable(p.number());
 
     fc.assert(
         fc.property(fc.option(fc.float({ noNaN: true }), { nil: null }), (data) => {

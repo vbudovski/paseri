@@ -14,7 +14,7 @@ function numberToString(value: number): string {
 }
 
 it('rejects when source schema fails', () => {
-    const schema = p.string().chain(p.number(), (value) => {
+    const schema = p.chain(p.string(), p.number(), (value) => {
         return p.ok(Number(value));
     });
 
@@ -34,7 +34,7 @@ it('rejects when source schema fails', () => {
 });
 
 it('rejects when target schema fails', () => {
-    const schema = p.string().chain(p.number(), (value) => {
+    const schema = p.chain(p.string(), p.number(), (value) => {
         // We're lying about the type here, as we want to simulate failure of chained schema.
         return p.ok(value as unknown as number);
     });
@@ -52,7 +52,7 @@ it('rejects when target schema fails', () => {
 });
 
 it('rejects when transform fails', () => {
-    const schema = p.string().chain(p.number(), (_value) => {
+    const schema = p.chain(p.string(), p.number(), (_value) => {
         return p.err('foo');
     });
 
@@ -70,7 +70,7 @@ it('rejects when transform fails', () => {
 });
 
 it('transforms primitive to primitive', () => {
-    const schema = p.string().chain(p.number(), (value) => {
+    const schema = p.chain(p.string(), p.number(), (value) => {
         return p.ok(Number(value));
     });
 
@@ -90,7 +90,7 @@ it('transforms primitive to primitive', () => {
 });
 
 it('transforms primitive to array', () => {
-    const schema = p.string().chain(p.array(p.number()), (value) => {
+    const schema = p.chain(p.string(), p.array(p.number())(), (value) => {
         return p.ok(value.split(',').map((v) => Number(v)));
     });
 
@@ -110,7 +110,7 @@ it('transforms primitive to array', () => {
 });
 
 it('transforms array to primitive', () => {
-    const schema = p.array(p.number()).chain(p.string(), (value) => {
+    const schema = p.chain(p.array(p.number())(), p.string(), (value) => {
         return p.ok(value.map((v) => numberToString(v)).join(','));
     });
 
@@ -129,7 +129,7 @@ it('transforms array to primitive', () => {
 });
 
 it('transforms primitive to object, stripping unrecognised keys', () => {
-    const schema = p.string().chain(p.object({ foo: p.number(), bar: p.number() }).strip(), (value) => {
+    const schema = p.chain(p.string(), p.object({ foo: p.number(), bar: p.number() }).strip(), (value) => {
         const [foo, bar, ...other] = value.split(',');
         const extra = Object.fromEntries(other.map((o) => [o, Number(o)]));
 
@@ -152,12 +152,9 @@ it('transforms primitive to object, stripping unrecognised keys', () => {
 });
 
 it('transforms object with unrecognised keys to primitive', () => {
-    const schema = p
-        .object({ foo: p.number(), bar: p.number() })
-        .strip()
-        .chain(p.string(), ({ foo, bar }) => {
-            return p.ok(`${numberToString(foo)},${numberToString(bar)}`);
-        });
+    const schema = p.chain(p.object({ foo: p.number(), bar: p.number() }).strip(), p.string(), ({ foo, bar }) => {
+        return p.ok(`${numberToString(foo)},${numberToString(bar)}`);
+    });
 
     fc.assert(
         fc.property(

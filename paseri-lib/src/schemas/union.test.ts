@@ -6,7 +6,7 @@ import * as p from '../index.ts';
 import { findDiscriminator } from './union.ts';
 
 it('accepts valid types', () => {
-    const schema = p.union(p.string(), p.number(), p.literal(123n));
+    const schema = p.union(p.string(), p.number(), p.literal(123n))();
 
     fc.assert(
         fc.property(fc.oneof(fc.string(), fc.float({ noNaN: true }), fc.constant(123n)), (data) => {
@@ -22,7 +22,7 @@ it('accepts valid types', () => {
 });
 
 it('rejects invalid types', () => {
-    const schema = p.union(p.string(), p.number(), p.literal(123n));
+    const schema = p.union(p.string(), p.number(), p.literal(123n))();
 
     fc.assert(
         fc.property(
@@ -46,7 +46,7 @@ it('rejects invalid types', () => {
 });
 
 it('returns modified value from transforming union member', () => {
-    const schema = p.union(p.object({ foo: p.string() }).strip(), p.number());
+    const schema = p.union(p.object({ foo: p.string() }).strip(), p.number())();
     const data = { foo: 'bar', extra: 'strip me' };
 
     const result = schema.safeParse(data);
@@ -58,7 +58,7 @@ it('returns modified value from transforming union member', () => {
 });
 
 it('accepts optional values', () => {
-    const schema = p.union(p.string(), p.number(), p.literal(123n)).optional();
+    const schema = p.optional(p.union(p.string(), p.number(), p.literal(123n))());
 
     fc.assert(
         fc.property(
@@ -77,7 +77,7 @@ it('accepts optional values', () => {
 });
 
 it('accepts nullable values', () => {
-    const schema = p.union(p.string(), p.number(), p.literal(123n)).nullable();
+    const schema = p.nullable(p.union(p.string(), p.number(), p.literal(123n))());
 
     fc.assert(
         fc.property(
@@ -99,7 +99,7 @@ it('accepts valid discriminated union values', () => {
     const schema = p.union(
         p.object({ shape: p.literal('circle'), radius: p.number() }),
         p.object({ shape: p.literal('rectangle'), width: p.number(), height: p.number() }),
-    );
+    )();
 
     fc.assert(
         fc.property(
@@ -130,7 +130,7 @@ it('rejects invalid discriminator values', () => {
     const schema = p.union(
         p.object({ shape: p.literal('circle'), radius: p.number() }),
         p.object({ shape: p.literal('rectangle'), width: p.number(), height: p.number() }),
-    );
+    )();
 
     const result = schema.safeParse({});
     if (!result.ok) {
@@ -144,7 +144,7 @@ it('rejects non-object input to discriminated union', () => {
     const schema = p.union(
         p.object({ shape: p.literal('circle'), radius: p.number() }),
         p.object({ shape: p.literal('rectangle'), width: p.number(), height: p.number() }),
-    );
+    )();
 
     fc.assert(
         fc.property(

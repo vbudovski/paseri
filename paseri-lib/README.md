@@ -60,8 +60,9 @@ The list may be expanded over time, but for now the objectives are the following
   usage[^2].
 * High performance[^1] and usability in a strict
   [Content Security Policy (CSP)](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP) environment.
-* An API that is *reasonably* close to that of Zod. One-to-one compatibility is not the intention.
+* An ergonomic API that keeps complex schemas readable and easy to maintain.
 * Immutability of schemas. This avoids a lot of bugs caused by mutating references to non-primitive types.
+* Modular by design. Schemas are independent exports, so unused validators are eliminated from production bundles.
 
 ## Documentation
 

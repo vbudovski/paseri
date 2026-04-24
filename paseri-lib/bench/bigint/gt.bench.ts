@@ -4,7 +4,7 @@ import * as p from '../../src/index.ts';
 
 const { bench } = Deno;
 
-const paseriSchema = p.bigint().gt(10n);
+const paseriSchema = p.bigint(p.gt(10n));
 const zodSchema = z.bigint().gt(10n);
 const valitaSchema = v.bigint().assert((value) => value > 10n);
 

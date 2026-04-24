@@ -4,7 +4,7 @@ import * as p from '../../src/index.ts';
 
 const { bench } = Deno;
 
-const paseriSchema = p.array(p.number());
+const paseriSchema = p.array(p.number())();
 const zodSchema = z.array(z.number());
 const valitaSchema = v.array(v.number());
 

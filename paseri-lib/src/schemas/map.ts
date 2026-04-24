@@ -1,7 +1,8 @@
+import { TAG_MAX_SIZE, TAG_MIN_SIZE } from '../checks/tags.ts';
 import type { Infer } from '../infer.ts';
 import { addIssue, issueCodes, type LeafNode, type TreeNode } from '../issue.ts';
 import { type InternalParseResult, isParseSuccess } from '../result.ts';
-import type { AnySchemaType } from './schema.ts';
+import type { AnySchemaType, Check } from './schema.ts';
 import { Schema } from './schema.ts';
 
 class MapSchema<
@@ -9,42 +10,24 @@ class MapSchema<
     ElementValueSchemaType extends AnySchemaType,
 > extends Schema<Infer<Map<ElementKeySchemaType, ElementValueSchemaType>>> {
     private readonly _element: [ElementKeySchemaType, ElementValueSchemaType];
-    private _minSize = 0;
-    private _maxSize = Number.POSITIVE_INFINITY;
+    private readonly _checks: readonly Check[] | undefined;
 
     private readonly issues = {
         INVALID_TYPE: { type: 'leaf', code: issueCodes.INVALID_TYPE, expected: 'Map' },
-        TOO_LONG: { type: 'leaf', code: issueCodes.TOO_LONG },
-        TOO_SHORT: { type: 'leaf', code: issueCodes.TOO_SHORT },
     } as const satisfies Record<string, LeafNode>;
 
-    constructor(...element: [ElementKeySchemaType, ElementValueSchemaType]) {
+    constructor(element: [ElementKeySchemaType, ElementValueSchemaType], checks?: readonly Check[]) {
         super();
 
         this._element = element;
+        this._checks = checks;
     }
     protected _clone(): MapSchema<ElementKeySchemaType, ElementValueSchemaType> {
-        const cloned = new MapSchema(...this._element);
-        cloned._minSize = this._minSize;
-        cloned._maxSize = this._maxSize;
-
-        return cloned;
+        return new MapSchema(this._element, this._checks);
     }
     _parse(value: unknown): InternalParseResult<Infer<Map<ElementKeySchemaType, ElementValueSchemaType>>> {
         if (!(value instanceof Map)) {
             return this.issues.INVALID_TYPE;
-        }
-
-        const size = value.size;
-        const maxSize = this._maxSize;
-        const minSize = this._minSize;
-
-        if (size > maxSize) {
-            return this.issues.TOO_LONG;
-        }
-
-        if (size < minSize) {
-            return this.issues.TOO_SHORT;
         }
 
         const [elementKeySchema, elementValueSchema] = this._element;
@@ -103,54 +86,46 @@ class MapSchema<
             return issue;
         }
 
-        if (newMap) {
-            if (newMap.size < minSize) {
-                return this.issues.TOO_SHORT;
+        if (this._checks !== undefined) {
+            const checkTarget = newMap ?? value;
+            const checks = this._checks;
+            for (let i = 0; i < checks.length; i++) {
+                const check = checks[i];
+                switch (check.tag) {
+                    case TAG_MIN_SIZE:
+                        if (checkTarget.size < check.param) {
+                            return check.issue;
+                        }
+                        break;
+                    case TAG_MAX_SIZE:
+                        if (checkTarget.size > check.param) {
+                            return check.issue;
+                        }
+                        break;
+                }
             }
+        }
 
+        if (newMap) {
             return { ok: true, value: newMap as Infer<Map<ElementKeySchemaType, ElementValueSchemaType>> };
         }
 
         return undefined;
-    }
-    min(size: number): MapSchema<ElementKeySchemaType, ElementValueSchemaType> {
-        if (Number.isNaN(size)) {
-            throw new Error('NaN is not a valid size.');
-        }
-
-        const cloned = this._clone();
-        cloned._minSize = size;
-
-        return cloned;
-    }
-    max(size: number): MapSchema<ElementKeySchemaType, ElementValueSchemaType> {
-        if (Number.isNaN(size)) {
-            throw new Error('NaN is not a valid size.');
-        }
-
-        const cloned = this._clone();
-        cloned._maxSize = size;
-
-        return cloned;
-    }
-    size(size: number): MapSchema<ElementKeySchemaType, ElementValueSchemaType> {
-        if (Number.isNaN(size)) {
-            throw new Error('NaN is not a valid size.');
-        }
-
-        const cloned = this._clone();
-        cloned._minSize = size;
-        cloned._maxSize = size;
-
-        return cloned;
     }
 }
 
 /**
  * [Map](https://paseri.dev/reference/schema/collections/map/) schema.
  */
-const map = /* @__PURE__ */ <ElementKeySchemaType extends AnySchemaType, ElementValueSchemaType extends AnySchemaType>(
-    ...args: ConstructorParameters<typeof MapSchema<ElementKeySchemaType, ElementValueSchemaType>>
-): MapSchema<ElementKeySchemaType, ElementValueSchemaType> => new MapSchema(...args);
+const map =
+    /* @__PURE__ */
+        <ElementKeySchemaType extends AnySchemaType, ElementValueSchemaType extends AnySchemaType>(
+            keySchema: ElementKeySchemaType,
+            valueSchema: ElementValueSchemaType,
+        ) =>
+        (...checks: Check[]): MapSchema<ElementKeySchemaType, ElementValueSchemaType> =>
+            checks.length === 0
+                ? new MapSchema([keySchema, valueSchema])
+                : new MapSchema([keySchema, valueSchema], checks);
 
 export { map };

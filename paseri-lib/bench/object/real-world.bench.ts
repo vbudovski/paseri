@@ -6,49 +6,49 @@ type Comment = { author: string; body: string; reply?: Comment };
 
 const commentSchema: p.Schema<Comment> = p.lazy(() =>
     p.object({
-        author: p.string().min(1).max(50),
-        body: p.string().min(1).max(1000),
-        reply: commentSchema.optional(),
+        author: p.string(p.minLength(1), p.maxLength(50)),
+        body: p.string(p.minLength(1), p.maxLength(1000)),
+        reply: p.optional(commentSchema),
     }),
 );
 
 const schema = p.object({
     // Primitives with refinements.
-    username: p.string().min(3).max(20),
-    email: p.string().email(),
-    age: p.number().gte(13).lte(120).int(),
+    username: p.string(p.minLength(3), p.maxLength(20)),
+    email: p.string(p.email()),
+    age: p.number(p.gte(13), p.lte(120), p.int()),
     isActive: p.boolean(),
     createdAt: p.date(),
     // Optional fields.
-    displayName: p.string().min(1).max(100).optional(),
-    bio: p.string().max(500).optional(),
-    deletedAt: p.date().nullable(),
+    displayName: p.optional(p.string(p.minLength(1), p.maxLength(100))),
+    bio: p.optional(p.string(p.maxLength(500))),
+    deletedAt: p.nullable(p.date()),
     // Literal and union.
-    role: p.union(p.literal('admin'), p.literal('user'), p.literal('guest')),
+    role: p.union(p.literal('admin'), p.literal('user'), p.literal('guest'))(),
     // Array with element validation and length constraint.
-    tags: p.array(p.string().min(1).max(30)).min(1).max(10),
+    tags: p.array(p.string(p.minLength(1), p.maxLength(30)))(p.minLength(1), p.maxLength(10)),
     // Tuple.
-    coordinates: p.tuple(p.number(), p.number()),
+    coordinates: p.tuple(p.number(), p.number())(),
     // Record.
-    metadata: p.record(p.string()),
+    metadata: p.record(p.string())(),
     // BigInt with refinements.
-    externalId: p.bigint().gte(0n).lte(9999999999999999n),
+    externalId: p.bigint(p.gte(0n), p.lte(9999999999999999n)),
     // Set with size constraint.
-    permissions: p.set(p.string()).min(1).max(20),
+    permissions: p.set(p.string())(p.minSize(1), p.maxSize(20)),
     // Map with key/value validation.
-    featureFlags: p.map(p.string(), p.boolean()),
+    featureFlags: p.map(p.string(), p.boolean())(),
     // Lazy (deferred schema evaluation).
     pinnedComment: p.lazy(() => commentSchema),
     // Nested objects.
     address: p.object({
-        street: p.string().min(1).max(200),
-        city: p.string().min(1).max(100),
-        zip: p.string().min(3).max(10),
-        country: p.string().length(2),
+        street: p.string(p.minLength(1), p.maxLength(200)),
+        city: p.string(p.minLength(1), p.maxLength(100)),
+        zip: p.string(p.minLength(3), p.maxLength(10)),
+        country: p.string(p.minLength(2), p.maxLength(2)),
     }),
     settings: p.object({
         theme: p.string(),
-        fontSize: p.number().gte(8).lte(72).int(),
+        fontSize: p.number(p.gte(8), p.lte(72), p.int()),
         notifications: p.boolean(),
     }),
 });

@@ -22,20 +22,42 @@
  * ```
  */
 
+export { maxDate, minDate } from './checks/date.ts';
+export { maxLength, minLength } from './checks/length.ts';
+export { finite, gt, gte, int, lt, lte, safeInt } from './checks/number.ts';
+export { maxSize, minSize } from './checks/size.ts';
+export {
+    cidr,
+    email,
+    emoji,
+    endsWith,
+    includes,
+    ip,
+    isoDate,
+    isoDatetime,
+    isoTime,
+    nanoid,
+    regex,
+    startsWith,
+    uuid,
+} from './checks/string.ts';
 export type { Infer } from './infer.ts';
 export { err, ok, PaseriError } from './result.ts';
 export {
     array,
     bigint,
     boolean,
+    chain,
     date,
     lazy,
     literal,
     map,
     never,
     null_ as null,
+    nullable,
     number,
     object,
+    optional,
     record,
     Schema,
     set,
@@ -46,3 +68,4 @@ export {
     union,
     unknown,
 } from './schemas/index.ts';
+export type { Check } from './schemas/schema.ts';

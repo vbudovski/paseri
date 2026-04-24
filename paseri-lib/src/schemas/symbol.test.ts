@@ -29,7 +29,7 @@ it('rejects non-symbols', () => {
 });
 
 it('accepts optional values', () => {
-    const schema = p.symbol().optional();
+    const schema = p.optional(p.symbol());
     const data = undefined;
 
     const result = schema.safeParse(data);
@@ -42,7 +42,7 @@ it('accepts optional values', () => {
 });
 
 it('accepts nullable values', () => {
-    const schema = p.symbol().nullable();
+    const schema = p.nullable(p.symbol());
     const data = null;
 
     const result = schema.safeParse(data);

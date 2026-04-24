@@ -21,7 +21,7 @@ const schema = p.object({
 const data = {
     foo: 'baz',
     bar: 123,
-    other: 'something'
+    other: 'something',
 };
 
 const result = schema.safeParse(data);
@@ -57,7 +57,7 @@ const schema = p
 const data = {
     foo: 'baz',
     bar: 123,
-    other: 'something'
+    other: 'something',
 };
 
 const result = schema.safeParse(data);
@@ -82,7 +82,7 @@ const schema = p
 const data = {
     foo: 'baz',
     bar: 123,
-    other: 'something'
+    other: 'something',
 };
 
 const result = schema.safeParse(data);
@@ -108,14 +108,14 @@ const schema = p
 const data = {
     foo: 'baz',
     bar: 123,
-    other: 'something'
+    other: 'something',
 };
 
 const result = schema.safeParse(data);
 if (result.ok) {
     // result.value typed as `{foo: string; bar: number}`.
-    // `other` is preserved in `result.value` at runtime, but is not
-    // reflected in the TypeScript type.
+    // `other` is preserved in `result.value` at runtime,
+    // but is not reflected in the TypeScript type.
 }
 ```
 
@@ -130,15 +130,20 @@ inherit the behaviour of the second schema for any unknown keys.
 ```typescript
 import * as p from '@vbudovski/paseri';
 
-const schema1 = p.object({
-    foo: p.string(),
-    bar: p.number(),
-}).strict();
-const schema2 = p.object({
-    bar: p.string(),
-    baz: p.number(),
-}).passthrough();
-const combinedSchema = schema1.merge(schema2);
+const schema1 = p
+    .object({
+        foo: p.string(),
+        bar: p.number(),
+    })
+    .strict();
+const schema2 = p
+    .object({
+        bar: p.string(),
+        baz: p.number(),
+    })
+    .passthrough();
+const combinedSchema =
+    schema1.merge(schema2);
 /*
 The resulting schema will be:
 p.object({
@@ -180,7 +185,8 @@ const schema = p.object({
     foo: p.string(),
     bar: p.number(),
 });
-const schemaOmitted = schema.omit('foo');
+const schemaOmitted =
+    schema.omit('foo');
 /*
 The resulting schema will be:
 p.object({

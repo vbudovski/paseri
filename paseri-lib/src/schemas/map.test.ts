@@ -5,7 +5,7 @@ import fc from 'fast-check';
 import * as p from '../index.ts';
 
 it('accepts valid types', () => {
-    const schema = p.map(p.number(), p.string());
+    const schema = p.map(p.number(), p.string())();
 
     fc.assert(
         fc.property(fc.array(fc.tuple(fc.float({ noNaN: true }), fc.string())), (data) => {
@@ -23,7 +23,7 @@ it('accepts valid types', () => {
 });
 
 it('rejects invalid types', () => {
-    const schema = p.map(p.number(), p.string());
+    const schema = p.map(p.number(), p.string())();
 
     fc.assert(
         fc.property(fc.anything(), (data) => {
@@ -39,7 +39,7 @@ it('rejects invalid types', () => {
 
 describe('min', () => {
     it('accepts valid values', () => {
-        const schema = p.map(p.number(), p.string()).min(3);
+        const schema = p.map(p.number(), p.string())(p.minSize(3));
 
         fc.assert(
             fc.property(
@@ -62,7 +62,7 @@ describe('min', () => {
     });
 
     it('rejects invalid values', () => {
-        const schema = p.map(p.number(), p.string()).min(3);
+        const schema = p.map(p.number(), p.string())(p.minSize(3));
 
         fc.assert(
             fc.property(
@@ -84,8 +84,8 @@ describe('min', () => {
     });
 
     it('rejects when transformation causes deduplication below minimum', () => {
-        const lower = p.string().chain(p.string(), (value) => p.ok(value.toLowerCase()));
-        const schema = p.map(lower, p.number()).min(2);
+        const lower = p.chain(p.string(), p.string(), (value) => p.ok(value.toLowerCase()));
+        const schema = p.map(lower, p.number())(p.minSize(2));
         const data = new Map([
             ['A', 1],
             ['a', 2],
@@ -96,21 +96,21 @@ describe('min', () => {
     });
 
     it('throws on NaN', () => {
-        expect(() => p.map(p.number(), p.string()).min(NaN)).toThrow();
+        expect(() => p.minSize(NaN)).toThrow();
     });
 
     it('is immutable', () => {
-        const original = p.map(p.number(), p.string());
-        const modified = original.min(3);
+        const original = p.map(p.number(), p.string())();
+        const modified = p.map(p.number(), p.string())(p.minSize(3));
         expect(modified).not.toEqual(original);
-        const branched = modified.max(10);
+        const branched = p.map(p.number(), p.string())(p.minSize(3), p.maxSize(10));
         expect(branched).not.toEqual(modified);
     });
 });
 
 describe('max', () => {
     it('accepts valid values', () => {
-        const schema = p.map(p.number(), p.string()).max(3);
+        const schema = p.map(p.number(), p.string())(p.maxSize(3));
 
         fc.assert(
             fc.property(
@@ -133,7 +133,7 @@ describe('max', () => {
     });
 
     it('rejects invalid values', () => {
-        const schema = p.map(p.number(), p.string()).max(3);
+        const schema = p.map(p.number(), p.string())(p.maxSize(3));
 
         fc.assert(
             fc.property(
@@ -155,21 +155,21 @@ describe('max', () => {
     });
 
     it('throws on NaN', () => {
-        expect(() => p.map(p.number(), p.string()).max(NaN)).toThrow();
+        expect(() => p.maxSize(NaN)).toThrow();
     });
 
     it('is immutable', () => {
-        const original = p.map(p.number(), p.string());
-        const modified = original.max(3);
+        const original = p.map(p.number(), p.string())();
+        const modified = p.map(p.number(), p.string())(p.maxSize(3));
         expect(modified).not.toEqual(original);
-        const branched = modified.min(1);
+        const branched = p.map(p.number(), p.string())(p.maxSize(3), p.minSize(1));
         expect(branched).not.toEqual(modified);
     });
 });
 
 describe('size', () => {
     it('accepts valid values', () => {
-        const schema = p.map(p.number(), p.string()).size(3);
+        const schema = p.map(p.number(), p.string())(p.minSize(3), p.maxSize(3));
 
         fc.assert(
             fc.property(
@@ -192,7 +192,7 @@ describe('size', () => {
     });
 
     it('rejects values that are too long', () => {
-        const schema = p.map(p.number(), p.string()).size(3);
+        const schema = p.map(p.number(), p.string())(p.minSize(3), p.maxSize(3));
 
         fc.assert(
             fc.property(
@@ -214,7 +214,7 @@ describe('size', () => {
     });
 
     it('rejects values that are too short', () => {
-        const schema = p.map(p.number(), p.string()).size(3);
+        const schema = p.map(p.number(), p.string())(p.minSize(3), p.maxSize(3));
 
         fc.assert(
             fc.property(
@@ -236,8 +236,8 @@ describe('size', () => {
     });
 
     it('rejects when transformation causes deduplication below exact size', () => {
-        const lower = p.string().chain(p.string(), (value) => p.ok(value.toLowerCase()));
-        const schema = p.map(lower, p.number()).size(2);
+        const lower = p.chain(p.string(), p.string(), (value) => p.ok(value.toLowerCase()));
+        const schema = p.map(lower, p.number())(p.minSize(2), p.maxSize(2));
         const data = new Map([
             ['A', 1],
             ['a', 2],
@@ -248,20 +248,20 @@ describe('size', () => {
     });
 
     it('throws on NaN', () => {
-        expect(() => p.map(p.number(), p.string()).size(NaN)).toThrow();
+        expect(() => p.minSize(NaN)).toThrow();
     });
 
     it('is immutable', () => {
-        const original = p.map(p.number(), p.string());
-        const modified = original.size(3);
+        const original = p.map(p.number(), p.string())();
+        const modified = p.map(p.number(), p.string())(p.minSize(3), p.maxSize(3));
         expect(modified).not.toEqual(original);
-        const branched = modified.min(1);
+        const branched = p.map(p.number(), p.string())(p.minSize(3), p.maxSize(3), p.minSize(1));
         expect(branched).not.toEqual(modified);
     });
 });
 
 it('rejects invalid elements', () => {
-    const schema = p.map(p.number(), p.string());
+    const schema = p.map(p.number(), p.string())();
     const data = new Map<unknown, unknown>([
         [1, 'valid1'], // Valid.
         ['foo', 'bar'], // Invalid key.
@@ -286,7 +286,7 @@ it('rejects invalid elements', () => {
 });
 
 it('returns new value when child value is modified', () => {
-    const schema = p.map(p.string(), p.object({ foo: p.number() }).strip());
+    const schema = p.map(p.string(), p.object({ foo: p.number() }).strip())();
     const data = new Map<string, Record<string, unknown>>([
         ['a', { foo: 1, extra: 'baz' }],
         ['b', { foo: 2, extra: 'qux' }],
@@ -306,7 +306,7 @@ it('returns new value when child value is modified', () => {
 });
 
 it('preserves unmodified entries before a modified entry', () => {
-    const schema = p.map(p.string(), p.object({ foo: p.number() }).strip());
+    const schema = p.map(p.string(), p.object({ foo: p.number() }).strip())();
     const data = new Map<string, Record<string, unknown>>([
         ['a', { foo: 1 }],
         ['b', { foo: 2 }],
@@ -328,7 +328,7 @@ it('preserves unmodified entries before a modified entry', () => {
 });
 
 it('preserves unmodified entries after a modified entry', () => {
-    const schema = p.map(p.string(), p.object({ foo: p.number() }).strip());
+    const schema = p.map(p.string(), p.object({ foo: p.number() }).strip())();
     const data = new Map<string, Record<string, unknown>>([
         ['a', { foo: 1, extra: 'strip me' }],
         ['b', { foo: 2 }],
@@ -350,7 +350,7 @@ it('preserves unmodified entries after a modified entry', () => {
 });
 
 it('reports invalid entries after a modified entry', () => {
-    const schema = p.map(p.string(), p.object({ foo: p.number() }).strip());
+    const schema = p.map(p.string(), p.object({ foo: p.number() }).strip())();
     const data = new Map<string, unknown>([
         ['a', { foo: 1, extra: 'strip me' }],
         ['b', 'invalid'],
@@ -365,7 +365,7 @@ it('reports invalid entries after a modified entry', () => {
 });
 
 it('accepts optional values', () => {
-    const schema = p.map(p.number(), p.string()).optional();
+    const schema = p.optional(p.map(p.number(), p.string())());
 
     fc.assert(
         fc.property(
@@ -386,7 +386,7 @@ it('accepts optional values', () => {
 });
 
 it('accepts nullable values', () => {
-    const schema = p.map(p.number(), p.string()).nullable();
+    const schema = p.nullable(p.map(p.number(), p.string())());
 
     fc.assert(
         fc.property(fc.option(fc.array(fc.tuple(fc.float({ noNaN: true }), fc.string())), { nil: null }), (data) => {

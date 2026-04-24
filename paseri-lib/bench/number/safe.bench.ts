@@ -4,7 +4,7 @@ import * as p from '../../src/index.ts';
 
 const { bench } = Deno;
 
-const paseriSchema = p.number().safe();
+const paseriSchema = p.number(p.safeInt());
 const zodSchema = z.number().safe();
 const valitaSchema = v.number().assert((value) => Number.isSafeInteger(value));
 

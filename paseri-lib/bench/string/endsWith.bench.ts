@@ -4,7 +4,7 @@ import * as p from '../../src/index.ts';
 
 const { bench } = Deno;
 
-const paseriSchema = p.string().endsWith('foo');
+const paseriSchema = p.string(p.endsWith('foo'));
 const zodSchema = z.string().endsWith('foo');
 const valitaSchema = v.string().assert((value) => value.endsWith('foo'));
 

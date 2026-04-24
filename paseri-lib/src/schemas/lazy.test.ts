@@ -7,7 +7,7 @@ import type { Message } from '../issue.ts';
 
 it('accepts valid types', () => {
     type T = string | T[];
-    const schema: p.Schema<T> = p.lazy(() => p.union(p.string(), p.array(schema)));
+    const schema: p.Schema<T> = p.lazy(() => p.union(p.string(), p.array(schema)())());
 
     const { tree } = fc.letrec((tie) => ({
         tree: fc.oneof({ depthSize: 'small', withCrossShrink: true }, tie('leaf'), tie('node')),
@@ -30,7 +30,7 @@ it('accepts valid types', () => {
 
 it('rejects invalid types', () => {
     type T = string | T[];
-    const schema: p.Schema<T> = p.lazy(() => p.union(p.string(), p.array(schema)));
+    const schema: p.Schema<T> = p.lazy(() => p.union(p.string(), p.array(schema)())());
 
     const { tree } = fc.letrec((tie) => ({
         tree: fc.oneof({ depthSize: 'small', withCrossShrink: true }, tie('leaf'), tie('node')),

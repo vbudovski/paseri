@@ -7,7 +7,7 @@ const { bench } = Deno;
 const paseriSchema = p.union(
     p.object({ shape: p.literal('circle'), radius: p.number() }),
     p.object({ shape: p.literal('rectangle'), width: p.number(), height: p.number() }),
-);
+)();
 const zodSchemaRegular = z.union([
     z.strictObject({ shape: z.literal('circle'), radius: z.number() }),
     z.strictObject({ shape: z.literal('rectangle'), width: z.number(), height: z.number() }),

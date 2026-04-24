@@ -107,7 +107,7 @@ describe('strip', () => {
     it('preserves transform when child is transformed to undefined', () => {
         const schema = p
             .object({
-                foo: p.string().chain(p.unknown(), () => p.ok(undefined)),
+                foo: p.chain(p.string(), p.unknown(), () => p.ok(undefined)),
             })
             .strip();
         const data = { foo: 'bar', extra: 'baz' };
@@ -373,7 +373,7 @@ it('flags required keys matching Object.prototype properties as missing', () => 
 });
 
 it('does not flag optional keys as missing', () => {
-    const schema = p.object({ optional: p.string().optional(), required: p.string() });
+    const schema = p.object({ optional: p.optional(p.string()), required: p.string() });
     const data = Object.freeze({});
 
     const result = schema.safeParse(data);
@@ -385,7 +385,7 @@ it('does not flag optional keys as missing', () => {
 });
 
 it('does not flag optional-wrapped-in-nullable as missing', () => {
-    const schema = p.object({ field: p.string().optional().nullable(), required: p.string() });
+    const schema = p.object({ field: p.nullable(p.optional(p.string())), required: p.string() });
     const data = { required: 'hello' };
 
     const result = schema.safeParse(data);
@@ -398,10 +398,7 @@ it('does not flag optional-wrapped-in-nullable as missing', () => {
 
 it('treats chained optional as required', () => {
     const schema = p.object({
-        field: p
-            .string()
-            .optional()
-            .chain(p.string(), (v) => p.ok(v ?? 'default')),
+        field: p.chain(p.optional(p.string()), p.string(), (v) => p.ok(v ?? 'default')),
         required: p.string(),
     });
     const data = { required: 'hello' };
@@ -415,17 +412,17 @@ it('treats chained optional as required', () => {
 });
 
 it('accepts optional values', () => {
-    const schema = p
-        .object({
+    const schema = p.optional(
+        p.object({
             foo: p.string(),
-            bar: p
-                .object({
+            bar: p.optional(
+                p.object({
                     baz: p.number(),
-                })
-                .optional(),
-            bif: p.number().optional(),
-        })
-        .optional();
+                }),
+            ),
+            bif: p.optional(p.number()),
+        }),
+    );
 
     fc.assert(
         fc.property(
@@ -453,16 +450,16 @@ it('accepts optional values', () => {
 });
 
 it('accepts nullable values', () => {
-    const schema = p
-        .object({
+    const schema = p.nullable(
+        p.object({
             foo: p.string(),
-            bar: p
-                .object({
+            bar: p.nullable(
+                p.object({
                     baz: p.number(),
-                })
-                .nullable(),
-        })
-        .nullable();
+                }),
+            ),
+        }),
+    );
 
     fc.assert(
         fc.property(

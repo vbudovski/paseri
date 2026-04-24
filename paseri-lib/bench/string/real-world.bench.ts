@@ -3,7 +3,7 @@ import * as p from '../../src/index.ts';
 
 const { bench } = Deno;
 
-const paseriSchema = p.string().min(5).max(50).email().endsWith('gmail.com');
+const paseriSchema = p.string(p.minLength(5), p.maxLength(50), p.email(), p.endsWith('gmail.com'));
 const zodSchema = z.string().min(5).max(50).email().endsWith('gmail.com');
 
 const dataValid = 'foo@gmail.com';

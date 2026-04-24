@@ -4,7 +4,7 @@ import * as p from '../../src/index.ts';
 
 const { bench } = Deno;
 
-const paseriSchema = p.record(p.string());
+const paseriSchema = p.record(p.string())();
 const zodSchema = z.record(z.union([z.string(), z.number(), z.symbol()]), z.string());
 const valitaSchema = v.record(v.string());
 

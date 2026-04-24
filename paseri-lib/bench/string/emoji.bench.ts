@@ -3,7 +3,7 @@ import * as p from '../../src/index.ts';
 
 const { bench } = Deno;
 
-const paseriSchema = p.string().emoji();
+const paseriSchema = p.string(p.emoji());
 const zodSchema = z.string().emoji();
 
 const dataValid = '🥳';
