@@ -146,14 +146,14 @@ const dataInvalidNested = {
     },
 };
 
-bench('All fields (valid)', () => {
+bench('Paseri', { group: 'All fields (valid)', baseline: true }, () => {
     schema.safeParse(dataAllFields);
 });
 
-bench('Required only (valid)', () => {
+bench('Paseri', { group: 'Required only (valid)', baseline: true }, () => {
     schema.safeParse(dataRequiredOnly);
 });
 
-bench('Invalid nested', () => {
+bench('Paseri', { group: 'Invalid nested', baseline: true }, () => {
     schema.safeParse(dataInvalidNested);
 });
