@@ -60,7 +60,7 @@ it('rejects when transform fails', () => {
         fc.property(fc.string(), (data) => {
             const result = schema.safeParse(data);
             if (!result.ok) {
-                const custom = { ...en, ...{ foo: 'Custom foo error.' } };
+                const custom = { ...en, foo: () => 'Custom foo error.' };
                 expect(result.messages(custom)).toEqual([{ path: [], message: 'Custom foo error.' }]);
             } else {
                 expect(result.ok).toBeFalsy();

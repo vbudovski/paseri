@@ -1,28 +1,13 @@
 import type { Simplify, UnwrapTagged } from 'type-fest';
-import type { CustomIssueCode, IssueCode, Message, TreeNode } from './issue.ts';
+import type { IssueCode, LeafNode, Message, TreeNode } from './issue.ts';
 
-type Translations = Simplify<{ [Key in UnwrapTagged<IssueCode>]: string } & Record<string, string | undefined>>;
-
-function message(
-    locale: Translations,
-    code: IssueCode | CustomIssueCode,
-    placeholders: Record<string, string | string[]>,
-): string {
-    let value = locale[code];
-    if (value === undefined) {
-        throw new Error(`No message for code ${code}.`);
-    }
-
-    for (let [placeholder, replacement] of Object.entries(placeholders)) {
-        if (Array.isArray(replacement)) {
-            replacement = replacement.join(' | ');
-        }
-
-        value = value.replaceAll(`{${placeholder}}`, replacement);
-    }
-
-    return value;
-}
+type Translations = Simplify<
+    {
+        [K in IssueCode as UnwrapTagged<K>]: (
+            placeholders: Omit<Extract<LeafNode, { code: K }>, 'type' | 'code'>,
+        ) => string;
+    } & Record<string, ((placeholders: never) => string) | undefined>
+>;
 
 type StackItem = [TreeNode, PropertyKey[]];
 
@@ -36,8 +21,17 @@ function messageList(node: TreeNode, locale: Translations | undefined): readonly
 
         switch (currentNode.type) {
             case 'leaf': {
-                const { code, type, ...placeholders } = currentNode;
-                const text = locale === undefined ? currentNode.code : message(locale, currentNode.code, placeholders);
+                let text: string;
+                if (locale === undefined) {
+                    text = currentNode.code;
+                } else {
+                    const fn = locale[currentNode.code] as ((placeholders: object) => string) | undefined;
+                    if (fn === undefined) {
+                        throw new Error(`No message for code ${currentNode.code}.`);
+                    }
+                    const { code, type, ...placeholders } = currentNode;
+                    text = fn(placeholders);
+                }
 
                 messages.push({ path: currentPath, message: text });
                 break;
