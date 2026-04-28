@@ -1,3 +1,4 @@
+import { fileURLToPath } from 'node:url';
 import preact from '@astrojs/preact';
 import sitemap from '@astrojs/sitemap';
 import starlight from '@astrojs/starlight';
@@ -46,5 +47,15 @@ export default defineConfig({
                 },
             ],
         ],
+    },
+    vite: {
+        resolve: {
+            alias: {
+                '@vbudovski/paseri/locales': fileURLToPath(
+                    new URL('../paseri-lib/src/locales/index.ts', import.meta.url),
+                ),
+                '@vbudovski/paseri': fileURLToPath(new URL('../paseri-lib/src/index.ts', import.meta.url)),
+            },
+        },
     },
 });
