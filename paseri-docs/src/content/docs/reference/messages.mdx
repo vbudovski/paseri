@@ -26,9 +26,7 @@ import { en, type Translations } from '@vbudovski/paseri/locales';
 
 const enCustom = {
     ...en,
-    ...{
-        foo: 'This is a `foo` error.',
-        bar: 'This is a `bar` error.',
-    }
+    foo: () => 'This is a `foo` error.',
+    bar: () => 'This is a `bar` error.',
 } satisfies Translations;
 ```
