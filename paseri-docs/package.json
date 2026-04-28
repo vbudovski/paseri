@@ -21,7 +21,6 @@
     "@lexical/react": "^0.43.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
-    "@vbudovski/paseri": "jsr:^0.2.1",
     "astro": "^6.1.8",
     "charts.css": "^1.2.0",
     "lexical": "^0.43.0",

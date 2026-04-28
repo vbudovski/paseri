@@ -51,9 +51,6 @@ importers:
       '@types/react-dom':
         specifier: ^19.2.3
         version: 19.2.3(@types/react@19.2.14)
-      '@vbudovski/paseri':
-        specifier: jsr:^0.2.1
-        version: '@jsr/vbudovski__paseri@0.2.1'
       astro:
         specifier: ^6.1.8
         version: 6.1.8(@types/node@24.12.2)(rollup@4.60.1)(typescript@5.9.2)(yaml@2.8.3)
@@ -628,12 +625,6 @@ packages:
 
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
-
-  '@jsr/standard-schema__spec@1.1.0':
-    resolution: {integrity: sha512-mWncLgOE1ZVd/xXG+SPmmDmYPQ9Q3OcIbkCn/3oPpp4WOw3RpbHWdxk/jiG8m4Bd9utE2b1yyfynSStpuhdXew==, tarball: https://npm.jsr.io/~/11/@jsr/standard-schema__spec/1.1.0.tgz}
-
-  '@jsr/vbudovski__paseri@0.2.1':
-    resolution: {integrity: sha512-nHHaAp9XWDkb0D6AovaWwupQ/nL+ZmQPLgxt+M5n4HpSPno7UGVWAkYQcLRGgODZBFoNaXL3k9TFrjjOSMlyFg==, tarball: https://npm.jsr.io/~/11/@jsr/vbudovski__paseri/0.2.1.tgz}
 
   '@lexical/clipboard@0.43.0':
     resolution: {integrity: sha512-3dWDusVyM9EosBt4/n/ERyPIGOyuWuECj9zbvJdzGUdvu/VsqCdlyDsU5M7NxTUNQn2Fhkdj2o00UeB6bagX5Q==}
@@ -2162,10 +2153,6 @@ packages:
   tabbable@6.4.0:
     resolution: {integrity: sha512-05PUHKSNE8ou2dwIxTngl4EzcnsCDZGJ/iCLtDflR/SHB/ny14rXc+qU5P4mG9JkusiV7EivzY9Mhm55AzAvCg==}
 
-  tagged-tag@1.0.0:
-    resolution: {integrity: sha512-yEFYrVhod+hdNyx7g5Bnkkb0G6si8HJurOoOEgC8B/O0uXLHlaey/65KRv6cuWBNhBgHKAROVpc7QyYqE5gFng==}
-    engines: {node: '>=20'}
-
   tiny-inflate@1.0.3:
     resolution: {integrity: sha512-pkY1fj1cKHb2seWDy0B16HeWyczlJA9/WW3u3c4z/NiWDsO3DOU5D7nhTLE9CF0yXv/QZFY7sEJmj24dK+Rrqw==}
 
@@ -2203,10 +2190,6 @@ packages:
 
   tslib@2.8.1:
     resolution: {integrity: sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==}
-
-  type-fest@5.1.0:
-    resolution: {integrity: sha512-wQ531tuWvB6oK+pchHIu5lHe5f5wpSCqB8Kf4dWQRbOYc9HTge7JL0G4Qd44bh6QuJCccIzL3bugb8GI0MwHrg==}
-    engines: {node: '>=20'}
 
   typesafe-path@0.2.2:
     resolution: {integrity: sha512-OJabfkAg1WLZSqJAJ0Z6Sdt3utnbzr/jh+NAHoyWHJe8CMSy79Gm085094M9nvTPy22KzTVn5Zq5mbapCI/hPA==}
@@ -3157,14 +3140,6 @@ snapshots:
     dependencies:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
-
-  '@jsr/standard-schema__spec@1.1.0': {}
-
-  '@jsr/vbudovski__paseri@0.2.1':
-    dependencies:
-      '@jsr/standard-schema__spec': 1.1.0
-      regex: 6.1.0
-      type-fest: 5.1.0
 
   '@lexical/clipboard@0.43.0':
     dependencies:
@@ -5384,8 +5359,6 @@ snapshots:
 
   tabbable@6.4.0: {}
 
-  tagged-tag@1.0.0: {}
-
   tiny-inflate@1.0.3: {}
 
   tinyclip@0.1.12: {}
@@ -5412,10 +5385,6 @@ snapshots:
 
   tslib@2.8.1:
     optional: true
-
-  type-fest@5.1.0:
-    dependencies:
-      tagged-tag: 1.0.0
 
   typesafe-path@0.2.2: {}
 

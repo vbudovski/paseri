@@ -9,7 +9,9 @@
       "react": ["./node_modules/preact/compat/"],
       "react/jsx-runtime": ["./node_modules/preact/jsx-runtime"],
       "react-dom": ["./node_modules/preact/compat/"],
-      "react-dom/*": ["./node_modules/preact/compat/*"]
+      "react-dom/*": ["./node_modules/preact/compat/*"],
+      "@vbudovski/paseri": ["../paseri-lib/src/index.ts"],
+      "@vbudovski/paseri/locales": ["../paseri-lib/src/locales/index.ts"]
     }
   }
 }
