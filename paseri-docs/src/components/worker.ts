@@ -1,4 +1,5 @@
 import * as p from '@vbudovski/paseri';
+import { en } from '@vbudovski/paseri/locales';
 
 self.onmessage = (event: MessageEvent<{ schema: string; data: string }>) => {
     const { schema, data } = event.data;
@@ -10,7 +11,7 @@ self.onmessage = (event: MessageEvent<{ schema: string; data: string }>) => {
         });
     } catch (e) {
         if (e instanceof p.PaseriError) {
-            self.postMessage({ ok: false, errors: e.messages().map((message) => JSON.stringify(message)) });
+            self.postMessage({ ok: false, errors: e.messages(en).map((message) => JSON.stringify(message)) });
         } else {
             self.postMessage({ ok: false, errors: ['Malformed input.'] });
         }

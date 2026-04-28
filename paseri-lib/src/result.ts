@@ -1,5 +1,4 @@
 import type { CustomIssueCode, Message, TreeNode } from './issue.ts';
-import { en } from './locales/index.ts';
 import { messageList, type Translations } from './message.ts';
 
 interface ParseSuccessResult<OutputType> {
@@ -23,7 +22,7 @@ class ParseErrorResult implements ParseErrorResultInterface {
     get issue(): TreeNode {
         return this._issue;
     }
-    messages(locale: Translations = en): readonly Message[] {
+    messages(locale?: Translations): readonly Message[] {
         return messageList(this._issue, locale);
     }
 }
@@ -44,7 +43,7 @@ class PaseriError extends Error {
      * Retrieve the error messages for a parsing failure.
      * @param locale The locale to use for error messages.
      */
-    messages(locale: Translations = en): readonly Message[] {
+    messages(locale?: Translations): readonly Message[] {
         return messageList(this._issue, locale);
     }
 }

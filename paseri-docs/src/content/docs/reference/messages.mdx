@@ -2,10 +2,11 @@
 title: "Messages"
 ---
 
-In order to support localised error messages, each parsing error produces a unique error code. This is then looked up in
-the messages object for the selected locale. When calling the `messages` method on either the `safeParse` result or the
-exception thrown from `parse`, you can pass the desired messages object as the parameter. The default messages can be
-found in `locales/en.ts`.
+In order to support localised error messages, each parsing error produces a unique error code. This is then looked up
+in the messages object for the selected locale. When calling the `messages` method on either the `safeParse` result or
+the exception thrown from `parse`, pass the desired messages object as the parameter to get human-readable strings.
+Calling `messages` without a locale returns the raw issue codes (e.g. `invalid_email`), which is useful when you only
+need to inspect error codes programmatically. Locales are imported from `@vbudovski/paseri/locales`.
 
 ## Contributing new translations
 

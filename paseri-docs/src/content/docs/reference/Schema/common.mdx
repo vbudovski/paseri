@@ -30,17 +30,19 @@ try {
 
 The `safeParse` method takes a `value` parameter as input. The result is a discriminated union with a `boolean` member
 `ok`. You can use it to extract the parsed value on success or get the error [messages](/reference/messages/) using
-`result.messages()`.
+`result.messages(locale)`. Pass a locale (e.g. `en`) to get human-readable strings; calling without a locale returns
+the raw issue codes.
 
 ```typescript
 import * as p from '@vbudovski/paseri';
+import { en } from '@vbudovski/paseri/locales';
 
 const schema = p.string();
 const result = schema.safeParse('foo');
 if (result.ok) {
     // Do something with the `result.value`.
 } else {
-    // Do something with the `result.messages()`.
+    // Do something with the `result.messages(en)`.
 }
 ```
 

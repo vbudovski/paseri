@@ -77,7 +77,7 @@ it('rejects invalid types', () => {
             (data) => {
                 const result = schema.safeParse(data);
                 if (!result.ok) {
-                    expect(result.messages()).toEqual([{ path: [], message: 'Invalid type. Expected string.' }]);
+                    expect(result.messages()).toEqual([{ path: [], message: 'invalid_type' }]);
                 } else {
                     expect(result.ok).toBeFalsy();
                 }
@@ -110,7 +110,7 @@ describe('min', () => {
             fc.property(fc.string({ maxLength: 2 }), (data) => {
                 const result = schema.safeParse(data);
                 if (!result.ok) {
-                    expect(result.messages()).toEqual([{ path: [], message: 'Too short.' }]);
+                    expect(result.messages()).toEqual([{ path: [], message: 'too_short' }]);
                 } else {
                     expect(result.ok).toBeFalsy();
                 }
@@ -155,7 +155,7 @@ describe('max', () => {
             fc.property(fc.string({ minLength: 4 }), (data) => {
                 const result = schema.safeParse(data);
                 if (!result.ok) {
-                    expect(result.messages()).toEqual([{ path: [], message: 'Too long.' }]);
+                    expect(result.messages()).toEqual([{ path: [], message: 'too_long' }]);
                 } else {
                     expect(result.ok).toBeFalsy();
                 }
@@ -200,7 +200,7 @@ describe('length', () => {
             fc.property(fc.string({ minLength: 4 }), (data) => {
                 const result = schema.safeParse(data);
                 if (!result.ok) {
-                    expect(result.messages()).toEqual([{ path: [], message: 'Too long.' }]);
+                    expect(result.messages()).toEqual([{ path: [], message: 'too_long' }]);
                 } else {
                     expect(result.ok).toBeFalsy();
                 }
@@ -215,7 +215,7 @@ describe('length', () => {
             fc.property(fc.string({ maxLength: 2 }), (data) => {
                 const result = schema.safeParse(data);
                 if (!result.ok) {
-                    expect(result.messages()).toEqual([{ path: [], message: 'Too short.' }]);
+                    expect(result.messages()).toEqual([{ path: [], message: 'too_short' }]);
                 } else {
                     expect(result.ok).toBeFalsy();
                 }
@@ -263,7 +263,7 @@ describe('email', () => {
                 (data) => {
                     const result = schema.safeParse(data);
                     if (!result.ok) {
-                        expect(result.messages()).toEqual([{ path: [], message: 'Invalid email.' }]);
+                        expect(result.messages()).toEqual([{ path: [], message: 'invalid_email' }]);
                     } else {
                         expect(result.ok).toBeFalsy();
                     }
@@ -334,7 +334,7 @@ describe('emoji', () => {
                 (data) => {
                     const result = schema.safeParse(data);
                     if (!result.ok) {
-                        expect(result.messages()).toEqual([{ path: [], message: 'Invalid emoji.' }]);
+                        expect(result.messages()).toEqual([{ path: [], message: 'invalid_emoji' }]);
                     } else {
                         expect(result.ok).toBeFalsy();
                     }
@@ -390,7 +390,7 @@ describe('uuid', () => {
                 (data) => {
                     const result = schema.safeParse(data);
                     if (!result.ok) {
-                        expect(result.messages()).toEqual([{ path: [], message: 'Invalid UUID.' }]);
+                        expect(result.messages()).toEqual([{ path: [], message: 'invalid_uuid' }]);
                     } else {
                         expect(result.ok).toBeFalsy();
                     }
@@ -448,7 +448,7 @@ describe('nanoid', () => {
                 (data) => {
                     const result = schema.safeParse(data);
                     if (!result.ok) {
-                        expect(result.messages()).toEqual([{ path: [], message: 'Invalid Nano ID.' }]);
+                        expect(result.messages()).toEqual([{ path: [], message: 'invalid_nanoid' }]);
                     } else {
                         expect(result.ok).toBeFalsy();
                     }
@@ -504,7 +504,7 @@ describe('includes', () => {
                 (data) => {
                     const result = schema.safeParse(data);
                     if (!result.ok) {
-                        expect(result.messages()).toEqual([{ path: [], message: 'Does not include search string.' }]);
+                        expect(result.messages()).toEqual([{ path: [], message: 'does_not_include' }]);
                     } else {
                         expect(result.ok).toBeFalsy();
                     }
@@ -549,9 +549,7 @@ describe('startsWith', () => {
                 (data) => {
                     const result = schema.safeParse(data);
                     if (!result.ok) {
-                        expect(result.messages()).toEqual([
-                            { path: [], message: 'Does not start with search string.' },
-                        ]);
+                        expect(result.messages()).toEqual([{ path: [], message: 'does_not_start_with' }]);
                     } else {
                         expect(result.ok).toBeFalsy();
                     }
@@ -596,7 +594,7 @@ describe('endsWith', () => {
                 (data) => {
                     const result = schema.safeParse(data);
                     if (!result.ok) {
-                        expect(result.messages()).toEqual([{ path: [], message: 'Does not end with search string.' }]);
+                        expect(result.messages()).toEqual([{ path: [], message: 'does_not_end_with' }]);
                     } else {
                         expect(result.ok).toBeFalsy();
                     }
@@ -646,7 +644,7 @@ describe('date (string)', () => {
                 (data) => {
                     const result = schema.safeParse(data);
                     if (!result.ok) {
-                        expect(result.messages()).toEqual([{ path: [], message: 'Invalid date string.' }]);
+                        expect(result.messages()).toEqual([{ path: [], message: 'invalid_date_string' }]);
                     } else {
                         expect(result.ok).toBeFalsy();
                     }
@@ -710,7 +708,7 @@ describe('time', () => {
                 (data) => {
                     const result = schema.safeParse(data);
                     if (!result.ok) {
-                        expect(result.messages()).toEqual([{ path: [], message: 'Invalid time string.' }]);
+                        expect(result.messages()).toEqual([{ path: [], message: 'invalid_time_string' }]);
                     } else {
                         expect(result.ok).toBeFalsy();
                     }
@@ -797,7 +795,7 @@ describe('datetime', () => {
                 (data) => {
                     const result = schema.safeParse(data);
                     if (!result.ok) {
-                        expect(result.messages()).toEqual([{ path: [], message: 'Invalid datetime string.' }]);
+                        expect(result.messages()).toEqual([{ path: [], message: 'invalid_date_time_string' }]);
                     } else {
                         expect(result.ok).toBeFalsy();
                     }
@@ -871,7 +869,7 @@ describe('ip', () => {
                 (data) => {
                     const result = schema.safeParse(data);
                     if (!result.ok) {
-                        expect(result.messages()).toEqual([{ path: [], message: 'Invalid IP address.' }]);
+                        expect(result.messages()).toEqual([{ path: [], message: 'invalid_ip_address' }]);
                     } else {
                         expect(result.ok).toBeFalsy();
                     }
@@ -938,7 +936,7 @@ describe('cidr', () => {
                 (data) => {
                     const result = schema.safeParse(data);
                     if (!result.ok) {
-                        expect(result.messages()).toEqual([{ path: [], message: 'Invalid IP address range.' }]);
+                        expect(result.messages()).toEqual([{ path: [], message: 'invalid_ip_address_range' }]);
                     } else {
                         expect(result.ok).toBeFalsy();
                     }
@@ -1000,7 +998,7 @@ describe('regex', () => {
                 (data) => {
                     const result = schema.safeParse(data);
                     if (!result.ok) {
-                        expect(result.messages()).toEqual([{ path: [], message: 'Does not match regex.' }]);
+                        expect(result.messages()).toEqual([{ path: [], message: 'does_not_match_regex' }]);
                     } else {
                         expect(result.ok).toBeFalsy();
                     }

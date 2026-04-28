@@ -24,7 +24,7 @@ it('rejects when source schema fails', () => {
             (data) => {
                 const result = schema.safeParse(data);
                 if (!result.ok) {
-                    expect(result.messages()).toEqual([{ path: [], message: 'Invalid type. Expected string.' }]);
+                    expect(result.messages()).toEqual([{ path: [], message: 'invalid_type' }]);
                 } else {
                     expect(result.ok).toBeFalsy();
                 }
@@ -43,7 +43,7 @@ it('rejects when target schema fails', () => {
         fc.property(fc.string(), (data) => {
             const result = schema.safeParse(data);
             if (!result.ok) {
-                expect(result.messages()).toEqual([{ path: [], message: 'Invalid type. Expected number.' }]);
+                expect(result.messages()).toEqual([{ path: [], message: 'invalid_type' }]);
             } else {
                 expect(result.ok).toBeFalsy();
             }

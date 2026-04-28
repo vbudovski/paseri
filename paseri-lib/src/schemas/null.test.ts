@@ -24,7 +24,7 @@ it('rejects non-null values', () => {
             (data) => {
                 const result = schema.safeParse(data);
                 if (!result.ok) {
-                    expect(result.messages()).toEqual([{ path: [], message: 'Invalid value. Expected null.' }]);
+                    expect(result.messages()).toEqual([{ path: [], message: 'invalid_value' }]);
                 } else {
                     expect(result.ok).toBeFalsy();
                 }

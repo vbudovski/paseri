@@ -20,7 +20,7 @@ describe('String', () => {
         const schema = p.literal('apple');
         const result = schema.safeParse('banana');
         if (!result.ok) {
-            expect(result.messages()).toEqual([{ path: [], message: "Invalid value. Expected 'apple'." }]);
+            expect(result.messages()).toEqual([{ path: [], message: 'invalid_value' }]);
         } else {
             expect(result.ok).toBeFalsy();
         }
@@ -48,7 +48,7 @@ describe('Number', () => {
         const schema = p.literal(123);
         const result = schema.safeParse(456);
         if (!result.ok) {
-            expect(result.messages()).toEqual([{ path: [], message: 'Invalid value. Expected 123.' }]);
+            expect(result.messages()).toEqual([{ path: [], message: 'invalid_value' }]);
         } else {
             expect(result.ok).toBeFalsy();
         }
@@ -76,7 +76,7 @@ describe('BigInt', () => {
         const schema = p.literal(123n);
         const result = schema.safeParse(456n);
         if (!result.ok) {
-            expect(result.messages()).toEqual([{ path: [], message: 'Invalid value. Expected 123n.' }]);
+            expect(result.messages()).toEqual([{ path: [], message: 'invalid_value' }]);
         } else {
             expect(result.ok).toBeFalsy();
         }
@@ -104,7 +104,7 @@ describe('Boolean', () => {
         const schema = p.literal(true);
         const result = schema.safeParse(false);
         if (!result.ok) {
-            expect(result.messages()).toEqual([{ path: [], message: 'Invalid value. Expected true.' }]);
+            expect(result.messages()).toEqual([{ path: [], message: 'invalid_value' }]);
         } else {
             expect(result.ok).toBeFalsy();
         }

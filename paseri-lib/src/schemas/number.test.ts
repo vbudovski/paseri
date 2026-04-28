@@ -32,7 +32,7 @@ it('rejects invalid types', () => {
             (data) => {
                 const result = schema.safeParse(data);
                 if (!result.ok) {
-                    expect(result.messages()).toEqual([{ path: [], message: 'Invalid type. Expected number.' }]);
+                    expect(result.messages()).toEqual([{ path: [], message: 'invalid_type' }]);
                 } else {
                     expect(result.ok).toBeFalsy();
                 }
@@ -65,7 +65,7 @@ describe('gte', () => {
             fc.property(fc.float({ noNaN: true, max: 10, maxExcluded: true }), (data) => {
                 const result = schema.safeParse(data);
                 if (!result.ok) {
-                    expect(result.messages()).toEqual([{ path: [], message: 'Too small.' }]);
+                    expect(result.messages()).toEqual([{ path: [], message: 'too_small' }]);
                 } else {
                     expect(result.ok).toBeFalsy();
                 }
@@ -110,7 +110,7 @@ describe('gt', () => {
             fc.property(fc.float({ noNaN: true, max: 10 }), (data) => {
                 const result = schema.safeParse(data);
                 if (!result.ok) {
-                    expect(result.messages()).toEqual([{ path: [], message: 'Too small.' }]);
+                    expect(result.messages()).toEqual([{ path: [], message: 'too_small' }]);
                 } else {
                     expect(result.ok).toBeFalsy();
                 }
@@ -155,7 +155,7 @@ describe('lte', () => {
             fc.property(fc.float({ noNaN: true, min: 10, minExcluded: true }), (data) => {
                 const result = schema.safeParse(data);
                 if (!result.ok) {
-                    expect(result.messages()).toEqual([{ path: [], message: 'Too large.' }]);
+                    expect(result.messages()).toEqual([{ path: [], message: 'too_large' }]);
                 } else {
                     expect(result.ok).toBeFalsy();
                 }
@@ -200,7 +200,7 @@ describe('lt', () => {
             fc.property(fc.float({ noNaN: true, min: 10 }), (data) => {
                 const result = schema.safeParse(data);
                 if (!result.ok) {
-                    expect(result.messages()).toEqual([{ path: [], message: 'Too large.' }]);
+                    expect(result.messages()).toEqual([{ path: [], message: 'too_large' }]);
                 } else {
                     expect(result.ok).toBeFalsy();
                 }
@@ -245,7 +245,7 @@ describe('int', () => {
             fc.property(fc.float({ noNaN: true, noInteger: true }), (data) => {
                 const result = schema.safeParse(data);
                 if (!result.ok) {
-                    expect(result.messages()).toEqual([{ path: [], message: 'Number must be an integer.' }]);
+                    expect(result.messages()).toEqual([{ path: [], message: 'invalid_integer' }]);
                 } else {
                     expect(result.ok).toBeFalsy();
                 }
@@ -288,7 +288,7 @@ describe('finite', () => {
                 (data) => {
                     const result = schema.safeParse(data);
                     if (!result.ok) {
-                        expect(result.messages()).toEqual([{ path: [], message: 'Number must be finite.' }]);
+                        expect(result.messages()).toEqual([{ path: [], message: 'invalid_finite' }]);
                     } else {
                         expect(result.ok).toBeFalsy();
                     }
@@ -332,7 +332,7 @@ describe('safe', () => {
                 (data) => {
                     const result = schema.safeParse(data);
                     if (!result.ok) {
-                        expect(result.messages()).toEqual([{ path: [], message: 'Number must be a safe integer.' }]);
+                        expect(result.messages()).toEqual([{ path: [], message: 'invalid_safe_integer' }]);
                     } else {
                         expect(result.ok).toBeFalsy();
                     }

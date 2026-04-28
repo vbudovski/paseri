@@ -45,14 +45,14 @@ it('rejects invalid types', () => {
             function makeExpectedMessages(d: unknown, path: number[] = []): Message[] {
                 if (Array.isArray(d)) {
                     return [
-                        { path, message: 'Invalid type. Expected string.' },
+                        { path, message: 'invalid_type' },
                         ...d.flatMap((di, i) => makeExpectedMessages(di, [...path, i])),
                     ];
                 }
 
                 return [
-                    { path, message: 'Invalid type. Expected string.' },
-                    { path, message: 'Invalid type. Expected array.' },
+                    { path, message: 'invalid_type' },
+                    { path, message: 'invalid_type' },
                 ];
             }
 

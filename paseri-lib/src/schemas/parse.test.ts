@@ -22,7 +22,7 @@ it('exposes error messages on thrown PaseriError', () => {
     } catch (e) {
         expect(e).toBeInstanceOf(p.PaseriError);
         if (e instanceof p.PaseriError) {
-            expect(e.messages()).toEqual([{ path: [], message: 'Invalid type. Expected string.' }]);
+            expect(e.messages()).toEqual([{ path: [], message: 'invalid_type' }]);
         }
         return;
     }

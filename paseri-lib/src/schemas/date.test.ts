@@ -27,7 +27,7 @@ it('rejects invalid types', () => {
         fc.property(fc.anything({ withDate: false }), (data) => {
             const result = schema.safeParse(data);
             if (!result.ok) {
-                expect(result.messages()).toEqual([{ path: [], message: 'Invalid type. Expected Date.' }]);
+                expect(result.messages()).toEqual([{ path: [], message: 'invalid_type' }]);
             } else {
                 expect(result.ok).toBeFalsy();
             }
@@ -40,7 +40,7 @@ it('rejects invalid dates', () => {
 
     const result = schema.safeParse(new Date(Number.NaN));
     if (!result.ok) {
-        expect(result.messages()).toEqual([{ path: [], message: 'Invalid date.' }]);
+        expect(result.messages()).toEqual([{ path: [], message: 'invalid_date' }]);
     } else {
         expect(result.ok).toBeFalsy();
     }
@@ -70,7 +70,7 @@ describe('min', () => {
             fc.property(fc.date({ max: new Date(2019, 11, 31), noInvalidDate: true }), (data) => {
                 const result = schema.safeParse(data);
                 if (!result.ok) {
-                    expect(result.messages()).toEqual([{ path: [], message: 'Too dated.' }]);
+                    expect(result.messages()).toEqual([{ path: [], message: 'too_dated' }]);
                 } else {
                     expect(result.ok).toBeFalsy();
                 }
@@ -115,7 +115,7 @@ describe('max', () => {
             fc.property(fc.date({ min: new Date(2020, 0, 2), noInvalidDate: true }), (data) => {
                 const result = schema.safeParse(data);
                 if (!result.ok) {
-                    expect(result.messages()).toEqual([{ path: [], message: 'Too recent.' }]);
+                    expect(result.messages()).toEqual([{ path: [], message: 'too_recent' }]);
                 } else {
                     expect(result.ok).toBeFalsy();
                 }

@@ -18,7 +18,7 @@ it('returns error result on failure', () => {
     const schema = p.string();
     const result = schema.safeParse(123);
     if (!result.ok) {
-        expect(result.messages()).toEqual([{ path: [], message: 'Invalid type. Expected string.' }]);
+        expect(result.messages()).toEqual([{ path: [], message: 'invalid_type' }]);
     } else {
         expect(result.ok).toBeFalsy();
     }

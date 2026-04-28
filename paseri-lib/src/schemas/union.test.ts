@@ -33,9 +33,9 @@ it('rejects invalid types', () => {
                 const result = schema.safeParse(data);
                 if (!result.ok) {
                     expect(result.messages()).toEqual([
-                        { path: [], message: 'Invalid type. Expected string.' },
-                        { path: [], message: 'Invalid type. Expected number.' },
-                        { path: [], message: 'Invalid value. Expected 123n.' },
+                        { path: [], message: 'invalid_type' },
+                        { path: [], message: 'invalid_type' },
+                        { path: [], message: 'invalid_value' },
                     ]);
                 } else {
                     expect(result.ok).toBeFalsy();
@@ -134,9 +134,7 @@ it('rejects invalid discriminator values', () => {
 
     const result = schema.safeParse({});
     if (!result.ok) {
-        expect(result.messages()).toEqual([
-            { path: [], message: "Invalid discriminator value. Expected 'circle' | 'rectangle'." },
-        ]);
+        expect(result.messages()).toEqual([{ path: [], message: 'invalid_discriminator_value' }]);
     } else {
         expect(result.ok).toBeFalsy();
     }
@@ -154,7 +152,7 @@ it('rejects non-object input to discriminated union', () => {
             (data) => {
                 const result = schema.safeParse(data);
                 if (!result.ok) {
-                    expect(result.messages()).toEqual([{ path: [], message: 'Invalid type. Expected object.' }]);
+                    expect(result.messages()).toEqual([{ path: [], message: 'invalid_type' }]);
                 } else {
                     expect(result.ok).toBeFalsy();
                 }

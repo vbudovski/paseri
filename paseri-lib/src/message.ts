@@ -26,7 +26,7 @@ function message(
 
 type StackItem = [TreeNode, PropertyKey[]];
 
-function messageList(node: TreeNode, locale: Translations): readonly Message[] {
+function messageList(node: TreeNode, locale: Translations | undefined): readonly Message[] {
     const messages: Message[] = [];
 
     const stack: StackItem[] = [];
@@ -37,8 +37,9 @@ function messageList(node: TreeNode, locale: Translations): readonly Message[] {
         switch (currentNode.type) {
             case 'leaf': {
                 const { code, type, ...placeholders } = currentNode;
+                const text = locale === undefined ? currentNode.code : message(locale, currentNode.code, placeholders);
 
-                messages.push({ path: currentPath, message: message(locale, currentNode.code, placeholders) });
+                messages.push({ path: currentPath, message: text });
                 break;
             }
             case 'join': {

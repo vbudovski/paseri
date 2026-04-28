@@ -31,7 +31,7 @@ it('rejects invalid types', () => {
             (data) => {
                 const result = schema.safeParse(data);
                 if (!result.ok) {
-                    expect(result.messages()).toEqual([{ path: [], message: 'Invalid type. Expected object.' }]);
+                    expect(result.messages()).toEqual([{ path: [], message: 'invalid_type' }]);
                 } else {
                     expect(result.ok).toBeFalsy();
                 }
@@ -197,8 +197,8 @@ describe('strict', () => {
                     const result = schema.safeParse(data);
                     if (!result.ok) {
                         expect(result.messages()).toEqual([
-                            { path: ['bar', 'extra2'], message: 'Unrecognised key.' },
-                            { path: ['extra1'], message: 'Unrecognised key.' },
+                            { path: ['bar', 'extra2'], message: 'unrecognized_key' },
+                            { path: ['extra1'], message: 'unrecognized_key' },
                         ]);
                     } else {
                         expect(result.ok).toBeFalsy();
@@ -252,7 +252,7 @@ describe('strict', () => {
 
                 const result = schema.safeParse(data);
                 if (!result.ok) {
-                    expect(result.messages()).toEqual([{ path: ['extra'], message: 'Unrecognised key.' }]);
+                    expect(result.messages()).toEqual([{ path: ['extra'], message: 'unrecognized_key' }]);
                 } else {
                     expect(result.ok).toBeFalsy();
                 }
@@ -322,8 +322,8 @@ it('rejects missing keys', () => {
     const result = schema.safeParse(data);
     if (!result.ok) {
         expect(result.messages()).toEqual([
-            { path: ['child1'], message: 'Missing value.' },
-            { path: ['child3'], message: 'Missing value.' },
+            { path: ['child1'], message: 'missing_value' },
+            { path: ['child3'], message: 'missing_value' },
         ]);
     } else {
         expect(result.ok).toBeFalsy();
@@ -346,9 +346,9 @@ it('rejects deeply missing keys', () => {
     const result = schema.safeParse(data);
     if (!result.ok) {
         expect(result.messages()).toEqual([
-            { path: ['object1', 'number1'], message: 'Missing value.' },
-            { path: ['object2', 'object3', 'number2'], message: 'Missing value.' },
-            { path: ['string1'], message: 'Missing value.' },
+            { path: ['object1', 'number1'], message: 'missing_value' },
+            { path: ['object2', 'object3', 'number2'], message: 'missing_value' },
+            { path: ['string1'], message: 'missing_value' },
         ]);
     } else {
         expect(result.ok).toBeFalsy();
@@ -364,7 +364,7 @@ it('flags required keys matching Object.prototype properties as missing', () => 
 
             const result = schema.safeParse({});
             if (!result.ok) {
-                expect(result.messages()).toEqual([{ path: [protoKey], message: 'Missing value.' }]);
+                expect(result.messages()).toEqual([{ path: [protoKey], message: 'missing_value' }]);
             } else {
                 expect(result.ok).toBeFalsy();
             }
@@ -378,7 +378,7 @@ it('does not flag optional keys as missing', () => {
 
     const result = schema.safeParse(data);
     if (!result.ok) {
-        expect(result.messages()).toEqual([{ path: ['required'], message: 'Missing value.' }]);
+        expect(result.messages()).toEqual([{ path: ['required'], message: 'missing_value' }]);
     } else {
         expect(result.ok).toBeFalsy();
     }
@@ -408,7 +408,7 @@ it('treats chained optional as required', () => {
 
     const result = schema.safeParse(data);
     if (!result.ok) {
-        expect(result.messages()).toEqual([{ path: ['field'], message: 'Missing value.' }]);
+        expect(result.messages()).toEqual([{ path: ['field'], message: 'missing_value' }]);
     } else {
         expect(result.ok).toBeFalsy();
     }
