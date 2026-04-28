@@ -29,7 +29,7 @@ it('rejects invalid types', () => {
             (data) => {
                 const result = schema.safeParse(data);
                 if (!result.ok) {
-                    expect(result.messages()).toEqual([{ path: [], message: 'Invalid type. Expected Record.' }]);
+                    expect(result.messages()).toEqual([{ path: [], message: 'invalid_type' }]);
                 } else {
                     expect(result.ok).toBeFalsy();
                 }
@@ -45,8 +45,8 @@ it('rejects invalid elements', () => {
     const result = schema.safeParse(data);
     if (!result.ok) {
         expect(result.messages()).toEqual([
-            { path: ['bad1'], message: 'Invalid type. Expected number.' },
-            { path: ['bad2'], message: 'Invalid type. Expected number.' },
+            { path: ['bad1'], message: 'invalid_type' },
+            { path: ['bad2'], message: 'invalid_type' },
         ]);
     } else {
         expect(result.ok).toBeFalsy();
@@ -135,7 +135,7 @@ it('rejects invalid values with Object.prototype key names', () => {
 
             const result = schema.safeParse(data);
             if (!result.ok) {
-                expect(result.messages()).toEqual([{ path: [key], message: 'Invalid type. Expected number.' }]);
+                expect(result.messages()).toEqual([{ path: [key], message: 'invalid_type' }]);
             } else {
                 expect(result.ok).toBeFalsy();
             }

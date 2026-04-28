@@ -29,7 +29,7 @@ it('rejects invalid types', () => {
             (data) => {
                 const result = schema.safeParse(data);
                 if (!result.ok) {
-                    expect(result.messages()).toEqual([{ path: [], message: 'Invalid type. Expected bigint.' }]);
+                    expect(result.messages()).toEqual([{ path: [], message: 'invalid_type' }]);
                 } else {
                     expect(result.ok).toBeFalsy();
                 }
@@ -62,7 +62,7 @@ describe('gte', () => {
             fc.property(fc.bigInt({ max: 9n }), (data) => {
                 const result = schema.safeParse(data);
                 if (!result.ok) {
-                    expect(result.messages()).toEqual([{ path: [], message: 'Too small.' }]);
+                    expect(result.messages()).toEqual([{ path: [], message: 'too_small' }]);
                 } else {
                     expect(result.ok).toBeFalsy();
                 }
@@ -103,7 +103,7 @@ describe('gt', () => {
             fc.property(fc.bigInt({ max: 10n }), (data) => {
                 const result = schema.safeParse(data);
                 if (!result.ok) {
-                    expect(result.messages()).toEqual([{ path: [], message: 'Too small.' }]);
+                    expect(result.messages()).toEqual([{ path: [], message: 'too_small' }]);
                 } else {
                     expect(result.ok).toBeFalsy();
                 }
@@ -144,7 +144,7 @@ describe('lte', () => {
             fc.property(fc.bigInt({ min: 11n }), (data) => {
                 const result = schema.safeParse(data);
                 if (!result.ok) {
-                    expect(result.messages()).toEqual([{ path: [], message: 'Too large.' }]);
+                    expect(result.messages()).toEqual([{ path: [], message: 'too_large' }]);
                 } else {
                     expect(result.ok).toBeFalsy();
                 }
@@ -185,7 +185,7 @@ describe('lt', () => {
             fc.property(fc.bigInt({ min: 10n }), (data) => {
                 const result = schema.safeParse(data);
                 if (!result.ok) {
-                    expect(result.messages()).toEqual([{ path: [], message: 'Too large.' }]);
+                    expect(result.messages()).toEqual([{ path: [], message: 'too_large' }]);
                 } else {
                     expect(result.ok).toBeFalsy();
                 }

@@ -29,7 +29,7 @@ it('rejects invalid types', () => {
         fc.property(fc.anything(), (data) => {
             const result = schema.safeParse(data);
             if (!result.ok) {
-                expect(result.messages()).toEqual([{ path: [], message: 'Invalid type. Expected Set.' }]);
+                expect(result.messages()).toEqual([{ path: [], message: 'invalid_type' }]);
             } else {
                 expect(result.ok).toBeFalsy();
             }
@@ -70,7 +70,7 @@ describe('min', () => {
 
                     const result = schema.safeParse(dataAsSet);
                     if (!result.ok) {
-                        expect(result.messages()).toEqual([{ path: [], message: 'Too short.' }]);
+                        expect(result.messages()).toEqual([{ path: [], message: 'too_short' }]);
                     } else {
                         expect(result.ok).toBeFalsy();
                     }
@@ -134,7 +134,7 @@ describe('max', () => {
 
                     const result = schema.safeParse(dataAsSet);
                     if (!result.ok) {
-                        expect(result.messages()).toEqual([{ path: [], message: 'Too long.' }]);
+                        expect(result.messages()).toEqual([{ path: [], message: 'too_long' }]);
                     } else {
                         expect(result.ok).toBeFalsy();
                     }
@@ -191,7 +191,7 @@ describe('size', () => {
 
                     const result = schema.safeParse(dataAsSet);
                     if (!result.ok) {
-                        expect(result.messages()).toEqual([{ path: [], message: 'Too long.' }]);
+                        expect(result.messages()).toEqual([{ path: [], message: 'too_long' }]);
                     } else {
                         expect(result.ok).toBeFalsy();
                     }
@@ -211,7 +211,7 @@ describe('size', () => {
 
                     const result = schema.safeParse(dataAsSet);
                     if (!result.ok) {
-                        expect(result.messages()).toEqual([{ path: [], message: 'Too short.' }]);
+                        expect(result.messages()).toEqual([{ path: [], message: 'too_short' }]);
                     } else {
                         expect(result.ok).toBeFalsy();
                     }
@@ -249,8 +249,8 @@ it('rejects invalid elements', () => {
     const result = schema.safeParse(data);
     if (!result.ok) {
         expect(result.messages()).toEqual([
-            { path: [1], message: 'Invalid type. Expected number.' },
-            { path: [3], message: 'Invalid type. Expected number.' },
+            { path: [1], message: 'invalid_type' },
+            { path: [3], message: 'invalid_type' },
         ]);
     } else {
         expect(result.ok).toBeFalsy();
@@ -299,7 +299,7 @@ it('reports invalid elements after a modified element', () => {
 
     const result = schema.safeParse(data);
     if (!result.ok) {
-        expect(result.messages()).toEqual([{ path: [1], message: 'Invalid type. Expected object.' }]);
+        expect(result.messages()).toEqual([{ path: [1], message: 'invalid_type' }]);
     } else {
         expect(result.ok).toBeFalsy();
     }
