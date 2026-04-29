@@ -1,9 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/denoland/deno/main/cli/schemas/config-file.v1.json",
-  "name": "@vbudovski/paseri-docs",
   "license": "MIT",
-  "version": "0.0.1",
-  "exports": "./astro.config.ts",
   "imports": {
     "@astrojs/check": "npm:@astrojs/check@^0.9.8",
     "@astrojs/preact": "npm:@astrojs/preact@^5.1.2",
