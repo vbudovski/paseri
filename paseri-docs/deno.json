@@ -6,18 +6,17 @@
     "@astrojs/preact": "npm:@astrojs/preact@^5.1.2",
     "@astrojs/sitemap": "npm:@astrojs/sitemap@^3.7.2",
     "@astrojs/starlight": "npm:@astrojs/starlight@^0.38.4",
-    "@lexical/code": "npm:@lexical/code@^0.44.0",
-    "@lexical/code-prism": "npm:@lexical/code-prism@^0.44.0",
-    "@lexical/markdown": "npm:@lexical/markdown@^0.44.0",
-    "@lexical/react": "npm:@lexical/react@^0.44.0",
+    "@preact/signals": "npm:@preact/signals@^2.9.0",
+    "@preact/signals-core": "npm:@preact/signals-core@^1.14.1",
     "astro": "npm:astro@^6.1.9",
     "charts.css": "npm:charts.css@^1.2.0",
-    "lexical": "npm:lexical@^0.44.0",
+    "codejar": "npm:codejar@^4.2.0",
     "preact": "npm:preact@^10.29.1",
-    "react": "npm:@preact/compat@18.3.2",
-    "react-dom": "npm:@preact/compat@18.3.2",
+    "sugar-high": "npm:sugar-high@^1.1.0",
     "rehype-external-links": "npm:rehype-external-links@^3.0.0",
-    "sharp": "npm:sharp@^0.34.5"
+    "rollup-plugin-visualizer": "npm:rollup-plugin-visualizer@^7.0.1",
+    "sharp": "npm:sharp@^0.34.5",
+    "zod": "npm:zod@^4.3.6"
   },
   "tasks": {
     "dev": "astro dev",
@@ -26,8 +25,11 @@
     "preview": "astro preview",
     "astro": "astro"
   },
+  "exclude": [".astro", "dist", "src/env.d.ts"],
   "compilerOptions": {
     "jsx": "react-jsx",
-    "jsxImportSource": "preact"
+    "jsxImportSource": "preact",
+    "isolatedDeclarations": false,
+    "exactOptionalPropertyTypes": false
   }
 }

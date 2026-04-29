@@ -1,15 +1,53 @@
 .editor {
     margin: 0;
     height: 200px;
-    overflow: hidden;
+    overflow: auto;
     border: 1px solid var(--sl-color-gray-5);
     border-radius: 0.5rem;
-    padding-inline-start: 0.75rem;
-    padding-inline-end: 0.5rem;
+    padding-block: 0.5rem;
+    padding-inline: 0.75rem 0.5rem;
     background-color: var(--astro-code-background);
     line-height: 1.65;
+    font-size: var(--sl-text-code);
+    font-family: var(--__sl-font-mono, ui-monospace, monospace);
+    white-space: pre;
+    tab-size: 4;
+    outline: none;
 
-    &:hover:not(:focus) {
+    &:hover:not(:focus-within) {
         border-color: var(--sl-color-gray-2);
     }
+
+    /* Codejar imperatively sets `outline: none` on editable instances, which
+       wins over CSS. Use box-shadow to provide an equivalent focus ring that
+       Codejar can't suppress. */
+    &:focus-visible {
+        box-shadow: 0 0 0 2px var(--sl-color-accent);
+    }
+}
+
+:root[data-theme="dark"] .editor {
+    color: #d6deeb;
+    --sh-identifier: #d6deeb;
+    --sh-keyword: #c792ea;
+    --sh-string: #ecc48d;
+    --sh-class: #c5e478;
+    --sh-property: #82aaff;
+    --sh-entity: #82aaff;
+    --sh-jsxliterals: #d6deeb;
+    --sh-sign: #c792ea;
+    --sh-comment: #809191;
+}
+
+:root[data-theme="light"] .editor {
+    color: #403f53;
+    --sh-identifier: #403f53;
+    --sh-keyword: #8d46b4;
+    --sh-string: #9b504e;
+    --sh-class: #3c63b3;
+    --sh-property: #3c63b3;
+    --sh-entity: #3c63b3;
+    --sh-jsxliterals: #403f53;
+    --sh-sign: #8d46b4;
+    --sh-comment: #5e6578;
 }
