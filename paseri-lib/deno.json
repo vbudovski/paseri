@@ -10,9 +10,9 @@
   "imports": {
     "@badrap/valita": "jsr:@badrap/valita@0.4.6",
     "@standard-schema/spec": "jsr:@standard-schema/spec@^1.1.0",
-    "@std/expect": "jsr:@std/expect@1.0.18",
+    "@std/expect": "jsr:@std/expect@1.0.19",
     "@std/path": "jsr:@std/path@^1.1.4",
-    "@std/testing": "jsr:@std/testing@^1.0.17",
+    "@std/testing": "jsr:@std/testing@^1.0.18",
     "@sveltejs/acorn-typescript": "npm:@sveltejs/acorn-typescript@^1.0.9",
     "@vbudovski/rollup-plugin-transform-regex": "jsr:@vbudovski/rollup-plugin-transform-regex@^0.1.4",
     "acorn": "npm:acorn@^8.16.0",
@@ -20,7 +20,7 @@
     "fast-check": "npm:fast-check@4.7.0",
     "recheck": "npm:recheck@4.5.0",
     "regex": "npm:regex@^6.1.0",
-    "rollup": "npm:rollup@^4.60.1",
+    "rollup": "npm:rollup@^4.60.2",
     "type-fest": "npm:type-fest@5.4.1",
     "zod": "npm:zod@4.3.6"
   },
