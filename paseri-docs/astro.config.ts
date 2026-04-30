@@ -5,6 +5,7 @@ import sitemap from '@astrojs/sitemap';
 import starlight from '@astrojs/starlight';
 import { defineConfig } from 'astro/config';
 import rehypeExternalLinks from 'rehype-external-links';
+import { visualizer } from 'rollup-plugin-visualizer';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -38,7 +39,7 @@ const config: ReturnType<typeof defineConfig> = defineConfig({
                 },
             ],
         }),
-        preact({ compat: true }),
+        preact(),
         sitemap(),
     ],
     markdown: {
@@ -57,6 +58,11 @@ const config: ReturnType<typeof defineConfig> = defineConfig({
                 '@vbudovski/paseri/locales': path.resolve(__dirname, '../paseri-lib/src/locales/index.ts'),
                 '@vbudovski/paseri': path.resolve(__dirname, '../paseri-lib/src/index.ts'),
             },
+            // Dev-time SSR otherwise loads two `preact` instances (one via
+            // `@astrojs/preact`'s renderer, one via the page's component
+            // graph), so `preact/hooks` runs against a `currentComponent`
+            // that was never set, blowing up with `Cannot read … '__H'`.
+            dedupe: ['preact', '@preact/signals', '@preact/signals-core'],
         },
         server: {
             fs: {
@@ -64,8 +70,19 @@ const config: ReturnType<typeof defineConfig> = defineConfig({
             },
         },
         plugins: [
+            visualizer({
+                filename: 'dist/stats.html',
+                template: 'treemap',
+                gzipSize: true,
+                brotliSize: true,
+            }),
             {
-                name: 'force-noexternal-prerender',
+                // Deno's ESM loader can't resolve Astro's virtual `astro:*`
+                // imports that survive into the prerender/SSR chunk, so we
+                // inline the renderer there. During build we inline
+                // everything; in dev we limit the list because forcing every
+                // CJS dep through Vite's SSR transform breaks (e.g. `cookie`).
+                name: 'inline-deps-for-deno-prerender',
                 enforce: 'post',
                 configEnvironment(name, _config, { command }) {
                     if (name === 'prerender' || name === 'ssr') {
@@ -76,12 +93,12 @@ const config: ReturnType<typeof defineConfig> = defineConfig({
                                         ? true
                                         : [
                                               '@astrojs/preact',
-                                              'react',
-                                              'react-dom',
-                                              'react-dom/test-utils',
-                                              'react/jsx-runtime',
-                                              /^@lexical\//,
-                                              'lexical',
+                                              'preact',
+                                              'preact/hooks',
+                                              'preact/jsx-runtime',
+                                              'preact-render-to-string',
+                                              '@preact/signals',
+                                              '@preact/signals-core',
                                           ],
                             },
                         };

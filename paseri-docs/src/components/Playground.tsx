@@ -1,57 +1,53 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import type { Signal } from '@preact/signals';
+import { useSignal, useSignalEffect } from '@preact/signals';
+import { useEffect, useRef } from 'preact/hooks';
 import { Editor } from './Editor.tsx';
 import styles from './Playground.module.css';
 
 type Result = { ok: true; parsedData: string } | { ok: false; errors: string[] };
+type WorkerInput = { schema: string; data: string };
 
-type EditorState = { schema: string; data: string };
-
-function useWorker() {
-    const isRunning = useRef<boolean>(false);
-    const worker = useRef<Worker>(undefined);
-    const [result, setResult] = useState<Result>({ ok: true, parsedData: '' });
-
-    const startWorker = useCallback(() => {
-        console.debug(`[${Date.now()}] Starting worker.`);
-        worker.current = new Worker(new URL('worker.ts', import.meta.url), { type: 'module' });
-        worker.current.onmessage = (event: MessageEvent<Result>) => {
-            setResult(event.data);
-            isRunning.current = false;
-        };
-    }, []);
-
-    const terminateWorker = useCallback(() => {
-        console.debug(`[${Date.now()}] Terminating worker.`);
-        worker.current?.terminate();
-        isRunning.current = false;
-    }, []);
+function useWorker(result: Signal<Result>) {
+    const runRef = useRef<((m: WorkerInput) => void) | undefined>(undefined);
 
     useEffect(() => {
-        startWorker();
+        let worker: Worker | undefined;
+        let isRunning = false;
 
-        return () => {
-            terminateWorker();
+        const start = () => {
+            console.debug(`[${Date.now()}] Starting worker.`);
+            worker = new Worker(new URL('worker.ts', import.meta.url), { type: 'module' });
+            worker.onmessage = (event: MessageEvent<Result>) => {
+                result.value = event.data;
+                isRunning = false;
+            };
         };
-    }, [startWorker, terminateWorker]);
+        const terminate = () => {
+            console.debug(`[${Date.now()}] Terminating worker.`);
+            worker?.terminate();
+            isRunning = false;
+        };
 
-    const run = useCallback(
-        (message: EditorState) => {
-            isRunning.current = true;
-            worker.current?.postMessage(message);
+        start();
+
+        runRef.current = (message) => {
+            isRunning = true;
+            worker?.postMessage(message);
 
             setTimeout(() => {
-                if (isRunning.current) {
+                if (isRunning) {
                     console.debug(`[${Date.now()}] Restarting worker due to timeout.`);
-                    terminateWorker();
-                    setResult({ ok: false, errors: ['Aborted due to excessive run time.'] });
-                    startWorker();
+                    terminate();
+                    result.value = { ok: false, errors: ['Aborted due to excessive run time.'] };
+                    start();
                 }
             }, 1_000);
-        },
-        [startWorker, terminateWorker],
-    );
+        };
 
-    return { run, result };
+        return terminate;
+    }, [result]);
+
+    return (message: WorkerInput) => runRef.current?.(message);
 }
 
 interface PlaygroundProps {
@@ -62,64 +58,53 @@ interface PlaygroundProps {
 function Playground(props: PlaygroundProps) {
     const { schemaDefaultValue = '', dataDefaultValue = '' } = props;
 
-    const { run, result } = useWorker();
+    const result = useSignal<Result>({ ok: true, parsedData: '' });
+    const schema = useSignal(schemaDefaultValue);
+    const data = useSignal(dataDefaultValue);
 
-    const [editorState, setEditorState] = useState<EditorState>({
-        schema: schemaDefaultValue,
-        data: dataDefaultValue,
+    const run = useWorker(result);
+
+    useSignalEffect(() => {
+        run({ schema: schema.value, data: data.value });
     });
 
-    useEffect(() => {
-        run(editorState);
-    }, [run, editorState]);
-
     return (
-        <div className={['not-content', styles.queryContainer].join(' ')}>
-            <form className={styles.container}>
+        <div class={['not-content', styles.queryContainer].join(' ')}>
+            <form class={styles.container}>
                 <div>
-                    <div id="schema" className={styles.label}>
+                    <div id="schema" class={styles.label}>
                         Schema
                     </div>
                     <Editor
                         id="schema"
                         onChange={(textValue) => {
-                            setEditorState((prevState: EditorState) => ({
-                                ...prevState,
-                                schema: textValue,
-                            }));
+                            schema.value = textValue;
                         }}
                         defaultValue={schemaDefaultValue}
                     />
                 </div>
                 <div>
-                    <div id="data" className={styles.label}>
+                    <div id="data" class={styles.label}>
                         Data
                     </div>
                     <Editor
                         id="data"
                         onChange={(textValue) => {
-                            setEditorState((prevState: EditorState) => ({
-                                ...prevState,
-                                data: textValue,
-                            }));
+                            data.value = textValue;
                         }}
                         defaultValue={dataDefaultValue}
                     />
                 </div>
-                <div className={styles.result}>
-                    <div id="result" className={styles.label}>
+                <div class={styles.result}>
+                    <div id="result" class={styles.label}>
                         Result
                     </div>
-                    <div role="note" aria-labelledby="result">
-                        {result.ok === true ? (
-                            <Editor
-                                id="result"
-                                isEditable={false}
-                                defaultValue={`\`\`\`typescript\n${result.parsedData}`}
-                            />
+                    <div role="note" aria-labelledby="result" aria-live="polite">
+                        {result.value.ok ? (
+                            <Editor id="result" isEditable={false} defaultValue={result.value.parsedData} />
                         ) : (
-                            <ul className={styles.errors}>
-                                {result.errors.map((error: string, index: number) => (
+                            <ul class={styles.errors}>
+                                {result.value.errors.map((error: string, index: number) => (
                                     <li key={index}>{error}</li>
                                 ))}
                             </ul>
