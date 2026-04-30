@@ -1,22 +1,22 @@
 {
   "version": "5",
   "specifiers": {
-    "jsr:@badrap/valita@0.4.6": "0.4.6",
+    "jsr:@badrap/valita@~0.4.6": "0.4.6",
     "jsr:@standard-schema/spec@^1.1.0": "1.1.0",
     "jsr:@std/assert@^1.0.19": "1.0.19",
     "jsr:@std/async@^1.3.0": "1.3.0",
     "jsr:@std/data-structures@^1.0.11": "1.0.11",
-    "jsr:@std/expect@1.0.19": "1.0.19",
+    "jsr:@std/expect@^1.0.19": "1.0.19",
     "jsr:@std/fs@^1.0.23": "1.0.23",
     "jsr:@std/internal@^1.0.12": "1.0.13",
     "jsr:@std/internal@^1.0.13": "1.0.13",
     "jsr:@std/path@^1.1.4": "1.1.4",
     "jsr:@std/testing@^1.0.18": "1.0.18",
     "jsr:@vbudovski/rollup-plugin-transform-regex@~0.1.4": "0.1.4",
-    "npm:@astrojs/check@~0.9.8": "0.9.8_typescript@6.0.3",
+    "npm:@astrojs/check@~0.9.9": "0.9.9_typescript@6.0.3",
     "npm:@astrojs/preact@^5.1.2": "5.1.2_preact@10.29.1_@babel+core@7.29.0_@types+node@24.12.2_rollup@4.60.2",
     "npm:@astrojs/sitemap@^3.7.2": "3.7.2",
-    "npm:@astrojs/starlight@~0.38.4": "0.38.4_astro@6.1.9__@types+node@24.12.2__rollup@4.60.2__typescript@6.0.3_@types+node@24.12.2_rollup@4.60.2_typescript@6.0.3",
+    "npm:@astrojs/starlight@~0.38.4": "0.38.4_astro@6.1.10__typescript@6.0.3_typescript@6.0.3",
     "npm:@biomejs/biome@^2.4.13": "2.4.13",
     "npm:@commitlint/cli@^20.5.2": "20.5.2_@types+node@24.12.2_typescript@6.0.3",
     "npm:@commitlint/config-conventional@^20.5.0": "20.5.0",
@@ -27,17 +27,17 @@
     "npm:@sveltejs/acorn-typescript@^1.0.9": "1.0.9_acorn@8.16.0",
     "npm:@types/estree@^1.0.8": "1.0.8",
     "npm:acorn@^8.16.0": "8.16.0",
-    "npm:astro@^6.1.9": "6.1.9_@types+node@24.12.2_rollup@4.60.2_typescript@6.0.3",
+    "npm:astro@^6.1.10": "6.1.10_typescript@6.0.3",
     "npm:charts.css@^1.2.0": "1.2.0",
-    "npm:codejar@^4.2.0": "4.3.0",
+    "npm:codejar@^4.3.0": "4.3.0",
     "npm:estree-walker@^3.0.3": "3.0.3",
-    "npm:expect-type@1.3.0": "1.3.0",
-    "npm:fast-check@4.7.0": "4.7.0",
+    "npm:expect-type@^1.3.0": "1.3.0",
+    "npm:fast-check@^4.7.0": "4.7.0",
     "npm:husky@^9.1.7": "9.1.7",
     "npm:lint-staged@^16.4.0": "16.4.0",
     "npm:magic-string@~0.30.21": "0.30.21",
     "npm:preact@^10.29.1": "10.29.1",
-    "npm:recheck@4.5.0": "4.5.0",
+    "npm:recheck@^4.5.0": "4.5.0",
     "npm:regex@^6.1.0": "6.1.0",
     "npm:regexp-tree@~0.1.27": "0.1.27",
     "npm:rehype-external-links@3": "3.0.0",
@@ -49,8 +49,8 @@
     "npm:sugar-high@*": "1.1.0",
     "npm:sugar-high@^1.1.0": "1.1.0",
     "npm:type-fest@5.4.1": "5.4.1",
-    "npm:zod@4.3.6": "4.3.6",
-    "npm:zod@^4.3.6": "4.3.6"
+    "npm:typescript@^6.0.3": "6.0.3",
+    "npm:zod@^4.4.1": "4.4.1"
   },
   "jsr": {
     "@badrap/valita@0.4.6": {
@@ -119,8 +119,8 @@
     }
   },
   "npm": {
-    "@astrojs/check@0.9.8_typescript@6.0.3": {
-      "integrity": "sha512-LDng8446QLS5ToKjRHd3bgUdirvemVVExV7nRyJfW2wV36xuv7vDxwy5NWN9zqeSEDgg0Tv84sP+T3yEq+Zlkw==",
+    "@astrojs/check@0.9.9_typescript@6.0.3": {
+      "integrity": "sha512-A5UW8uIuErLWEoRQvzgXpO1gTjUFtK8r7nU2Z7GewAMxUb7bPvpk11qaKKgxqXlHJWlAvaaxy+Xg28A6bmQ1Tg==",
       "dependencies": [
         "@astrojs/language-server",
         "chokidar@4.0.3",
@@ -142,8 +142,8 @@
         "picomatch@4.0.4"
       ]
     },
-    "@astrojs/language-server@2.16.6_typescript@6.0.3": {
-      "integrity": "sha512-N990lu+HSFiG57owR0XBkr02BYMgiLCshLf+4QG4v6jjSWkBeQGnzqi+E1L08xFPPJ7eEeXnxPXGLaVv5pa4Ug==",
+    "@astrojs/language-server@2.16.7_typescript@6.0.3": {
+      "integrity": "sha512-b64bWT74Vq/ORcSqW7TdIjjpB6hcl+Ei/lMANIUaAGlLPiYNtPTRI/j2tzvugT+LoVwfJtE2Ukq/t2OGCyEtfQ==",
       "dependencies": [
         "@astrojs/compiler@2.13.1",
         "@astrojs/yaml2ts",
@@ -192,7 +192,7 @@
         "vfile"
       ]
     },
-    "@astrojs/mdx@5.0.4_astro@6.1.9__@types+node@24.12.2__rollup@4.60.2__typescript@6.0.3_@types+node@24.12.2_rollup@4.60.2_typescript@6.0.3": {
+    "@astrojs/mdx@5.0.4_astro@6.1.10__typescript@6.0.3_typescript@6.0.3": {
       "integrity": "sha512-tSbuuYueNODiFAFaME7pjHY5lOLoxBYJi1cKd6scw9+a4ZO7C7UGdafEoVAQvOV2eO8a6RaHSAJYGVPL1w8BPA==",
       "dependencies": [
         "@astrojs/markdown-remark",
@@ -237,7 +237,7 @@
         "zod"
       ]
     },
-    "@astrojs/starlight@0.38.4_astro@6.1.9__@types+node@24.12.2__rollup@4.60.2__typescript@6.0.3_@types+node@24.12.2_rollup@4.60.2_typescript@6.0.3": {
+    "@astrojs/starlight@0.38.4_astro@6.1.10__typescript@6.0.3_typescript@6.0.3": {
       "integrity": "sha512-TGFIr2aVC+gcZCPQzJOO4ZnA/yL3jRnsUDcKlVdEhxhxaOQnWr9lZ9MRScg9zU6uh3HVeZAmmjkLCdTlHdcaZA==",
       "dependencies": [
         "@astrojs/markdown-remark",
@@ -1636,15 +1636,15 @@
       "integrity": "sha512-LElXdjswlqjWrPpJFg1Fx4wpkOCxj1TDHlSV4PlaRxHGWko024xICaa97ZkMfs6DRKlCguiAI+rbXv5GWwXIkg==",
       "bin": true
     },
-    "astro-expressive-code@0.41.7_astro@6.1.9__@types+node@24.12.2__rollup@4.60.2__typescript@6.0.3_@types+node@24.12.2_rollup@4.60.2_typescript@6.0.3": {
+    "astro-expressive-code@0.41.7_astro@6.1.10__typescript@6.0.3_typescript@6.0.3": {
       "integrity": "sha512-hUpogGc6DdAd+I7pPXsctyYPRBJDK7Q7d06s4cyP0Vz3OcbziP3FNzN0jZci1BpCvLn9675DvS7B9ctKKX64JQ==",
       "dependencies": [
         "astro",
         "rehype-expressive-code"
       ]
     },
-    "astro@6.1.9_@types+node@24.12.2_rollup@4.60.2_typescript@6.0.3": {
-      "integrity": "sha512-NsAHzMzpznB281g2aM5qnBt2QjfH6ttKiZ3hSZw52If8JJ+62kbnBKbyKhR2glQcJLl7Jfe4GSl0DihFZ36rRQ==",
+    "astro@6.1.10_typescript@6.0.3": {
+      "integrity": "sha512-jQAIki6c862oxRr7OXXC+h3n4wg1EpmKgCH3vv1FtXM9VFmD2iTjlaxrfb0I6eQCwtUjSBxfJBFBDSXHu7Wing==",
       "dependencies": [
         "@astrojs/compiler@3.0.1",
         "@astrojs/internal-helpers",
@@ -3531,8 +3531,8 @@
     "preact@10.29.1": {
       "integrity": "sha512-gQCLc/vWroE8lIpleXtdJhTFDogTdZG9AjMUpVkDf2iTCNwYNWA+u16dL41TqUDJO4gm2IgrcMv3uTpjd4Pwmg=="
     },
-    "prettier@3.8.2": {
-      "integrity": "sha512-8c3mgTe0ASwWAJK+78dpviD+A8EqhndQPUBpNUIPt6+xWlIigCwfN01lWr9MAede4uqXGTEKeQWTvzb3vjia0Q==",
+    "prettier@3.8.3": {
+      "integrity": "sha512-7igPTM53cGHMW8xWuVTydi2KO233VFiTNyF5hLJqpilHfmn8C8gPf+PS7dUT64YcXFbiMGZxS9pCSxL/Dxm/Jw==",
       "bin": true
     },
     "prismjs@1.30.0": {
@@ -4104,8 +4104,8 @@
     "tinyexec@1.1.1": {
       "integrity": "sha512-VKS/ZaQhhkKFMANmAOhhXVoIfBXblQxGX1myCQ2faQrfmobMftXeJPcZGp0gS07ocvGJWDLZGyOZDadDBqYIJg=="
     },
-    "tinyglobby@0.2.15": {
-      "integrity": "sha512-j2Zq4NyQYG5XMST4cbs02Ak8iJUdxRM0XI5QyxXuZOzKOINmWurp3smXu3y5wDcJrptwpSjgXHzIQxR0omXljQ==",
+    "tinyglobby@0.2.16": {
+      "integrity": "sha512-pn99VhoACYR8nFHhxqix+uvsbXineAasWm5ojXoN8xEwK5Kd3/TrhNn1wByuD52UxWRLy8pu+kRMniEi6Eq9Zg==",
       "dependencies": [
         "fdir",
         "picomatch@4.0.4"
@@ -4571,8 +4571,8 @@
     "zimmerframe@1.1.4": {
       "integrity": "sha512-B58NGBEoc8Y9MWWCQGl/gq9xBCe4IiKM0a2x7GZdQKOW5Exr8S1W24J6OgM1njK8xCRGvAJIL/MxXHf6SkmQKQ=="
     },
-    "zod@4.3.6": {
-      "integrity": "sha512-rftlrkhHZOcjDwkGlnUtZZkvaPHCsDATp4pGpuOOMDaTdDDXF91wuVDJoWoPsKX/3YPQ5fHuF3STjcYyKr+Qhg=="
+    "zod@4.4.1": {
+      "integrity": "sha512-a6ENMBBGZBsnlSebQ/eKCguSBeGKSf4O7BPnqVPmYGtpBYI7VSqoVqw+QcB7kPRjbqPwhYTpFbVj/RqNz/CT0Q=="
     },
     "zwitch@2.0.4": {
       "integrity": "sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A=="
@@ -4590,40 +4590,41 @@
     "members": {
       "paseri-docs": {
         "dependencies": [
-          "npm:@astrojs/check@~0.9.8",
+          "npm:@astrojs/check@~0.9.9",
           "npm:@astrojs/preact@^5.1.2",
           "npm:@astrojs/sitemap@^3.7.2",
           "npm:@astrojs/starlight@~0.38.4",
           "npm:@preact/signals-core@^1.14.1",
           "npm:@preact/signals@^2.9.0",
-          "npm:astro@^6.1.9",
+          "npm:astro@^6.1.10",
           "npm:charts.css@^1.2.0",
-          "npm:codejar@^4.2.0",
+          "npm:codejar@^4.3.0",
           "npm:preact@^10.29.1",
           "npm:rehype-external-links@3",
           "npm:rollup-plugin-visualizer@^7.0.1",
           "npm:sharp@~0.34.5",
           "npm:sugar-high@^1.1.0",
-          "npm:zod@^4.3.6"
+          "npm:typescript@^6.0.3",
+          "npm:zod@^4.4.1"
         ]
       },
       "paseri-lib": {
         "dependencies": [
-          "jsr:@badrap/valita@0.4.6",
+          "jsr:@badrap/valita@~0.4.6",
           "jsr:@standard-schema/spec@^1.1.0",
-          "jsr:@std/expect@1.0.19",
+          "jsr:@std/expect@^1.0.19",
           "jsr:@std/path@^1.1.4",
           "jsr:@std/testing@^1.0.18",
           "jsr:@vbudovski/rollup-plugin-transform-regex@~0.1.4",
           "npm:@sveltejs/acorn-typescript@^1.0.9",
           "npm:acorn@^8.16.0",
-          "npm:expect-type@1.3.0",
-          "npm:fast-check@4.7.0",
-          "npm:recheck@4.5.0",
+          "npm:expect-type@^1.3.0",
+          "npm:fast-check@^4.7.0",
+          "npm:recheck@^4.5.0",
           "npm:regex@^6.1.0",
           "npm:rollup@^4.60.2",
           "npm:type-fest@5.4.1",
-          "npm:zod@4.3.6"
+          "npm:zod@^4.4.1"
         ]
       }
     }

@@ -2,21 +2,22 @@
   "$schema": "https://raw.githubusercontent.com/denoland/deno/main/cli/schemas/config-file.v1.json",
   "license": "MIT",
   "imports": {
-    "@astrojs/check": "npm:@astrojs/check@^0.9.8",
+    "@astrojs/check": "npm:@astrojs/check@^0.9.9",
     "@astrojs/preact": "npm:@astrojs/preact@^5.1.2",
     "@astrojs/sitemap": "npm:@astrojs/sitemap@^3.7.2",
     "@astrojs/starlight": "npm:@astrojs/starlight@^0.38.4",
     "@preact/signals": "npm:@preact/signals@^2.9.0",
     "@preact/signals-core": "npm:@preact/signals-core@^1.14.1",
-    "astro": "npm:astro@^6.1.9",
+    "astro": "npm:astro@^6.1.10",
     "charts.css": "npm:charts.css@^1.2.0",
-    "codejar": "npm:codejar@^4.2.0",
+    "codejar": "npm:codejar@^4.3.0",
     "preact": "npm:preact@^10.29.1",
     "sugar-high": "npm:sugar-high@^1.1.0",
     "rehype-external-links": "npm:rehype-external-links@^3.0.0",
     "rollup-plugin-visualizer": "npm:rollup-plugin-visualizer@^7.0.1",
     "sharp": "npm:sharp@^0.34.5",
-    "zod": "npm:zod@^4.3.6"
+    "typescript": "npm:typescript@^6.0.3",
+    "zod": "npm:zod@^4.4.1"
   },
   "tasks": {
     "dev": "astro dev",
