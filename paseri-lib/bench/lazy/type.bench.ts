@@ -6,7 +6,7 @@ const { bench } = Deno;
 
 type T = string | T[];
 
-const paseriSchema: p.Schema<T> = p.lazy(() => p.union(p.string(), p.array(paseriSchema)));
+const paseriSchema: p.Schema<T> = p.lazy(() => p.union(p.string(), p.array(paseriSchema)())());
 const zodSchema: z.ZodType<T> = z.lazy(() => z.union([z.string(), z.array(zodSchema)]));
 const valitaSchema: v.Type<T> = v.lazy(() => v.union(v.string(), v.array(valitaSchema)));
 

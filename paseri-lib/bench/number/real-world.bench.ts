@@ -3,7 +3,7 @@ import * as p from '../../src/index.ts';
 
 const { bench } = Deno;
 
-const paseriSchema = p.number().gte(18).lte(99).int();
+const paseriSchema = p.number(p.gte(18), p.lte(99), p.int());
 const zodSchema = z.number().gte(18).lte(99).int();
 
 const dataValid = 19;

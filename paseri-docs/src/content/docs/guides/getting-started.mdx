@@ -48,9 +48,13 @@ const schema = p.object({
 const data = { hello: 'world' };
 const result = schema.safeParse(data);
 if (result.ok) {
-    console.log(`Hello ${result.value.hello}!`);
+    console.log(
+        `Hello ${result.value.hello}!`,
+    );
 } else {
     const messages = result.messages(en);
-    throw new Error(`Parsing failed: ${messages}`);
+    throw new Error(
+        `Parsing failed: ${messages}`,
+    );
 }
 ```

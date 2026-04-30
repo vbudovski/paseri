@@ -117,7 +117,7 @@ describe('Boolean', () => {
 });
 
 it('accepts optional values', () => {
-    const schema = p.literal('apple').optional();
+    const schema = p.optional(p.literal('apple'));
 
     fc.assert(
         fc.property(fc.option(fc.constant('apple'), { nil: undefined }), (data) => {
@@ -133,7 +133,7 @@ it('accepts optional values', () => {
 });
 
 it('accepts nullable values', () => {
-    const schema = p.literal('apple').nullable();
+    const schema = p.nullable(p.literal('apple'));
 
     fc.assert(
         fc.property(fc.option(fc.constant('apple'), { nil: null }), (data) => {

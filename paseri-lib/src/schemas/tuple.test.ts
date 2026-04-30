@@ -5,7 +5,7 @@ import fc from 'fast-check';
 import * as p from '../index.ts';
 
 it('accepts valid types', () => {
-    const schema = p.tuple(p.number(), p.string(), p.literal(123n));
+    const schema = p.tuple(p.number(), p.string(), p.literal(123n))();
 
     fc.assert(
         fc.property(fc.tuple(fc.float({ noNaN: true }), fc.string(), fc.constant(123n)), (data) => {
@@ -21,7 +21,7 @@ it('accepts valid types', () => {
 });
 
 it('rejects invalid types', () => {
-    const schema = p.tuple(p.number(), p.string(), p.literal(123n));
+    const schema = p.tuple(p.number(), p.string(), p.literal(123n))();
 
     fc.assert(
         fc.property(
@@ -39,7 +39,7 @@ it('rejects invalid types', () => {
 });
 
 it('rejects tuples that are too long', () => {
-    const schema = p.tuple(p.number(), p.string(), p.literal(123n));
+    const schema = p.tuple(p.number(), p.string(), p.literal(123n))();
     const data = [1, 'foo', 123n, 'bad'];
 
     const result = schema.safeParse(data);
@@ -51,7 +51,7 @@ it('rejects tuples that are too long', () => {
 });
 
 it('rejects tuples that are too short', () => {
-    const schema = p.tuple(p.number(), p.string(), p.literal(123n));
+    const schema = p.tuple(p.number(), p.string(), p.literal(123n))();
     const data = [1, 'foo'];
 
     const result = schema.safeParse(data);
@@ -63,7 +63,7 @@ it('rejects tuples that are too short', () => {
 });
 
 it('rejects invalid elements', () => {
-    const schema = p.tuple(p.number(), p.string(), p.literal(123n), p.number());
+    const schema = p.tuple(p.number(), p.string(), p.literal(123n), p.number())();
     const data = [123, 666, 123n, 'foo'];
 
     const result = schema.safeParse(data);
@@ -78,7 +78,7 @@ it('rejects invalid elements', () => {
 });
 
 it('returns new value when child is modified', () => {
-    const schema = p.tuple(p.object({ foo: p.string() }).strip(), p.object({ bar: p.number() }).strip());
+    const schema = p.tuple(p.object({ foo: p.string() }).strip(), p.object({ bar: p.number() }).strip())();
     const data = [
         { foo: 'hello', extra1: 'baz' },
         { bar: 123, extra2: 'qux' },
@@ -93,7 +93,7 @@ it('returns new value when child is modified', () => {
 });
 
 it('preserves unmodified elements before a modified element', () => {
-    const schema = p.tuple(p.string(), p.object({ foo: p.string() }).strip());
+    const schema = p.tuple(p.string(), p.object({ foo: p.string() }).strip())();
     const data = ['hello', { foo: 'bar', extra: 'strip me' }];
 
     const result = schema.safeParse(data);
@@ -105,7 +105,7 @@ it('preserves unmodified elements before a modified element', () => {
 });
 
 it('preserves unmodified elements after a modified element', () => {
-    const schema = p.tuple(p.object({ foo: p.string() }).strip(), p.string());
+    const schema = p.tuple(p.object({ foo: p.string() }).strip(), p.string())();
     const data = [{ foo: 'bar', extra: 'strip me' }, 'hello'];
 
     const result = schema.safeParse(data);
@@ -117,7 +117,7 @@ it('preserves unmodified elements after a modified element', () => {
 });
 
 it('reports invalid elements after a modified element', () => {
-    const schema = p.tuple(p.object({ foo: p.string() }).strip(), p.number());
+    const schema = p.tuple(p.object({ foo: p.string() }).strip(), p.number())();
     const data = [{ foo: 'bar', extra: 'strip me' }, 'invalid'];
 
     const result = schema.safeParse(data);
@@ -129,7 +129,7 @@ it('reports invalid elements after a modified element', () => {
 });
 
 it('accepts optional values', () => {
-    const schema = p.tuple(p.number(), p.string(), p.literal(123n)).optional();
+    const schema = p.optional(p.tuple(p.number(), p.string(), p.literal(123n))());
 
     fc.assert(
         fc.property(
@@ -148,7 +148,7 @@ it('accepts optional values', () => {
 });
 
 it('accepts nullable values', () => {
-    const schema = p.tuple(p.number(), p.string(), p.literal(123n)).nullable();
+    const schema = p.nullable(p.tuple(p.number(), p.string(), p.literal(123n))());
 
     fc.assert(
         fc.property(

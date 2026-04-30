@@ -5,7 +5,7 @@ import fc from 'fast-check';
 import * as p from '../index.ts';
 
 it('accepts valid types', () => {
-    const schema = p.set(p.number());
+    const schema = p.set(p.number())();
 
     fc.assert(
         fc.property(fc.array(fc.float({ noNaN: true })), (data) => {
@@ -23,7 +23,7 @@ it('accepts valid types', () => {
 });
 
 it('rejects invalid types', () => {
-    const schema = p.set(p.number());
+    const schema = p.set(p.number())();
 
     fc.assert(
         fc.property(fc.anything(), (data) => {
@@ -39,7 +39,7 @@ it('rejects invalid types', () => {
 
 describe('min', () => {
     it('accepts valid values', () => {
-        const schema = p.set(p.number()).min(3);
+        const schema = p.set(p.number())(p.minSize(3));
 
         fc.assert(
             fc.property(
@@ -60,7 +60,7 @@ describe('min', () => {
     });
 
     it('rejects invalid values', () => {
-        const schema = p.set(p.number()).min(3);
+        const schema = p.set(p.number())(p.minSize(3));
 
         fc.assert(
             fc.property(
@@ -80,8 +80,8 @@ describe('min', () => {
     });
 
     it('rejects when transformation causes deduplication below minimum', () => {
-        const lower = p.string().chain(p.string(), (value) => p.ok(value.toLowerCase()));
-        const schema = p.set(lower).min(2);
+        const lower = p.chain(p.string(), p.string(), (value) => p.ok(value.toLowerCase()));
+        const schema = p.set(lower)(p.minSize(2));
         const data = new Set(['A', 'a']); // size 2, but both lowercase to "a" → size 1
 
         const result = schema.safeParse(data);
@@ -89,21 +89,21 @@ describe('min', () => {
     });
 
     it('throws on NaN', () => {
-        expect(() => p.set(p.string()).min(NaN)).toThrow();
+        expect(() => p.minSize(NaN)).toThrow();
     });
 
     it('is immutable', () => {
-        const original = p.set(p.string());
-        const modified = original.min(3);
+        const original = p.set(p.string())();
+        const modified = p.set(p.string())(p.minSize(3));
         expect(modified).not.toEqual(original);
-        const branched = modified.max(10);
+        const branched = p.set(p.string())(p.minSize(3), p.maxSize(10));
         expect(branched).not.toEqual(modified);
     });
 });
 
 describe('max', () => {
     it('accepts valid values', () => {
-        const schema = p.set(p.number()).max(3);
+        const schema = p.set(p.number())(p.maxSize(3));
 
         fc.assert(
             fc.property(
@@ -124,7 +124,7 @@ describe('max', () => {
     });
 
     it('rejects invalid values', () => {
-        const schema = p.set(p.number()).max(3);
+        const schema = p.set(p.number())(p.maxSize(3));
 
         fc.assert(
             fc.property(
@@ -144,21 +144,21 @@ describe('max', () => {
     });
 
     it('throws on NaN', () => {
-        expect(() => p.set(p.string()).max(NaN)).toThrow();
+        expect(() => p.maxSize(NaN)).toThrow();
     });
 
     it('is immutable', () => {
-        const original = p.set(p.string());
-        const modified = original.max(3);
+        const original = p.set(p.string())();
+        const modified = p.set(p.string())(p.maxSize(3));
         expect(modified).not.toEqual(original);
-        const branched = modified.min(1);
+        const branched = p.set(p.string())(p.maxSize(3), p.minSize(1));
         expect(branched).not.toEqual(modified);
     });
 });
 
 describe('size', () => {
     it('accepts valid values', () => {
-        const schema = p.set(p.number()).size(3);
+        const schema = p.set(p.number())(p.minSize(3), p.maxSize(3));
 
         fc.assert(
             fc.property(
@@ -181,7 +181,7 @@ describe('size', () => {
     });
 
     it('rejects values that are too long', () => {
-        const schema = p.set(p.number()).size(3);
+        const schema = p.set(p.number())(p.minSize(3), p.maxSize(3));
 
         fc.assert(
             fc.property(
@@ -201,7 +201,7 @@ describe('size', () => {
     });
 
     it('rejects values that are too short', () => {
-        const schema = p.set(p.number()).size(3);
+        const schema = p.set(p.number())(p.minSize(3), p.maxSize(3));
 
         fc.assert(
             fc.property(
@@ -221,8 +221,8 @@ describe('size', () => {
     });
 
     it('rejects when transformation causes deduplication below exact size', () => {
-        const lower = p.string().chain(p.string(), (value) => p.ok(value.toLowerCase()));
-        const schema = p.set(lower).size(2);
+        const lower = p.chain(p.string(), p.string(), (value) => p.ok(value.toLowerCase()));
+        const schema = p.set(lower)(p.minSize(2), p.maxSize(2));
         const data = new Set(['A', 'a']); // size 2, but both lowercase to "a" → size 1
 
         const result = schema.safeParse(data);
@@ -230,20 +230,20 @@ describe('size', () => {
     });
 
     it('throws on NaN', () => {
-        expect(() => p.set(p.string()).size(NaN)).toThrow();
+        expect(() => p.minSize(NaN)).toThrow();
     });
 
     it('is immutable', () => {
-        const original = p.set(p.string());
-        const modified = original.size(3);
+        const original = p.set(p.string())();
+        const modified = p.set(p.string())(p.minSize(3), p.maxSize(3));
         expect(modified).not.toEqual(original);
-        const branched = modified.min(1);
+        const branched = p.set(p.string())(p.minSize(3), p.maxSize(3), p.minSize(1));
         expect(branched).not.toEqual(modified);
     });
 });
 
 it('rejects invalid elements', () => {
-    const schema = p.set(p.number());
+    const schema = p.set(p.number())();
     const data = new Set([1, 'foo', 2, 'bar']);
 
     const result = schema.safeParse(data);
@@ -258,7 +258,7 @@ it('rejects invalid elements', () => {
 });
 
 it('returns new value when child is modified', () => {
-    const schema = p.set(p.object({ foo: p.string() }).strip());
+    const schema = p.set(p.object({ foo: p.string() }).strip())();
     const data = new Set([{ foo: 'bar', extra: 'baz' }]);
 
     const result = schema.safeParse(data);
@@ -270,7 +270,7 @@ it('returns new value when child is modified', () => {
 });
 
 it('preserves unmodified elements before a modified element', () => {
-    const schema = p.set(p.object({ foo: p.string() }).strip());
+    const schema = p.set(p.object({ foo: p.string() }).strip())();
     const data = new Set([{ foo: 'a' }, { foo: 'b' }, { foo: 'c', extra: 'strip me' }]);
 
     const result = schema.safeParse(data);
@@ -282,7 +282,7 @@ it('preserves unmodified elements before a modified element', () => {
 });
 
 it('preserves unmodified elements after a modified element', () => {
-    const schema = p.set(p.object({ foo: p.string() }).strip());
+    const schema = p.set(p.object({ foo: p.string() }).strip())();
     const data = new Set([{ foo: 'a', extra: 'strip me' }, { foo: 'b' }, { foo: 'c' }]);
 
     const result = schema.safeParse(data);
@@ -294,7 +294,7 @@ it('preserves unmodified elements after a modified element', () => {
 });
 
 it('reports invalid elements after a modified element', () => {
-    const schema = p.set(p.object({ foo: p.string() }).strip());
+    const schema = p.set(p.object({ foo: p.string() }).strip())();
     const data = new Set([{ foo: 'a', extra: 'strip me' }, 'invalid']);
 
     const result = schema.safeParse(data);
@@ -306,7 +306,7 @@ it('reports invalid elements after a modified element', () => {
 });
 
 it('accepts optional values', () => {
-    const schema = p.set(p.number()).optional();
+    const schema = p.optional(p.set(p.number())());
 
     fc.assert(
         fc.property(fc.option(fc.array(fc.float({ noNaN: true })), { nil: undefined }), (data) => {
@@ -324,7 +324,7 @@ it('accepts optional values', () => {
 });
 
 it('accepts nullable values', () => {
-    const schema = p.set(p.number()).nullable();
+    const schema = p.nullable(p.set(p.number())());
 
     fc.assert(
         fc.property(fc.option(fc.array(fc.float({ noNaN: true })), { nil: null }), (data) => {

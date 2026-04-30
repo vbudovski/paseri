@@ -3,7 +3,7 @@ import * as p from '../../src/index.ts';
 
 const { bench } = Deno;
 
-const paseriSchema = p.string().nanoid();
+const paseriSchema = p.string(p.nanoid());
 const zodSchema = z.string().nanoid();
 
 const dataValid = 'V1StGXR8_Z5jdHi6B-myT';

@@ -14,21 +14,31 @@ import * as p from '@vbudovski/paseri';
 
 type Node =
     | { type: 'file'; name: string }
-    | { type: 'directory'; name: string; nodes: Node[] };
+    | {
+          type: 'directory';
+          name: string;
+          nodes: Node[];
+      };
 
-// The explicit type annotation is required for recursive schemas.
-const schema: p.Schema<Node> = p.lazy(() =>
-    p.union(
-        p.object({
-            type: p.literal('file'),
-            name: p.string(),
-        }),
-        p.object({
-            type: p.literal('directory'),
-            name: p.string(),
-            nodes: p.array(schema),
-        }),
-    ),
+// The explicit type annotation is required for
+// recursive schemas.
+const schema: p.Schema<Node> = p.lazy(
+    () =>
+        p.union(
+            p.object({
+                type: p.literal('file'),
+                name: p.string(),
+            }),
+            p.object({
+                type: p.literal(
+                    'directory',
+                ),
+                name: p.string(),
+                nodes: p.array(
+                    schema,
+                )(),
+            }),
+        )(),
 );
 const data: Node = {
     type: 'directory',
@@ -42,8 +52,14 @@ const data: Node = {
             type: 'directory',
             name: 'Pictures',
             nodes: [
-                { type: 'file', name: 'cat.jpg' },
-                { type: 'file', name: 'dog.jpg' },
+                {
+                    type: 'file',
+                    name: 'cat.jpg',
+                },
+                {
+                    type: 'file',
+                    name: 'dog.jpg',
+                },
             ],
         },
     ],

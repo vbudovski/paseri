@@ -1,31 +1,24 @@
-import { issueCodes, type LeafNode, type TreeNode } from '../issue.ts';
+import { TAG_MAX_DATE, TAG_MIN_DATE } from '../checks/tags.ts';
+import { issueCodes, type LeafNode } from '../issue.ts';
 import type { InternalParseResult } from '../result.ts';
+import type { Check } from './schema.ts';
 import { Schema } from './schema.ts';
 
-const TAG_MIN = 0;
-const TAG_MAX = 1;
-
-interface DateCheck {
-    tag: typeof TAG_MIN | typeof TAG_MAX;
-    param: Date;
-    issue: TreeNode;
-}
-
 class DateSchema extends Schema<Date> {
-    private _checks: DateCheck[] | undefined = undefined;
+    private readonly _checks: readonly Check[] | undefined;
 
     private readonly issues = {
         INVALID_TYPE: { type: 'leaf', code: issueCodes.INVALID_TYPE, expected: 'Date' },
         INVALID_DATE: { type: 'leaf', code: issueCodes.INVALID_DATE },
-        TOO_DATED: { type: 'leaf', code: issueCodes.TOO_DATED },
-        TOO_RECENT: { type: 'leaf', code: issueCodes.TOO_RECENT },
     } as const satisfies Record<string, LeafNode>;
 
-    protected _clone(): DateSchema {
-        const cloned = new DateSchema();
-        cloned._checks = this._checks?.slice();
+    constructor(checks?: readonly Check[]) {
+        super();
 
-        return cloned;
+        this._checks = checks;
+    }
+    protected _clone(): DateSchema {
+        return new DateSchema(this._checks);
     }
     _parse(value: unknown): InternalParseResult<Date> {
         if (!(value instanceof Date)) {
@@ -39,16 +32,16 @@ class DateSchema extends Schema<Date> {
         if (this._checks !== undefined) {
             const checks = this._checks;
             for (let i = 0; i < checks.length; i++) {
-                const { tag, param, issue } = checks[i];
-                switch (tag) {
-                    case TAG_MIN:
-                        if (value < param) {
-                            return issue;
+                const check = checks[i];
+                switch (check.tag) {
+                    case TAG_MIN_DATE:
+                        if (value < check.param) {
+                            return check.issue;
                         }
                         break;
-                    case TAG_MAX:
-                        if (value > param) {
-                            return issue;
+                    case TAG_MAX_DATE:
+                        if (value > check.param) {
+                            return check.issue;
                         }
                         break;
                 }
@@ -57,28 +50,6 @@ class DateSchema extends Schema<Date> {
 
         return undefined;
     }
-    min(value: Date): DateSchema {
-        if (Number.isNaN(value.getTime())) {
-            throw new Error('Invalid Date is not a valid boundary value.');
-        }
-
-        const cloned = this._clone();
-        cloned._checks = cloned._checks || [];
-        cloned._checks.push({ tag: TAG_MIN, param: value, issue: this.issues.TOO_DATED });
-
-        return cloned;
-    }
-    max(value: Date): DateSchema {
-        if (Number.isNaN(value.getTime())) {
-            throw new Error('Invalid Date is not a valid boundary value.');
-        }
-
-        const cloned = this._clone();
-        cloned._checks = cloned._checks || [];
-        cloned._checks.push({ tag: TAG_MAX, param: value, issue: this.issues.TOO_RECENT });
-
-        return cloned;
-    }
 }
 
 const singleton = /* @__PURE__ */ new DateSchema();
@@ -86,6 +57,7 @@ const singleton = /* @__PURE__ */ new DateSchema();
 /**
  * [Date](https://paseri.dev/reference/schema/primitives/date/) schema.
  */
-const date = /* @__PURE__ */ (): DateSchema => singleton;
+const date = /* @__PURE__ */ (...checks: Check[]): DateSchema =>
+    checks.length === 0 ? singleton : new DateSchema(checks);
 
 export { date };

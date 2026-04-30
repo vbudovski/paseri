@@ -1,48 +1,52 @@
-import type { Infer } from '../index.ts';
+import { TAG_MAX_LENGTH, TAG_MIN_LENGTH } from '../checks/tags.ts';
+import type { Infer } from '../infer.ts';
 import { addIssue, issueCodes, type LeafNode, type TreeNode } from '../issue.ts';
 import { type InternalParseResult, isParseSuccess } from '../result.ts';
+import type { Check } from './schema.ts';
 import { type AnySchemaType, Schema } from './schema.ts';
 
 class ArraySchema<ElementSchemaType extends AnySchemaType> extends Schema<Infer<ElementSchemaType[]>> {
     private readonly _element: ElementSchemaType;
-    private _minLength = 0;
-    private _maxLength = Number.POSITIVE_INFINITY;
+    private readonly _checks: readonly Check[] | undefined;
 
     private readonly issues = {
         INVALID_TYPE: { type: 'leaf', code: issueCodes.INVALID_TYPE, expected: 'array' },
-        TOO_LONG: { type: 'leaf', code: issueCodes.TOO_LONG },
-        TOO_SHORT: { type: 'leaf', code: issueCodes.TOO_SHORT },
     } as const satisfies Record<string, LeafNode>;
 
-    constructor(element: ElementSchemaType) {
+    constructor(element: ElementSchemaType, checks?: readonly Check[]) {
         super();
 
         this._element = element;
+        this._checks = checks;
     }
     protected _clone(): ArraySchema<ElementSchemaType> {
-        const cloned = new ArraySchema(this._element);
-        cloned._minLength = this._minLength;
-        cloned._maxLength = this._maxLength;
-
-        return cloned;
+        return new ArraySchema(this._element, this._checks);
     }
     _parse(value: unknown): InternalParseResult<Infer<ElementSchemaType[]>> {
         if (!Array.isArray(value)) {
             return this.issues.INVALID_TYPE;
         }
 
+        if (this._checks !== undefined) {
+            const checks = this._checks;
+            for (let i = 0; i < checks.length; i++) {
+                const check = checks[i];
+                switch (check.tag) {
+                    case TAG_MIN_LENGTH:
+                        if (value.length < check.param) {
+                            return check.issue;
+                        }
+                        break;
+                    case TAG_MAX_LENGTH:
+                        if (value.length > check.param) {
+                            return check.issue;
+                        }
+                        break;
+                }
+            }
+        }
+
         const length = value.length;
-        const maxLength = this._maxLength;
-        const minLength = this._minLength;
-
-        if (length > maxLength) {
-            return this.issues.TOO_LONG;
-        }
-
-        if (length < minLength) {
-            return this.issues.TOO_SHORT;
-        }
-
         const schema = this._element;
 
         let issue: TreeNode | undefined;
@@ -76,44 +80,15 @@ class ArraySchema<ElementSchemaType extends AnySchemaType> extends Schema<Infer<
 
         return undefined;
     }
-    min(length: number): ArraySchema<ElementSchemaType> {
-        if (Number.isNaN(length)) {
-            throw new Error('NaN is not a valid length.');
-        }
-
-        const cloned = this._clone();
-        cloned._minLength = length;
-
-        return cloned;
-    }
-    max(length: number): ArraySchema<ElementSchemaType> {
-        if (Number.isNaN(length)) {
-            throw new Error('NaN is not a valid length.');
-        }
-
-        const cloned = this._clone();
-        cloned._maxLength = length;
-
-        return cloned;
-    }
-    length(length: number): ArraySchema<ElementSchemaType> {
-        if (Number.isNaN(length)) {
-            throw new Error('NaN is not a valid length.');
-        }
-
-        const cloned = this._clone();
-        cloned._minLength = length;
-        cloned._maxLength = length;
-
-        return cloned;
-    }
 }
 
 /**
  * [Array](https://paseri.dev/reference/schema/collections/array/) schema.
  */
-const array = /* @__PURE__ */ <ElementSchemaType extends AnySchemaType>(
-    ...args: ConstructorParameters<typeof ArraySchema<ElementSchemaType>>
-): ArraySchema<ElementSchemaType> => new ArraySchema(...args);
+const array =
+    /* @__PURE__ */
+        <ElementSchemaType extends AnySchemaType>(element: ElementSchemaType) =>
+        (...checks: Check[]): ArraySchema<ElementSchemaType> =>
+            checks.length === 0 ? new ArraySchema(element) : new ArraySchema(element, checks);
 
 export { array };

@@ -14,17 +14,29 @@ interface Pokemon {
     weight: number;
 }
 
-async function getPokemon(name: string): Promise<Pokemon> {
-    const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${name}`);
+async function getPokemon(
+    name: string,
+): Promise<Pokemon> {
+    const response = await fetch(
+        `https://pokeapi.co/api/v2/pokemon/${name}`,
+    );
     if (!response.ok) {
-        throw new Error(`Failed fetching ${name}.`);
+        throw new Error(
+            `Failed fetching ${name}.`,
+        );
     }
 
     return response.json();
 }
 
-const bulbasaur = await getPokemon('bulbasaur');
-console.log(bulbasaur.name, bulbasaur.height, bulbasaur.weight); // OK.
+const bulbasaur = await getPokemon(
+    'bulbasaur',
+);
+console.log(
+    bulbasaur.name,
+    bulbasaur.height,
+    bulbasaur.weight,
+); // OK.
 ```
 
 This isn't bad. We've asserted that the fetch response contains `Pokemon` data, so we can use it without any extra type
@@ -46,7 +58,10 @@ const pokemonSchema = p.object({
     weight: p.number(),
 });
 
-interface Pokemon extends p.Infer<typeof pokemonSchema> {
+interface Pokemon
+    extends p.Infer<
+        typeof pokemonSchema
+    > {
     // Identical to the interface we created above.
 }
 ```
@@ -54,10 +69,16 @@ interface Pokemon extends p.Infer<typeof pokemonSchema> {
 Now that we have our schema, we can make the `getPokemon` function validate the response.
 
 ```typescript
-async function getPokemon(name: string): Promise<Pokemon> {
-    const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${name}`);
+async function getPokemon(
+    name: string,
+): Promise<Pokemon> {
+    const response = await fetch(
+        `https://pokeapi.co/api/v2/pokemon/${name}`,
+    );
     if (!response.ok) {
-        throw new Error(`Failed fetching ${name}.`);
+        throw new Error(
+            `Failed fetching ${name}.`,
+        );
     }
 
     const data = await response.json(); // `any` type.
@@ -65,7 +86,9 @@ async function getPokemon(name: string): Promise<Pokemon> {
     return pokemonSchema.parse(data); // Now it's `Pokemon` type.
 }
 
-const bulbasaur = await getPokemon('bulbasaur');
+const bulbasaur = await getPokemon(
+    'bulbasaur',
+);
 ```
 
 Run the code above. Does it work?
@@ -88,7 +111,9 @@ const pokemonSchema = p
     })
     .strip(); // This will sanitise our data.
 
-const bulbasaur = await getPokemon('bulbasaur');
+const bulbasaur = await getPokemon(
+    'bulbasaur',
+);
 console.log(bulbasaur); // { height: 7, name: "bulbasaur", weight: 69 }
 ```
 

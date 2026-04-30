@@ -3,7 +3,7 @@ import * as p from '../../src/index.ts';
 
 const { bench } = Deno;
 
-const paseriSchema = p.string().ip();
+const paseriSchema = p.string(p.ip());
 const zodSchema = z.ipv4().or(z.ipv6());
 
 const dataValid = '192.168.1.254';

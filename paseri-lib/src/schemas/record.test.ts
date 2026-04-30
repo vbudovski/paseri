@@ -5,7 +5,7 @@ import fc from 'fast-check';
 import * as p from '../index.ts';
 
 it('accepts valid types', () => {
-    const schema = p.record(p.number());
+    const schema = p.record(p.number())();
 
     fc.assert(
         fc.property(fc.object({ values: [fc.float({ noNaN: true })], maxDepth: 0 }), (data) => {
@@ -21,7 +21,7 @@ it('accepts valid types', () => {
 });
 
 it('rejects invalid types', () => {
-    const schema = p.record(p.number());
+    const schema = p.record(p.number())();
 
     fc.assert(
         fc.property(
@@ -39,7 +39,7 @@ it('rejects invalid types', () => {
 });
 
 it('rejects invalid elements', () => {
-    const schema = p.record(p.number());
+    const schema = p.record(p.number())();
     const data = { foo: 123, bad1: 'hello', bar: 456, bad2: 'world' };
 
     const result = schema.safeParse(data);
@@ -54,7 +54,7 @@ it('rejects invalid elements', () => {
 });
 
 it('returns new value when child is modified', () => {
-    const schema = p.record(p.object({ foo: p.string() }).strip());
+    const schema = p.record(p.object({ foo: p.string() }).strip())();
     const data = { key1: { foo: 'bar', extra: 'baz' }, key2: { foo: 'qux', extra: 'quux' } };
 
     const result = schema.safeParse(data);
@@ -66,7 +66,7 @@ it('returns new value when child is modified', () => {
 });
 
 it('accepts optional values', () => {
-    const schema = p.record(p.number()).optional();
+    const schema = p.optional(p.record(p.number())());
 
     fc.assert(
         fc.property(
@@ -85,7 +85,7 @@ it('accepts optional values', () => {
 });
 
 it('accepts nullable values', () => {
-    const schema = p.record(p.number()).nullable();
+    const schema = p.nullable(p.record(p.number())());
 
     fc.assert(
         fc.property(
@@ -108,7 +108,7 @@ it('accepts values with Object.prototype key names', () => {
 
     fc.assert(
         fc.property(fc.constantFrom(...prototypeKeys), (key) => {
-            const schema = p.record(p.string());
+            const schema = p.record(p.string())();
             const data = Object.create(null);
             data[key] = 'valid';
 
@@ -129,7 +129,7 @@ it('rejects invalid values with Object.prototype key names', () => {
 
     fc.assert(
         fc.property(fc.constantFrom(...prototypeKeys), (key) => {
-            const schema = p.record(p.number());
+            const schema = p.record(p.number())();
             const data = Object.create(null);
             data[key] = 'not a number';
 

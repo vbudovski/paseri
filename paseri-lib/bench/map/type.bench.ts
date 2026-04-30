@@ -3,7 +3,7 @@ import * as p from '../../src/index.ts';
 
 const { bench } = Deno;
 
-const paseriSchema = p.map(p.number(), p.string());
+const paseriSchema = p.map(p.number(), p.string())();
 const zodSchema = z.map(z.number(), z.string());
 
 const dataValid = new Map<number, string>([

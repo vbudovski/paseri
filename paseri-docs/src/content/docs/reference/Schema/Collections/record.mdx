@@ -13,19 +13,20 @@ import { Playground } from "../../../../../components/Playground.tsx";
 ```typescript
 import * as p from '@vbudovski/paseri';
 
-const schema = p.record(p.number());
+const schema = p.record(p.number())();
 const data = { foo: 1, bar: 2 };
 
 const result = schema.safeParse(data);
 if (result.ok) {
-    // result.value typed as `Record<string | number | symbol, number>`.
+    // result.value typed as
+    // `Record<string | number | symbol, number>`.
 }
 ```
 
 ## Playground
 
 <Playground
-    schemaDefaultValue={"p.record(p.number())"}
+    schemaDefaultValue={"p.record(p.number())()"}
     dataDefaultValue={"{\n  foo: 1,\n  bar: 2,\n}"}
     client:idle
 />

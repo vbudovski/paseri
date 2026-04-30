@@ -4,7 +4,7 @@ import * as p from '../../src/index.ts';
 
 const { bench } = Deno;
 
-const paseriSchema = p.number().finite();
+const paseriSchema = p.number(p.finite());
 const zodSchema = z.number().finite();
 const valitaSchema = v.number().assert((value) => Number.isFinite(value));
 

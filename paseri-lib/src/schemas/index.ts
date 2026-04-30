@@ -1,14 +1,17 @@
 export { array } from './array.ts';
 export { bigint } from './bigint.ts';
 export { boolean } from './boolean.ts';
+export { chain } from './chain.ts';
 export { date } from './date.ts';
 export { lazy } from './lazy.ts';
 export { literal } from './literal.ts';
 export { map } from './map.ts';
 export { never } from './never.ts';
 export { null_ } from './null.ts';
+export { nullable } from './nullable.ts';
 export { number } from './number.ts';
 export { object } from './object.ts';
+export { optional } from './optional.ts';
 export { record } from './record.ts';
 export { Schema } from './schema.ts';
 export { set } from './set.ts';

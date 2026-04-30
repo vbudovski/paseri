@@ -11,7 +11,7 @@ import { Playground } from "../../../../../components/Playground.tsx";
 ```typescript
 import * as p from '@vbudovski/paseri';
 
-const schema = p.set(p.number());
+const schema = p.set(p.number())();
 const data = new Set([1, 2, 3]);
 
 const result = schema.safeParse(data);
@@ -23,33 +23,36 @@ if (result.ok) {
 ## Playground
 
 <Playground
-    schemaDefaultValue={"p.set(p.number())"}
+    schemaDefaultValue={"p.set(p.number())()"}
     dataDefaultValue={"new Set([1, 2, 3])"}
     client:idle
 />
 
 ## Validators
 
-### `min`
+### `minSize`
 
 Consists of at least `size` elements.
 
 ```typescript
-p.set(p.number()).min(3);
+p.set(p.number())(p.minSize(3));
 ```
 
-### `max`
+### `maxSize`
 
 Consists of at most `size` elements.
 
 ```typescript
-p.set(p.number()).max(3);
+p.set(p.number())(p.maxSize(3));
 ```
 
-### `size`
+### Exact size
 
 Consists of exactly `size` elements.
 
 ```typescript
-p.set(p.number()).size(3);
+p.set(p.number())(
+    p.minSize(3),
+    p.maxSize(3),
+);
 ```

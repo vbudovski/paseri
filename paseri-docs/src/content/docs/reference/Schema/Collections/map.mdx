@@ -11,8 +11,15 @@ import { Playground } from "../../../../../components/Playground.tsx";
 ```typescript
 import * as p from '@vbudovski/paseri';
 
-const schema = p.map(p.number(), p.string());
-const data = new Map([[1, 'foo'], [2, 'bar'], [3, 'baz']]);
+const schema = p.map(
+    p.number(),
+    p.string(),
+)();
+const data = new Map([
+    [1, 'foo'],
+    [2, 'bar'],
+    [3, 'baz'],
+]);
 
 const result = schema.safeParse(data);
 if (result.ok) {
@@ -23,33 +30,42 @@ if (result.ok) {
 ## Playground
 
 <Playground
-    schemaDefaultValue={"p.map(p.number(), p.string())"}
+    schemaDefaultValue={"p.map(p.number(), p.string())()"}
     dataDefaultValue={"new Map([\n    [1, 'foo'],\n    [2, 'bar'],\n    [3, 'baz'],\n])"}
     client:idle
 />
 
 ## Validators
 
-### `min`
+### `minSize`
 
 Consists of at least `size` elements.
 
 ```typescript
-p.map(p.number(), p.string()).min(3);
+p.map(
+    p.number(),
+    p.string(),
+)(p.minSize(3));
 ```
 
-### `max`
+### `maxSize`
 
 Consists of at most `size` elements.
 
 ```typescript
-p.map(p.number(), p.string()).max(3);
+p.map(
+    p.number(),
+    p.string(),
+)(p.maxSize(3));
 ```
 
-### `size`
+### Exact size
 
 Consists of exactly `size` elements.
 
 ```typescript
-p.map(p.number(), p.string()).size(3);
+p.map(p.number(), p.string())(
+    p.minSize(3),
+    p.maxSize(3),
+);
 ```

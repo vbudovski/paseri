@@ -34,7 +34,7 @@ it('rejects non-undefined values', () => {
 });
 
 it('accepts optional values', () => {
-    const schema = p.undefined().optional();
+    const schema = p.optional(p.undefined());
 
     fc.assert(
         fc.property(fc.option(fc.constant(undefined), { nil: undefined }), (data) => {
@@ -50,7 +50,7 @@ it('accepts optional values', () => {
 });
 
 it('accepts nullable values', () => {
-    const schema = p.undefined().nullable();
+    const schema = p.nullable(p.undefined());
 
     fc.assert(
         fc.property(fc.option(fc.constant(undefined), { nil: null }), (data) => {

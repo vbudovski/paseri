@@ -39,7 +39,7 @@ it('rejects invalid types', () => {
 });
 
 it('accepts optional values', () => {
-    const schema = p.boolean().optional();
+    const schema = p.optional(p.boolean());
 
     fc.assert(
         fc.property(fc.option(fc.boolean(), { nil: undefined }), (data) => {
@@ -55,7 +55,7 @@ it('accepts optional values', () => {
 });
 
 it('accepts nullable values', () => {
-    const schema = p.boolean().nullable();
+    const schema = p.nullable(p.boolean());
 
     fc.assert(
         fc.property(fc.option(fc.boolean(), { nil: null }), (data) => {

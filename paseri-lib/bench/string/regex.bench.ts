@@ -4,7 +4,7 @@ import * as p from '../../src/index.ts';
 const { bench } = Deno;
 
 const regex = /^a+$/;
-const paseriSchema = p.string().regex(regex);
+const paseriSchema = p.string(p.regex(regex));
 const zodSchema = z.string().regex(regex);
 
 const dataValid = 'a'.repeat(20);

@@ -3,8 +3,6 @@ import { describe, it } from '@std/testing/bdd';
 import { expectTypeOf } from 'expect-type';
 import fc from 'fast-check';
 import { check } from 'recheck';
-import emoji from '../emoji.json' with { type: 'json' };
-import * as p from '../index.ts';
 import {
     dateRegex,
     datetimeRegex,
@@ -15,7 +13,9 @@ import {
     nanoidRegex,
     timeRegex,
     uuidRegex,
-} from './string.ts';
+} from '../checks/string.ts';
+import emoji from '../emoji.json' with { type: 'json' };
+import * as p from '../index.ts';
 
 function formatDate(value: Date): string {
     const year =
@@ -88,7 +88,7 @@ it('rejects invalid types', () => {
 
 describe('min', () => {
     it('accepts valid values', () => {
-        const schema = p.string().min(3);
+        const schema = p.string(p.minLength(3));
 
         fc.assert(
             fc.property(fc.string({ minLength: 3 }), (data) => {
@@ -104,7 +104,7 @@ describe('min', () => {
     });
 
     it('rejects invalid values', () => {
-        const schema = p.string().min(3);
+        const schema = p.string(p.minLength(3));
 
         fc.assert(
             fc.property(fc.string({ maxLength: 2 }), (data) => {
@@ -119,21 +119,21 @@ describe('min', () => {
     });
 
     it('throws on NaN', () => {
-        expect(() => p.string().min(NaN)).toThrow();
+        expect(() => p.minLength(NaN)).toThrow();
     });
 
     it('is immutable', () => {
         const original = p.string();
-        const modified = original.min(3);
+        const modified = p.string(p.minLength(3));
         expect(modified).not.toEqual(original);
-        const branched = modified.max(5);
+        const branched = p.string(p.minLength(3), p.maxLength(5));
         expect(branched).not.toEqual(modified);
     });
 });
 
 describe('max', () => {
     it('accepts valid values', () => {
-        const schema = p.string().max(3);
+        const schema = p.string(p.maxLength(3));
 
         fc.assert(
             fc.property(fc.string({ maxLength: 3 }), (data) => {
@@ -149,7 +149,7 @@ describe('max', () => {
     });
 
     it('rejects invalid values', () => {
-        const schema = p.string().max(3);
+        const schema = p.string(p.maxLength(3));
 
         fc.assert(
             fc.property(fc.string({ minLength: 4 }), (data) => {
@@ -164,21 +164,21 @@ describe('max', () => {
     });
 
     it('throws on NaN', () => {
-        expect(() => p.string().max(NaN)).toThrow();
+        expect(() => p.maxLength(NaN)).toThrow();
     });
 
     it('is immutable', () => {
         const original = p.string();
-        const modified = original.max(3);
+        const modified = p.string(p.maxLength(3));
         expect(modified).not.toEqual(original);
-        const branched = modified.min(1);
+        const branched = p.string(p.maxLength(3), p.minLength(1));
         expect(branched).not.toEqual(modified);
     });
 });
 
 describe('length', () => {
     it('accepts valid values', () => {
-        const schema = p.string().length(3);
+        const schema = p.string(p.minLength(3), p.maxLength(3));
 
         fc.assert(
             fc.property(fc.string({ minLength: 3, maxLength: 3 }), (data) => {
@@ -194,7 +194,7 @@ describe('length', () => {
     });
 
     it('rejects values that are too long', () => {
-        const schema = p.string().length(3);
+        const schema = p.string(p.minLength(3), p.maxLength(3));
 
         fc.assert(
             fc.property(fc.string({ minLength: 4 }), (data) => {
@@ -209,7 +209,7 @@ describe('length', () => {
     });
 
     it('rejects values that are too short', () => {
-        const schema = p.string().length(3);
+        const schema = p.string(p.minLength(3), p.maxLength(3));
 
         fc.assert(
             fc.property(fc.string({ maxLength: 2 }), (data) => {
@@ -224,21 +224,21 @@ describe('length', () => {
     });
 
     it('throws on NaN', () => {
-        expect(() => p.string().length(NaN)).toThrow();
+        expect(() => p.minLength(NaN)).toThrow();
     });
 
     it('is immutable', () => {
         const original = p.string();
-        const modified = original.length(3);
+        const modified = p.string(p.minLength(3), p.maxLength(3));
         expect(modified).not.toEqual(original);
-        const branched = modified.min(1);
+        const branched = p.string(p.minLength(3), p.maxLength(3), p.minLength(1));
         expect(branched).not.toEqual(modified);
     });
 });
 
 describe('email', () => {
     it('accepts valid values', () => {
-        const schema = p.string().email();
+        const schema = p.string(p.email());
 
         fc.assert(
             fc.property(fc.emailAddress(), (data) => {
@@ -254,7 +254,7 @@ describe('email', () => {
     });
 
     it('rejects invalid values', () => {
-        const schema = p.string().email();
+        const schema = p.string(p.email());
         const regex = emailRegex();
 
         fc.assert(
@@ -289,16 +289,16 @@ describe('email', () => {
 
     it('is immutable', () => {
         const original = p.string();
-        const modified = original.email();
+        const modified = p.string(p.email());
         expect(modified).not.toEqual(original);
-        const branched = modified.min(1);
+        const branched = p.string(p.email(), p.minLength(1));
         expect(branched).not.toEqual(modified);
     });
 });
 
 describe('emoji', () => {
     it('accepts valid values', () => {
-        const schema = p.string().emoji();
+        const schema = p.string(p.emoji());
 
         fc.assert(
             fc.property(
@@ -325,7 +325,7 @@ describe('emoji', () => {
     });
 
     it('rejects invalid values', () => {
-        const schema = p.string().emoji();
+        const schema = p.string(p.emoji());
         const regex = emojiRegex();
 
         fc.assert(
@@ -356,16 +356,16 @@ describe('emoji', () => {
 
     it('is immutable', () => {
         const original = p.string();
-        const modified = original.emoji();
+        const modified = p.string(p.emoji());
         expect(modified).not.toEqual(original);
-        const branched = modified.min(1);
+        const branched = p.string(p.emoji(), p.minLength(1));
         expect(branched).not.toEqual(modified);
     });
 });
 
 describe('uuid', () => {
     it('accepts valid values', () => {
-        const schema = p.string().uuid();
+        const schema = p.string(p.uuid());
 
         fc.assert(
             fc.property(fc.uuid(), (data) => {
@@ -381,7 +381,7 @@ describe('uuid', () => {
     });
 
     it('rejects invalid values', () => {
-        const schema = p.string().uuid();
+        const schema = p.string(p.uuid());
         const regex = uuidRegex();
 
         fc.assert(
@@ -412,16 +412,16 @@ describe('uuid', () => {
 
     it('is immutable', () => {
         const original = p.string();
-        const modified = original.uuid();
+        const modified = p.string(p.uuid());
         expect(modified).not.toEqual(original);
-        const branched = modified.min(1);
+        const branched = p.string(p.uuid(), p.minLength(1));
         expect(branched).not.toEqual(modified);
     });
 });
 
 describe('nanoid', () => {
     it('accepts valid values', () => {
-        const schema = p.string().nanoid();
+        const schema = p.string(p.nanoid());
         // FIXME: fast-check doesn't like case-insensitive regexes.
         const regex = new RegExp(nanoidRegex().source);
 
@@ -439,7 +439,7 @@ describe('nanoid', () => {
     });
 
     it('rejects invalid values', () => {
-        const schema = p.string().nanoid();
+        const schema = p.string(p.nanoid());
         const regex = nanoidRegex();
 
         fc.assert(
@@ -470,16 +470,16 @@ describe('nanoid', () => {
 
     it('is immutable', () => {
         const original = p.string();
-        const modified = original.nanoid();
+        const modified = p.string(p.nanoid());
         expect(modified).not.toEqual(original);
-        const branched = modified.min(1);
+        const branched = p.string(p.nanoid(), p.minLength(1));
         expect(branched).not.toEqual(modified);
     });
 });
 
 describe('includes', () => {
     it('accepts valid values', () => {
-        const schema = p.string().includes('foo');
+        const schema = p.string(p.includes('foo'));
 
         fc.assert(
             fc.property(fc.string(), fc.string(), (prefix, suffix) => {
@@ -496,7 +496,7 @@ describe('includes', () => {
     });
 
     it('rejects invalid values', () => {
-        const schema = p.string().includes('foo');
+        const schema = p.string(p.includes('foo'));
 
         fc.assert(
             fc.property(
@@ -515,16 +515,16 @@ describe('includes', () => {
 
     it('is immutable', () => {
         const original = p.string();
-        const modified = original.includes('foo');
+        const modified = p.string(p.includes('foo'));
         expect(modified).not.toEqual(original);
-        const branched = modified.min(1);
+        const branched = p.string(p.includes('foo'), p.minLength(1));
         expect(branched).not.toEqual(modified);
     });
 });
 
 describe('startsWith', () => {
     it('accepts valid values', () => {
-        const schema = p.string().startsWith('foo');
+        const schema = p.string(p.startsWith('foo'));
 
         fc.assert(
             fc.property(fc.string(), (suffix) => {
@@ -541,7 +541,7 @@ describe('startsWith', () => {
     });
 
     it('rejects invalid values', () => {
-        const schema = p.string().startsWith('foo');
+        const schema = p.string(p.startsWith('foo'));
 
         fc.assert(
             fc.property(
@@ -560,16 +560,16 @@ describe('startsWith', () => {
 
     it('is immutable', () => {
         const original = p.string();
-        const modified = original.startsWith('foo');
+        const modified = p.string(p.startsWith('foo'));
         expect(modified).not.toEqual(original);
-        const branched = modified.min(1);
+        const branched = p.string(p.startsWith('foo'), p.minLength(1));
         expect(branched).not.toEqual(modified);
     });
 });
 
 describe('endsWith', () => {
     it('accepts valid values', () => {
-        const schema = p.string().endsWith('foo');
+        const schema = p.string(p.endsWith('foo'));
 
         fc.assert(
             fc.property(fc.string(), (prefix) => {
@@ -586,7 +586,7 @@ describe('endsWith', () => {
     });
 
     it('rejects invalid values', () => {
-        const schema = p.string().endsWith('foo');
+        const schema = p.string(p.endsWith('foo'));
 
         fc.assert(
             fc.property(
@@ -605,16 +605,16 @@ describe('endsWith', () => {
 
     it('is immutable', () => {
         const original = p.string();
-        const modified = original.endsWith('foo');
+        const modified = p.string(p.endsWith('foo'));
         expect(modified).not.toEqual(original);
-        const branched = modified.min(1);
+        const branched = p.string(p.endsWith('foo'), p.minLength(1));
         expect(branched).not.toEqual(modified);
     });
 });
 
 describe('date (string)', () => {
     it('accepts valid values', () => {
-        const schema = p.string().date();
+        const schema = p.string(p.isoDate());
 
         fc.assert(
             fc.property(
@@ -635,7 +635,7 @@ describe('date (string)', () => {
     });
 
     it('rejects invalid values', () => {
-        const schema = p.string().date();
+        const schema = p.string(p.isoDate());
         const regex = dateRegex();
 
         fc.assert(
@@ -666,9 +666,9 @@ describe('date (string)', () => {
 
     it('is immutable', () => {
         const original = p.string();
-        const modified = original.date();
+        const modified = p.string(p.isoDate());
         expect(modified).not.toEqual(original);
-        const branched = modified.min(1);
+        const branched = p.string(p.isoDate(), p.minLength(1));
         expect(branched).not.toEqual(modified);
     });
 });
@@ -686,7 +686,7 @@ describe('time', () => {
                         options.precision = precision;
                     }
 
-                    const schema = p.string().time(options);
+                    const schema = p.string(p.isoTime(options));
                     const result = schema.safeParse(data);
                     if (result.ok) {
                         expectTypeOf(result.value).toEqualTypeOf<string>;
@@ -700,7 +700,7 @@ describe('time', () => {
     });
 
     it('rejects invalid values', () => {
-        const schema = p.string().time();
+        const schema = p.string(p.isoTime());
 
         fc.assert(
             fc.property(
@@ -720,7 +720,7 @@ describe('time', () => {
     it('throws on invalid precision', () => {
         fc.assert(
             fc.property(fc.oneof(fc.float({ noInteger: true }), fc.integer({ max: -1 })), (precision) => {
-                expect(() => p.string().time({ precision })).toThrow();
+                expect(() => p.isoTime({ precision })).toThrow();
             }),
         );
     });
@@ -744,9 +744,9 @@ describe('time', () => {
 
     it('is immutable', () => {
         const original = p.string();
-        const modified = original.time();
+        const modified = p.string(p.isoTime());
         expect(modified).not.toEqual(original);
-        const branched = modified.min(1);
+        const branched = p.string(p.isoTime(), p.minLength(1));
         expect(branched).not.toEqual(modified);
     });
 });
@@ -773,7 +773,7 @@ describe('datetime', () => {
                         options.local = local;
                     }
 
-                    const schema = p.string().datetime(options);
+                    const schema = p.string(p.isoDatetime(options));
                     const result = schema.safeParse(data);
                     if (result.ok) {
                         expectTypeOf(result.value).toEqualTypeOf<string>;
@@ -787,7 +787,7 @@ describe('datetime', () => {
     });
 
     it('rejects invalid values', () => {
-        const schema = p.string().datetime();
+        const schema = p.string(p.isoDatetime());
 
         fc.assert(
             fc.property(
@@ -807,7 +807,7 @@ describe('datetime', () => {
     it('throws on invalid precision', () => {
         fc.assert(
             fc.property(fc.oneof(fc.float({ noInteger: true }), fc.integer({ max: -1 })), (precision) => {
-                expect(() => p.string().datetime({ precision })).toThrow();
+                expect(() => p.isoDatetime({ precision })).toThrow();
             }),
         );
     });
@@ -836,16 +836,16 @@ describe('datetime', () => {
 
     it('is immutable', () => {
         const original = p.string();
-        const modified = original.datetime();
+        const modified = p.string(p.isoDatetime());
         expect(modified).not.toEqual(original);
-        const branched = modified.min(1);
+        const branched = p.string(p.isoDatetime(), p.minLength(1));
         expect(branched).not.toEqual(modified);
     });
 });
 
 describe('ip', () => {
     it('accepts valid values', () => {
-        const schema = p.string().ip();
+        const schema = p.string(p.ip());
 
         fc.assert(
             fc.property(fc.oneof(fc.ipV4(), fc.ipV6()), (data) => {
@@ -861,7 +861,7 @@ describe('ip', () => {
     });
 
     it('rejects invalid values', () => {
-        const schema = p.string().ip();
+        const schema = p.string(p.ip());
 
         fc.assert(
             fc.property(
@@ -897,16 +897,16 @@ describe('ip', () => {
 
     it('is immutable', () => {
         const original = p.string();
-        const modified = original.ip();
+        const modified = p.string(p.ip());
         expect(modified).not.toEqual(original);
-        const branched = modified.min(1);
+        const branched = p.string(p.ip(), p.minLength(1));
         expect(branched).not.toEqual(modified);
     });
 });
 
 describe('cidr', () => {
     it('accepts valid values', () => {
-        const schema = p.string().cidr();
+        const schema = p.string(p.cidr());
 
         fc.assert(
             fc.property(
@@ -928,7 +928,7 @@ describe('cidr', () => {
     });
 
     it('rejects invalid values', () => {
-        const schema = p.string().cidr();
+        const schema = p.string(p.cidr());
 
         fc.assert(
             fc.property(
@@ -964,16 +964,16 @@ describe('cidr', () => {
 
     it('is immutable', () => {
         const original = p.string();
-        const modified = original.cidr();
+        const modified = p.string(p.cidr());
         expect(modified).not.toEqual(original);
-        const branched = modified.min(1);
+        const branched = p.string(p.cidr(), p.minLength(1));
         expect(branched).not.toEqual(modified);
     });
 });
 
 describe('regex', () => {
     it('accepts valid values', () => {
-        const schema = p.string().regex(/^a+$/);
+        const schema = p.string(p.regex(/^a+$/));
 
         fc.assert(
             fc.property(fc.string({ minLength: 1, unit: fc.constantFrom('a') }), (data) => {
@@ -990,7 +990,7 @@ describe('regex', () => {
 
     it('rejects invalid values', () => {
         const regex = /^a+$/;
-        const schema = p.string().regex(regex);
+        const schema = p.string(p.regex(regex));
 
         fc.assert(
             fc.property(
@@ -1008,7 +1008,7 @@ describe('regex', () => {
     });
 
     it('produces consistent results with global flag', () => {
-        const schema = p.string().regex(/^a+$/g);
+        const schema = p.string(p.regex(/^a+$/g));
 
         fc.assert(
             fc.property(fc.string({ minLength: 1, unit: fc.constantFrom('a') }), (data) => {
@@ -1023,7 +1023,7 @@ describe('regex', () => {
     });
 
     it('produces consistent results with sticky flag', () => {
-        const schema = p.string().regex(/^a+$/y);
+        const schema = p.string(p.regex(/^a+$/y));
 
         fc.assert(
             fc.property(fc.string({ minLength: 1, unit: fc.constantFrom('a') }), (data) => {
@@ -1039,15 +1039,15 @@ describe('regex', () => {
 
     it('is immutable', () => {
         const original = p.string();
-        const modified = original.regex(/a+/);
+        const modified = p.string(p.regex(/a+/));
         expect(modified).not.toEqual(original);
-        const branched = modified.min(1);
+        const branched = p.string(p.regex(/a+/), p.minLength(1));
         expect(branched).not.toEqual(modified);
     });
 });
 
 it('accepts optional values', () => {
-    const schema = p.string().optional();
+    const schema = p.optional(p.string());
 
     fc.assert(
         fc.property(fc.option(fc.string(), { nil: undefined }), (data) => {
@@ -1063,7 +1063,7 @@ it('accepts optional values', () => {
 });
 
 it('accepts nullable values', () => {
-    const schema = p.string().nullable();
+    const schema = p.nullable(p.string());
 
     fc.assert(
         fc.property(fc.option(fc.string(), { nil: null }), (data) => {

@@ -3,7 +3,7 @@ import * as p from '../../src/index.ts';
 
 const { bench } = Deno;
 
-const paseriSchema = p.string().email();
+const paseriSchema = p.string(p.email());
 const zodSchema = z.string().email();
 
 const dataValid = 'hello@example.com';

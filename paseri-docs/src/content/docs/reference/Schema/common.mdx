@@ -4,7 +4,7 @@ sidebar:
     order: 0
 ---
 
-All schemas contain some common methods.
+All schemas share some common methods, and can be wrapped or composed with the helpers below.
 
 ## Methods
 
@@ -19,7 +19,8 @@ import * as p from '@vbudovski/paseri';
 
 const schema = p.string();
 try {
-    const parsedValue = schema.parse('foo');
+    const parsedValue =
+        schema.parse('foo');
     // Do something with the `string`.
 } catch (e) {
     // Do something with the exception.
@@ -46,15 +47,18 @@ if (result.ok) {
 }
 ```
 
+## Helpers
+
 ### `optional`
 
-Allow any schema to accept `undefined` as a valid value.
+Wrap any schema so it also accepts `undefined`.
 
 ```typescript
 import * as p from '@vbudovski/paseri';
 
-const schema = p.string().optional();
-const result = schema.safeParse(undefined);
+const schema = p.optional(p.string());
+const result =
+    schema.safeParse(undefined);
 if (result.ok) {
     // result.value is of type `string | undefined`.
 }
@@ -62,12 +66,12 @@ if (result.ok) {
 
 ### `nullable`
 
-Allow any schema to accept `null` as a valid value.
+Wrap any schema so it also accepts `null`.
 
 ```typescript
 import * as p from '@vbudovski/paseri';
 
-const schema = p.string().nullable();
+const schema = p.nullable(p.string());
 const result = schema.safeParse(null);
 if (result.ok) {
     // result.value is of type `string | null`.
@@ -76,8 +80,8 @@ if (result.ok) {
 
 ### `chain`
 
-Chain schemas to convert data types. The chain method takes the target schema as the first argument, and a transformer
-function as the second argument.
+Chain schemas to convert data types. `p.chain` takes the source schema as the first argument, the target schema as the
+second argument, and a transformer function as the third argument.
 
 :::caution
 The transformer function must *not* throw! Instead, return an error code using the `err` helper function.
@@ -86,15 +90,23 @@ The transformer function must *not* throw! Instead, return an error code using t
 ```typescript
 import * as p from '@vbudovski/paseri';
 
-const schema = p.string().chain(p.bigint(), (value) => {
-    try {
-        return p.ok(BigInt(value));
-    } catch {
-        return p.err('invalid_bigint');
-    }
-});
+const schema = p.chain(
+    p.string(),
+    p.bigint(),
+    (value) => {
+        try {
+            return p.ok(BigInt(value));
+        } catch {
+            return p.err(
+                'invalid_bigint',
+            );
+        }
+    },
+);
 // Number.MAX_SAFE_INTEGER + 1 as a string.
-const result = schema.safeParse('9007199254740992');
+const result = schema.safeParse(
+    '9007199254740992',
+);
 if (result.ok) {
     // result.value is of type `bigint`.
 }
@@ -118,7 +130,7 @@ import * as p from '@vbudovski/paseri';
 const schema = p.object({
     foo: p.string(),
     bar: p.number(),
-})
+});
 
 type MySchema = p.Infer<typeof schema>;
 // MySchema will be { foo: string, bar: number }.

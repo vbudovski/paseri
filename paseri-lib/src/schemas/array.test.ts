@@ -5,7 +5,7 @@ import fc from 'fast-check';
 import * as p from '../index.ts';
 
 it('accepts valid types', () => {
-    const schema = p.array(p.number());
+    const schema = p.array(p.number())();
 
     fc.assert(
         fc.property(fc.array(fc.float({ noNaN: true })), (data) => {
@@ -21,7 +21,7 @@ it('accepts valid types', () => {
 });
 
 it('rejects invalid types', () => {
-    const schema = p.array(p.number());
+    const schema = p.array(p.number())();
 
     fc.assert(
         fc.property(
@@ -40,7 +40,7 @@ it('rejects invalid types', () => {
 
 describe('min', () => {
     it('accepts valid values', () => {
-        const schema = p.array(p.number()).min(3);
+        const schema = p.array(p.number())(p.minLength(3));
 
         fc.assert(
             fc.property(fc.array(fc.float({ noNaN: true }), { minLength: 3 }), (data) => {
@@ -56,7 +56,7 @@ describe('min', () => {
     });
 
     it('rejects invalid values', () => {
-        const schema = p.array(p.number()).min(3);
+        const schema = p.array(p.number())(p.minLength(3));
 
         fc.assert(
             fc.property(fc.array(fc.float({ noNaN: true }), { maxLength: 2 }), (data) => {
@@ -71,21 +71,21 @@ describe('min', () => {
     });
 
     it('throws on NaN', () => {
-        expect(() => p.array(p.string()).min(NaN)).toThrow();
+        expect(() => p.minLength(NaN)).toThrow();
     });
 
     it('is immutable', () => {
-        const original = p.array(p.string());
-        const modified = original.min(3);
+        const original = p.array(p.string())();
+        const modified = p.array(p.string())(p.minLength(3));
         expect(modified).not.toEqual(original);
-        const branched = modified.max(10);
+        const branched = p.array(p.string())(p.minLength(3), p.maxLength(10));
         expect(branched).not.toEqual(modified);
     });
 });
 
 describe('max', () => {
     it('accepts valid values', () => {
-        const schema = p.array(p.number()).max(3);
+        const schema = p.array(p.number())(p.maxLength(3));
 
         fc.assert(
             fc.property(fc.array(fc.float({ noNaN: true }), { maxLength: 3 }), (data) => {
@@ -101,7 +101,7 @@ describe('max', () => {
     });
 
     it('rejects invalid values', () => {
-        const schema = p.array(p.number()).max(3);
+        const schema = p.array(p.number())(p.maxLength(3));
 
         fc.assert(
             fc.property(fc.array(fc.float({ noNaN: true }), { minLength: 4 }), (data) => {
@@ -116,21 +116,21 @@ describe('max', () => {
     });
 
     it('throws on NaN', () => {
-        expect(() => p.array(p.string()).max(NaN)).toThrow();
+        expect(() => p.maxLength(NaN)).toThrow();
     });
 
     it('is immutable', () => {
-        const original = p.array(p.string());
-        const modified = original.max(3);
+        const original = p.array(p.string())();
+        const modified = p.array(p.string())(p.maxLength(3));
         expect(modified).not.toEqual(original);
-        const branched = modified.min(1);
+        const branched = p.array(p.string())(p.maxLength(3), p.minLength(1));
         expect(branched).not.toEqual(modified);
     });
 });
 
 describe('length', () => {
     it('accepts valid values', () => {
-        const schema = p.array(p.number()).length(3);
+        const schema = p.array(p.number())(p.minLength(3), p.maxLength(3));
 
         fc.assert(
             fc.property(fc.array(fc.float({ noNaN: true }), { minLength: 3, maxLength: 3 }), (data) => {
@@ -146,7 +146,7 @@ describe('length', () => {
     });
 
     it('rejects values that are too long', () => {
-        const schema = p.array(p.number()).length(3);
+        const schema = p.array(p.number())(p.minLength(3), p.maxLength(3));
 
         fc.assert(
             fc.property(fc.array(fc.float({ noNaN: true }), { minLength: 4 }), (data) => {
@@ -161,7 +161,7 @@ describe('length', () => {
     });
 
     it('rejects values that are too short', () => {
-        const schema = p.array(p.number()).length(3);
+        const schema = p.array(p.number())(p.minLength(3), p.maxLength(3));
 
         fc.assert(
             fc.property(fc.array(fc.float({ noNaN: true }), { maxLength: 2 }), (data) => {
@@ -176,20 +176,20 @@ describe('length', () => {
     });
 
     it('throws on NaN', () => {
-        expect(() => p.array(p.string()).length(NaN)).toThrow();
+        expect(() => p.minLength(NaN)).toThrow();
     });
 
     it('is immutable', () => {
-        const original = p.array(p.string());
-        const modified = original.length(3);
+        const original = p.array(p.string())();
+        const modified = p.array(p.string())(p.minLength(3), p.maxLength(3));
         expect(modified).not.toEqual(original);
-        const branched = modified.min(1);
+        const branched = p.array(p.string())(p.minLength(3), p.maxLength(3), p.minLength(1));
         expect(branched).not.toEqual(modified);
     });
 });
 
 it('rejects invalid elements', () => {
-    const schema = p.array(p.number());
+    const schema = p.array(p.number())();
     const data = [1, 'foo', 2, 'bar'];
 
     const result = schema.safeParse(data);
@@ -204,7 +204,7 @@ it('rejects invalid elements', () => {
 });
 
 it('rejects invalid nested elements', () => {
-    const schema = p.array(p.array(p.number()));
+    const schema = p.array(p.array(p.number())())();
     const data = [[1], [2, 'foo'], [3], 'bar'];
     const result = schema.safeParse(data);
     if (!result.ok) {
@@ -218,7 +218,7 @@ it('rejects invalid nested elements', () => {
 });
 
 it('accepts optional values', () => {
-    const schema = p.array(p.number()).optional();
+    const schema = p.optional(p.array(p.number())());
 
     fc.assert(
         fc.property(fc.option(fc.array(fc.float({ noNaN: true })), { nil: undefined }), (data) => {
@@ -234,7 +234,7 @@ it('accepts optional values', () => {
 });
 
 it('accepts nullable values', () => {
-    const schema = p.array(p.number()).nullable();
+    const schema = p.nullable(p.array(p.number())());
 
     fc.assert(
         fc.property(fc.option(fc.array(fc.float({ noNaN: true })), { nil: null }), (data) => {
@@ -250,7 +250,7 @@ it('accepts nullable values', () => {
 });
 
 it('returns new value when child is modified', () => {
-    const schema = p.array(p.object({ foo: p.string() }).strip());
+    const schema = p.array(p.object({ foo: p.string() }).strip())();
     const data = [{ foo: 'bar', extra: 'baz' }];
 
     const result = schema.safeParse(data);
@@ -262,7 +262,7 @@ it('returns new value when child is modified', () => {
 });
 
 it('preserves unmodified elements before a modified element', () => {
-    const schema = p.array(p.object({ foo: p.string() }).strip());
+    const schema = p.array(p.object({ foo: p.string() }).strip())();
     const data = [{ foo: 'a' }, { foo: 'b' }, { foo: 'c', extra: 'strip me' }];
 
     const result = schema.safeParse(data);
@@ -274,7 +274,7 @@ it('preserves unmodified elements before a modified element', () => {
 });
 
 it('preserves unmodified elements after a modified element', () => {
-    const schema = p.array(p.object({ foo: p.string() }).strip());
+    const schema = p.array(p.object({ foo: p.string() }).strip())();
     const data = [{ foo: 'a', extra: 'strip me' }, { foo: 'b' }, { foo: 'c' }];
 
     const result = schema.safeParse(data);
@@ -286,7 +286,7 @@ it('preserves unmodified elements after a modified element', () => {
 });
 
 it('reports invalid elements after a modified element', () => {
-    const schema = p.array(p.object({ foo: p.string() }).strip());
+    const schema = p.array(p.object({ foo: p.string() }).strip())();
     const data = [{ foo: 'a', extra: 'strip me' }, 'invalid'];
 
     const result = schema.safeParse(data);

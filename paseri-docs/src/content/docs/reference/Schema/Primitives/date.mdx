@@ -30,19 +30,19 @@ if (result.ok) {
 
 ## Validators
 
-### `min`
+### `minDate`
 
 Date on or after `value`.
 
 ```typescript
-p.date().min(new Date(2020, 0, 1));
+p.date(p.minDate(new Date(2020, 0, 1)));
 ```
 
-### `max`
+### `maxDate`
 
 Date on or before `value`.
 
 ```typescript
-p.date().max(new Date(2020, 0, 1));
+p.date(p.maxDate(new Date(2020, 0, 1)));
 ```
 

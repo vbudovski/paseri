@@ -3,7 +3,7 @@ import * as p from '../../src/index.ts';
 
 const { bench } = Deno;
 
-const paseriSchema = p.string().time();
+const paseriSchema = p.string(p.isoTime());
 const zodSchema = z.string().time();
 
 const dataValid = '00:00:00';

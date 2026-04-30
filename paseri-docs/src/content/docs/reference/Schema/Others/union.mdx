@@ -11,7 +11,10 @@ import { Playground } from "../../../../../components/Playground.tsx";
 ```typescript
 import * as p from '@vbudovski/paseri';
 
-const schema = p.union(p.number(), p.string());
+const schema = p.union(
+    p.number(),
+    p.string(),
+)();
 const data = 'foo';
 
 const result = schema.safeParse(data);
@@ -23,7 +26,7 @@ if (result.ok) {
 ## Playground
 
 <Playground
-    schemaDefaultValue={"p.union(p.number(), p.string())"}
+    schemaDefaultValue={"p.union(p.number(), p.string())()"}
     dataDefaultValue={"'foo'"}
     client:idle
 />
@@ -45,11 +48,15 @@ const schema = p.union(
         type: p.literal('square'),
         side: p.number(),
     }),
-);
+)();
 
-const result = schema.safeParse({ type: 'circle', radius: 5 });
+const result = schema.safeParse({
+    type: 'circle',
+    radius: 5,
+});
 if (result.ok) {
     // result.value typed as
-    // { type: 'circle'; radius: number } | { type: 'square'; side: number }.
+    // { type: 'circle'; radius: number }
+    // | { type: 'square'; side: number }.
 }
 ```
