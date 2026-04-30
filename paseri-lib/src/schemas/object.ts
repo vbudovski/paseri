@@ -157,7 +157,11 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
     merge<ShapeTypeOther extends ValidShapeType<ShapeTypeOther>>(
         other: ObjectSchema<ShapeTypeOther>,
     ): ObjectSchema<Merge<ShapeType, ShapeTypeOther>> {
-        const merged = new ObjectSchema<Merge<ShapeType, ShapeTypeOther>>({ ...this._shape, ...other._shape });
+        // Cast required: TS can't reduce `ShapeType & ShapeTypeOther` to type-fest's `Merge` when both are unresolved generics.
+        const merged = new ObjectSchema<Merge<ShapeType, ShapeTypeOther>>({
+            ...this._shape,
+            ...other._shape,
+        } as Merge<ShapeType, ShapeTypeOther>);
         merged._mode = other._mode;
 
         return merged;
