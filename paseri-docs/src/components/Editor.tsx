@@ -48,6 +48,11 @@ function Editor(props: EditorProps) {
             jar.updateCode(defaultValue);
             jar.onUpdate((code) => onChangeRef.current?.(code));
 
+            // Codejar imperatively sets `white-space: pre-wrap`, which wraps
+            // long lines. Force `pre` so the editor scrolls horizontally,
+            // matching the readonly result editor.
+            el.style.whiteSpace = 'pre';
+
             // Escape releases focus — Codejar traps Tab to insert indentation,
             // so without this users would be unable to leave the editor via
             // the keyboard (WCAG 2.1.2 No Keyboard Trap). We momentarily set

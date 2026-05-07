@@ -5,17 +5,18 @@
 .container {
     display: grid;
     gap: 1rem;
+    grid-template-columns: minmax(0, 1fr);
     grid-template-areas: "schema" "data" "result";
     margin-top: 1rem;
 
-    @container (min-width: 350px) {
-        grid-template-columns: 1fr 1fr;
-        grid-template-areas: "schema data" "result result";
+    @container (min-width: 520px) {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        grid-template-areas: "schema data" "result .";
     }
+}
 
-    @container (min-width: 600px) {
-        grid-template-areas: "schema" "data" "result";
-    }
+.container > div {
+    min-width: 0;
 }
 
 .label {
