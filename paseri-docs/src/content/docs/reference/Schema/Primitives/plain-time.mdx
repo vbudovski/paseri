@@ -1,0 +1,47 @@
+---
+title: "PlainTime"
+sidebar:
+    order: 11
+---
+
+import { Playground } from '../../../../../components/Playground.tsx'
+
+## Example
+
+```typescript
+import * as p from '@vbudovski/paseri';
+
+const schema = p.plainTime();
+const data = Temporal.PlainTime.from('12:00:00');
+
+const result = schema.safeParse(data);
+if (result.ok) {
+    // result.value typed as `Temporal.PlainTime`.
+}
+```
+
+## Playground
+
+<Playground
+    schemaDefaultValue={"p.plainTime()"}
+    dataDefaultValue={"Temporal.PlainTime.from('12:00:00')"}
+    client:idle
+/>
+
+## Validators
+
+### `min`
+
+Time on or after `value`.
+
+```typescript
+p.plainTime().min(Temporal.PlainTime.from('09:00:00'));
+```
+
+### `max`
+
+Time on or before `value`.
+
+```typescript
+p.plainTime().max(Temporal.PlainTime.from('17:00:00'));
+```
