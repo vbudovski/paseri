@@ -1,7 +1,19 @@
 /**
- * @module
+ * Locale translations for [Paseri](https://paseri.dev) validation error messages.
  *
- * This module contains the messages for all available locales.
+ * @example Apply a locale to parse error messages
+ *
+ * ```typescript
+ * import * as p from '@vbudovski/paseri';
+ * import { en_AU } from '@vbudovski/paseri/locales';
+ *
+ * const result = p.string().safeParse(123);
+ * if (!result.ok) {
+ *     console.error(result.messages(en_AU));
+ * }
+ * ```
+ *
+ * @module
  */
 
 export type { Translations } from '../message.ts';
