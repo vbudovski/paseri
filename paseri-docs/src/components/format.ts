@@ -16,11 +16,43 @@ function formatResult(value: unknown): string {
     }
 
     if (value instanceof Date) {
-        return String(value);
+        return `Date ${String(value)}`;
     }
 
     if (value === null) {
         return 'null';
+    }
+
+    if (value instanceof Temporal.Instant) {
+        return `Temporal.Instant ${value.toString()}`;
+    }
+
+    if (value instanceof Temporal.ZonedDateTime) {
+        return `Temporal.ZonedDateTime ${value.toString()}`;
+    }
+
+    if (value instanceof Temporal.PlainDateTime) {
+        return `Temporal.PlainDateTime ${value.toString()}`;
+    }
+
+    if (value instanceof Temporal.PlainDate) {
+        return `Temporal.PlainDate ${value.toString()}`;
+    }
+
+    if (value instanceof Temporal.PlainTime) {
+        return `Temporal.PlainTime ${value.toString()}`;
+    }
+
+    if (value instanceof Temporal.PlainYearMonth) {
+        return `Temporal.PlainYearMonth ${value.toString()}`;
+    }
+
+    if (value instanceof Temporal.PlainMonthDay) {
+        return `Temporal.PlainMonthDay ${value.toString()}`;
+    }
+
+    if (value instanceof Temporal.Duration) {
+        return `Temporal.Duration ${value.toString()}`;
     }
 
     if (Array.isArray(value)) {

@@ -1,0 +1,29 @@
+---
+title: "Duration"
+sidebar:
+    order: 16
+---
+
+import { Playground } from '../../../../../components/Playground.tsx'
+
+## Example
+
+```typescript
+import * as p from '@vbudovski/paseri';
+
+const schema = p.duration();
+const data = Temporal.Duration.from({ hours: 1 });
+
+const result = schema.safeParse(data);
+if (result.ok) {
+    // result.value typed as `Temporal.Duration`.
+}
+```
+
+## Playground
+
+<Playground
+    schemaDefaultValue={"p.duration()"}
+    dataDefaultValue={"Temporal.Duration.from({ hours: 1 })"}
+    client:idle
+/>

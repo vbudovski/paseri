@@ -1,0 +1,47 @@
+---
+title: "PlainDate"
+sidebar:
+    order: 9
+---
+
+import { Playground } from '../../../../../components/Playground.tsx'
+
+## Example
+
+```typescript
+import * as p from '@vbudovski/paseri';
+
+const schema = p.plainDate();
+const data = Temporal.PlainDate.from('2020-01-01');
+
+const result = schema.safeParse(data);
+if (result.ok) {
+    // result.value typed as `Temporal.PlainDate`.
+}
+```
+
+## Playground
+
+<Playground
+    schemaDefaultValue={"p.plainDate()"}
+    dataDefaultValue={"Temporal.PlainDate.from('2020-01-01')"}
+    client:idle
+/>
+
+## Validators
+
+### `min`
+
+Date on or after `value`.
+
+```typescript
+p.plainDate().min(Temporal.PlainDate.from('2020-01-01'));
+```
+
+### `max`
+
+Date on or before `value`.
+
+```typescript
+p.plainDate().max(Temporal.PlainDate.from('2020-01-01'));
+```

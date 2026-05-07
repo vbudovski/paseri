@@ -1,0 +1,47 @@
+---
+title: "ZonedDateTime"
+sidebar:
+    order: 14
+---
+
+import { Playground } from '../../../../../components/Playground.tsx'
+
+## Example
+
+```typescript
+import * as p from '@vbudovski/paseri';
+
+const schema = p.zonedDateTime();
+const data = Temporal.ZonedDateTime.from('2020-01-01T00:00:00Z[UTC]');
+
+const result = schema.safeParse(data);
+if (result.ok) {
+    // result.value typed as `Temporal.ZonedDateTime`.
+}
+```
+
+## Playground
+
+<Playground
+    schemaDefaultValue={"p.zonedDateTime()"}
+    dataDefaultValue={"Temporal.ZonedDateTime.from('2020-01-01T00:00:00Z[UTC]')"}
+    client:idle
+/>
+
+## Validators
+
+### `min`
+
+Zoned date-time on or after `value`.
+
+```typescript
+p.zonedDateTime().min(Temporal.ZonedDateTime.from('2020-01-01T00:00:00Z[UTC]'));
+```
+
+### `max`
+
+Zoned date-time on or before `value`.
+
+```typescript
+p.zonedDateTime().max(Temporal.ZonedDateTime.from('2020-01-01T00:00:00Z[UTC]'));
+```

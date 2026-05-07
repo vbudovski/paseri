@@ -1,0 +1,47 @@
+---
+title: "PlainYearMonth"
+sidebar:
+    order: 13
+---
+
+import { Playground } from '../../../../../components/Playground.tsx'
+
+## Example
+
+```typescript
+import * as p from '@vbudovski/paseri';
+
+const schema = p.plainYearMonth();
+const data = Temporal.PlainYearMonth.from('2020-01');
+
+const result = schema.safeParse(data);
+if (result.ok) {
+    // result.value typed as `Temporal.PlainYearMonth`.
+}
+```
+
+## Playground
+
+<Playground
+    schemaDefaultValue={"p.plainYearMonth()"}
+    dataDefaultValue={"Temporal.PlainYearMonth.from('2020-01')"}
+    client:idle
+/>
+
+## Validators
+
+### `min`
+
+Year-month on or after `value`.
+
+```typescript
+p.plainYearMonth().min(Temporal.PlainYearMonth.from('2020-01'));
+```
+
+### `max`
+
+Year-month on or before `value`.
+
+```typescript
+p.plainYearMonth().max(Temporal.PlainYearMonth.from('2020-01'));
+```

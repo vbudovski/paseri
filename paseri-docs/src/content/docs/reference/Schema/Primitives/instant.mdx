@@ -1,0 +1,47 @@
+---
+title: "Instant"
+sidebar:
+    order: 10
+---
+
+import { Playground } from '../../../../../components/Playground.tsx'
+
+## Example
+
+```typescript
+import * as p from '@vbudovski/paseri';
+
+const schema = p.instant();
+const data = Temporal.Instant.from('2020-01-01T00:00:00Z');
+
+const result = schema.safeParse(data);
+if (result.ok) {
+    // result.value typed as `Temporal.Instant`.
+}
+```
+
+## Playground
+
+<Playground
+    schemaDefaultValue={"p.instant()"}
+    dataDefaultValue={"Temporal.Instant.from('2020-01-01T00:00:00Z')"}
+    client:idle
+/>
+
+## Validators
+
+### `min`
+
+Instant on or after `value`.
+
+```typescript
+p.instant().min(Temporal.Instant.from('2020-01-01T00:00:00Z'));
+```
+
+### `max`
+
+Instant on or before `value`.
+
+```typescript
+p.instant().max(Temporal.Instant.from('2020-01-01T00:00:00Z'));
+```

@@ -1,0 +1,29 @@
+---
+title: "PlainMonthDay"
+sidebar:
+    order: 15
+---
+
+import { Playground } from '../../../../../components/Playground.tsx'
+
+## Example
+
+```typescript
+import * as p from '@vbudovski/paseri';
+
+const schema = p.plainMonthDay();
+const data = Temporal.PlainMonthDay.from('--01-01');
+
+const result = schema.safeParse(data);
+if (result.ok) {
+    // result.value typed as `Temporal.PlainMonthDay`.
+}
+```
+
+## Playground
+
+<Playground
+    schemaDefaultValue={"p.plainMonthDay()"}
+    dataDefaultValue={"Temporal.PlainMonthDay.from('--01-01')"}
+    client:idle
+/>
