@@ -71,7 +71,7 @@ class PlainYearMonthSchema extends Schema<Temporal.PlainYearMonth> {
 const singleton = /* @__PURE__ */ new PlainYearMonthSchema();
 
 /**
- * [Plain year-month](https://paseri.dev/reference/schema/primitives/plainyearmonth/) schema.
+ * [PlainYearMonth](https://paseri.dev/reference/schema/primitives/plain-year-month/) schema.
  */
 const plainYearMonth = /* @__PURE__ */ (): PlainYearMonthSchema => singleton;
 

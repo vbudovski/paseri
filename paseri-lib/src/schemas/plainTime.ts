@@ -71,7 +71,7 @@ class PlainTimeSchema extends Schema<Temporal.PlainTime> {
 const singleton = /* @__PURE__ */ new PlainTimeSchema();
 
 /**
- * [Plain time](https://paseri.dev/reference/schema/primitives/plaintime/) schema.
+ * [PlainTime](https://paseri.dev/reference/schema/primitives/plain-time/) schema.
  */
 const plainTime = /* @__PURE__ */ (): PlainTimeSchema => singleton;
 

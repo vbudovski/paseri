@@ -83,7 +83,7 @@ class PlainDateSchema extends Schema<Temporal.PlainDate> {
 const singleton = /* @__PURE__ */ new PlainDateSchema();
 
 /**
- * [Plain date](https://paseri.dev/reference/schema/primitives/plaindate/) schema.
+ * [PlainDate](https://paseri.dev/reference/schema/primitives/plain-date/) schema.
  */
 const plainDate = /* @__PURE__ */ (): PlainDateSchema => singleton;
 

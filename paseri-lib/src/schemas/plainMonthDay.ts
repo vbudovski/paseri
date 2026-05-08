@@ -22,7 +22,7 @@ class PlainMonthDaySchema extends Schema<Temporal.PlainMonthDay> {
 const singleton = /* @__PURE__ */ new PlainMonthDaySchema();
 
 /**
- * [Plain month-day](https://paseri.dev/reference/schema/primitives/plainmonthday/) schema.
+ * [PlainMonthDay](https://paseri.dev/reference/schema/primitives/plain-month-day/) schema.
  */
 const plainMonthDay = /* @__PURE__ */ (): PlainMonthDaySchema => singleton;
 

@@ -71,7 +71,7 @@ class ZonedDateTimeSchema extends Schema<Temporal.ZonedDateTime> {
 const singleton = /* @__PURE__ */ new ZonedDateTimeSchema();
 
 /**
- * [Zoned date-time](https://paseri.dev/reference/schema/primitives/zoneddatetime/) schema.
+ * [ZonedDateTime](https://paseri.dev/reference/schema/primitives/zoned-date-time/) schema.
  */
 const zonedDateTime = /* @__PURE__ */ (): ZonedDateTimeSchema => singleton;
 
