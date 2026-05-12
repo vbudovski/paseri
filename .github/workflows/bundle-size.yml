@@ -50,7 +50,7 @@ jobs:
         uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
         with:
           path: main-bundlesize.txt
-          key: main-metrics-bundlesize-
+          key: main-metrics-bundlesize-${{ github.event.pull_request.base.sha }}
           restore-keys: |
             main-metrics-bundlesize-
 
