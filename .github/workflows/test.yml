@@ -2,31 +2,46 @@ name: Test
 
 on:
   workflow_call:
-    secrets:
-      GIST_SECRET:
-        required: true
+    inputs:
+      use_cache:
+        description: "Restore and save the Deno cache."
+        type: boolean
+        default: true
+    outputs:
+      coverage:
+        description: "Code coverage percentage from the test run."
+        value: ${{ jobs.unit.outputs.coverage }}
+
+permissions: {}
 
 jobs:
   unit:
     name: Run unit tests
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    outputs:
+      coverage: ${{ steps.tests.outputs.CODE_COVERAGE }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           fetch-depth: 0
 
       - name: Set up Deno
-        uses: denoland/setup-deno@v2
+        uses: denoland/setup-deno@667a34cdef165d8d2b2e98dde39547c9daac7282 # v2
         with:
           deno-version: "^2.7.14"
 
-      - name: Get pnpm store directory
+      - name: Get DENO_DIR
+        if: ${{ inputs.use_cache }}
         id: deno-cache
         shell: bash
         run: |
           echo "DENO_DIR=$(deno info | grep DENO_DIR | sed 's/\x1B\[[0-9;]\{1,\}[A-Za-z]//g' | cut -d ':' -f 2 | xargs)" >> $GITHUB_OUTPUT
 
-      - uses: actions/cache@v5
+      - uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
+        if: ${{ inputs.use_cache }}
         name: Setup Deno cache
         with:
           path: ${{ steps.deno-cache.outputs.DENO_DIR }}
@@ -39,16 +54,100 @@ jobs:
         run: |
           deno test -P --doc --coverage
           echo "CODE_COVERAGE=$(deno coverage | grep "All files" | sed 's/\x1B\[[0-9;]\{1,\}[A-Za-z]//g' | cut -d '|' -f 3 | xargs)" >> $GITHUB_OUTPUT
-          echo "GIST_PATH=$(echo "${{ github.repository }}/${{ github.ref_name }}" | sed 's/\//_/g')-coverage.svg" >> $GITHUB_OUTPUT
 
-      - name: Create coverage badge
-        uses: schneegans/dynamic-badges-action@v1.8.0
+      - name: Write main metric
+        if: github.ref == 'refs/heads/main'
+        run: printf '%s' "${{ steps.tests.outputs.CODE_COVERAGE }}" > main-coverage.txt
+
+      - name: Save main coverage metric
+        if: github.ref == 'refs/heads/main'
+        uses: actions/cache/save@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
         with:
-          auth: ${{ secrets.GIST_SECRET }}
-          gistID: 80548a1b87f9f00fe1ae426ca6a2a517
-          filename: ${{ steps.tests.outputs.GIST_PATH }}
-          label: coverage
-          message: ${{ steps.tests.outputs.CODE_COVERAGE }}%
-          valColorRange: ${{ steps.tests.outputs.CODE_COVERAGE }}
-          minColorRange: 50
-          maxColorRange: 90
+          path: main-coverage.txt
+          key: main-metrics-coverage-${{ github.sha }}
+
+      - name: Restore main coverage metric
+        if: github.event_name == 'pull_request'
+        id: restore
+        uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
+        with:
+          path: main-coverage.txt
+          key: main-metrics-coverage-
+          restore-keys: |
+            main-metrics-coverage-
+
+      - name: Compute coverage delta
+        if: github.event_name == 'pull_request'
+        id: delta
+        run: |
+          pr_cov="${{ steps.tests.outputs.CODE_COVERAGE }}"
+          # Strict numeric whitelist on PR value.
+          pr_cov=$(printf '%s' "$pr_cov" | tr -cd '0-9.' | head -c 8)
+          if [ -f main-coverage.txt ]; then
+            main_cov=$(tr -cd '0-9.' < main-coverage.txt | head -c 8)
+            delta=$(awk -v a="$pr_cov" -v b="$main_cov" 'BEGIN { printf "%+.2f", a - b }')
+            main_display="${main_cov}%"
+          else
+            main_cov=""
+            delta="n/a"
+            main_display="no cached baseline"
+          fi
+          {
+            echo "## Coverage"
+            echo ""
+            echo "| Branch | Value |"
+            echo "|--------|-------|"
+            echo "| This PR | ${pr_cov}% |"
+            echo "| main    | ${main_display} |"
+            echo "| Δ       | ${delta} |"
+          } >> "$GITHUB_STEP_SUMMARY"
+          {
+            echo "pr_cov=$pr_cov"
+            echo "main_cov=$main_cov"
+            echo "main_display=$main_display"
+            echo "delta=$delta"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Post coverage comment
+        if: |
+          github.event_name == 'pull_request' &&
+          github.event.pull_request.head.repo.full_name == github.repository
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        env:
+          PR_COV: ${{ steps.delta.outputs.pr_cov }}
+          MAIN_DISPLAY: ${{ steps.delta.outputs.main_display }}
+          DELTA: ${{ steps.delta.outputs.delta }}
+        with:
+          script: |
+            const marker = '<!-- paseri-coverage -->';
+            const body = [
+              marker,
+              '## Coverage',
+              '',
+              '| Branch | Value |',
+              '|--------|-------|',
+              `| This PR | ${process.env.PR_COV}% |`,
+              `| main    | ${process.env.MAIN_DISPLAY} |`,
+              `| Δ       | ${process.env.DELTA} |`,
+            ].join('\n');
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            const existing = comments.find(c => c.body && c.body.startsWith(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }

@@ -7,30 +7,63 @@ on:
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
+permissions: {}
+
 jobs:
   test:
+    permissions:
+      contents: read
     uses: ./.github/workflows/test.yml
-    secrets:
-      GIST_SECRET: ${{ secrets.GIST_SECRET }}
+    with:
+      use_cache: false
 
   bundle-size:
+    permissions:
+      contents: read
     uses: ./.github/workflows/bundle-size.yml
-    secrets:
-      GIST_SECRET: ${{ secrets.GIST_SECRET }}
+
+  badges:
+    needs: [test, bundle-size]
+    runs-on: ubuntu-latest
+    environment: badges
+    permissions: {}
+    steps:
+      - name: Update coverage badge
+        uses: schneegans/dynamic-badges-action@0e50b8bad39e7e1afd3e4e9c2b7dd145fad07501 # v1.8.0
+        with:
+          auth: ${{ secrets.GIST_SECRET }}
+          gistID: 80548a1b87f9f00fe1ae426ca6a2a517
+          filename: vbudovski_paseri_main-coverage.svg
+          label: coverage
+          message: ${{ needs.test.outputs.coverage }}%
+          valColorRange: ${{ needs.test.outputs.coverage }}
+          minColorRange: 50
+          maxColorRange: 90
+
+      - name: Update bundle size badge
+        uses: schneegans/dynamic-badges-action@0e50b8bad39e7e1afd3e4e9c2b7dd145fad07501 # v1.8.0
+        with:
+          auth: ${{ secrets.GIST_SECRET }}
+          gistID: 80548a1b87f9f00fe1ae426ca6a2a517
+          filename: vbudovski_paseri_main-bundlesize.svg
+          label: minzip
+          message: ${{ needs.bundle-size.outputs.bundle_size }}
+          color: blue
 
   publish:
     needs: test
     runs-on: ubuntu-latest
+    environment: release
     permissions:
       contents: read
       id-token: write # The OIDC ID token is used for authentication with JSR.
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           fetch-depth: 0
 
       - name: Set up Deno
-        uses: denoland/setup-deno@v2
+        uses: denoland/setup-deno@667a34cdef165d8d2b2e98dde39547c9daac7282 # v2
         with:
           deno-version: "^2.7.14"
 
