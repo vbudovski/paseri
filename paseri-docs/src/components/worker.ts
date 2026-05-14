@@ -6,6 +6,7 @@ self.onmessage = (event: MessageEvent<{ schema: string; data: string }>) => {
     const { schema, data } = event.data;
 
     try {
+        // codeql[js/code-injection] Playground REPL evaluates user-authored Paseri schemas in a sandboxed Web Worker.
         const parsed = new Function('p', `return ${schema}.parse(${data})`)(p);
         self.postMessage({ ok: true, parsedData: formatResult(parsed) });
     } catch (e) {
