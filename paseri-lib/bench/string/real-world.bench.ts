@@ -3,8 +3,8 @@ import * as p from '../../src/index.ts';
 
 const { bench } = Deno;
 
-const paseriSchema = p.string().min(5).max(50).email().endsWith('gmail.com');
-const zodSchema = z.string().min(5).max(50).email().endsWith('gmail.com');
+const paseriSchema = p.string().min(5).max(50).email().endsWith('@gmail.com');
+const zodSchema = z.string().min(5).max(50).email().endsWith('@gmail.com');
 
 const dataValid = 'foo@gmail.com';
 const dataInvalid = 'bar@example.test';
