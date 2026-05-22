@@ -19,7 +19,8 @@ country is a 2-letter [ISO 3166](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-
 
 ## Custom error codes
 
-You can extend the messages object to add your custom error codes and corresponding translations.
+You can extend the messages object to add your custom error codes and corresponding translations. Each entry may
+optionally accept a `params` object for templated values.
 
 ```typescript
 import { en, type Translations } from '@vbudovski/paseri/locales';
@@ -27,6 +28,7 @@ import { en, type Translations } from '@vbudovski/paseri/locales';
 const enCustom = {
     ...en,
     foo: () => 'This is a `foo` error.',
-    bar: () => 'This is a `bar` error.',
+    age_below_min: (placeholders: { params?: Record<string, unknown> }) =>
+        `Must be at least ${placeholders.params?.min as number} years old.`,
 } satisfies Translations;
 ```

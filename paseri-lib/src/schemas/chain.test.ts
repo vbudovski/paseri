@@ -60,13 +60,30 @@ it('rejects when transform fails', () => {
         fc.property(fc.string(), (data) => {
             const result = schema.safeParse(data);
             if (!result.ok) {
-                const custom = { ...en, foo: () => 'Custom foo error.' };
-                expect(result.messages(custom)).toEqual([{ path: [], message: 'Custom foo error.' }]);
+                expect(result.messages()).toEqual([{ path: [], message: 'foo' }]);
             } else {
                 expect(result.ok).toBeFalsy();
             }
         }),
     );
+});
+
+it('renders a custom code via a registered locale entry', () => {
+    const schema = p.string().chain(p.number(), (value) => {
+        return p.err('not_a_number', { input: value });
+    });
+
+    const result = schema.safeParse('hello');
+    if (!result.ok) {
+        const custom = {
+            ...en,
+            not_a_number: (p: { params?: Record<string, unknown> }) =>
+                `"${p.params?.input as string}" is not a number.`,
+        };
+        expect(result.messages(custom)).toEqual([{ path: [], message: '"hello" is not a number.' }]);
+    } else {
+        expect(result.ok).toBeFalsy();
+    }
 });
 
 it('transforms primitive to primitive', () => {
