@@ -28,4 +28,16 @@ function primitiveToString(value: Primitive): string {
     return String(value);
 }
 
-export { isPlainObject, primitiveToString };
+function deepFreeze<ValueType>(value: ValueType): ValueType {
+    if (value === null || typeof value !== 'object' || Object.isFrozen(value)) {
+        return value;
+    }
+
+    Object.freeze(value);
+    for (const key of Reflect.ownKeys(value)) {
+        deepFreeze((value as Record<PropertyKey, unknown>)[key]);
+    }
+    return value;
+}
+
+export { deepFreeze, isPlainObject, primitiveToString };

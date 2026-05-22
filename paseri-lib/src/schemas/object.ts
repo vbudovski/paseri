@@ -3,7 +3,7 @@ import type { Infer } from '../infer.ts';
 import { addIssue, issueCodes, type LeafNode, type TreeNode } from '../issue.ts';
 import { type InternalParseResult, isParseSuccess } from '../result.ts';
 import { isPlainObject } from '../utils.ts';
-import { type AnySchemaType, Schema } from './schema.ts';
+import { type AnySchemaType, DefaultSchema, Schema } from './schema.ts';
 
 type ValidShapeType<ShapeType> = NonEmptyObject<{
     [Key in keyof ShapeType]: ShapeType[Key] extends Schema<infer OutputType> ? Schema<OutputType> : never;
@@ -84,6 +84,12 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
         if (seen < this._shapeSize) {
             for (const key of this._requiredKeys) {
                 if (!Object.hasOwn(value, key)) {
+                    const schema = this._shape[key];
+                    if (schema instanceof DefaultSchema) {
+                        hasModifiedChildValue = true;
+                        modifiedValues[key] = schema._getDefault();
+                        continue;
+                    }
                     issue = addIssue(issue, {
                         type: 'nest',
                         key,

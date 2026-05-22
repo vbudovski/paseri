@@ -60,6 +60,26 @@ if (result.ok) {
 }
 ```
 
+#### `default`
+
+To substitute a value when the input is `undefined`, follow `.optional()` with `.default(value)`.
+
+```typescript
+import * as p from '@vbudovski/paseri';
+
+const schema = p.number().optional().default(123);
+const result = schema.safeParse(undefined);
+if (result.ok) {
+    // result.value is of type `number`, equal to 123.
+}
+```
+
+:::caution
+Treat default values as immutable! Plain objects and arrays are frozen &mdash; mutations throw `TypeError`. Other
+types (e.g. `Date`, `Map`, `Set`, class instances) have mutator methods that bypass the freeze, and mutations will
+leak across parses sharing the default.
+:::
+
 ### `nullable`
 
 Allow any schema to accept `null` as a valid value.
