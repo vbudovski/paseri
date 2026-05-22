@@ -125,6 +125,47 @@ The error code `'invalid_bigint'` is a custom code. Custom error codes require a
 [custom messages object](/reference/messages/#custom-error-codes) to work with `result.messages()`.
 :::
 
+`err` accepts an optional second argument, `params`, for forwarding placeholder values to the
+[matching locale entry](/reference/messages/#custom-error-codes).
+
+```typescript
+import * as p from '@vbudovski/paseri';
+
+const schema = p.string().chain(p.number(), (value) => {
+    const n = Number(value);
+    if (Number.isNaN(n)) {
+        return p.err('not_a_number', { input: value });
+    }
+    return p.ok(n);
+});
+```
+
+### `refine`
+
+Add a custom check to any schema. The predicate runs on the parsed value and if it fails, an error is emitted at the
+given path. Multiple `.refine()` calls short-circuit on the first failure.
+
+```typescript
+import * as p from '@vbudovski/paseri';
+
+const schema = p
+    .object({
+        password: p.string(),
+        confirm: p.string(),
+    })
+    .refine((value) => value.password === value.confirm, {
+        code: 'password_mismatch',
+        path: ['confirm'],
+    });
+```
+
+The `code` is required. `path` defaults to the root (`[]`) and accepts `string` or `number` segments. The optional
+`params` object supplies placeholder values to the [matching locale entry](/reference/messages/#custom-error-codes).
+
+:::caution
+The predicate function must *not* throw! Catch exceptions inside the predicate and return `false` instead.
+:::
+
 ## Types
 
 ### `Infer`

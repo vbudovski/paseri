@@ -1,6 +1,7 @@
 ## Tooling
 - Deno workspace with two members: `paseri-lib` (validation library, published to JSR) and `paseri-docs` (Astro + Preact docs site).
 - Use Deno, not npm. Run `deno task check` to validate lint + formatting (read-only; exits non-zero on findings).
+- Lint + formatting uses biome (configured via `deno task check`). Never run `deno fmt` — its default style differs from the project's biome config.
 - Commits are enforced via commitlint — read `commitlint.config.ts` for the rules before writing a commit message.
 
 ## TypeScript
@@ -10,6 +11,8 @@
 
 ## Tests
 - Use `@std/testing/bdd` (`describe` / `it`) with `@std/expect`.
+- Prefer black-box tests — assert what callers of the module can observe, not internal state. For schemas this means the value/messages from `safeParse` / `parse`; don't reach into private fields or the internal `TreeNode` shape of `result.issue`. Justify any internal peek inline.
+- To assert that a callback was (or wasn't) invoked, use `spy` + `assertSpyCalls` from `@std/testing/mock` rather than ad-hoc counters or boolean flags.
 - Prefer property-based tests with `fast-check` over hand-rolled example tables when the input space is non-trivial.
 - Run with `deno test -P`. The `-P` flag applies the permissions configured in `deno.json`; without it the suite fails on permission prompts.
 

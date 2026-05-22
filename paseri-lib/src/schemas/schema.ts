@@ -1,4 +1,5 @@
 import type { StandardSchemaV1 } from '@standard-schema/spec';
+import type { CustomIssueCode, TreeNode } from '../issue.ts';
 import type { Translations } from '../message.ts';
 import type { InternalParseResult, ParseResult } from '../result.ts';
 import { isParseSuccess, ParseErrorResult, PaseriError } from '../result.ts';
@@ -68,6 +69,12 @@ abstract class Schema<OutputType> implements StandardSchemaV1<unknown, OutputTyp
         transformer: (value: OutputType) => ParseResult<ToOutputType>,
     ): Schema<ToOutputType> {
         return new ChainSchema(this, schema, transformer);
+    }
+    refine(
+        predicate: (value: OutputType) => boolean,
+        options: { code: string; path?: (string | number)[]; params?: Record<string, unknown> },
+    ): Schema<OutputType> {
+        return new RefineSchema(this, predicate, options);
     }
 }
 
@@ -190,7 +197,58 @@ class DefaultSchema<OutputType> extends Schema<OutputType> {
     }
 }
 
+class RefineSchema<OutputType> extends Schema<OutputType> {
+    private readonly _base: Schema<OutputType>;
+    private readonly _predicate: (value: OutputType) => boolean;
+    private readonly _code: CustomIssueCode;
+    private readonly _path: readonly (string | number)[];
+    private readonly _params: Record<string, unknown> | undefined;
+
+    constructor(
+        base: Schema<OutputType>,
+        predicate: (value: OutputType) => boolean,
+        options: { code: string; path?: (string | number)[]; params?: Record<string, unknown> },
+    ) {
+        super();
+
+        this._base = base;
+        this._predicate = predicate;
+        this._code = options.code as CustomIssueCode;
+        this._path = options.path ?? [];
+        this._params = options.params;
+    }
+    protected _clone(): RefineSchema<OutputType> {
+        return this;
+    }
+    override _isOptional(): boolean {
+        return this._base._isOptional();
+    }
+    _parse(value: unknown): InternalParseResult<OutputType> {
+        const baseResult = this._base._parse(value);
+
+        if (baseResult !== undefined && !isParseSuccess(baseResult)) {
+            return baseResult;
+        }
+
+        const parsed = baseResult === undefined ? (value as OutputType) : baseResult.value;
+
+        if (this._predicate(parsed)) {
+            return baseResult;
+        }
+
+        let issue: TreeNode = {
+            type: 'leaf',
+            code: this._code,
+            ...(this._params !== undefined && { params: this._params }),
+        };
+        for (let i = this._path.length - 1; i >= 0; i--) {
+            issue = { type: 'nest', key: this._path[i], child: issue };
+        }
+        return issue;
+    }
+}
+
 type AnySchemaType = Schema<unknown>;
 
 export type { AnySchemaType };
-export { DefaultSchema, OptionalSchema, Schema };
+export { DefaultSchema, OptionalSchema, RefineSchema, Schema };

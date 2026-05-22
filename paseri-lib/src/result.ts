@@ -61,9 +61,14 @@ function ok<OutputType>(value: OutputType): ParseSuccessResult<OutputType> {
 /**
  * Indicates an error parse result.
  * @param code The error code indicating the specific parsing failure.
+ * @param params Optional placeholders forwarded to the locale entry for templated messages.
  */
-function err(code: string): ParseErrorResult {
-    return new ParseErrorResult({ type: 'leaf', code: code as CustomIssueCode });
+function err(code: string, params?: Record<string, unknown>): ParseErrorResult {
+    return new ParseErrorResult({
+        type: 'leaf',
+        code: code as CustomIssueCode,
+        ...(params !== undefined && { params }),
+    });
 }
 
 // To avoid creating intermediate objects, we return `undefined` when the input value does not need to be sanitised.

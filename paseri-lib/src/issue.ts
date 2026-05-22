@@ -71,6 +71,7 @@ type LeafNode =
     | {
           type: 'leaf';
           code: CustomIssueCode;
+          params?: Record<string, unknown>;
       };
 
 interface JoinNode {
