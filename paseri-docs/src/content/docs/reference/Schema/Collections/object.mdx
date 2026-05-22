@@ -188,3 +188,65 @@ p.object({
 });
 */
 ```
+
+### `partial`
+
+Analogous to TypeScript's built-in `Partial` utility type. Makes every field optional, or only the selected keys if any
+are passed.
+
+```typescript
+import * as p from '@vbudovski/paseri';
+
+const schema = p.object({
+    foo: p.string(),
+    bar: p.number(),
+});
+const schemaPartial = schema.partial();
+/*
+The resulting schema will be:
+p.object({
+    foo: p.string().optional(),
+    bar: p.number().optional(),
+});
+*/
+
+const schemaPartialFoo = schema.partial('foo');
+/*
+The resulting schema will be:
+p.object({
+    foo: p.string().optional(),
+    bar: p.number(),
+});
+*/
+```
+
+### `required`
+
+Analogous to TypeScript's built-in `Required` utility type. Makes every field required, or only the selected keys if
+any are passed.
+
+```typescript
+import * as p from '@vbudovski/paseri';
+
+const schema = p.object({
+    foo: p.string().optional(),
+    bar: p.number().optional(),
+});
+const schemaRequired = schema.required();
+/*
+The resulting schema will be:
+p.object({
+    foo: p.string(),
+    bar: p.number(),
+});
+*/
+
+const schemaRequiredFoo = schema.required('foo');
+/*
+The resulting schema will be:
+p.object({
+    foo: p.string(),
+    bar: p.number().optional(),
+});
+*/
+```

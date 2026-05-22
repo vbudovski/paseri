@@ -37,6 +37,9 @@ abstract class Schema<OutputType> implements StandardSchemaV1<unknown, OutputTyp
     public _isOptional(): boolean {
         return false;
     }
+    public _unwrapOptional(): Schema<unknown> {
+        return this;
+    }
     parse(value: unknown): OutputType {
         const result = this.safeParse(value);
         if (result.ok) {
@@ -98,6 +101,9 @@ class OptionalSchema<OutputType> extends Schema<OutputType | undefined> {
     }
     override _isOptional(): boolean {
         return true;
+    }
+    override _unwrapOptional(): Schema<OutputType> {
+        return this._schema;
     }
     default(value: OutputType): DefaultSchema<OutputType> {
         return new DefaultSchema(this._schema, value);
