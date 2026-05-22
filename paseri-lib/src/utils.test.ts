@@ -1,7 +1,7 @@
 import { expect } from '@std/expect';
 import { describe, it } from '@std/testing/bdd';
 import fc from 'fast-check';
-import { isPlainObject } from './utils.ts';
+import { deepFreeze, isPlainObject } from './utils.ts';
 
 describe('isPlainObject', () => {
     it('accepts plain objects', () => {
@@ -48,5 +48,64 @@ describe('isPlainObject', () => {
                 },
             ),
         );
+    });
+});
+
+describe('deepFreeze', () => {
+    it('returns primitives unchanged', () => {
+        expect(deepFreeze(42)).toBe(42);
+        expect(deepFreeze('hi')).toBe('hi');
+        expect(deepFreeze(true)).toBe(true);
+        expect(deepFreeze(null)).toBe(null);
+        expect(deepFreeze(undefined)).toBe(undefined);
+    });
+
+    it('freezes plain objects', () => {
+        const obj = deepFreeze({ a: 1, b: 'x' });
+        expect(Object.isFrozen(obj)).toBe(true);
+    });
+
+    it('freezes arrays', () => {
+        const arr = deepFreeze([1, 2, 3]);
+        expect(Object.isFrozen(arr)).toBe(true);
+    });
+
+    it('freezes every reachable object via property traversal', () => {
+        fc.assert(
+            fc.property(fc.anything(), (data) => {
+                deepFreeze(data);
+                const visited = new WeakSet<object>();
+                function check(value: unknown): void {
+                    if (value === null || typeof value !== 'object' || visited.has(value as object)) {
+                        return;
+                    }
+                    visited.add(value as object);
+                    expect(Object.isFrozen(value)).toBe(true);
+                    for (const key of Reflect.ownKeys(value)) {
+                        check((value as Record<PropertyKey, unknown>)[key]);
+                    }
+                }
+                check(data);
+            }),
+        );
+    });
+
+    it('freezes symbol-keyed properties', () => {
+        const tag = Symbol.for('tag');
+        const inner = { value: 1 };
+        const obj = { [tag]: inner };
+        deepFreeze(obj);
+        expect(Object.isFrozen(obj)).toBe(true);
+        expect(Object.isFrozen(inner)).toBe(true);
+    });
+
+    it('handles cyclic references without infinite recursion', () => {
+        const a: Record<string, unknown> = {};
+        const b: Record<string, unknown> = {};
+        a.ref = b;
+        b.ref = a;
+        expect(() => deepFreeze(a)).not.toThrow();
+        expect(Object.isFrozen(a)).toBe(true);
+        expect(Object.isFrozen(b)).toBe(true);
     });
 });

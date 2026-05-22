@@ -2,6 +2,7 @@ import type { StandardSchemaV1 } from '@standard-schema/spec';
 import type { Translations } from '../message.ts';
 import type { InternalParseResult, ParseResult } from '../result.ts';
 import { isParseSuccess, ParseErrorResult, PaseriError } from '../result.ts';
+import { deepFreeze } from '../utils.ts';
 
 /**
  * The abstract base class for all schemas, containing the [common](https://paseri.dev/reference/schema/common/)
@@ -91,6 +92,9 @@ class OptionalSchema<OutputType> extends Schema<OutputType | undefined> {
     override _isOptional(): boolean {
         return true;
     }
+    default(value: OutputType): DefaultSchema<OutputType> {
+        return new DefaultSchema(this._schema, value);
+    }
 }
 
 class NullableSchema<OutputType> extends Schema<OutputType | null> {
@@ -160,7 +164,33 @@ class ChainSchema<FromOutputType, ToOutputType> extends Schema<ToOutputType> {
     }
 }
 
+class DefaultSchema<OutputType> extends Schema<OutputType> {
+    private readonly _schema: Schema<OutputType>;
+    private readonly _default: OutputType;
+
+    constructor(schema: Schema<OutputType>, value: OutputType) {
+        super();
+
+        this._schema = schema;
+        // Clone detaches from the caller's reference, freeze blocks mutation of parsed results.
+        this._default = deepFreeze(structuredClone(value));
+    }
+    protected _clone(): DefaultSchema<OutputType> {
+        return new DefaultSchema(this._schema, this._default);
+    }
+    _parse(value: unknown): InternalParseResult<OutputType> {
+        if (value === undefined) {
+            return { ok: true, value: this._default };
+        }
+
+        return this._schema._parse(value);
+    }
+    _getDefault(): OutputType {
+        return this._default;
+    }
+}
+
 type AnySchemaType = Schema<unknown>;
 
 export type { AnySchemaType };
-export { OptionalSchema, Schema };
+export { DefaultSchema, OptionalSchema, Schema };
