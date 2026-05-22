@@ -60,7 +60,8 @@ The list may be expanded over time, but for now the objectives are the following
   usage[^2].
 * High performance[^1] and usability in a strict
   [Content Security Policy (CSP)](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP) environment.
-* An API that is *reasonably* close to that of Zod. One-to-one compatibility is not the intention.
+* A full-featured parser API for real-world data structures.
+* Honest validator contracts, even when stricter or less ergonomic than alternatives.
 * Immutability of schemas. This avoids a lot of bugs caused by mutating references to non-primitive types.
 
 ## Documentation
