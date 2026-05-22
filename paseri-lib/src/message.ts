@@ -13,6 +13,7 @@ type StackItem = [TreeNode, PropertyKey[]];
 
 function messageList(node: TreeNode, locale: Translations | undefined): readonly Message[] {
     const messages: Message[] = [];
+    const missingCodes = new Set<string>();
 
     const stack: StackItem[] = [];
     let current: StackItem | undefined = [node, []];
@@ -27,7 +28,8 @@ function messageList(node: TreeNode, locale: Translations | undefined): readonly
                 } else {
                     const fn = locale[currentNode.code] as ((placeholders: object) => string) | undefined;
                     if (fn === undefined) {
-                        throw new Error(`No message for code ${currentNode.code}.`);
+                        missingCodes.add(currentNode.code);
+                        break;
                     }
                     const { code, type, ...placeholders } = currentNode;
                     text = fn(placeholders);
@@ -47,6 +49,11 @@ function messageList(node: TreeNode, locale: Translations | undefined): readonly
         }
 
         current = stack.pop();
+    }
+
+    if (missingCodes.size > 0) {
+        const sorted = [...missingCodes].sort();
+        throw new Error(`No messages for codes: ${sorted.join(', ')}.`);
     }
 
     return messages;
