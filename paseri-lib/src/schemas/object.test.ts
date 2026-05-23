@@ -601,3 +601,113 @@ describe('omit', () => {
         expect(omitted).not.toBe(original);
     });
 });
+
+describe('partial', () => {
+    it('makes all fields optional', () => {
+        const schema = p.object({ foo: p.string(), bar: p.number() }).partial();
+        const result = schema.safeParse({});
+        if (result.ok) {
+            expectTypeOf(result.value).toEqualTypeOf<{ foo?: string; bar?: number }>;
+            expect(result.value).toEqual({});
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
+    });
+
+    it('makes only listed fields optional', () => {
+        const schema = p.object({ foo: p.string(), bar: p.number() }).partial('foo');
+        const result = schema.safeParse({ bar: 1 });
+        if (result.ok) {
+            expectTypeOf(result.value).toEqualTypeOf<{ foo?: string; bar: number }>;
+            expect(result.value).toEqual({ bar: 1 });
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
+    });
+
+    it('still requires fields not listed', () => {
+        const schema = p.object({ foo: p.string(), bar: p.number() }).partial('foo');
+        const result = schema.safeParse({ foo: 'hi' });
+        if (!result.ok) {
+            expect(result.messages()).toEqual([{ path: ['bar'], message: 'missing_value' }]);
+        } else {
+            expect(result.ok).toBeFalsy();
+        }
+    });
+
+    it('leaves a default field still defaulted', () => {
+        const schema = p.object({ port: p.number().optional().default(80) }).partial();
+        const result = schema.safeParse({});
+        if (result.ok) {
+            expect(result.value).toEqual({ port: 80 });
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
+    });
+
+    it('preserves mode', () => {
+        const schema = p.object({ foo: p.string() }).strip().partial();
+        const result = schema.safeParse({ foo: 'hi', extra: 'gone' });
+        if (result.ok) {
+            expect(result.value).toEqual({ foo: 'hi' });
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
+    });
+
+    it('is immutable', () => {
+        const original = p.object({ foo: p.string(), bar: p.number() });
+        const partial = original.partial();
+        expect(partial).not.toBe(original);
+    });
+});
+
+describe('required', () => {
+    it('requires every field', () => {
+        const schema = p.object({ foo: p.string().optional(), bar: p.number().optional() }).required();
+        const ok = schema.safeParse({ foo: 'hi', bar: 1 });
+        if (ok.ok) {
+            expectTypeOf(ok.value).toEqualTypeOf<{ foo: string; bar: number }>;
+            expect(ok.value).toEqual({ foo: 'hi', bar: 1 });
+        } else {
+            expect(ok.ok).toBeTruthy();
+        }
+    });
+
+    it('rejects a missing field after required()', () => {
+        const schema = p.object({ foo: p.string().optional() }).required();
+        const result = schema.safeParse({});
+        if (!result.ok) {
+            expect(result.messages()).toEqual([{ path: ['foo'], message: 'missing_value' }]);
+        } else {
+            expect(result.ok).toBeFalsy();
+        }
+    });
+
+    it('requires only the listed fields', () => {
+        const schema = p.object({ foo: p.string().optional(), bar: p.number().optional() }).required('foo');
+        const result = schema.safeParse({ foo: 'hi' });
+        if (result.ok) {
+            expectTypeOf(result.value).toEqualTypeOf<{ foo: string; bar?: number }>;
+            expect(result.value).toEqual({ foo: 'hi' });
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
+    });
+
+    it('preserves mode', () => {
+        const schema = p.object({ foo: p.string().optional() }).strip().required();
+        const result = schema.safeParse({ foo: 'hi', extra: 'gone' });
+        if (result.ok) {
+            expect(result.value).toEqual({ foo: 'hi' });
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
+    });
+
+    it('is immutable', () => {
+        const original = p.object({ foo: p.string().optional() });
+        const required = original.required();
+        expect(required).not.toBe(original);
+    });
+});

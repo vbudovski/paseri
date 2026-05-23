@@ -3,13 +3,29 @@ import type { Infer } from '../infer.ts';
 import { addIssue, issueCodes, type LeafNode, type TreeNode } from '../issue.ts';
 import { type InternalParseResult, isParseSuccess } from '../result.ts';
 import { isPlainObject } from '../utils.ts';
-import { type AnySchemaType, DefaultSchema, Schema } from './schema.ts';
+import { type AnySchemaType, DefaultSchema, type OptionalSchema, Schema } from './schema.ts';
 
 type ValidShapeType<ShapeType> = NonEmptyObject<{
     [Key in keyof ShapeType]: ShapeType[Key] extends Schema<infer OutputType> ? Schema<OutputType> : never;
 }>;
 
 type Mode = 'strip' | 'strict' | 'passthrough';
+
+type WrapOptional<S> = S extends OptionalSchema<unknown> | DefaultSchema<unknown>
+    ? S
+    : S extends Schema<infer T>
+      ? OptionalSchema<T>
+      : S;
+
+type UnwrapOptional<S> = S extends OptionalSchema<infer T> ? Schema<T> : S;
+
+type WrapSomeOptional<ShapeType, Keys extends keyof ShapeType> = {
+    [K in keyof ShapeType]: K extends Keys ? WrapOptional<ShapeType[K]> : ShapeType[K];
+};
+
+type UnwrapSomeOptional<ShapeType, Keys extends keyof ShapeType> = {
+    [K in keyof ShapeType]: K extends Keys ? UnwrapOptional<ShapeType[K]> : ShapeType[K];
+};
 
 class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends Schema<Infer<ShapeType>> {
     private readonly _shape: ShapeType;
@@ -190,6 +206,58 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
                 Object.entries(this._shape).filter(([key]) => !keys.includes(key as keyof ShapeType)),
             ) as Omit<ShapeType, TupleToUnion<Keys>>,
         );
+    }
+    partial<Keys extends (keyof ShapeType)[]>(
+        ...keys: Keys
+    ): ObjectSchema<
+        Keys extends [] ? WrapSomeOptional<ShapeType, keyof ShapeType> : WrapSomeOptional<ShapeType, TupleToUnion<Keys>>
+    > {
+        const matchesKey = keys.length === 0 ? () => true : (key: PropertyKey) => keys.includes(key as keyof ShapeType);
+
+        const newShape: Record<PropertyKey, AnySchemaType> = {};
+        for (const [key, field] of Object.entries(this._shape)) {
+            if (matchesKey(key) && !field._isOptional() && !(field instanceof DefaultSchema)) {
+                newShape[key] = field.optional();
+            } else {
+                newShape[key] = field;
+            }
+        }
+
+        const result = new ObjectSchema(newShape as ShapeType);
+        result._mode = this._mode;
+
+        return result as unknown as ObjectSchema<
+            Keys extends []
+                ? WrapSomeOptional<ShapeType, keyof ShapeType>
+                : WrapSomeOptional<ShapeType, TupleToUnion<Keys>>
+        >;
+    }
+    required<Keys extends (keyof ShapeType)[]>(
+        ...keys: Keys
+    ): ObjectSchema<
+        Keys extends []
+            ? UnwrapSomeOptional<ShapeType, keyof ShapeType>
+            : UnwrapSomeOptional<ShapeType, TupleToUnion<Keys>>
+    > {
+        const matchesKey = keys.length === 0 ? () => true : (key: PropertyKey) => keys.includes(key as keyof ShapeType);
+
+        const newShape: Record<PropertyKey, AnySchemaType> = {};
+        for (const [key, field] of Object.entries(this._shape)) {
+            if (matchesKey(key)) {
+                newShape[key] = field._unwrapOptional();
+            } else {
+                newShape[key] = field;
+            }
+        }
+
+        const result = new ObjectSchema(newShape as ShapeType);
+        result._mode = this._mode;
+
+        return result as unknown as ObjectSchema<
+            Keys extends []
+                ? UnwrapSomeOptional<ShapeType, keyof ShapeType>
+                : UnwrapSomeOptional<ShapeType, TupleToUnion<Keys>>
+        >;
     }
 }
 
