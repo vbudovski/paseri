@@ -27,6 +27,7 @@ const en_GB = {
     invalid_safe_integer: () => 'Number must be a safe integer.',
     invalid_value: ({ expected }) => `Invalid value. Expected ${expected}.`,
     invalid_discriminator_value: ({ expected }) => `Invalid discriminator value. Expected ${expected.join(' | ')}.`,
+    invalid_enum_value: ({ expected }) => `Invalid enum value. Expected ${expected.join(' | ')}.`,
     unrecognized_key: () => 'Unrecognised key.',
     missing_value: () => 'Missing value.',
     invalid_date: () => 'Invalid date.',

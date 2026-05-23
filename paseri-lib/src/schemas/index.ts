@@ -3,6 +3,7 @@ export { bigint } from './bigint.ts';
 export { boolean } from './boolean.ts';
 export { date } from './date.ts';
 export { duration } from './duration.ts';
+export { enum_ } from './enum.ts';
 export { instant } from './instant.ts';
 export { lazy } from './lazy.ts';
 export { literal } from './literal.ts';

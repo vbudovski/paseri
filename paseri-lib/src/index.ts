@@ -64,6 +64,7 @@ export {
     boolean,
     date,
     duration,
+    enum_ as enum,
     instant,
     lazy,
     literal,
