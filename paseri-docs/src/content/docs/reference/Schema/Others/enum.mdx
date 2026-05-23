@@ -1,0 +1,66 @@
+---
+title: "Enum"
+sidebar:
+    order: 41
+---
+
+Validates that a value is one of a fixed set of literals of the same primitive type (`string`, `number`, `bigint`, or
+`boolean`). The result is typed as a union of those values.
+
+import { Playground } from "../../../../../components/Playground.tsx";
+
+## Example
+
+```typescript
+import * as p from '@vbudovski/paseri';
+
+const schema = p.enum('red', 'green', 'blue');
+const data = 'red';
+
+const result = schema.safeParse(data);
+if (result.ok) {
+    // result.value typed as `'red' | 'green' | 'blue'`.
+}
+```
+
+## Playground
+
+<Playground
+    schemaDefaultValue={"p.enum('red', 'green', 'blue')"}
+    dataDefaultValue={"'red'"}
+    client:idle
+/>
+
+## Methods
+
+### `extract`
+
+Returns a new enum schema containing only the listed values. Each argument must be a value in the original set, or the
+call fails to type-check.
+
+```typescript
+import * as p from '@vbudovski/paseri';
+
+const Color = p.enum('red', 'green', 'blue');
+const Primary = Color.extract('red', 'green');
+/*
+The resulting schema will be:
+p.enum('red', 'green');
+*/
+```
+
+### `exclude`
+
+Returns a new enum schema with the listed values removed. Each argument must be a value in the original set, or the
+call fails to type-check.
+
+```typescript
+import * as p from '@vbudovski/paseri';
+
+const Color = p.enum('red', 'green', 'blue');
+const NonPrimary = Color.exclude('red');
+/*
+The resulting schema will be:
+p.enum('green', 'blue');
+*/
+```

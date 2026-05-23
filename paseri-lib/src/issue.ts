@@ -31,6 +31,8 @@ const issueCodes = {
     INVALID_VALUE: 'invalid_value' as Tagged<'invalid_value', 'IssueCode'>,
     // Union.
     INVALID_DISCRIMINATOR_VALUE: 'invalid_discriminator_value' as Tagged<'invalid_discriminator_value', 'IssueCode'>,
+    // Enum.
+    INVALID_ENUM_VALUE: 'invalid_enum_value' as Tagged<'invalid_enum_value', 'IssueCode'>,
     // Object.
     UNRECOGNIZED_KEY: 'unrecognized_key' as Tagged<'unrecognized_key', 'IssueCode'>,
     MISSING_VALUE: 'missing_value' as Tagged<'missing_value', 'IssueCode'>,
@@ -61,11 +63,17 @@ type LeafNode =
       }
     | {
           type: 'leaf';
+          code: typeof issueCodes.INVALID_ENUM_VALUE;
+          expected: string[];
+      }
+    | {
+          type: 'leaf';
           code: Exclude<
               IssueCode,
               | typeof issueCodes.INVALID_TYPE
               | typeof issueCodes.INVALID_VALUE
               | typeof issueCodes.INVALID_DISCRIMINATOR_VALUE
+              | typeof issueCodes.INVALID_ENUM_VALUE
           >;
       }
     | {
