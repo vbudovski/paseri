@@ -16,6 +16,7 @@ class MapSchema<
         INVALID_TYPE: { type: 'leaf', code: issueCodes.INVALID_TYPE, expected: 'Map' },
         TOO_LONG: { type: 'leaf', code: issueCodes.TOO_LONG },
         TOO_SHORT: { type: 'leaf', code: issueCodes.TOO_SHORT },
+        DUPLICATE_KEY: { type: 'leaf', code: issueCodes.DUPLICATE_KEY },
     } as const satisfies Record<string, LeafNode>;
 
     constructor(...element: [ElementKeySchemaType, ElementValueSchemaType]) {
@@ -104,6 +105,10 @@ class MapSchema<
         }
 
         if (newMap) {
+            if (newMap.size !== i) {
+                return this.issues.DUPLICATE_KEY;
+            }
+
             if (newMap.size < minSize) {
                 return this.issues.TOO_SHORT;
             }

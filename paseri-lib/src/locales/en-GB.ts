@@ -7,6 +7,7 @@ const en_GB = {
     invalid_type: ({ expected }) => `Invalid type. Expected ${expected}.`,
     too_short: () => 'Too short.',
     too_long: () => 'Too long.',
+    duplicate_key: () => 'Duplicate key.',
     invalid_email: () => 'Invalid email.',
     invalid_emoji: () => 'Invalid emoji.',
     invalid_uuid: () => 'Invalid UUID.',

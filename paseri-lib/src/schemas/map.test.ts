@@ -83,18 +83,6 @@ describe('min', () => {
         );
     });
 
-    it('rejects when transformation causes deduplication below minimum', () => {
-        const lower = p.string().chain(p.string(), (value) => p.ok(value.toLowerCase()));
-        const schema = p.map(lower, p.number()).min(2);
-        const data = new Map([
-            ['A', 1],
-            ['a', 2],
-        ]); // size 2, but keys collapse → size 1
-
-        const result = schema.safeParse(data);
-        expect(result.ok).toBe(false);
-    });
-
     it('throws on NaN', () => {
         expect(() => p.map(p.number(), p.string()).min(NaN)).toThrow();
     });
@@ -235,18 +223,6 @@ describe('size', () => {
         );
     });
 
-    it('rejects when transformation causes deduplication below exact size', () => {
-        const lower = p.string().chain(p.string(), (value) => p.ok(value.toLowerCase()));
-        const schema = p.map(lower, p.number()).size(2);
-        const data = new Map([
-            ['A', 1],
-            ['a', 2],
-        ]); // size 2, but keys collapse → size 1
-
-        const result = schema.safeParse(data);
-        expect(result.ok).toBe(false);
-    });
-
     it('throws on NaN', () => {
         expect(() => p.map(p.number(), p.string()).size(NaN)).toThrow();
     });
@@ -258,6 +234,22 @@ describe('size', () => {
         const branched = modified.min(1);
         expect(branched).not.toEqual(modified);
     });
+});
+
+it('rejects when transform produces duplicate keys', () => {
+    const lower = p.string().chain(p.string(), (value) => p.ok(value.toLowerCase()));
+    const schema = p.map(lower, p.number());
+    const data = new Map([
+        ['HELLO', 1],
+        ['hello', 2],
+    ]);
+
+    const result = schema.safeParse(data);
+    if (!result.ok) {
+        expect(result.messages()).toEqual([{ path: [], message: 'duplicate_key' }]);
+    } else {
+        expect(result.ok).toBeFalsy();
+    }
 });
 
 it('rejects invalid elements', () => {
