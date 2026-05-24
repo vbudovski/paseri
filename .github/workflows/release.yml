@@ -57,7 +57,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: release
     permissions:
-      contents: read
+      contents: write # Required for pushing tags and creating draft GitHub releases.
       id-token: write # The OIDC ID token is used for authentication with JSR.
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
@@ -70,3 +70,27 @@ jobs:
           deno-version: "^2.7.14"
 
       - run: deno publish
+
+      - name: Read version
+        id: version
+        run: echo "version=$(jq -r .version paseri-lib/deno.json)" >> "$GITHUB_OUTPUT"
+
+      - name: Tag release
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "v$VERSION" -m "Release v$VERSION"
+          git push origin "v$VERSION"
+
+      - name: Create draft GitHub release
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          awk '/^## /{if(p)exit;p=1;next}p' paseri-lib/CHANGELOG.md > /tmp/release-notes.md
+          gh release create "v$VERSION" \
+            --draft \
+            --title "v$VERSION" \
+            --notes-file /tmp/release-notes.md

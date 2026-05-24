@@ -2,3 +2,7 @@
 .env.*
 
 node_modules/
+
+# Ephemeral package.json shims written by bin/changeset.ts so @changesets/cli
+# can read the workspace. Removed at the end of every invocation.
+package.json
