@@ -10,7 +10,7 @@ class NullSchema extends Schema<null> {
     protected _clone(): NullSchema {
         return new NullSchema();
     }
-    _parse(value: unknown): InternalParseResult<null> {
+    _parse(value: unknown, _depth: number, _maxDepth: number): InternalParseResult<null> {
         if (value !== null) {
             return this.issues.INVALID_VALUE;
         }

@@ -26,7 +26,7 @@ class ZonedDateTimeSchema extends Schema<Temporal.ZonedDateTime> {
 
         return cloned;
     }
-    _parse(value: unknown): InternalParseResult<Temporal.ZonedDateTime> {
+    _parse(value: unknown, _depth: number, _maxDepth: number): InternalParseResult<Temporal.ZonedDateTime> {
         if (!(value instanceof Temporal.ZonedDateTime)) {
             return this.issues.INVALID_TYPE;
         }

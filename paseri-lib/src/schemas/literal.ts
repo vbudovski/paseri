@@ -27,7 +27,7 @@ class LiteralSchema<OutputType extends LiteralType> extends Schema<OutputType> {
     protected _clone(): LiteralSchema<OutputType> {
         return new LiteralSchema(this._value as IsLiteral<OutputType> extends true ? OutputType : never);
     }
-    _parse(value: unknown): InternalParseResult<OutputType> {
+    _parse(value: unknown, _depth: number, _maxDepth: number): InternalParseResult<OutputType> {
         if (value === this._value) {
             return undefined;
         }

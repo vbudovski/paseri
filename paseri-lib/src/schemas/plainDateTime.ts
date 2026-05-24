@@ -26,7 +26,7 @@ class PlainDateTimeSchema extends Schema<Temporal.PlainDateTime> {
 
         return cloned;
     }
-    _parse(value: unknown): InternalParseResult<Temporal.PlainDateTime> {
+    _parse(value: unknown, _depth: number, _maxDepth: number): InternalParseResult<Temporal.PlainDateTime> {
         if (!(value instanceof Temporal.PlainDateTime)) {
             return this.issues.INVALID_TYPE;
         }

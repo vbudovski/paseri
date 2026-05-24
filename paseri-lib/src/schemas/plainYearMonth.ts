@@ -26,7 +26,7 @@ class PlainYearMonthSchema extends Schema<Temporal.PlainYearMonth> {
 
         return cloned;
     }
-    _parse(value: unknown): InternalParseResult<Temporal.PlainYearMonth> {
+    _parse(value: unknown, _depth: number, _maxDepth: number): InternalParseResult<Temporal.PlainYearMonth> {
         if (!(value instanceof Temporal.PlainYearMonth)) {
             return this.issues.INVALID_TYPE;
         }

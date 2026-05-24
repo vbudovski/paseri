@@ -5,6 +5,13 @@ import type { InternalParseResult, ParseResult } from '../result.ts';
 import { isParseSuccess, ParseErrorResult, PaseriError } from '../result.ts';
 import { deepFreeze } from '../utils.ts';
 
+const DEFAULT_MAX_DEPTH = 1000;
+
+interface ParseOptions {
+    /** Caps the nesting depth of recursive input. Defaults to 1000. */
+    maxDepth?: number;
+}
+
 /**
  * The abstract base class for all schemas, containing the [common](https://paseri.dev/reference/schema/common/)
  * interface.
@@ -32,7 +39,7 @@ abstract class Schema<OutputType> implements StandardSchemaV1<unknown, OutputTyp
     }
 
     protected abstract _clone(): Schema<OutputType>;
-    public abstract _parse(value: unknown): InternalParseResult<OutputType>;
+    public abstract _parse(value: unknown, _depth: number, _maxDepth: number): InternalParseResult<OutputType>;
     // This is to allow optional and nullable to be used together in any order.
     public _isOptional(): boolean {
         return false;
@@ -40,16 +47,20 @@ abstract class Schema<OutputType> implements StandardSchemaV1<unknown, OutputTyp
     public _unwrapOptional(): Schema<unknown> {
         return this;
     }
-    parse(value: unknown): OutputType {
-        const result = this.safeParse(value);
+    parse(value: unknown, options?: ParseOptions): OutputType {
+        const result = this.safeParse(value, options);
         if (result.ok) {
             return result.value;
         }
 
         throw new PaseriError(result.issue);
     }
-    safeParse(value: unknown): ParseResult<OutputType> {
-        const issueOrSuccess = this._parse(value);
+    safeParse(value: unknown, options?: ParseOptions): ParseResult<OutputType> {
+        const maxDepth = options?.maxDepth ?? DEFAULT_MAX_DEPTH;
+        if (!Number.isInteger(maxDepth) || maxDepth < 1) {
+            throw new Error('maxDepth must be a positive integer.');
+        }
+        const issueOrSuccess = this._parse(value, 0, maxDepth);
         if (issueOrSuccess === undefined) {
             // We're dealing with a primitive value, and no issue was found, so just assert type and pass it through.
             return { ok: true, value: value as OutputType };
@@ -92,12 +103,12 @@ class OptionalSchema<OutputType> extends Schema<OutputType | undefined> {
     protected _clone(): OptionalSchema<OutputType> {
         return new OptionalSchema(this._schema);
     }
-    _parse(value: unknown): InternalParseResult<OutputType | undefined> {
+    _parse(value: unknown, _depth: number, _maxDepth: number): InternalParseResult<OutputType | undefined> {
         if (value === undefined) {
             return undefined;
         }
 
-        return this._schema._parse(value);
+        return this._schema._parse(value, _depth, _maxDepth);
     }
     override _isOptional(): boolean {
         return true;
@@ -121,12 +132,12 @@ class NullableSchema<OutputType> extends Schema<OutputType | null> {
     protected _clone(): NullableSchema<OutputType> {
         return new NullableSchema(this._schema);
     }
-    _parse(value: unknown): InternalParseResult<OutputType | null> {
+    _parse(value: unknown, _depth: number, _maxDepth: number): InternalParseResult<OutputType | null> {
         if (value === null) {
             return undefined;
         }
 
-        return this._schema._parse(value);
+        return this._schema._parse(value, _depth, _maxDepth);
     }
     override _isOptional(): boolean {
         return this._schema._isOptional();
@@ -152,8 +163,8 @@ class ChainSchema<FromOutputType, ToOutputType> extends Schema<ToOutputType> {
     protected _clone(): ChainSchema<FromOutputType, ToOutputType> {
         return this;
     }
-    _parse(value: unknown): InternalParseResult<ToOutputType> {
-        const issueOrSuccessFrom = this._fromSchema._parse(value);
+    _parse(value: unknown, _depth: number, _maxDepth: number): InternalParseResult<ToOutputType> {
+        const issueOrSuccessFrom = this._fromSchema._parse(value, _depth, _maxDepth);
 
         let transformedResult: ParseResult<ToOutputType>;
         if (issueOrSuccessFrom === undefined) {
@@ -168,7 +179,7 @@ class ChainSchema<FromOutputType, ToOutputType> extends Schema<ToOutputType> {
             return transformedResult.issue;
         }
 
-        const issueOrSuccessTo = this._toSchema._parse(transformedResult.value);
+        const issueOrSuccessTo = this._toSchema._parse(transformedResult.value, _depth, _maxDepth);
         if (issueOrSuccessTo === undefined) {
             return { ok: true, value: transformedResult.value };
         }
@@ -191,12 +202,12 @@ class DefaultSchema<OutputType> extends Schema<OutputType> {
     protected _clone(): DefaultSchema<OutputType> {
         return new DefaultSchema(this._schema, this._default);
     }
-    _parse(value: unknown): InternalParseResult<OutputType> {
+    _parse(value: unknown, _depth: number, _maxDepth: number): InternalParseResult<OutputType> {
         if (value === undefined) {
             return { ok: true, value: this._default };
         }
 
-        return this._schema._parse(value);
+        return this._schema._parse(value, _depth, _maxDepth);
     }
     _getDefault(): OutputType {
         return this._default;
@@ -229,8 +240,8 @@ class RefineSchema<OutputType> extends Schema<OutputType> {
     override _isOptional(): boolean {
         return this._base._isOptional();
     }
-    _parse(value: unknown): InternalParseResult<OutputType> {
-        const baseResult = this._base._parse(value);
+    _parse(value: unknown, _depth: number, _maxDepth: number): InternalParseResult<OutputType> {
+        const baseResult = this._base._parse(value, _depth, _maxDepth);
 
         if (baseResult !== undefined && !isParseSuccess(baseResult)) {
             return baseResult;
@@ -256,5 +267,5 @@ class RefineSchema<OutputType> extends Schema<OutputType> {
 
 type AnySchemaType = Schema<unknown>;
 
-export type { AnySchemaType };
+export type { AnySchemaType, ParseOptions };
 export { DefaultSchema, OptionalSchema, RefineSchema, Schema };

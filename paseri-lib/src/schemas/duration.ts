@@ -10,7 +10,7 @@ class DurationSchema extends Schema<Temporal.Duration> {
     protected _clone(): DurationSchema {
         return new DurationSchema();
     }
-    _parse(value: unknown): InternalParseResult<Temporal.Duration> {
+    _parse(value: unknown, _depth: number, _maxDepth: number): InternalParseResult<Temporal.Duration> {
         if (!(value instanceof Temporal.Duration)) {
             return this.issues.INVALID_TYPE;
         }

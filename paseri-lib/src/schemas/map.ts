@@ -31,7 +31,11 @@ class MapSchema<
 
         return cloned;
     }
-    _parse(value: unknown): InternalParseResult<Infer<Map<ElementKeySchemaType, ElementValueSchemaType>>> {
+    _parse(
+        value: unknown,
+        _depth: number,
+        _maxDepth: number,
+    ): InternalParseResult<Infer<Map<ElementKeySchemaType, ElementValueSchemaType>>> {
         if (!(value instanceof Map)) {
             return this.issues.INVALID_TYPE;
         }
@@ -59,7 +63,7 @@ class MapSchema<
             let modifiedValue: unknown = childValue;
             let entryModified = false;
 
-            let issueOrSuccess = elementKeySchema._parse(childKey);
+            let issueOrSuccess = elementKeySchema._parse(childKey, _depth, _maxDepth);
             if (issueOrSuccess === undefined) {
                 // Key unmodified.
             } else if (isParseSuccess(issueOrSuccess)) {
@@ -69,7 +73,7 @@ class MapSchema<
                 childIssue = addIssue(childIssue, { type: 'nest', key: 0, child: issueOrSuccess });
             }
 
-            issueOrSuccess = elementValueSchema._parse(childValue);
+            issueOrSuccess = elementValueSchema._parse(childValue, _depth, _maxDepth);
             if (issueOrSuccess === undefined) {
                 // Value unmodified.
             } else if (isParseSuccess(issueOrSuccess)) {

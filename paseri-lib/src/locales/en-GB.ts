@@ -8,6 +8,7 @@ const en_GB = {
     too_short: () => 'Too short.',
     too_long: () => 'Too long.',
     duplicate_key: () => 'Duplicate key.',
+    too_deep: () => 'Too deep.',
     invalid_email: () => 'Invalid email.',
     invalid_emoji: () => 'Invalid emoji.',
     invalid_uuid: () => 'Invalid UUID.',

@@ -10,7 +10,7 @@ class BooleanSchema extends Schema<boolean> {
     protected _clone(): BooleanSchema {
         return new BooleanSchema();
     }
-    _parse(value: unknown): InternalParseResult<boolean> {
+    _parse(value: unknown, _depth: number, _maxDepth: number): InternalParseResult<boolean> {
         if (typeof value !== 'boolean') {
             return this.issues.INVALID_TYPE;
         }
