@@ -6,6 +6,8 @@ const issueCodes = {
     // Array/Tuple/Map/Set/String/Date.
     TOO_SHORT: 'too_short' as Tagged<'too_short', 'IssueCode'>,
     TOO_LONG: 'too_long' as Tagged<'too_long', 'IssueCode'>,
+    // Map/Set.
+    DUPLICATE_KEY: 'duplicate_key' as Tagged<'duplicate_key', 'IssueCode'>,
     // String.
     INVALID_EMAIL: 'invalid_email' as Tagged<'invalid_email', 'IssueCode'>,
     INVALID_EMOJI: 'invalid_emoji' as Tagged<'invalid_emoji', 'IssueCode'>,

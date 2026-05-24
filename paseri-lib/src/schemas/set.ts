@@ -13,6 +13,7 @@ class SetSchema<ElementSchemaType extends AnySchemaType> extends Schema<Infer<Se
         INVALID_TYPE: { type: 'leaf', code: issueCodes.INVALID_TYPE, expected: 'Set' },
         TOO_LONG: { type: 'leaf', code: issueCodes.TOO_LONG },
         TOO_SHORT: { type: 'leaf', code: issueCodes.TOO_SHORT },
+        DUPLICATE_KEY: { type: 'leaf', code: issueCodes.DUPLICATE_KEY },
     } as const satisfies Record<string, LeafNode>;
 
     constructor(element: ElementSchemaType) {
@@ -76,6 +77,10 @@ class SetSchema<ElementSchemaType extends AnySchemaType> extends Schema<Infer<Se
         }
 
         if (newSet) {
+            if (newSet.size !== i) {
+                return this.issues.DUPLICATE_KEY;
+            }
+
             if (newSet.size < minSize) {
                 return this.issues.TOO_SHORT;
             }
