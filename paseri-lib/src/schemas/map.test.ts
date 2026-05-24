@@ -84,10 +84,10 @@ describe('min', () => {
     });
 
     it('rejects invalid bounds', () => {
-        expect(() => p.map(p.number(), p.string()).min(NaN)).toThrow();
+        expect(() => p.map(p.number(), p.string()).min(Number.NaN)).toThrow();
         expect(() => p.map(p.number(), p.string()).min(-1)).toThrow();
         expect(() => p.map(p.number(), p.string()).min(1.5)).toThrow();
-        expect(() => p.map(p.number(), p.string()).min(Infinity)).toThrow();
+        expect(() => p.map(p.number(), p.string()).min(Number.POSITIVE_INFINITY)).toThrow();
         expect(() => p.map(p.number(), p.string()).min(0)).not.toThrow();
     });
 
@@ -147,10 +147,10 @@ describe('max', () => {
     });
 
     it('rejects invalid bounds', () => {
-        expect(() => p.map(p.number(), p.string()).max(NaN)).toThrow();
+        expect(() => p.map(p.number(), p.string()).max(Number.NaN)).toThrow();
         expect(() => p.map(p.number(), p.string()).max(-1)).toThrow();
         expect(() => p.map(p.number(), p.string()).max(1.5)).toThrow();
-        expect(() => p.map(p.number(), p.string()).max(Infinity)).toThrow();
+        expect(() => p.map(p.number(), p.string()).max(Number.POSITIVE_INFINITY)).toThrow();
         expect(() => p.map(p.number(), p.string()).max(0)).not.toThrow();
     });
 
@@ -232,10 +232,10 @@ describe('size', () => {
     });
 
     it('rejects invalid bounds', () => {
-        expect(() => p.map(p.number(), p.string()).size(NaN)).toThrow();
+        expect(() => p.map(p.number(), p.string()).size(Number.NaN)).toThrow();
         expect(() => p.map(p.number(), p.string()).size(-1)).toThrow();
         expect(() => p.map(p.number(), p.string()).size(1.5)).toThrow();
-        expect(() => p.map(p.number(), p.string()).size(Infinity)).toThrow();
+        expect(() => p.map(p.number(), p.string()).size(Number.POSITIVE_INFINITY)).toThrow();
         expect(() => p.map(p.number(), p.string()).size(0)).not.toThrow();
     });
 

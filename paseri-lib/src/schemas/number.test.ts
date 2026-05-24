@@ -74,7 +74,7 @@ describe('gte', () => {
     });
 
     it('throws on NaN boundary', () => {
-        expect(() => p.number().gte(NaN)).toThrow();
+        expect(() => p.number().gte(Number.NaN)).toThrow();
     });
 
     it('is immutable', () => {
@@ -119,7 +119,7 @@ describe('gt', () => {
     });
 
     it('throws on NaN boundary', () => {
-        expect(() => p.number().gt(NaN)).toThrow();
+        expect(() => p.number().gt(Number.NaN)).toThrow();
     });
 
     it('is immutable', () => {
@@ -164,7 +164,7 @@ describe('lte', () => {
     });
 
     it('throws on NaN boundary', () => {
-        expect(() => p.number().lte(NaN)).toThrow();
+        expect(() => p.number().lte(Number.NaN)).toThrow();
     });
 
     it('is immutable', () => {
@@ -209,7 +209,7 @@ describe('lt', () => {
     });
 
     it('throws on NaN boundary', () => {
-        expect(() => p.number().lt(NaN)).toThrow();
+        expect(() => p.number().lt(Number.NaN)).toThrow();
     });
 
     it('is immutable', () => {
