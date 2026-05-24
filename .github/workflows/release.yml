@@ -79,18 +79,26 @@ jobs:
         env:
           VERSION: ${{ steps.version.outputs.version }}
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git tag -a "v$VERSION" -m "Release v$VERSION"
-          git push origin "v$VERSION"
+          if git rev-parse "v$VERSION" >/dev/null 2>&1; then
+            echo "Tag v$VERSION already exists; skipping."
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git tag -a "v$VERSION" -m "Release v$VERSION"
+            git push origin "v$VERSION"
+          fi
 
       - name: Create draft GitHub release
         env:
           VERSION: ${{ steps.version.outputs.version }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          awk '/^## /{if(p)exit;p=1;next}p' paseri-lib/CHANGELOG.md > /tmp/release-notes.md
-          gh release create "v$VERSION" \
-            --draft \
-            --title "v$VERSION" \
-            --notes-file /tmp/release-notes.md
+          if gh release view "v$VERSION" >/dev/null 2>&1; then
+            echo "Release v$VERSION already exists; skipping."
+          else
+            awk '/^## /{if(p)exit;p=1;next}p' paseri-lib/CHANGELOG.md > /tmp/release-notes.md
+            gh release create "v$VERSION" \
+              --draft \
+              --title "v$VERSION" \
+              --notes-file /tmp/release-notes.md
+          fi
