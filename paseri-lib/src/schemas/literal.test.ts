@@ -58,6 +58,32 @@ describe('Number', () => {
         const schema = p.literal(123);
         expectTypeOf(schema.value).toEqualTypeOf<123>;
     });
+
+    it('matches NaN against literal(NaN)', () => {
+        // NaN is not a literal type according to TypeScript, so cast to `never` to allow usage with literal.
+        const schema = p.literal(Number.NaN as never);
+        const result = schema.safeParse(Number.NaN);
+        expect(result.ok).toBe(true);
+    });
+
+    it('rejects non-NaN against literal(NaN)', () => {
+        // NaN is not a literal type according to TypeScript, so cast to `never` to allow usage with literal.
+        const schema = p.literal(Number.NaN as never);
+        const result = schema.safeParse(42);
+        expect(result.ok).toBe(false);
+    });
+
+    it('matches -0 against literal(0)', () => {
+        const schema = p.literal(0);
+        const result = schema.safeParse(-0);
+        expect(result.ok).toBe(true);
+    });
+
+    it('matches 0 against literal(-0)', () => {
+        const schema = p.literal(-0);
+        const result = schema.safeParse(0);
+        expect(result.ok).toBe(true);
+    });
 });
 
 describe('BigInt', () => {

@@ -28,11 +28,13 @@ class LiteralSchema<OutputType extends LiteralType> extends Schema<OutputType> {
         return new LiteralSchema(this._value as IsLiteral<OutputType> extends true ? OutputType : never);
     }
     _parse(value: unknown): InternalParseResult<OutputType> {
-        if (value !== this._value) {
-            return this.issues.INVALID_VALUE;
+        if (value === this._value) {
+            return undefined;
         }
-
-        return undefined;
+        if (typeof this._value === 'number' && Number.isNaN(this._value) && Number.isNaN(value)) {
+            return undefined;
+        }
+        return this.issues.INVALID_VALUE;
     }
     get value(): OutputType {
         return this._value;
