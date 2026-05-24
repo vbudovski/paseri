@@ -64,7 +64,7 @@ class DateSchema extends Schema<Date> {
 
         const cloned = this._clone();
         cloned._checks = cloned._checks || [];
-        cloned._checks.push({ tag: TAG_MIN, param: value, issue: this.issues.TOO_DATED });
+        cloned._checks.push({ tag: TAG_MIN, param: new Date(value.getTime()), issue: this.issues.TOO_DATED });
 
         return cloned;
     }
@@ -75,7 +75,7 @@ class DateSchema extends Schema<Date> {
 
         const cloned = this._clone();
         cloned._checks = cloned._checks || [];
-        cloned._checks.push({ tag: TAG_MAX, param: value, issue: this.issues.TOO_RECENT });
+        cloned._checks.push({ tag: TAG_MAX, param: new Date(value.getTime()), issue: this.issues.TOO_RECENT });
 
         return cloned;
     }

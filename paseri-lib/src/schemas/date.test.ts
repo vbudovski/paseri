@@ -89,6 +89,15 @@ describe('min', () => {
         const branched = modified.max(new Date(2025, 0, 1));
         expect(branched).not.toEqual(modified);
     });
+
+    it('clones the bound value', () => {
+        const bound = new Date(2020, 0, 1);
+        const schema = p.date().min(bound);
+        bound.setFullYear(2030);
+
+        const result = schema.safeParse(new Date(2025, 0, 1));
+        expect(result.ok).toBe(true);
+    });
 });
 
 describe('max', () => {
@@ -133,6 +142,15 @@ describe('max', () => {
         expect(modified).not.toEqual(original);
         const branched = modified.min(new Date(2020, 0, 1));
         expect(branched).not.toEqual(modified);
+    });
+
+    it('clones the bound value', () => {
+        const bound = new Date(2020, 0, 1);
+        const schema = p.date().max(bound);
+        bound.setFullYear(2010);
+
+        const result = schema.safeParse(new Date(2015, 0, 1));
+        expect(result.ok).toBe(true);
     });
 });
 
