@@ -19,6 +19,11 @@
           }
         }
       },
+      "style": {
+        "useNumberNamespace": {
+          "level": "error"
+        }
+      },
       "suspicious": {
         "noDuplicateProperties": {
           "level": "warn"
