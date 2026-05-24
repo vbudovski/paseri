@@ -77,8 +77,8 @@ class ArraySchema<ElementSchemaType extends AnySchemaType> extends Schema<Infer<
         return undefined;
     }
     min(length: number): ArraySchema<ElementSchemaType> {
-        if (Number.isNaN(length)) {
-            throw new Error('NaN is not a valid length.');
+        if (!Number.isInteger(length) || length < 0) {
+            throw new Error('Length must be a non-negative integer.');
         }
 
         const cloned = this._clone();
@@ -87,8 +87,8 @@ class ArraySchema<ElementSchemaType extends AnySchemaType> extends Schema<Infer<
         return cloned;
     }
     max(length: number): ArraySchema<ElementSchemaType> {
-        if (Number.isNaN(length)) {
-            throw new Error('NaN is not a valid length.');
+        if (!Number.isInteger(length) || length < 0) {
+            throw new Error('Length must be a non-negative integer.');
         }
 
         const cloned = this._clone();
@@ -97,8 +97,8 @@ class ArraySchema<ElementSchemaType extends AnySchemaType> extends Schema<Infer<
         return cloned;
     }
     length(length: number): ArraySchema<ElementSchemaType> {
-        if (Number.isNaN(length)) {
-            throw new Error('NaN is not a valid length.');
+        if (!Number.isInteger(length) || length < 0) {
+            throw new Error('Length must be a non-negative integer.');
         }
 
         const cloned = this._clone();
