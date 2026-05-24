@@ -119,8 +119,8 @@ class MapSchema<
         return undefined;
     }
     min(size: number): MapSchema<ElementKeySchemaType, ElementValueSchemaType> {
-        if (Number.isNaN(size)) {
-            throw new Error('NaN is not a valid size.');
+        if (!Number.isInteger(size) || size < 0) {
+            throw new Error('Size must be a non-negative integer.');
         }
 
         const cloned = this._clone();
@@ -129,8 +129,8 @@ class MapSchema<
         return cloned;
     }
     max(size: number): MapSchema<ElementKeySchemaType, ElementValueSchemaType> {
-        if (Number.isNaN(size)) {
-            throw new Error('NaN is not a valid size.');
+        if (!Number.isInteger(size) || size < 0) {
+            throw new Error('Size must be a non-negative integer.');
         }
 
         const cloned = this._clone();
@@ -139,8 +139,8 @@ class MapSchema<
         return cloned;
     }
     size(size: number): MapSchema<ElementKeySchemaType, ElementValueSchemaType> {
-        if (Number.isNaN(size)) {
-            throw new Error('NaN is not a valid size.');
+        if (!Number.isInteger(size) || size < 0) {
+            throw new Error('Size must be a non-negative integer.');
         }
 
         const cloned = this._clone();

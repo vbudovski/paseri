@@ -101,8 +101,8 @@ class StringSchema extends Schema<string> {
         return undefined;
     }
     min(length: number): StringSchema {
-        if (Number.isNaN(length)) {
-            throw new Error('NaN is not a valid length.');
+        if (!Number.isInteger(length) || length < 0) {
+            throw new Error('Length must be a non-negative integer.');
         }
 
         const cloned = this._clone();
@@ -112,8 +112,8 @@ class StringSchema extends Schema<string> {
         return cloned;
     }
     max(length: number): StringSchema {
-        if (Number.isNaN(length)) {
-            throw new Error('NaN is not a valid length.');
+        if (!Number.isInteger(length) || length < 0) {
+            throw new Error('Length must be a non-negative integer.');
         }
 
         const cloned = this._clone();
@@ -123,8 +123,8 @@ class StringSchema extends Schema<string> {
         return cloned;
     }
     length(length: number): StringSchema {
-        if (Number.isNaN(length)) {
-            throw new Error('NaN is not a valid length.');
+        if (!Number.isInteger(length) || length < 0) {
+            throw new Error('Length must be a non-negative integer.');
         }
 
         const cloned = this._clone();

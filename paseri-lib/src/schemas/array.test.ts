@@ -70,8 +70,12 @@ describe('min', () => {
         );
     });
 
-    it('throws on NaN', () => {
+    it('rejects invalid bounds', () => {
         expect(() => p.array(p.string()).min(NaN)).toThrow();
+        expect(() => p.array(p.string()).min(-1)).toThrow();
+        expect(() => p.array(p.string()).min(1.5)).toThrow();
+        expect(() => p.array(p.string()).min(Infinity)).toThrow();
+        expect(() => p.array(p.string()).min(0)).not.toThrow();
     });
 
     it('is immutable', () => {
@@ -115,8 +119,12 @@ describe('max', () => {
         );
     });
 
-    it('throws on NaN', () => {
+    it('rejects invalid bounds', () => {
         expect(() => p.array(p.string()).max(NaN)).toThrow();
+        expect(() => p.array(p.string()).max(-1)).toThrow();
+        expect(() => p.array(p.string()).max(1.5)).toThrow();
+        expect(() => p.array(p.string()).max(Infinity)).toThrow();
+        expect(() => p.array(p.string()).max(0)).not.toThrow();
     });
 
     it('is immutable', () => {
@@ -175,8 +183,12 @@ describe('length', () => {
         );
     });
 
-    it('throws on NaN', () => {
+    it('rejects invalid bounds', () => {
         expect(() => p.array(p.string()).length(NaN)).toThrow();
+        expect(() => p.array(p.string()).length(-1)).toThrow();
+        expect(() => p.array(p.string()).length(1.5)).toThrow();
+        expect(() => p.array(p.string()).length(Infinity)).toThrow();
+        expect(() => p.array(p.string()).length(0)).not.toThrow();
     });
 
     it('is immutable', () => {
