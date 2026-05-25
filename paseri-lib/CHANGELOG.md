@@ -1,5 +1,11 @@
 # @vbudovski/paseri
 
+## 1.1.0
+
+### Minor Changes
+
+- 021a7b7: Add a `maxDepth` option to `safeParse` / `parse` that caps the nesting depth of recursive input on `lazy()` schemas, preventing attacker-controlled deeply nested values from stack-overflowing the runtime. The default of `1000` is generous and rarely needs changing; deeper input is rejected with a `too_deep` issue. Override per call: `schema.safeParse(data, { maxDepth: 5000 })`.
+
 ## 1.0.1
 
 ### Patch Changes
