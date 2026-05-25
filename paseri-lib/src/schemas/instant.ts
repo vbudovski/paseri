@@ -26,7 +26,7 @@ class InstantSchema extends Schema<Temporal.Instant> {
 
         return cloned;
     }
-    _parse(value: unknown): InternalParseResult<Temporal.Instant> {
+    _parse(value: unknown, _depth: number, _maxDepth: number): InternalParseResult<Temporal.Instant> {
         if (!(value instanceof Temporal.Instant)) {
             return this.issues.INVALID_TYPE;
         }

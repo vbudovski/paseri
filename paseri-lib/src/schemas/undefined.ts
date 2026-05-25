@@ -10,7 +10,7 @@ class UndefinedSchema extends Schema<undefined> {
     protected _clone(): UndefinedSchema {
         return new UndefinedSchema();
     }
-    _parse(value: unknown): InternalParseResult<undefined> {
+    _parse(value: unknown, _depth: number, _maxDepth: number): InternalParseResult<undefined> {
         if (value !== undefined) {
             return this.issues.INVALID_VALUE;
         }

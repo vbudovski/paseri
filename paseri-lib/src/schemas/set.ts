@@ -28,7 +28,7 @@ class SetSchema<ElementSchemaType extends AnySchemaType> extends Schema<Infer<Se
 
         return cloned;
     }
-    _parse(value: unknown): InternalParseResult<Infer<Set<ElementSchemaType>>> {
+    _parse(value: unknown, _depth: number, _maxDepth: number): InternalParseResult<Infer<Set<ElementSchemaType>>> {
         if (!(value instanceof Set)) {
             return this.issues.INVALID_TYPE;
         }
@@ -51,7 +51,7 @@ class SetSchema<ElementSchemaType extends AnySchemaType> extends Schema<Infer<Se
         let newSet: Set<unknown> | undefined;
         let i = 0;
         for (const childValue of value) {
-            const issueOrSuccess = schema._parse(childValue);
+            const issueOrSuccess = schema._parse(childValue, _depth, _maxDepth);
             if (issueOrSuccess === undefined) {
                 newSet?.add(childValue);
             } else if (isParseSuccess(issueOrSuccess)) {

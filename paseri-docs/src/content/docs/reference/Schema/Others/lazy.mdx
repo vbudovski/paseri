@@ -7,6 +7,12 @@ sidebar:
 It's possible to define a recursive schema using lazy evaluation. Unfortunately, due to a limitation of TypeScript, its
 type cannot be automatically inferred.
 
+:::note
+`safeParse` and `parse` accept a `maxDepth` option that caps the nesting depth of your recursive data. The default of
+`1000` is generous and you'll rarely need to change it. To accept deeper input from a source you trust, override per
+call: `schema.safeParse(data, { maxDepth: 5000 })`.
+:::
+
 ## Example
 
 ```typescript

@@ -10,7 +10,7 @@ class SymbolSchema extends Schema<symbol> {
     protected _clone(): SymbolSchema {
         return new SymbolSchema();
     }
-    _parse(value: unknown): InternalParseResult<symbol> {
+    _parse(value: unknown, _depth: number, _maxDepth: number): InternalParseResult<symbol> {
         if (typeof value !== 'symbol') {
             return this.issues.INVALID_TYPE;
         }

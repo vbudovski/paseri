@@ -54,7 +54,7 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
 
         return cloned;
     }
-    _parse(value: unknown): InternalParseResult<Infer<ShapeType>> {
+    _parse(value: unknown, _depth: number, _maxDepth: number): InternalParseResult<Infer<ShapeType>> {
         if (!isPlainObject(value)) {
             return this.issues.INVALID_TYPE;
         }
@@ -72,7 +72,7 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
                 seen++;
 
                 const childValue = value[key];
-                const issueOrSuccess = schema._parse(childValue);
+                const issueOrSuccess = schema._parse(childValue, _depth, _maxDepth);
                 if (issueOrSuccess === undefined) {
                     // Value is unmodified, so we can take the fast path.
                     continue;

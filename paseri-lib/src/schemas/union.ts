@@ -83,7 +83,11 @@ class UnionSchema<TupleType extends ValidTupleType> extends Schema<Infer<TupleTo
     protected _clone(): UnionSchema<TupleType> {
         return new UnionSchema(...this._elements);
     }
-    _parseDiscriminated(value: unknown): InternalParseResult<Infer<TupleToUnion<TupleType>>> {
+    _parseDiscriminated(
+        value: unknown,
+        _depth: number,
+        _maxDepth: number,
+    ): InternalParseResult<Infer<TupleToUnion<TupleType>>> {
         if (!isPlainObject(value)) {
             return this.issues.INVALID_TYPE;
         }
@@ -91,16 +95,20 @@ class UnionSchema<TupleType extends ValidTupleType> extends Schema<Infer<TupleTo
         const discriminator = this._discriminator as WithDiscriminatorResult;
         const schema = discriminator.schemas.get(value[discriminator.key]);
         if (schema) {
-            return schema._parse(value) as InternalParseResult<Infer<TupleToUnion<TupleType>>>;
+            return schema._parse(value, _depth, _maxDepth) as InternalParseResult<Infer<TupleToUnion<TupleType>>>;
         }
 
         return this.issues.INVALID_DISCRIMINATOR_VALUE;
     }
-    _parseRegular(value: unknown): InternalParseResult<Infer<TupleToUnion<TupleType>>> {
+    _parseRegular(
+        value: unknown,
+        _depth: number,
+        _maxDepth: number,
+    ): InternalParseResult<Infer<TupleToUnion<TupleType>>> {
         let issue: TreeNode | undefined;
         for (let i = 0; i < this._elements.length; i++) {
             const schema = this._elements[i];
-            const issueOrSuccess = schema._parse(value);
+            const issueOrSuccess = schema._parse(value, _depth, _maxDepth);
             if (issueOrSuccess === undefined) {
                 return undefined;
             }
@@ -113,12 +121,12 @@ class UnionSchema<TupleType extends ValidTupleType> extends Schema<Infer<TupleTo
 
         return issue;
     }
-    _parse(value: unknown): InternalParseResult<Infer<TupleToUnion<TupleType>>> {
+    _parse(value: unknown, _depth: number, _maxDepth: number): InternalParseResult<Infer<TupleToUnion<TupleType>>> {
         if (this._discriminator.found) {
-            return this._parseDiscriminated(value);
+            return this._parseDiscriminated(value, _depth, _maxDepth);
         }
 
-        return this._parseRegular(value);
+        return this._parseRegular(value, _depth, _maxDepth);
     }
 }
 

@@ -24,7 +24,7 @@ class TupleSchema<TupleSchemaType extends ValidTupleSchemaType> extends Schema<I
     protected _clone(): TupleSchema<TupleSchemaType> {
         return new TupleSchema(...this._schemas);
     }
-    _parse(value: unknown): InternalParseResult<Infer<TupleSchemaType>> {
+    _parse(value: unknown, _depth: number, _maxDepth: number): InternalParseResult<Infer<TupleSchemaType>> {
         if (!Array.isArray(value)) {
             return this.issues.INVALID_TYPE;
         }
@@ -44,7 +44,7 @@ class TupleSchema<TupleSchemaType extends ValidTupleSchemaType> extends Schema<I
         for (let i = 0; i < length; i++) {
             const schema = this._schemas[i];
             const elementValue = value[i];
-            const issueOrSuccess = schema._parse(elementValue);
+            const issueOrSuccess = schema._parse(elementValue, _depth, _maxDepth);
             if (issueOrSuccess === undefined) {
                 newArray?.push(elementValue);
                 continue;

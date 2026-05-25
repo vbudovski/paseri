@@ -27,7 +27,7 @@ class DateSchema extends Schema<Date> {
 
         return cloned;
     }
-    _parse(value: unknown): InternalParseResult<Date> {
+    _parse(value: unknown, _depth: number, _maxDepth: number): InternalParseResult<Date> {
         if (!(value instanceof Date)) {
             return this.issues.INVALID_TYPE;
         }

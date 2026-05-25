@@ -53,7 +53,7 @@ class StringSchema extends Schema<string> {
 
         return cloned;
     }
-    _parse(value: unknown): InternalParseResult<string> {
+    _parse(value: unknown, _depth: number, _maxDepth: number): InternalParseResult<string> {
         if (typeof value !== 'string') {
             return this.issues.INVALID_TYPE;
         }

@@ -8,6 +8,8 @@ const issueCodes = {
     TOO_LONG: 'too_long' as Tagged<'too_long', 'IssueCode'>,
     // Map/Set.
     DUPLICATE_KEY: 'duplicate_key' as Tagged<'duplicate_key', 'IssueCode'>,
+    // Lazy.
+    TOO_DEEP: 'too_deep' as Tagged<'too_deep', 'IssueCode'>,
     // String.
     INVALID_EMAIL: 'invalid_email' as Tagged<'invalid_email', 'IssueCode'>,
     INVALID_EMOJI: 'invalid_emoji' as Tagged<'invalid_emoji', 'IssueCode'>,

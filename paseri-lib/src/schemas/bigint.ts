@@ -28,7 +28,7 @@ class BigIntSchema extends Schema<bigint> {
 
         return cloned;
     }
-    _parse(value: unknown): InternalParseResult<bigint> {
+    _parse(value: unknown, _depth: number, _maxDepth: number): InternalParseResult<bigint> {
         if (typeof value !== 'bigint') {
             return this.issues.INVALID_TYPE;
         }

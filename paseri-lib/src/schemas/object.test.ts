@@ -92,7 +92,7 @@ describe('strip', () => {
         const schema = p.object({ foo: p.string() }).strip();
         const data = Object.freeze({ foo: 'bar' });
 
-        const issueOrSuccess = schema._parse(data);
+        const issueOrSuccess = schema._parse(data, 0, 1000);
         expect(issueOrSuccess).toBe(undefined);
     });
 
@@ -100,7 +100,7 @@ describe('strip', () => {
         const schema = p.object({ child: p.object({ foo: p.string() }).strip() }).strip();
         const data = Object.freeze({ child: { foo: 'bar', extra: 'baz' } });
 
-        const issueOrSuccess = schema._parse(data);
+        const issueOrSuccess = schema._parse(data, 0, 1000);
         expect(issueOrSuccess).toEqual({ ok: true, value: { child: { foo: 'bar' } } });
     });
 
@@ -220,7 +220,7 @@ describe('strict', () => {
         const schema = p.object({ foo: p.string() });
         const data = Object.freeze({ foo: 'bar' });
 
-        const issueOrSuccess = schema._parse(data);
+        const issueOrSuccess = schema._parse(data, 0, 1000);
         expect(issueOrSuccess).toBe(undefined);
     });
 
@@ -306,7 +306,7 @@ describe('passthrough', () => {
         const schema = p.object({ foo: p.string() }).passthrough();
         const data = Object.freeze({ foo: 'bar' });
 
-        const issueOrSuccess = schema._parse(data);
+        const issueOrSuccess = schema._parse(data, 0, 1000);
         expect(issueOrSuccess).toBe(undefined);
     });
 });

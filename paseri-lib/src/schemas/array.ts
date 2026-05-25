@@ -26,7 +26,7 @@ class ArraySchema<ElementSchemaType extends AnySchemaType> extends Schema<Infer<
 
         return cloned;
     }
-    _parse(value: unknown): InternalParseResult<Infer<ElementSchemaType[]>> {
+    _parse(value: unknown, _depth: number, _maxDepth: number): InternalParseResult<Infer<ElementSchemaType[]>> {
         if (!Array.isArray(value)) {
             return this.issues.INVALID_TYPE;
         }
@@ -49,7 +49,7 @@ class ArraySchema<ElementSchemaType extends AnySchemaType> extends Schema<Infer<
         let newArray: unknown[] | undefined;
         for (let i = 0; i < length; i++) {
             const childValue = value[i];
-            const issueOrSuccess = schema._parse(childValue);
+            const issueOrSuccess = schema._parse(childValue, _depth, _maxDepth);
             if (issueOrSuccess === undefined) {
                 newArray?.push(childValue);
                 continue;

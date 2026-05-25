@@ -10,7 +10,7 @@ class PlainMonthDaySchema extends Schema<Temporal.PlainMonthDay> {
     protected _clone(): PlainMonthDaySchema {
         return new PlainMonthDaySchema();
     }
-    _parse(value: unknown): InternalParseResult<Temporal.PlainMonthDay> {
+    _parse(value: unknown, _depth: number, _maxDepth: number): InternalParseResult<Temporal.PlainMonthDay> {
         if (!(value instanceof Temporal.PlainMonthDay)) {
             return this.issues.INVALID_TYPE;
         }

@@ -29,7 +29,7 @@ class EnumSchema<const T extends readonly LiteralType[]> extends Schema<T[number
     protected _clone(): EnumSchema<T> {
         return new EnumSchema(...this._values);
     }
-    _parse(value: unknown): InternalParseResult<T[number]> {
+    _parse(value: unknown, _depth: number, _maxDepth: number): InternalParseResult<T[number]> {
         if (this._set.has(value as T[number])) {
             return undefined;
         }

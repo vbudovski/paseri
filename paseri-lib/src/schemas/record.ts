@@ -21,7 +21,11 @@ class RecordSchema<ElementSchemaType extends AnySchemaType> extends Schema<
     protected _clone(): RecordSchema<ElementSchemaType> {
         return new RecordSchema(this._element);
     }
-    _parse(value: unknown): InternalParseResult<Infer<Record<PropertyKey, ElementSchemaType>>> {
+    _parse(
+        value: unknown,
+        _depth: number,
+        _maxDepth: number,
+    ): InternalParseResult<Infer<Record<PropertyKey, ElementSchemaType>>> {
         if (!isPlainObject(value)) {
             return this.issues.INVALID_TYPE;
         }
@@ -32,7 +36,7 @@ class RecordSchema<ElementSchemaType extends AnySchemaType> extends Schema<
         let modifiedValues: Record<PropertyKey, unknown> | undefined;
         for (const key in value) {
             const childValue = value[key];
-            const issueOrSuccess = schema._parse(childValue);
+            const issueOrSuccess = schema._parse(childValue, _depth, _maxDepth);
             if (issueOrSuccess === undefined) {
                 continue;
             }
