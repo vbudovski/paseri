@@ -19,6 +19,11 @@ jobs:
       contents: read
     uses: ./.github/workflows/commitlint.yml
 
+  changeset:
+    permissions:
+      contents: read
+    uses: ./.github/workflows/changeset-check.yml
+
   test:
     needs: [lint, commitlint]
     permissions:
