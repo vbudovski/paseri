@@ -1,0 +1,55 @@
+name: Changeset check
+
+on: workflow_call
+
+permissions: {}
+
+jobs:
+  changeset:
+    name: Changeset check
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          fetch-depth: 0
+
+      - name: Require changeset for paseri-lib/src changes
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+
+          : "${BASE_SHA:?BASE_SHA not set}"
+          : "${HEAD_SHA:?HEAD_SHA not set}"
+          git rev-parse --verify "$BASE_SHA^{commit}" >/dev/null
+          git rev-parse --verify "$HEAD_SHA^{commit}" >/dev/null
+
+          src_changes=$(git diff --name-only "$BASE_SHA" "$HEAD_SHA" -- paseri-lib/src \
+            | grep -v '\.test\.ts$' || true)
+
+          if [ -z "$src_changes" ]; then
+            echo "No paseri-lib/src changes — changeset not required."
+            exit 0
+          fi
+
+          new_changesets=$(git diff --name-only --diff-filter=A "$BASE_SHA" "$HEAD_SHA" -- .changeset \
+            | grep -E '^\.changeset/.+\.md$' \
+            | grep -v '^\.changeset/README\.md$' || true)
+
+          if [ -n "$new_changesets" ]; then
+            echo "Found changeset(s):"
+            echo "$new_changesets" | sed 's/^/  /'
+            exit 0
+          fi
+
+          {
+            echo "::error::This PR modifies paseri-lib/src/** but adds no changeset."
+            echo "Run 'deno task changeset' locally, commit the generated .changeset/*.md, and push."
+            echo ""
+            echo "Touched src files:"
+            echo "$src_changes" | sed 's/^/  /'
+          } >&2
+          exit 1
