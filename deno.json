@@ -17,7 +17,8 @@
     "commitlint": "deno run --allow-env --allow-sys --allow-read --allow-write --allow-run @commitlint/cli",
     "changeset": "deno run --allow-read --allow-write --allow-run=deno bin/changeset.ts",
     "changeset:version": "deno run --allow-read --allow-write --allow-run=deno bin/changeset.ts version",
-    "changeset:status": "deno run --allow-read --allow-write --allow-run=deno bin/changeset.ts status"
+    "changeset:status": "deno run --allow-read --allow-write --allow-run=deno bin/changeset.ts status",
+    "release:prepare": "deno run --allow-read --allow-run=git,gh,deno bin/release.ts"
   },
   "workspace": ["paseri-lib", "paseri-docs"],
   "nodeModulesDir": "auto",
