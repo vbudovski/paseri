@@ -6,15 +6,6 @@ import { listPublishableMembers, readLatestChangelogEntry } from './lib/workspac
 
 const rootUrl = new URL('../', import.meta.url);
 
-async function capture(cmd: string, args: string[]): Promise<{ code: number; stdout: string }> {
-    const { code, stdout } = await new Deno.Command(cmd, {
-        args,
-        stdout: 'piped',
-        stderr: 'inherit',
-    }).output();
-    return { code, stdout: new TextDecoder().decode(stdout).trim() };
-}
-
 async function run(cmd: string, args: string[]): Promise<void> {
     const { code } = await new Deno.Command(cmd, {
         args,
@@ -26,14 +17,24 @@ async function run(cmd: string, args: string[]): Promise<void> {
     }
 }
 
-async function tagExists(tag: string): Promise<boolean> {
-    const { code } = await capture('git', ['rev-parse', '--verify', `refs/tags/${tag}`]);
+// Runs a command purely for its exit code. Both streams are discarded so
+// the expected-failure path (e.g. "tag does not exist yet") doesn't leak
+// alarming-looking stderr into CI logs.
+async function probe(cmd: string, args: string[]): Promise<boolean> {
+    const { code } = await new Deno.Command(cmd, {
+        args,
+        stdout: 'null',
+        stderr: 'null',
+    }).output();
     return code === 0;
 }
 
+async function tagExists(tag: string): Promise<boolean> {
+    return probe('git', ['rev-parse', '--verify', `refs/tags/${tag}`]);
+}
+
 async function releaseExists(tag: string): Promise<boolean> {
-    const { code } = await capture('gh', ['release', 'view', tag]);
-    return code === 0;
+    return probe('gh', ['release', 'view', tag]);
 }
 
 async function configureGit(): Promise<void> {
