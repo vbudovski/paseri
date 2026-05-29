@@ -6,6 +6,8 @@
     "@commitlint/cli": "npm:@commitlint/cli@^20.5.2",
     "@commitlint/config-conventional": "npm:@commitlint/config-conventional@^20.5.0",
     "@commitlint/types": "npm:@commitlint/types@^20.5.0",
+    "@std/expect": "jsr:@std/expect@^1.0.19",
+    "@std/testing": "jsr:@std/testing@^1.0.18",
     "husky": "npm:husky@^9.1.7",
     "lint-staged": "npm:lint-staged@^16.4.0"
   },
@@ -18,9 +20,15 @@
     "changeset": "deno run --allow-read --allow-write --allow-run=deno bin/changeset.ts",
     "changeset:version": "deno run --allow-read --allow-write --allow-run=deno bin/changeset.ts version",
     "changeset:status": "deno run --allow-read --allow-write --allow-run=deno bin/changeset.ts status",
-    "release:prepare": "deno run --allow-read --allow-run=git,gh,deno bin/release.ts"
+    "release:prepare": "deno run --allow-read --allow-run=git,gh,deno bin/release.ts",
+    "post-publish": "deno run --allow-read --allow-write --allow-run=git,gh bin/post-publish.ts"
   },
   "workspace": ["paseri-lib", "paseri-docs"],
+  "test": {
+    "permissions": {
+      "read": ["bin/lib/__fixtures__"]
+    }
+  },
   "nodeModulesDir": "auto",
   "unstable": ["bare-node-builtins"],
   "compilerOptions": {

@@ -1,17 +1,13 @@
 // Thin wrapper around @changesets/cli that lets a Deno workspace masquerade
 // as an npm workspace just long enough for the CLI to run, then syncs any
-// version bump back into deno.json. The shim package.json files are gitignored
-// and removed at the end of every invocation — including on signal-driven exits.
+// version bump back into each member's deno.json. The shim package.json
+// files are gitignored and removed at the end of every invocation —
+// including on signal-driven exits.
 
-const root = new URL('../', import.meta.url);
-const rootPkg = new URL('package.json', root);
-const libDir = new URL('paseri-lib/', root);
-const libDeno = new URL('deno.json', libDir);
-const libPkg = new URL('package.json', libDir);
+import { listPublishableMembers, type PublishableMember, readJson } from './lib/workspace.ts';
 
-async function readJson<T>(path: URL): Promise<T> {
-    return JSON.parse(await Deno.readTextFile(path)) as T;
-}
+const rootUrl = new URL('../', import.meta.url);
+const rootPkgUrl = new URL('package.json', rootUrl);
 
 async function writeJson(path: URL, data: unknown): Promise<void> {
     await Deno.writeTextFile(path, `${JSON.stringify(data, null, 2)}\n`);
@@ -29,46 +25,71 @@ async function exists(path: URL): Promise<boolean> {
     }
 }
 
-async function pre(): Promise<void> {
-    const lib = await readJson<{ name?: string; version?: string }>(libDeno);
-    if (!lib.name || !lib.version) {
-        throw new Error('paseri-lib/deno.json must declare both `name` and `version`.');
+async function pre(): Promise<PublishableMember[]> {
+    const members = await listPublishableMembers(rootUrl);
+    if (members.length === 0) {
+        throw new Error('No publishable workspace members found.');
     }
-    await writeJson(rootPkg, {
+
+    await writeJson(rootPkgUrl, {
         name: 'paseri-root',
         private: true,
-        workspaces: ['paseri-lib'],
+        workspaces: members.map((m) => m.dir),
     });
-    await writeJson(libPkg, {
-        name: lib.name,
-        version: lib.version,
-    });
+
+    for (const member of members) {
+        await writeJson(member.pkgJsonUrl, {
+            name: member.name,
+            version: member.version,
+        });
+    }
+
+    return members;
 }
 
-// Replace the version field in paseri-lib/deno.json via a targeted text edit
-// rather than parse/stringify, so any future comments, key order, or
+// Replace the version field in each member's deno.json via a targeted text
+// edit rather than parse/stringify, so any future comments, key order, or
 // formatting quirks survive untouched.
-async function sync(): Promise<void> {
-    if (!(await exists(libPkg))) {
-        return;
+async function sync(members: PublishableMember[]): Promise<void> {
+    for (const member of members) {
+        if (!(await exists(member.pkgJsonUrl))) {
+            continue;
+        }
+        const pkg = await readJson<{ version: string }>(member.pkgJsonUrl);
+        const text = await Deno.readTextFile(member.denoJsonUrl);
+        const versionField = /"version"\s*:\s*"([^"]*)"/;
+        const match = text.match(versionField);
+        if (!match) {
+            throw new Error(`Could not find a version field in ${member.dir}/deno.json.`);
+        }
+        if (match[1] === pkg.version) {
+            continue;
+        }
+        const updated = text.replace(versionField, `"version": "${pkg.version}"`);
+        await Deno.writeTextFile(member.denoJsonUrl, updated);
+        console.log(`Synced version ${pkg.version} → ${member.dir}/deno.json`);
     }
-    const pkg = await readJson<{ version: string }>(libPkg);
-    const text = await Deno.readTextFile(libDeno);
-    const versionField = /"version"\s*:\s*"([^"]*)"/;
-    const match = text.match(versionField);
-    if (!match) {
-        throw new Error('Could not find a version field in paseri-lib/deno.json.');
-    }
-    if (match[1] === pkg.version) {
-        return;
-    }
-    const updated = text.replace(versionField, `"version": "${pkg.version}"`);
-    await Deno.writeTextFile(libDeno, updated);
-    console.log(`Synced version ${pkg.version} → paseri-lib/deno.json`);
 }
 
+// Cleanup runs from signal handlers and the finally block, so it must be
+// resilient to any partial state pre() may have left behind. Iterate every
+// workspace member rather than just the publishable ones, in case a shim
+// was somehow written before pre() classified the member.
 function cleanup(): void {
-    for (const path of [rootPkg, libPkg]) {
+    const candidates = [rootPkgUrl];
+    try {
+        const rootDenoText = Deno.readTextFileSync(new URL('deno.json', rootUrl));
+        const rootDeno = JSON.parse(rootDenoText) as { workspace?: string[] };
+        if (Array.isArray(rootDeno.workspace)) {
+            for (const dir of rootDeno.workspace) {
+                candidates.push(new URL(`${dir}/package.json`, rootUrl));
+            }
+        }
+    } catch {
+        // Best-effort.
+    }
+
+    for (const path of candidates) {
         try {
             Deno.removeSync(path);
         } catch (err) {
@@ -100,10 +121,10 @@ async function runChangeset(args: string[]): Promise<number> {
 async function main(): Promise<void> {
     let exitCode = 0;
     try {
-        await pre();
+        const members = await pre();
         exitCode = await runChangeset(Deno.args);
         if (exitCode === 0 && Deno.args[0] === 'version') {
-            await sync();
+            await sync(members);
         }
     } finally {
         cleanup();

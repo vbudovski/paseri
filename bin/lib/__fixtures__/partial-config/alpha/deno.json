@@ -1,0 +1,4 @@
+{
+  "name": "@scope/alpha",
+  "exports": "./src/index.ts"
+}
