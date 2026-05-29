@@ -68,6 +68,8 @@ li a {
         font-weight: 600;
         padding-inline-end: 8px;
         color: var(--sl-color-black);
+        flex-direction: column;
+        line-height: var(--sl-line-height-headings);
     }
 
     td.label-right {
