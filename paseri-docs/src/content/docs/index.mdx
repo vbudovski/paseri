@@ -36,94 +36,36 @@ import 'charts.css';
   </Card>
 
   <Card title="Versatile" icon="seti:notebook">
-    An extensive collection of built-in schemas is provided, allowing you to model a large variety of complex types,
-    including recursion.
+    An extensive collection of built-in schemas is provided, allowing you to model a large variety of complex types, including recursion.
   </Card>
 
   <Card title="Conformant" icon="seti:favicon">
-    Conforms to the [Standard Schema](https://standardschema.dev/schema) specification, so you can integrate with dozens
-    of frameworks and tools out of the box.
+    Conforms to the [Standard Schema](https://standardschema.dev/schema) specification, so you can integrate with dozens of frameworks and tools out of the box.
   </Card>
 </CardGrid>
 
+{/* prettier-ignore */}
 <div class="performance-chart not-content">
   <table class="charts-css bar multiple show-labels show-primary-axis show-heading data-spacing-10 show-8-secondary-axes">
     <caption>
       <div class="title-main">Relative performance</div>
       <div class="title-sub">(higher is better)</div>
-      <small>
-        Apple M4 Pro · Deno 2.8.0 / V8 14.9 ·{" "}
-        <a
-          href="https://github.com/vbudovski/paseri/blob/main/paseri-lib/bench/object/real-world.bench.ts"
-          target="_blank"
-          rel="noopener"
-        >
-          <code>real-world.bench.ts</code>
-        </a>
-      </small>
+      <small>Apple M4 Pro · Deno 2.8.0 / V8 14.9 · <a href="https://github.com/vbudovski/paseri/blob/main/paseri-lib/bench/object/real-world.bench.ts" target="_blank" rel="noopener"><code>real-world.bench.ts</code></a></small>
     </caption>
     <tbody>
       <tr>
         <th scope="row">Valid input</th>
-        <td style="--size: 1;">
-          <span class="data">
-            <span>Paseri</span>
-            <span>×4.88</span>
-          </span>
-        </td>
-        <td class="label-right" style="--size: 0.4000000000;">
-          <span class="data">
-            <span>
-              Zod 4 (JIT)
-              <sup>
-                <a href="#zod-jit-note">*</a>
-              </sup>
-            </span>
-            <span>×1.94</span>
-          </span>
-        </td>
-        <td class="label-right" style="--size: 0.2049180328;">
-          <span class="data">
-            <span>Zod 4</span>
-            <span>×1</span>
-          </span>
-        </td>
+        <td style="--size: 1;"><span class="data"><span>Paseri</span><span>×4.88</span></span></td>
+        <td class="label-right" style="--size: 0.4000000000;"><span class="data"><span>Zod 4 (JIT)<sup><a href="#zod-jit-note">*</a></sup></span><span>×1.94</span></span></td>
+        <td class="label-right" style="--size: 0.2049180328;"><span class="data"><span>Zod 4</span><span>×1</span></span></td>
       </tr>
       <tr>
         <th scope="row">Invalid input</th>
-        <td style="--size: 1;">
-          <span class="data">
-            <span>Paseri</span>
-            <span>×31.27</span>
-          </span>
-        </td>
-        <td class="label-right" style="--size: 0.0334895512;">
-          <span class="data">
-            <span>
-              Zod 4 (JIT)
-              <sup>
-                <a href="#zod-jit-note">*</a>
-              </sup>
-            </span>
-            <span>×1.05</span>
-          </span>
-        </td>
-        <td class="label-right" style="--size: 0.0319795971;">
-          <span class="data">
-            <span>Zod 4</span>
-            <span>×1</span>
-          </span>
-        </td>
+        <td style="--size: 1;"><span class="data"><span>Paseri</span><span>×31.27</span></span></td>
+        <td class="label-right" style="--size: 0.0334895512;"><span class="data"><span>Zod 4 (JIT)<sup><a href="#zod-jit-note">*</a></sup></span><span>×1.05</span></span></td>
+        <td class="label-right" style="--size: 0.0319795971;"><span class="data"><span>Zod 4</span><span>×1</span></span></td>
       </tr>
     </tbody>
   </table>
-  <p id="zod-jit-note" class="chart-footnote">
-    <small>
-      <sup>*</sup> Zod 4 enables JIT compilation{" "}
-      <a href="https://github.com/colinhacks/zod/issues/5414" target="_blank" rel="noopener">
-        <strong>by default</strong>
-      </a>
-      , requiring <code>unsafe-eval</code> in your CSP.
-    </small>
-  </p>
+  <p id="zod-jit-note" class="chart-footnote"><small><sup>*</sup> Zod 4 enables JIT compilation <a href="https://github.com/colinhacks/zod/issues/5414" target="_blank" rel="noopener"><strong>by default</strong></a>, requirin <code>unsafe-eval</code> in your CSP.</small></p>
 </div>
