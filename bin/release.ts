@@ -1,11 +1,12 @@
 // Prepare a release PR. Refreshes main, recreates the release branch,
-// bumps the version via changesets, commits, force-pushes (the release
+// bumps versions via changesets, commits, force-pushes (the release
 // branch is reused across releases), and opens (or updates) the release
 // PR. Re-runnable: until the PR is merged, nothing has been published.
 
+import { listPublishableMembers, type PublishableMember, readLatestChangelogEntry } from './lib/workspace.ts';
+
 const RELEASE_BRANCH = 'changeset-release/main';
-const LIB_DENO_JSON = new URL('../paseri-lib/deno.json', import.meta.url);
-const LIB_CHANGELOG = new URL('../paseri-lib/CHANGELOG.md', import.meta.url);
+const rootUrl = new URL('../', import.meta.url);
 
 // Thrown for expected, user-actionable failures (dirty tree, missing changesets,
 // subprocess exit codes). Unexpected exceptions (programming bugs) keep their
@@ -64,31 +65,6 @@ async function recreateReleaseBranch(): Promise<void> {
     await run('git', ['checkout', '-b', RELEASE_BRANCH]);
 }
 
-async function readVersion(): Promise<string> {
-    const text = await Deno.readTextFile(LIB_DENO_JSON);
-    const match = text.match(/"version"\s*:\s*"([^"]+)"/);
-    if (!match) {
-        throw new UserError('Could not read version from paseri-lib/deno.json.');
-    }
-    return match[1];
-}
-
-// Extract the body of the most recent `## ` section from CHANGELOG.md — the
-// entry just written by `changeset version`. Matches release.yml's awk
-// extraction, which is what GitHub release notes will use.
-async function readReleaseNotes(): Promise<string> {
-    const text = await Deno.readTextFile(LIB_CHANGELOG);
-    const lines = text.split('\n');
-    const start = lines.findIndex((line) => line.startsWith('## '));
-    if (start === -1) {
-        throw new UserError('Could not find a release section in CHANGELOG.md.');
-    }
-    const rest = lines.slice(start + 1);
-    const end = rest.findIndex((line) => line.startsWith('## '));
-    const body = (end === -1 ? rest : rest.slice(0, end)).join('\n').trim();
-    return body;
-}
-
 async function findExistingPr(): Promise<string | null> {
     const { code, stdout } = await capture('gh', ['pr', 'view', RELEASE_BRANCH, '--json', 'url', '--jq', '.url']);
     if (code !== 0 || stdout.length === 0) {
@@ -97,10 +73,32 @@ async function findExistingPr(): Promise<string | null> {
     return stdout;
 }
 
+async function detectChangedMembers(previousVersions: Map<string, string>): Promise<PublishableMember[]> {
+    const refreshed = await listPublishableMembers(rootUrl);
+    return refreshed.filter((m) => previousVersions.get(m.dir) !== m.version);
+}
+
+async function buildPrBody(changed: PublishableMember[]): Promise<string> {
+    const sections: string[] = [];
+    for (const member of changed) {
+        const notes = await readLatestChangelogEntry(member);
+        sections.push(`## ${member.dir} ${member.version}\n\n${notes}`);
+    }
+    return sections.join('\n\n');
+}
+
+function buildPrTitle(changed: PublishableMember[]): string {
+    return `Release: ${changed.map((m) => `${m.dir}@${m.version}`).join(', ')}`;
+}
+
 async function main(): Promise<void> {
     await assertCleanTree();
     await refreshMain();
     await recreateReleaseBranch();
+
+    const before = await listPublishableMembers(rootUrl);
+    const previousVersions = new Map(before.map((m) => [m.dir, m.version]));
+
     await run('deno', ['task', 'changeset:version']);
 
     const status = await git('status', '--porcelain');
@@ -109,13 +107,18 @@ async function main(): Promise<void> {
         return;
     }
 
-    await run('git', ['add', 'paseri-lib/deno.json', 'paseri-lib/CHANGELOG.md', '.changeset']);
+    const changed = await detectChangedMembers(previousVersions);
+    if (changed.length === 0) {
+        throw new UserError('Changesets produced no publishable version bumps; refusing to open an empty release PR.');
+    }
+
+    const filesToAdd = [...changed.flatMap((m) => [`${m.dir}/deno.json`, `${m.dir}/CHANGELOG.md`]), '.changeset'];
+    await run('git', ['add', ...filesToAdd]);
     await run('git', ['commit', '-m', 'feature: Bump version']);
     await run('git', ['push', '-u', 'origin', RELEASE_BRANCH, '--force-with-lease']);
 
-    const version = await readVersion();
-    const body = await readReleaseNotes();
-    const title = `Release ${version}`;
+    const title = buildPrTitle(changed);
+    const body = await buildPrBody(changed);
     const existing = await findExistingPr();
     if (existing) {
         await run('gh', ['pr', 'edit', RELEASE_BRANCH, '--title', title, '--body', body]);

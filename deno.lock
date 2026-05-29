@@ -5117,6 +5117,8 @@
   },
   "workspace": {
     "dependencies": [
+      "jsr:@std/expect@^1.0.19",
+      "jsr:@std/testing@^1.0.18",
       "npm:@biomejs/biome@^2.4.13",
       "npm:@changesets/cli@^2.30.0",
       "npm:@commitlint/cli@^20.5.2",
