@@ -16,9 +16,9 @@ hero:
       icon: open-book
       variant: secondary
 ---
+
 import { Card, CardGrid } from '@astrojs/starlight/components';
 import 'charts.css';
-
 
 <CardGrid stagger>
   <Card title="Simple" icon="seti:todo">
@@ -51,18 +51,79 @@ import 'charts.css';
     <caption>
       <div class="title-main">Relative performance</div>
       <div class="title-sub">(higher is better)</div>
+      <small>
+        Apple M4 Pro · Deno 2.8.0 / V8 14.9 ·{" "}
+        <a
+          href="https://github.com/vbudovski/paseri/blob/main/paseri-lib/bench/object/real-world.bench.ts"
+          target="_blank"
+          rel="noopener"
+        >
+          <code>real-world.bench.ts</code>
+        </a>
+      </small>
     </caption>
     <tbody>
       <tr>
         <th scope="row">Valid input</th>
-        <td style="--size: 1;"><span class="data">Paseri (×2.23)</span></td>
-        <td style="--size: 0.4484304933;"><span class="data">Zod 4 (×1)</span></td>
+        <td style="--size: 1;">
+          <span class="data">
+            <span>Paseri</span>
+            <span>×4.88</span>
+          </span>
+        </td>
+        <td class="label-right" style="--size: 0.4000000000;">
+          <span class="data">
+            <span>
+              Zod 4 (JIT)
+              <sup>
+                <a href="#zod-jit-note">*</a>
+              </sup>
+            </span>
+            <span>×1.94</span>
+          </span>
+        </td>
+        <td class="label-right" style="--size: 0.2049180328;">
+          <span class="data">
+            <span>Zod 4</span>
+            <span>×1</span>
+          </span>
+        </td>
       </tr>
       <tr>
         <th scope="row">Invalid input</th>
-        <td style="--size: 1;"><span class="data">Paseri (×1326)</span></td>
-        <td class="label-right" style="--size: 0.01;"><span class="data">Zod 4 (×1)</span></td>
+        <td style="--size: 1;">
+          <span class="data">
+            <span>Paseri</span>
+            <span>×31.27</span>
+          </span>
+        </td>
+        <td class="label-right" style="--size: 0.0334895512;">
+          <span class="data">
+            <span>
+              Zod 4 (JIT)
+              <sup>
+                <a href="#zod-jit-note">*</a>
+              </sup>
+            </span>
+            <span>×1.05</span>
+          </span>
+        </td>
+        <td class="label-right" style="--size: 0.0319795971;">
+          <span class="data">
+            <span>Zod 4</span>
+            <span>×1</span>
+          </span>
+        </td>
       </tr>
     </tbody>
   </table>
+  <p id="zod-jit-note" class="chart-footnote">
+    <small>
+      <sup>*</sup> Zod 4 enables JIT compilation{" "}
+      <a href="https://github.com/colinhacks/zod/issues/5414" target="_blank" rel="noopener">
+        <strong>by default</strong>
+      </a>
+      , requiring <code>unsafe-eval</code> in your CSP.
+    </small>
+  </p>
 </div>

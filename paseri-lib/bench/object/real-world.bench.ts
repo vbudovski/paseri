@@ -1,8 +1,9 @@
+import { z } from 'zod';
 import * as p from '../../src/index.ts';
 
 const { bench } = Deno;
 
-type Comment = { author: string; body: string; reply?: Comment };
+type Comment = { author: string; body: string; reply?: Comment | undefined };
 
 const commentSchema: p.Schema<Comment> = p.lazy(() =>
     p.object({
@@ -11,6 +12,53 @@ const commentSchema: p.Schema<Comment> = p.lazy(() =>
         reply: commentSchema.optional(),
     }),
 );
+
+function buildZodSchema(jitless = false) {
+    z.config({ jitless });
+    try {
+        const commentSchema: z.ZodType<Comment> = z.lazy(() =>
+            z.strictObject({
+                author: z.string().min(1).max(50),
+                body: z.string().min(1).max(1000),
+                reply: commentSchema.optional(),
+            }),
+        );
+        return z.strictObject({
+            username: z.string().min(3).max(20),
+            email: z.email(),
+            age: z.number().gte(13).lte(120).int(),
+            isActive: z.boolean(),
+            createdAt: z.date(),
+            displayName: z.string().min(1).max(100).optional(),
+            bio: z.string().max(500).optional(),
+            deletedAt: z.date().nullable(),
+            role: z.union([z.literal('admin'), z.literal('user'), z.literal('guest')]),
+            tags: z.array(z.string().min(1).max(30)).min(1).max(10),
+            coordinates: z.tuple([z.number(), z.number()]),
+            metadata: z.record(z.string(), z.string()),
+            externalId: z.bigint().gte(0n).lte(9999999999999999n),
+            permissions: z.set(z.string()).min(1).max(20),
+            featureFlags: z.map(z.string(), z.boolean()),
+            pinnedComment: z.lazy(() => commentSchema),
+            address: z.strictObject({
+                street: z.string().min(1).max(200),
+                city: z.string().min(1).max(100),
+                zip: z.string().min(3).max(10),
+                country: z.string().length(2),
+            }),
+            settings: z.strictObject({
+                theme: z.string(),
+                fontSize: z.number().gte(8).lte(72).int(),
+                notifications: z.boolean(),
+            }),
+        });
+    } finally {
+        z.config({ jitless: false });
+    }
+}
+
+const zodJitSchema = buildZodSchema();
+const zodSchema = buildZodSchema(true);
 
 const schema = p.object({
     // Primitives with refinements.
@@ -150,10 +198,34 @@ bench('Paseri', { group: 'All fields (valid)', baseline: true }, () => {
     schema.safeParse(dataAllFields);
 });
 
+bench('Zod 4 (JIT)', { group: 'All fields (valid)' }, () => {
+    zodJitSchema.safeParse(dataAllFields);
+});
+
+bench('Zod 4', { group: 'All fields (valid)' }, () => {
+    zodSchema.safeParse(dataAllFields);
+});
+
 bench('Paseri', { group: 'Required only (valid)', baseline: true }, () => {
     schema.safeParse(dataRequiredOnly);
 });
 
+bench('Zod 4 (JIT)', { group: 'Required only (valid)' }, () => {
+    zodJitSchema.safeParse(dataRequiredOnly);
+});
+
+bench('Zod 4', { group: 'Required only (valid)' }, () => {
+    zodSchema.safeParse(dataRequiredOnly);
+});
+
 bench('Paseri', { group: 'Invalid nested', baseline: true }, () => {
     schema.safeParse(dataInvalidNested);
+});
+
+bench('Zod 4 (JIT)', { group: 'Invalid nested' }, () => {
+    zodJitSchema.safeParse(dataInvalidNested);
+});
+
+bench('Zod 4', { group: 'Invalid nested' }, () => {
+    zodSchema.safeParse(dataInvalidNested);
 });
