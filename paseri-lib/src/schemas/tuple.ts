@@ -18,6 +18,10 @@ class TupleSchema<TupleSchemaType extends ValidTupleSchemaType> extends Schema<I
     constructor(...schemas: TupleSchemaType) {
         super();
 
+        if (schemas.length === 0) {
+            throw new Error('Tuple must contain at least one element.');
+        }
+
         this._schemas = schemas;
         this._length = schemas.length;
     }

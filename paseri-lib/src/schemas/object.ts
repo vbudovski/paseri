@@ -43,6 +43,10 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
     constructor(shape: ShapeType) {
         super();
 
+        if (!shape || Object.keys(shape).length === 0) {
+            throw new Error('Object must contain at least one field.');
+        }
+
         this._shape = shape;
         this._shapeKeys = [...Object.keys(shape)];
         this._shapeSize = this._shapeKeys.length;
