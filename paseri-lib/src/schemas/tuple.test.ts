@@ -38,6 +38,11 @@ it('rejects invalid types', () => {
     );
 });
 
+it('rejects empty tuple', () => {
+    // @ts-expect-error Intentionally silence the type error to validate runtime check.
+    expect(() => p.tuple()).toThrow('Tuple must contain at least one element.');
+});
+
 it('rejects tuples that are too long', () => {
     const schema = p.tuple(p.number(), p.string(), p.literal(123n));
     const data = [1, 'foo', 123n, 'bad'];

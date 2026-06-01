@@ -46,6 +46,13 @@ it('exposes the shape', () => {
     expectTypeOf(schema.shape).toEqualTypeOf<typeof shape>;
 });
 
+it('rejects empty object', () => {
+    // @ts-expect-error Intentionally silence the type error to validate runtime check.
+    expect(() => p.object()).toThrow('Object must contain at least one field.');
+    // @ts-expect-error Intentionally silence the type error to validate runtime check.
+    expect(() => p.object({})).toThrow('Object must contain at least one field.');
+});
+
 describe('strip', () => {
     it('strips unrecognised keys', () => {
         const schema = p
