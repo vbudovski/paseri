@@ -48,12 +48,18 @@ abstract class Schema<OutputType> implements StandardSchemaV1<unknown, OutputTyp
         return this;
     }
     parse(value: unknown, options?: ParseOptions): OutputType {
-        const result = this.safeParse(value, options);
-        if (result.ok) {
-            return result.value;
+        const maxDepth = options?.maxDepth ?? DEFAULT_MAX_DEPTH;
+        if (!Number.isInteger(maxDepth) || maxDepth < 1) {
+            throw new Error('maxDepth must be a positive integer.');
         }
-
-        throw new PaseriError(result.issue);
+        const issueOrSuccess = this._parse(value, 0, maxDepth);
+        if (issueOrSuccess === undefined) {
+            return value as OutputType;
+        }
+        if (isParseSuccess(issueOrSuccess)) {
+            return issueOrSuccess.value;
+        }
+        throw new PaseriError(issueOrSuccess);
     }
     safeParse(value: unknown, options?: ParseOptions): ParseResult<OutputType> {
         const maxDepth = options?.maxDepth ?? DEFAULT_MAX_DEPTH;
