@@ -8,9 +8,9 @@ on:
         type: boolean
         default: true
     outputs:
-      coverage:
-        description: "Code coverage percentage from the test run."
-        value: ${{ jobs.unit.outputs.coverage }}
+      lib_coverage:
+        description: "Code coverage percentage for paseri-lib."
+        value: ${{ jobs.unit.outputs.lib_coverage }}
 
 permissions: {}
 
@@ -22,7 +22,7 @@ jobs:
       contents: read
       pull-requests: write
     outputs:
-      coverage: ${{ steps.tests.outputs.CODE_COVERAGE }}
+      lib_coverage: ${{ steps.tests.outputs.LIB_COVERAGE }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
@@ -53,38 +53,38 @@ jobs:
         id: tests
         run: |
           deno test -P --doc --coverage
-          echo "CODE_COVERAGE=$(deno coverage | grep "All files" | sed 's/\x1B\[[0-9;]\{1,\}[A-Za-z]//g' | cut -d '|' -f 3 | xargs)" >> $GITHUB_OUTPUT
+          echo "LIB_COVERAGE=$(deno coverage --include=paseri-lib/src/ | grep "All files" | sed 's/\x1B\[[0-9;]\{1,\}[A-Za-z]//g' | cut -d '|' -f 3 | xargs)" >> $GITHUB_OUTPUT
 
       - name: Write main metric
         if: github.ref == 'refs/heads/main'
-        run: printf '%s' "${{ steps.tests.outputs.CODE_COVERAGE }}" > main-coverage.txt
+        run: printf '%s' "${{ steps.tests.outputs.LIB_COVERAGE }}" > main-coverage-lib.txt
 
       - name: Save main coverage metric
         if: github.ref == 'refs/heads/main'
         uses: actions/cache/save@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
         with:
-          path: main-coverage.txt
-          key: main-metrics-coverage-${{ github.sha }}
+          path: main-coverage-lib.txt
+          key: main-metrics-coverage-lib-${{ github.sha }}
 
       - name: Restore main coverage metric
         if: github.event_name == 'pull_request'
         id: restore
         uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
         with:
-          path: main-coverage.txt
-          key: main-metrics-coverage-${{ github.event.pull_request.base.sha }}
+          path: main-coverage-lib.txt
+          key: main-metrics-coverage-lib-${{ github.event.pull_request.base.sha }}
           restore-keys: |
-            main-metrics-coverage-
+            main-metrics-coverage-lib-
 
       - name: Compute coverage delta
         if: github.event_name == 'pull_request'
         id: delta
         run: |
-          pr_cov="${{ steps.tests.outputs.CODE_COVERAGE }}"
+          pr_cov="${{ steps.tests.outputs.LIB_COVERAGE }}"
           # Strict numeric whitelist on PR value.
           pr_cov=$(printf '%s' "$pr_cov" | tr -cd '0-9.' | head -c 8)
-          if [ -f main-coverage.txt ]; then
-            main_cov=$(tr -cd '0-9.' < main-coverage.txt | head -c 8)
+          if [ -f main-coverage-lib.txt ]; then
+            main_cov=$(tr -cd '0-9.' < main-coverage-lib.txt | head -c 8)
             delta=$(awk -v a="$pr_cov" -v b="$main_cov" 'BEGIN { printf "%+.2f", a - b }')
             main_display="${main_cov}%"
           else
