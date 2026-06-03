@@ -75,4 +75,4 @@ const singleton = /* @__PURE__ */ new PlainYearMonthSchema();
  */
 const plainYearMonth = /* @__PURE__ */ (): PlainYearMonthSchema => singleton;
 
-export { plainYearMonth };
+export { PlainYearMonthSchema, plainYearMonth };

@@ -5,6 +5,8 @@
   "version": "1.1.0",
   "exports": {
     ".": "./src/index.ts",
+    "./internal": "./src/internal/index.ts",
+    "./introspect": "./src/introspect/index.ts",
     "./locales": "./src/locales/index.ts"
   },
   "imports": {
@@ -22,6 +24,7 @@
     "regex": "npm:regex@^6.1.0",
     "rollup": "npm:rollup@^4.60.2",
     "type-fest": "npm:type-fest@^5.4.1",
+    "typescript": "npm:typescript@^6.0.3",
     "zod": "npm:zod@^4.4.1"
   },
   "tasks": {

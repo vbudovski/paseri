@@ -75,4 +75,4 @@ const singleton = /* @__PURE__ */ new PlainDateTimeSchema();
  */
 const plainDateTime = /* @__PURE__ */ (): PlainDateTimeSchema => singleton;
 
-export { plainDateTime };
+export { PlainDateTimeSchema, plainDateTime };

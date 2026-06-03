@@ -84,4 +84,4 @@ const tuple = /* @__PURE__ */ <TupleSchemaType extends ValidTupleSchemaType>(
     ...args: ConstructorParameters<typeof TupleSchema<TupleSchemaType>>
 ): TupleSchema<TupleSchemaType> => new TupleSchema(...args);
 
-export { tuple };
+export { TupleSchema, tuple };

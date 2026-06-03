@@ -22,4 +22,4 @@ const singleton = /* @__PURE__ */ new NeverSchema();
  */
 const never = /* @__PURE__ */ (): NeverSchema => singleton;
 
-export { never };
+export { NeverSchema, never };

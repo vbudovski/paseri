@@ -26,4 +26,4 @@ const singleton = /* @__PURE__ */ new DurationSchema();
  */
 const duration = /* @__PURE__ */ (): DurationSchema => singleton;
 
-export { duration };
+export { DurationSchema, duration };

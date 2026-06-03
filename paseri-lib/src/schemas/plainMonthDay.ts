@@ -26,4 +26,4 @@ const singleton = /* @__PURE__ */ new PlainMonthDaySchema();
  */
 const plainMonthDay = /* @__PURE__ */ (): PlainMonthDaySchema => singleton;
 
-export { plainMonthDay };
+export { PlainMonthDaySchema, plainMonthDay };

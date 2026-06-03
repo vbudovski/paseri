@@ -75,4 +75,4 @@ const singleton = /* @__PURE__ */ new PlainTimeSchema();
  */
 const plainTime = /* @__PURE__ */ (): PlainTimeSchema => singleton;
 
-export { plainTime };
+export { PlainTimeSchema, plainTime };

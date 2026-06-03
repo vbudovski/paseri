@@ -130,4 +130,4 @@ const set = /* @__PURE__ */ <ElementSchemaType extends AnySchemaType>(
     ...args: ConstructorParameters<typeof SetSchema<ElementSchemaType>>
 ): SetSchema<ElementSchemaType> => new SetSchema(...args);
 
-export { set };
+export { SetSchema, set };

@@ -88,4 +88,4 @@ const singleton = /* @__PURE__ */ new DateSchema();
  */
 const date = /* @__PURE__ */ (): DateSchema => singleton;
 
-export { date };
+export { DateSchema, date };

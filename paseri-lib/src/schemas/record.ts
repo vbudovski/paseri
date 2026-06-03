@@ -73,4 +73,4 @@ const record = /* @__PURE__ */ <ElementSchemaType extends AnySchemaType>(
     ...args: ConstructorParameters<typeof RecordSchema<ElementSchemaType>>
 ): RecordSchema<ElementSchemaType> => new RecordSchema(...args);
 
-export { record };
+export { RecordSchema, record };
