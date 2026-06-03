@@ -5,7 +5,11 @@ import { Schema } from './schema.ts';
 
 type LiteralType = string | number | bigint | boolean;
 
-type HomogeneousLiteralArray = readonly string[] | readonly number[] | readonly bigint[] | readonly boolean[];
+type HomogeneousLiteralArray =
+    | readonly [string, ...string[]]
+    | readonly [number, ...number[]]
+    | readonly [bigint, ...bigint[]]
+    | readonly [boolean, ...boolean[]];
 
 class EnumSchema<const T extends readonly LiteralType[]> extends Schema<T[number]> {
     private readonly _values: T;
@@ -15,6 +19,10 @@ class EnumSchema<const T extends readonly LiteralType[]> extends Schema<T[number
 
     constructor(...values: T) {
         super();
+
+        if (values.length === 0) {
+            throw new Error('Enum must contain at least one value.');
+        }
 
         this._values = Object.freeze([...values]) as unknown as T;
         this._set = new Set(values);

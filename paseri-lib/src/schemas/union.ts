@@ -69,6 +69,10 @@ class UnionSchema<TupleType extends ValidTupleType> extends Schema<Infer<TupleTo
     constructor(...elements: TupleType) {
         super();
 
+        if (elements.length < 2) {
+            throw new Error('Union must contain at least two members.');
+        }
+
         this._elements = elements;
         this._discriminator = findDiscriminator(...this._elements);
         this.issues = {
