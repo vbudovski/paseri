@@ -73,6 +73,11 @@ it('is unaffected by mutating the source array after construction', () => {
     expect(result.ok).toBe(false);
 });
 
+it('rejects empty enum', () => {
+    // @ts-expect-error Intentionally silence the type error to validate runtime check.
+    expect(() => p.enum()).toThrow('Enum must contain at least one value.');
+});
+
 describe('extract', () => {
     it('accepts a value in the extracted set', () => {
         const schema = p.enum('red', 'green', 'blue').extract('red', 'green');

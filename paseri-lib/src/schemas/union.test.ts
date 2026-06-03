@@ -161,6 +161,13 @@ it('rejects non-object input to discriminated union', () => {
     );
 });
 
+it('rejects undersized union', () => {
+    // @ts-expect-error Intentionally silence the type error to validate runtime check.
+    expect(() => p.union()).toThrow('Union must contain at least two members.');
+    // @ts-expect-error Intentionally silence the type error to validate runtime check.
+    expect(() => p.union(p.string())).toThrow('Union must contain at least two members.');
+});
+
 describe('findDiscriminator', () => {
     it('returns false when no objects are present', () => {
         const elements = [p.number(), p.string()] as const;
