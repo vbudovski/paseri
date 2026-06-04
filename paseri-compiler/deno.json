@@ -1,0 +1,28 @@
+{
+  "$schema": "https://raw.githubusercontent.com/denoland/deno/main/cli/schemas/config-file.v1.json",
+  "name": "@vbudovski/paseri-compiler",
+  "license": "MIT",
+  "version": "0.1.0",
+  "description": "Ahead-of-time compiler for Paseri schemas.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "imports": {
+    "@std/expect": "jsr:@std/expect@^1.0.19",
+    "@std/testing": "jsr:@std/testing@^1.0.18",
+    "typescript": "npm:typescript@^6.0.3"
+  },
+  "tasks": {
+    "generate_runtime": "deno run --allow-read --allow-write bin/generate_runtime.ts"
+  },
+  "test": {
+    "permissions": {
+      "env": true,
+      "read": true
+    }
+  },
+  "publish": {
+    "include": ["src", "LICENSE.md", "README.md"],
+    "exclude": ["src/**/*.test.ts", "src/_test-helpers.ts", "src/aot-shadow.ts", "src/runtime.ts"]
+  }
+}

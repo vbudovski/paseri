@@ -1,5 +1,5 @@
 ## Tooling
-- Deno workspace with two members: `paseri-lib` (validation library, published to JSR) and `paseri-docs` (Astro + Preact docs site).
+- Deno workspace; members listed in `deno.json`.
 - Use Deno, not npm. Run `deno task check` to validate lint + formatting (read-only; exits non-zero on findings).
 - Lint + formatting uses biome (configured via `deno task check`). Never run `deno fmt` — its default style differs from the project's biome config.
 - Commits are enforced via commitlint — read `commitlint.config.ts` for the rules before writing a commit message.
@@ -15,6 +15,9 @@
 - To assert that a callback was (or wasn't) invoked, use `spy` + `assertSpyCalls` from `@std/testing/mock` rather than ad-hoc counters or boolean flags.
 - Prefer property-based tests with `fast-check` over hand-rolled example tables when the input space is non-trivial.
 - Run with `deno test -P`. The `-P` flag applies the permissions configured in `deno.json`; without it the suite fails on permission prompts.
+
+## Style
+- Capitalise "Paseri" in prose (comments, docs); lowercase only for literal package names like `paseri-lib`, `paseri-compiler`, `paseri-docs`.
 
 ## Benchmarks
 - Benchmarks live in `paseri-lib/bench/` as `*.bench.ts` files using `Deno.bench`. Each group defines a `Paseri` baseline alongside `Zod` and `Valita` for cross-library comparison.
