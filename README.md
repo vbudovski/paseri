@@ -10,6 +10,8 @@ Deno workspace for [Paseri](https://paseri.dev), a TypeScript parsing and valida
 
 - [`paseri-lib`](https://github.com/vbudovski/paseri/tree/main/paseri-lib) &mdash; the validation library, published to
   JSR as [`@vbudovski/paseri`](https://jsr.io/@vbudovski/paseri).
+- [`paseri-compiler`](https://github.com/vbudovski/paseri/tree/main/paseri-compiler) &mdash; ahead-of-time compiler that
+  turns a Paseri schema into a TypeScript module containing the parser.
 - [`paseri-docs`](https://github.com/vbudovski/paseri/tree/main/paseri-docs) &mdash; the
   [paseri.dev](https://paseri.dev) documentation site, built with [Astro](https://astro.build/) and
   [Starlight](https://starlight.astro.build/).

@@ -11,6 +11,9 @@ on:
       lib_coverage:
         description: "Code coverage percentage for paseri-lib."
         value: ${{ jobs.unit.outputs.lib_coverage }}
+      compiler_coverage:
+        description: "Code coverage percentage for paseri-compiler."
+        value: ${{ jobs.unit.outputs.compiler_coverage }}
 
 permissions: {}
 
@@ -23,6 +26,7 @@ jobs:
       pull-requests: write
     outputs:
       lib_coverage: ${{ steps.tests.outputs.LIB_COVERAGE }}
+      compiler_coverage: ${{ steps.tests.outputs.COMPILER_COVERAGE }}
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
@@ -52,23 +56,36 @@ jobs:
       - name: Run tests
         id: tests
         run: |
-          deno test -P --doc --coverage
-          echo "LIB_COVERAGE=$(deno coverage --include=paseri-lib/src/ | grep "All files" | sed 's/\x1B\[[0-9;]\{1,\}[A-Za-z]//g' | cut -d '|' -f 3 | xargs)" >> $GITHUB_OUTPUT
+          deno test -P --doc --coverage=.cov-lib paseri-lib/ bin/
+          deno test -P --doc --coverage=.cov-compiler paseri-compiler/
+          extract() {
+            deno coverage "$1" --include="$2" | grep "All files" | sed 's/\x1B\[[0-9;]\{1,\}[A-Za-z]//g' | cut -d '|' -f 3 | xargs
+          }
+          echo "LIB_COVERAGE=$(extract .cov-lib paseri-lib/src/)" >> $GITHUB_OUTPUT
+          echo "COMPILER_COVERAGE=$(extract .cov-compiler paseri-compiler/src/)" >> $GITHUB_OUTPUT
 
-      - name: Write main metric
+      - name: Write main metrics
         if: github.ref == 'refs/heads/main'
-        run: printf '%s' "${{ steps.tests.outputs.LIB_COVERAGE }}" > main-coverage-lib.txt
+        run: |
+          printf '%s' "${{ steps.tests.outputs.LIB_COVERAGE }}" > main-coverage-lib.txt
+          printf '%s' "${{ steps.tests.outputs.COMPILER_COVERAGE }}" > main-coverage-compiler.txt
 
-      - name: Save main coverage metric
+      - name: Save main lib coverage metric
         if: github.ref == 'refs/heads/main'
         uses: actions/cache/save@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
         with:
           path: main-coverage-lib.txt
           key: main-metrics-coverage-lib-${{ github.sha }}
 
-      - name: Restore main coverage metric
+      - name: Save main compiler coverage metric
+        if: github.ref == 'refs/heads/main'
+        uses: actions/cache/save@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
+        with:
+          path: main-coverage-compiler.txt
+          key: main-metrics-coverage-compiler-${{ github.sha }}
+
+      - name: Restore main lib coverage metric
         if: github.event_name == 'pull_request'
-        id: restore
         uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
         with:
           path: main-coverage-lib.txt
@@ -76,36 +93,50 @@ jobs:
           restore-keys: |
             main-metrics-coverage-lib-
 
+      - name: Restore main compiler coverage metric
+        if: github.event_name == 'pull_request'
+        uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
+        with:
+          path: main-coverage-compiler.txt
+          key: main-metrics-coverage-compiler-${{ github.event.pull_request.base.sha }}
+          restore-keys: |
+            main-metrics-coverage-compiler-
+
       - name: Compute coverage delta
         if: github.event_name == 'pull_request'
         id: delta
         run: |
-          pr_cov="${{ steps.tests.outputs.LIB_COVERAGE }}"
-          # Strict numeric whitelist on PR value.
-          pr_cov=$(printf '%s' "$pr_cov" | tr -cd '0-9.' | head -c 8)
-          if [ -f main-coverage-lib.txt ]; then
-            main_cov=$(tr -cd '0-9.' < main-coverage-lib.txt | head -c 8)
-            delta=$(awk -v a="$pr_cov" -v b="$main_cov" 'BEGIN { printf "%+.2f", a - b }')
-            main_display="${main_cov}%"
-          else
-            main_cov=""
-            delta="n/a"
-            main_display="no cached baseline"
-          fi
+          delta_for() {
+            local pr_cov="$1"
+            local cache_file="$2"
+            pr_cov=$(printf '%s' "$pr_cov" | tr -cd '0-9.' | head -c 8)
+            if [ -f "$cache_file" ]; then
+              local main_cov
+              main_cov=$(tr -cd '0-9.' < "$cache_file" | head -c 8)
+              local delta
+              delta=$(awk -v a="$pr_cov" -v b="$main_cov" 'BEGIN { printf "%+.2f", a - b }')
+              printf '%s|%s|%s' "$pr_cov" "${main_cov}%" "$delta"
+            else
+              printf '%s|%s|%s' "$pr_cov" "no cached baseline" "n/a"
+            fi
+          }
+          IFS='|' read -r lib_pr lib_main lib_delta <<<"$(delta_for "${{ steps.tests.outputs.LIB_COVERAGE }}" main-coverage-lib.txt)"
+          IFS='|' read -r compiler_pr compiler_main compiler_delta <<<"$(delta_for "${{ steps.tests.outputs.COMPILER_COVERAGE }}" main-coverage-compiler.txt)"
           {
             echo "## Coverage"
             echo ""
-            echo "| Branch | Value |"
-            echo "|--------|-------|"
-            echo "| This PR | ${pr_cov}% |"
-            echo "| main    | ${main_display} |"
-            echo "| Δ       | ${delta} |"
+            echo "| Package | This PR | main | Δ |"
+            echo "|---------|---------|------|---|"
+            echo "| paseri-lib | ${lib_pr}% | ${lib_main} | ${lib_delta} |"
+            echo "| paseri-compiler | ${compiler_pr}% | ${compiler_main} | ${compiler_delta} |"
           } >> "$GITHUB_STEP_SUMMARY"
           {
-            echo "pr_cov=$pr_cov"
-            echo "main_cov=$main_cov"
-            echo "main_display=$main_display"
-            echo "delta=$delta"
+            echo "lib_pr=$lib_pr"
+            echo "lib_main=$lib_main"
+            echo "lib_delta=$lib_delta"
+            echo "compiler_pr=$compiler_pr"
+            echo "compiler_main=$compiler_main"
+            echo "compiler_delta=$compiler_delta"
           } >> "$GITHUB_OUTPUT"
 
       - name: Post coverage comment
@@ -114,9 +145,12 @@ jobs:
           github.event.pull_request.head.repo.full_name == github.repository
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
         env:
-          PR_COV: ${{ steps.delta.outputs.pr_cov }}
-          MAIN_DISPLAY: ${{ steps.delta.outputs.main_display }}
-          DELTA: ${{ steps.delta.outputs.delta }}
+          LIB_PR: ${{ steps.delta.outputs.lib_pr }}
+          LIB_MAIN: ${{ steps.delta.outputs.lib_main }}
+          LIB_DELTA: ${{ steps.delta.outputs.lib_delta }}
+          COMPILER_PR: ${{ steps.delta.outputs.compiler_pr }}
+          COMPILER_MAIN: ${{ steps.delta.outputs.compiler_main }}
+          COMPILER_DELTA: ${{ steps.delta.outputs.compiler_delta }}
         with:
           script: |
             const marker = '<!-- paseri-coverage -->';
@@ -124,11 +158,10 @@ jobs:
               marker,
               '## Coverage',
               '',
-              '| Branch | Value |',
-              '|--------|-------|',
-              `| This PR | ${process.env.PR_COV}% |`,
-              `| main    | ${process.env.MAIN_DISPLAY} |`,
-              `| Δ       | ${process.env.DELTA} |`,
+              '| Package | This PR | main | Δ |',
+              '|---------|---------|------|---|',
+              `| paseri-lib | ${process.env.LIB_PR}% | ${process.env.LIB_MAIN} | ${process.env.LIB_DELTA} |`,
+              `| paseri-compiler | ${process.env.COMPILER_PR}% | ${process.env.COMPILER_MAIN} | ${process.env.COMPILER_DELTA} |`,
             ].join('\n');
             const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
