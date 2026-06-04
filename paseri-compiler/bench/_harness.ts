@@ -1,0 +1,18 @@
+import type { Schema } from '@vbudovski/paseri';
+import '@vbudovski/paseri/introspect';
+import { toSource } from '../src/index.ts';
+
+interface CompiledResult {
+    readonly ok: boolean;
+}
+
+type CompiledValidator = (value: unknown) => CompiledResult;
+
+async function compile<OutputType>(schema: Schema<OutputType>, name: string): Promise<CompiledValidator> {
+    const source = toSource(schema.toIR(), { name });
+    const dataUrl = `data:application/typescript,${encodeURIComponent(source)}`;
+    const module = (await import(dataUrl)) as Record<string, CompiledValidator>;
+    return module[`safeParse${name}`];
+}
+
+export { type CompiledValidator, compile };
