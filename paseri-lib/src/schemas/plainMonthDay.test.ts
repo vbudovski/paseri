@@ -9,7 +9,7 @@ const plainMonthDayArb = fc
         month: fc.integer({ min: 1, max: 12 }),
         day: fc.integer({ min: 1, max: 28 }),
     })
-    .map((m) => Temporal.PlainMonthDay.from(m));
+    .map((fields) => Temporal.PlainMonthDay.from(fields));
 
 it('accepts valid types', () => {
     const schema = p.plainMonthDay();

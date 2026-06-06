@@ -15,6 +15,26 @@ it('substitutes default for undefined input', () => {
     }
 });
 
+it('preserves a negative-zero default', () => {
+    const schema = p.number().optional().default(-0);
+    const result = schema.safeParse(undefined);
+    if (result.ok) {
+        expect(Object.is(result.value, -0)).toBe(true);
+    } else {
+        expect(result.ok).toBeTruthy();
+    }
+});
+
+it('preserves a default whose string contains module syntax', () => {
+    const schema = p.string().optional().default('export function evil() {}');
+    const result = schema.safeParse(undefined);
+    if (result.ok) {
+        expect(result.value).toBe('export function evil() {}');
+    } else {
+        expect(result.ok).toBeTruthy();
+    }
+});
+
 it('passes non-undefined input through to the base schema', () => {
     const schema = p.number().optional().default(123);
 
@@ -52,6 +72,62 @@ it('rejects invalid (non-undefined) input', () => {
 it('restricts `.default` to OptionalSchema', () => {
     expectTypeOf(p.string()).not.toHaveProperty('default');
     expectTypeOf(p.string().optional()).toHaveProperty('default');
+});
+
+describe('collection defaults', () => {
+    it('substitutes a Set default for undefined input', () => {
+        const schema = p
+            .set(p.string())
+            .optional()
+            .default(new Set(['a', 'b']));
+        const result = schema.safeParse(undefined);
+        if (result.ok) {
+            expect(result.value).toBeInstanceOf(Set);
+            expect([...result.value]).toEqual(['a', 'b']);
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
+    });
+
+    it('substitutes a Map default for undefined input', () => {
+        const schema = p
+            .map(p.string(), p.number())
+            .optional()
+            .default(new Map([['a', 1]]));
+        const result = schema.safeParse(undefined);
+        if (result.ok) {
+            expect(result.value).toBeInstanceOf(Map);
+            expect([...result.value]).toEqual([['a', 1]]);
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
+    });
+});
+
+describe('object key defaults', () => {
+    it('substitutes a default object whose keys need quoting', () => {
+        const schema = p.record(p.number()).optional().default({ 'a-b': 1, '1x': 2, 'has space': 3 });
+        const result = schema.safeParse(undefined);
+        if (result.ok) {
+            expect(result.value).toEqual({ 'a-b': 1, '1x': 2, 'has space': 3 });
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
+    });
+
+    it('preserves an own __proto__ key in a default object', () => {
+        const schema = p
+            .record(p.number())
+            .optional()
+            .default(JSON.parse('{"__proto__": 5}') as Record<string, number>);
+        const result = schema.safeParse(undefined);
+        if (result.ok) {
+            expect(Object.hasOwn(result.value, '__proto__')).toBe(true);
+            expect(Object.getOwnPropertyDescriptor(result.value, '__proto__')?.value).toBe(5);
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
+    });
 });
 
 describe('inside object schemas', () => {

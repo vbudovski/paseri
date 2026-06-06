@@ -4,13 +4,18 @@ import { expectTypeOf } from 'expect-type';
 import fc from 'fast-check';
 import * as p from '../index.ts';
 
+// Covers every field down to the nanosecond. PlainTime has no calendar, so the fast path always uses the
+// lexicographic field compare; this pins it to Temporal.PlainTime.compare across the full sub-second range.
 const plainTimeArb = fc
     .record({
         hour: fc.integer({ min: 0, max: 23 }),
         minute: fc.integer({ min: 0, max: 59 }),
         second: fc.integer({ min: 0, max: 59 }),
+        millisecond: fc.integer({ min: 0, max: 999 }),
+        microsecond: fc.integer({ min: 0, max: 999 }),
+        nanosecond: fc.integer({ min: 0, max: 999 }),
     })
-    .map((t) => Temporal.PlainTime.from(t));
+    .map((fields) => Temporal.PlainTime.from(fields));
 
 it('accepts valid types', () => {
     const schema = p.plainTime();
@@ -46,40 +51,28 @@ it('rejects invalid types', () => {
 describe('min', () => {
     const boundary = Temporal.PlainTime.from('12:00:00');
 
-    it('accepts valid values', () => {
-        const schema = p.plainTime().min(boundary);
-
+    it('accepts at-or-after the bound, rejects before it as too_dated', () => {
         fc.assert(
-            fc.property(
-                plainTimeArb.filter((t) => Temporal.PlainTime.compare(t, boundary) >= 0),
-                (data) => {
-                    const result = schema.safeParse(data);
+            fc.property(plainTimeArb, plainTimeArb, (bound, value) => {
+                const result = p.plainTime().min(bound).safeParse(value);
+                if (Temporal.PlainTime.compare(value, bound) >= 0) {
                     if (result.ok) {
                         expectTypeOf(result.value).toEqualTypeOf<Temporal.PlainTime>;
-                        expect(result.value).toBe(data);
+                        expect(result.value).toBe(value);
                     } else {
                         expect(result.ok).toBeTruthy();
                     }
-                },
-            ),
-        );
-    });
-
-    it('rejects invalid values', () => {
-        const schema = p.plainTime().min(boundary);
-
-        fc.assert(
-            fc.property(
-                plainTimeArb.filter((t) => Temporal.PlainTime.compare(t, boundary) < 0),
-                (data) => {
-                    const result = schema.safeParse(data);
+                } else {
                     if (!result.ok) {
                         expect(result.messages()).toEqual([{ path: [], message: 'too_dated' }]);
                     } else {
                         expect(result.ok).toBeFalsy();
                     }
-                },
-            ),
+                }
+            }),
+            // Seed the exact-boundary case (value equal to the bound): it alone distinguishes an inclusive bound from
+            // an exclusive one, and random nanosecond-resolution times never land on it.
+            { examples: [[boundary, Temporal.PlainTime.from('12:00:00')]] },
         );
     });
 
@@ -95,40 +88,26 @@ describe('min', () => {
 describe('max', () => {
     const boundary = Temporal.PlainTime.from('12:00:00');
 
-    it('accepts valid values', () => {
-        const schema = p.plainTime().max(boundary);
-
+    it('accepts at-or-before the bound, rejects after it as too_recent', () => {
         fc.assert(
-            fc.property(
-                plainTimeArb.filter((t) => Temporal.PlainTime.compare(t, boundary) <= 0),
-                (data) => {
-                    const result = schema.safeParse(data);
+            fc.property(plainTimeArb, plainTimeArb, (bound, value) => {
+                const result = p.plainTime().max(bound).safeParse(value);
+                if (Temporal.PlainTime.compare(value, bound) <= 0) {
                     if (result.ok) {
                         expectTypeOf(result.value).toEqualTypeOf<Temporal.PlainTime>;
-                        expect(result.value).toBe(data);
+                        expect(result.value).toBe(value);
                     } else {
                         expect(result.ok).toBeTruthy();
                     }
-                },
-            ),
-        );
-    });
-
-    it('rejects invalid values', () => {
-        const schema = p.plainTime().max(boundary);
-
-        fc.assert(
-            fc.property(
-                plainTimeArb.filter((t) => Temporal.PlainTime.compare(t, boundary) > 0),
-                (data) => {
-                    const result = schema.safeParse(data);
+                } else {
                     if (!result.ok) {
                         expect(result.messages()).toEqual([{ path: [], message: 'too_recent' }]);
                     } else {
                         expect(result.ok).toBeFalsy();
                     }
-                },
-            ),
+                }
+            }),
+            { examples: [[boundary, Temporal.PlainTime.from('12:00:00')]] },
         );
     });
 

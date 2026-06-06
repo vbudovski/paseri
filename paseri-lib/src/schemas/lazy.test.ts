@@ -92,7 +92,13 @@ describe('maxDepth', () => {
     it('honours a custom maxDepth passed to safeParse', () => {
         const schema: p.Schema<Node> = p.lazy(() => p.object({ children: p.array(schema) }));
 
-        expect(schema.safeParse(buildChain(5), { maxDepth: 5 }).ok).toBe(true);
+        const input = buildChain(5);
+        const accepted = schema.safeParse(input, { maxDepth: 5 });
+        if (accepted.ok) {
+            expect(accepted.value).toBe(input);
+        } else {
+            expect(accepted.ok).toBeTruthy();
+        }
 
         const result = schema.safeParse(buildChain(6), { maxDepth: 5 });
         if (!result.ok) {
@@ -107,8 +113,22 @@ describe('maxDepth', () => {
     it('lets the same schema use different maxDepth values across calls', () => {
         const schema: p.Schema<Node> = p.lazy(() => p.object({ children: p.array(schema) }));
 
-        expect(schema.safeParse(buildChain(11), { maxDepth: 10 }).ok).toBe(false);
-        expect(schema.safeParse(buildChain(11), { maxDepth: 11 }).ok).toBe(true);
+        const rejected = schema.safeParse(buildChain(11), { maxDepth: 10 });
+        if (!rejected.ok) {
+            const messages = rejected.messages();
+            expect(messages.length).toBe(1);
+            expect(messages[0].message).toBe('too_deep');
+        } else {
+            expect(rejected.ok).toBeFalsy();
+        }
+
+        const input = buildChain(11);
+        const accepted = schema.safeParse(input, { maxDepth: 11 });
+        if (accepted.ok) {
+            expect(accepted.value).toBe(input);
+        } else {
+            expect(accepted.ok).toBeTruthy();
+        }
     });
 
     it('limits depth, not width', () => {
@@ -123,7 +143,13 @@ describe('maxDepth', () => {
             return node;
         }
 
-        expect(schema.safeParse(buildPair(5), { maxDepth: 5 }).ok).toBe(true);
+        const input = buildPair(5);
+        const result = schema.safeParse(input, { maxDepth: 5 });
+        if (result.ok) {
+            expect(result.value).toBe(input);
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
     });
 
     it('rejects invalid values', () => {

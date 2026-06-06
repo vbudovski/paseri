@@ -4,12 +4,33 @@ import { expectTypeOf } from 'expect-type';
 import fc from 'fast-check';
 import * as p from '../index.ts';
 
+// Spans the full ISO year range and every built-in calendar. PlainYearMonth exposes no day getter, so the fast
+// path compares year/month only — exact against Temporal.PlainYearMonth.compare when both sides are iso8601
+// (reference day 1); non-iso8601 values defer to compare.
+const calendars = [
+    'iso8601',
+    'gregory',
+    'hebrew',
+    'islamic-umalqura',
+    'indian',
+    'persian',
+    'buddhist',
+    'japanese',
+    'chinese',
+    'coptic',
+    'ethiopic',
+    'roc',
+    'dangi',
+];
 const plainYearMonthArb = fc
     .record({
-        year: fc.integer({ min: 1900, max: 2100 }),
+        year: fc.integer({ min: -5000, max: 9999 }),
         month: fc.integer({ min: 1, max: 12 }),
+        calendar: fc.constantFrom(...calendars),
     })
-    .map((y) => Temporal.PlainYearMonth.from(y));
+    .map(({ year, month, calendar }) =>
+        Temporal.PlainDate.from({ year, month, day: 1 }).withCalendar(calendar).toPlainYearMonth(),
+    );
 
 it('accepts valid types', () => {
     const schema = p.plainYearMonth();
@@ -45,40 +66,35 @@ it('rejects invalid types', () => {
 describe('min', () => {
     const boundary = Temporal.PlainYearMonth.from('2020-01');
 
-    it('accepts valid values', () => {
-        const schema = p.plainYearMonth().min(boundary);
-
+    it('accepts at-or-after the bound, rejects before it as too_dated', () => {
         fc.assert(
-            fc.property(
-                plainYearMonthArb.filter((y) => Temporal.PlainYearMonth.compare(y, boundary) >= 0),
-                (data) => {
-                    const result = schema.safeParse(data);
+            fc.property(plainYearMonthArb, plainYearMonthArb, (bound, value) => {
+                const result = p.plainYearMonth().min(bound).safeParse(value);
+                if (Temporal.PlainYearMonth.compare(value, bound) >= 0) {
                     if (result.ok) {
                         expectTypeOf(result.value).toEqualTypeOf<Temporal.PlainYearMonth>;
-                        expect(result.value).toBe(data);
+                        expect(result.value).toBe(value);
                     } else {
                         expect(result.ok).toBeTruthy();
                     }
-                },
-            ),
-        );
-    });
-
-    it('rejects invalid values', () => {
-        const schema = p.plainYearMonth().min(boundary);
-
-        fc.assert(
-            fc.property(
-                plainYearMonthArb.filter((y) => Temporal.PlainYearMonth.compare(y, boundary) < 0),
-                (data) => {
-                    const result = schema.safeParse(data);
+                } else {
                     if (!result.ok) {
                         expect(result.messages()).toEqual([{ path: [], message: 'too_dated' }]);
                     } else {
                         expect(result.ok).toBeFalsy();
                     }
-                },
-            ),
+                }
+            }),
+            // Seed the exact-boundary case in a different calendar than the bound: compare ties at 0 (ordering is
+            // calendar-independent), pinning both the inclusive bound and that the cross-calendar path agrees.
+            {
+                examples: [
+                    [
+                        Temporal.PlainYearMonth.from('2020-01'),
+                        Temporal.PlainDate.from('2020-01-01').withCalendar('japanese').toPlainYearMonth(),
+                    ],
+                ],
+            },
         );
     });
 
@@ -94,40 +110,33 @@ describe('min', () => {
 describe('max', () => {
     const boundary = Temporal.PlainYearMonth.from('2020-01');
 
-    it('accepts valid values', () => {
-        const schema = p.plainYearMonth().max(boundary);
-
+    it('accepts at-or-before the bound, rejects after it as too_recent', () => {
         fc.assert(
-            fc.property(
-                plainYearMonthArb.filter((y) => Temporal.PlainYearMonth.compare(y, boundary) <= 0),
-                (data) => {
-                    const result = schema.safeParse(data);
+            fc.property(plainYearMonthArb, plainYearMonthArb, (bound, value) => {
+                const result = p.plainYearMonth().max(bound).safeParse(value);
+                if (Temporal.PlainYearMonth.compare(value, bound) <= 0) {
                     if (result.ok) {
                         expectTypeOf(result.value).toEqualTypeOf<Temporal.PlainYearMonth>;
-                        expect(result.value).toBe(data);
+                        expect(result.value).toBe(value);
                     } else {
                         expect(result.ok).toBeTruthy();
                     }
-                },
-            ),
-        );
-    });
-
-    it('rejects invalid values', () => {
-        const schema = p.plainYearMonth().max(boundary);
-
-        fc.assert(
-            fc.property(
-                plainYearMonthArb.filter((y) => Temporal.PlainYearMonth.compare(y, boundary) > 0),
-                (data) => {
-                    const result = schema.safeParse(data);
+                } else {
                     if (!result.ok) {
                         expect(result.messages()).toEqual([{ path: [], message: 'too_recent' }]);
                     } else {
                         expect(result.ok).toBeFalsy();
                     }
-                },
-            ),
+                }
+            }),
+            {
+                examples: [
+                    [
+                        Temporal.PlainYearMonth.from('2020-01'),
+                        Temporal.PlainDate.from('2020-01-01').withCalendar('japanese').toPlainYearMonth(),
+                    ],
+                ],
+            },
         );
     });
 

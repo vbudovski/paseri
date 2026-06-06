@@ -41,185 +41,83 @@ it('rejects invalid types', () => {
     );
 });
 
-describe('gte', () => {
-    it('accepts valid values', () => {
-        const schema = p.number().gte(10);
+// Each bound is exercised over a generated (bound, value) pair, deriving the expected outcome from the same
+// comparison the schema uses. This subsumes fixed-bound and negative-bound cases — negatives fall out of the
+// generator. `>=`/`>`/`<=`/`<` are exact at the boundary, so the derived predicate never disagrees with the schema.
+const boundChecks: readonly {
+    readonly name: 'gte' | 'gt' | 'lte' | 'lt';
+    readonly apply: (schema: ReturnType<typeof p.number>, bound: number) => ReturnType<typeof p.number>;
+    readonly accepts: (value: number, bound: number) => boolean;
+    readonly code: 'too_small' | 'too_large';
+}[] = [
+    {
+        name: 'gte',
+        apply: (schema, bound) => schema.gte(bound),
+        accepts: (value, bound) => value >= bound,
+        code: 'too_small',
+    },
+    {
+        name: 'gt',
+        apply: (schema, bound) => schema.gt(bound),
+        accepts: (value, bound) => value > bound,
+        code: 'too_small',
+    },
+    {
+        name: 'lte',
+        apply: (schema, bound) => schema.lte(bound),
+        accepts: (value, bound) => value <= bound,
+        code: 'too_large',
+    },
+    {
+        name: 'lt',
+        apply: (schema, bound) => schema.lt(bound),
+        accepts: (value, bound) => value < bound,
+        code: 'too_large',
+    },
+];
 
-        fc.assert(
-            fc.property(fc.float({ noNaN: true, min: 10 }), (data) => {
-                const result = schema.safeParse(data);
-                if (result.ok) {
-                    expectTypeOf(result.value).toEqualTypeOf<number>;
-                    expect(result.value).toBe(data);
-                } else {
-                    expect(result.ok).toBeTruthy();
-                }
-            }),
-        );
+for (const check of boundChecks) {
+    describe(check.name, () => {
+        it('accepts in-range and rejects out-of-range values for any bound', () => {
+            fc.assert(
+                // The bound excludes infinities (a ±Infinity bound is degenerate); the value does not — ±Infinity
+                // is a valid number input and exercises the open ends of the comparison.
+                fc.property(
+                    fc.float({ noNaN: true, noDefaultInfinity: true }),
+                    fc.float({ noNaN: true }),
+                    (bound, value) => {
+                        const schema = check.apply(p.number(), bound);
+                        const result = schema.safeParse(value);
+                        if (check.accepts(value, bound)) {
+                            if (result.ok) {
+                                expectTypeOf(result.value).toEqualTypeOf<number>;
+                                expect(result.value).toBe(value);
+                            } else {
+                                expect(result.ok).toBeTruthy();
+                            }
+                        } else {
+                            if (!result.ok) {
+                                expect(result.messages()).toEqual([{ path: [], message: check.code }]);
+                            } else {
+                                expect(result.ok).toBeFalsy();
+                            }
+                        }
+                    },
+                ),
+            );
+        });
+
+        it('throws on NaN boundary', () => {
+            expect(() => check.apply(p.number(), Number.NaN)).toThrow();
+        });
+
+        it('is immutable', () => {
+            const original = p.number();
+            const modified = check.apply(original, 3);
+            expect(modified).not.toEqual(original);
+        });
     });
-
-    it('rejects invalid values', () => {
-        const schema = p.number().gte(10);
-
-        fc.assert(
-            fc.property(fc.float({ noNaN: true, max: 10, maxExcluded: true }), (data) => {
-                const result = schema.safeParse(data);
-                if (!result.ok) {
-                    expect(result.messages()).toEqual([{ path: [], message: 'too_small' }]);
-                } else {
-                    expect(result.ok).toBeFalsy();
-                }
-            }),
-        );
-    });
-
-    it('throws on NaN boundary', () => {
-        expect(() => p.number().gte(Number.NaN)).toThrow();
-    });
-
-    it('is immutable', () => {
-        const original = p.number();
-        const modified = original.gte(3);
-        expect(modified).not.toEqual(original);
-        const branched = modified.lte(10);
-        expect(branched).not.toEqual(modified);
-    });
-});
-
-describe('gt', () => {
-    it('accepts valid values', () => {
-        const schema = p.number().gt(10);
-
-        fc.assert(
-            fc.property(fc.float({ noNaN: true, min: 10, minExcluded: true }), (data) => {
-                const result = schema.safeParse(data);
-                if (result.ok) {
-                    expectTypeOf(result.value).toEqualTypeOf<number>;
-                    expect(result.value).toBe(data);
-                } else {
-                    expect(result.ok).toBeTruthy();
-                }
-            }),
-        );
-    });
-
-    it('rejects invalid values', () => {
-        const schema = p.number().gt(10);
-
-        fc.assert(
-            fc.property(fc.float({ noNaN: true, max: 10 }), (data) => {
-                const result = schema.safeParse(data);
-                if (!result.ok) {
-                    expect(result.messages()).toEqual([{ path: [], message: 'too_small' }]);
-                } else {
-                    expect(result.ok).toBeFalsy();
-                }
-            }),
-        );
-    });
-
-    it('throws on NaN boundary', () => {
-        expect(() => p.number().gt(Number.NaN)).toThrow();
-    });
-
-    it('is immutable', () => {
-        const original = p.number();
-        const modified = original.gt(3);
-        expect(modified).not.toEqual(original);
-        const branched = modified.lt(10);
-        expect(branched).not.toEqual(modified);
-    });
-});
-
-describe('lte', () => {
-    it('accepts valid values', () => {
-        const schema = p.number().lte(10);
-
-        fc.assert(
-            fc.property(fc.float({ noNaN: true, max: 10 }), (data) => {
-                const result = schema.safeParse(data);
-                if (result.ok) {
-                    expectTypeOf(result.value).toEqualTypeOf<number>;
-                    expect(result.value).toBe(data);
-                } else {
-                    expect(result.ok).toBeTruthy();
-                }
-            }),
-        );
-    });
-
-    it('rejects invalid values', () => {
-        const schema = p.number().lte(10);
-
-        fc.assert(
-            fc.property(fc.float({ noNaN: true, min: 10, minExcluded: true }), (data) => {
-                const result = schema.safeParse(data);
-                if (!result.ok) {
-                    expect(result.messages()).toEqual([{ path: [], message: 'too_large' }]);
-                } else {
-                    expect(result.ok).toBeFalsy();
-                }
-            }),
-        );
-    });
-
-    it('throws on NaN boundary', () => {
-        expect(() => p.number().lte(Number.NaN)).toThrow();
-    });
-
-    it('is immutable', () => {
-        const original = p.number();
-        const modified = original.lte(3);
-        expect(modified).not.toEqual(original);
-        const branched = modified.gte(0);
-        expect(branched).not.toEqual(modified);
-    });
-});
-
-describe('lt', () => {
-    it('accepts valid values', () => {
-        const schema = p.number().lt(10);
-
-        fc.assert(
-            fc.property(fc.float({ noNaN: true, max: 10, maxExcluded: true }), (data) => {
-                const result = schema.safeParse(data);
-                if (result.ok) {
-                    expectTypeOf(result.value).toEqualTypeOf<number>;
-                    expect(result.value).toBe(data);
-                } else {
-                    expect(result.ok).toBeTruthy();
-                }
-            }),
-        );
-    });
-
-    it('rejects invalid values', () => {
-        const schema = p.number().lt(10);
-
-        fc.assert(
-            fc.property(fc.float({ noNaN: true, min: 10 }), (data) => {
-                const result = schema.safeParse(data);
-                if (!result.ok) {
-                    expect(result.messages()).toEqual([{ path: [], message: 'too_large' }]);
-                } else {
-                    expect(result.ok).toBeFalsy();
-                }
-            }),
-        );
-    });
-
-    it('throws on NaN boundary', () => {
-        expect(() => p.number().lt(Number.NaN)).toThrow();
-    });
-
-    it('is immutable', () => {
-        const original = p.number();
-        const modified = original.lt(3);
-        expect(modified).not.toEqual(original);
-        const branched = modified.gt(0);
-        expect(branched).not.toEqual(modified);
-    });
-});
+}
 
 describe('int', () => {
     it('accepts valid values', () => {

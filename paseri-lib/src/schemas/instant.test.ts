@@ -42,40 +42,28 @@ it('rejects invalid types', () => {
 describe('min', () => {
     const boundary = Temporal.Instant.from('2020-01-01T00:00:00Z');
 
-    it('accepts valid values', () => {
-        const schema = p.instant().min(boundary);
-
+    it('accepts at-or-after the bound, rejects before it as too_dated', () => {
         fc.assert(
-            fc.property(
-                instantArb.filter((d) => Temporal.Instant.compare(d, boundary) >= 0),
-                (data) => {
-                    const result = schema.safeParse(data);
+            fc.property(instantArb, instantArb, (bound, value) => {
+                const result = p.instant().min(bound).safeParse(value);
+                if (Temporal.Instant.compare(value, bound) >= 0) {
                     if (result.ok) {
                         expectTypeOf(result.value).toEqualTypeOf<Temporal.Instant>;
-                        expect(result.value).toBe(data);
+                        expect(result.value).toBe(value);
                     } else {
                         expect(result.ok).toBeTruthy();
                     }
-                },
-            ),
-        );
-    });
-
-    it('rejects invalid values', () => {
-        const schema = p.instant().min(boundary);
-
-        fc.assert(
-            fc.property(
-                instantArb.filter((d) => Temporal.Instant.compare(d, boundary) < 0),
-                (data) => {
-                    const result = schema.safeParse(data);
+                } else {
                     if (!result.ok) {
                         expect(result.messages()).toEqual([{ path: [], message: 'too_dated' }]);
                     } else {
                         expect(result.ok).toBeFalsy();
                     }
-                },
-            ),
+                }
+            }),
+            // Seed the exact-boundary case (value equal to the bound): it alone distinguishes an inclusive bound from
+            // an exclusive one, and random instants across a ~130-year span never land on it.
+            { examples: [[boundary, Temporal.Instant.fromEpochNanoseconds(boundary.epochNanoseconds)]] },
         );
     });
 
@@ -91,40 +79,26 @@ describe('min', () => {
 describe('max', () => {
     const boundary = Temporal.Instant.from('2020-01-01T00:00:00Z');
 
-    it('accepts valid values', () => {
-        const schema = p.instant().max(boundary);
-
+    it('accepts at-or-before the bound, rejects after it as too_recent', () => {
         fc.assert(
-            fc.property(
-                instantArb.filter((d) => Temporal.Instant.compare(d, boundary) <= 0),
-                (data) => {
-                    const result = schema.safeParse(data);
+            fc.property(instantArb, instantArb, (bound, value) => {
+                const result = p.instant().max(bound).safeParse(value);
+                if (Temporal.Instant.compare(value, bound) <= 0) {
                     if (result.ok) {
                         expectTypeOf(result.value).toEqualTypeOf<Temporal.Instant>;
-                        expect(result.value).toBe(data);
+                        expect(result.value).toBe(value);
                     } else {
                         expect(result.ok).toBeTruthy();
                     }
-                },
-            ),
-        );
-    });
-
-    it('rejects invalid values', () => {
-        const schema = p.instant().max(boundary);
-
-        fc.assert(
-            fc.property(
-                instantArb.filter((d) => Temporal.Instant.compare(d, boundary) > 0),
-                (data) => {
-                    const result = schema.safeParse(data);
+                } else {
                     if (!result.ok) {
                         expect(result.messages()).toEqual([{ path: [], message: 'too_recent' }]);
                     } else {
                         expect(result.ok).toBeFalsy();
                     }
-                },
-            ),
+                }
+            }),
+            { examples: [[boundary, Temporal.Instant.fromEpochNanoseconds(boundary.epochNanoseconds)]] },
         );
     });
 

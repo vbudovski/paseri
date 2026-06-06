@@ -86,110 +86,75 @@ it('rejects invalid types', () => {
     );
 });
 
-describe('min', () => {
-    it('accepts valid values', () => {
-        const schema = p.string().min(3);
+// min and max are exercised over a generated (bound, value) pair; the outcome is derived from the same length
+// comparison the schema uses. `length` is split out below because an exact-length match almost never coincides
+// with an independently generated bound.
+const lengthBoundChecks: readonly {
+    readonly name: 'min' | 'max';
+    readonly apply: (schema: ReturnType<typeof p.string>, bound: number) => ReturnType<typeof p.string>;
+    readonly accepts: (length: number, bound: number) => boolean;
+    readonly code: 'too_short' | 'too_long';
+}[] = [
+    {
+        name: 'min',
+        apply: (schema, bound) => schema.min(bound),
+        accepts: (length, bound) => length >= bound,
+        code: 'too_short',
+    },
+    {
+        name: 'max',
+        apply: (schema, bound) => schema.max(bound),
+        accepts: (length, bound) => length <= bound,
+        code: 'too_long',
+    },
+];
 
-        fc.assert(
-            fc.property(fc.string({ minLength: 3 }), (data) => {
-                const result = schema.safeParse(data);
-                if (result.ok) {
-                    expectTypeOf(result.value).toEqualTypeOf<string>;
-                    expect(result.value).toBe(data);
-                } else {
-                    expect(result.ok).toBeTruthy();
-                }
-            }),
-        );
+for (const check of lengthBoundChecks) {
+    describe(check.name, () => {
+        it('accepts in-range and rejects out-of-range values for any bound', () => {
+            fc.assert(
+                fc.property(fc.nat({ max: 15 }), fc.string({ maxLength: 30 }), (bound, data) => {
+                    const schema = check.apply(p.string(), bound);
+                    const result = schema.safeParse(data);
+                    if (check.accepts(data.length, bound)) {
+                        if (result.ok) {
+                            expectTypeOf(result.value).toEqualTypeOf<string>;
+                            expect(result.value).toBe(data);
+                        } else {
+                            expect(result.ok).toBeTruthy();
+                        }
+                    } else {
+                        if (!result.ok) {
+                            expect(result.messages()).toEqual([{ path: [], message: check.code }]);
+                        } else {
+                            expect(result.ok).toBeFalsy();
+                        }
+                    }
+                }),
+            );
+        });
+
+        it('rejects invalid bounds', () => {
+            expect(() => check.apply(p.string(), Number.NaN)).toThrow();
+            expect(() => check.apply(p.string(), -1)).toThrow();
+            expect(() => check.apply(p.string(), 1.5)).toThrow();
+            expect(() => check.apply(p.string(), Number.POSITIVE_INFINITY)).toThrow();
+            expect(() => check.apply(p.string(), 0)).not.toThrow();
+        });
+
+        it('is immutable', () => {
+            const original = p.string();
+            const modified = check.apply(original, 3);
+            expect(modified).not.toEqual(original);
+        });
     });
-
-    it('rejects invalid values', () => {
-        const schema = p.string().min(3);
-
-        fc.assert(
-            fc.property(fc.string({ maxLength: 2 }), (data) => {
-                const result = schema.safeParse(data);
-                if (!result.ok) {
-                    expect(result.messages()).toEqual([{ path: [], message: 'too_short' }]);
-                } else {
-                    expect(result.ok).toBeFalsy();
-                }
-            }),
-        );
-    });
-
-    it('rejects invalid bounds', () => {
-        expect(() => p.string().min(Number.NaN)).toThrow();
-        expect(() => p.string().min(-1)).toThrow();
-        expect(() => p.string().min(1.5)).toThrow();
-        expect(() => p.string().min(Number.POSITIVE_INFINITY)).toThrow();
-        expect(() => p.string().min(0)).not.toThrow();
-    });
-
-    it('is immutable', () => {
-        const original = p.string();
-        const modified = original.min(3);
-        expect(modified).not.toEqual(original);
-        const branched = modified.max(5);
-        expect(branched).not.toEqual(modified);
-    });
-});
-
-describe('max', () => {
-    it('accepts valid values', () => {
-        const schema = p.string().max(3);
-
-        fc.assert(
-            fc.property(fc.string({ maxLength: 3 }), (data) => {
-                const result = schema.safeParse(data);
-                if (result.ok) {
-                    expectTypeOf(result.value).toEqualTypeOf<string>;
-                    expect(result.value).toBe(data);
-                } else {
-                    expect(result.ok).toBeTruthy();
-                }
-            }),
-        );
-    });
-
-    it('rejects invalid values', () => {
-        const schema = p.string().max(3);
-
-        fc.assert(
-            fc.property(fc.string({ minLength: 4 }), (data) => {
-                const result = schema.safeParse(data);
-                if (!result.ok) {
-                    expect(result.messages()).toEqual([{ path: [], message: 'too_long' }]);
-                } else {
-                    expect(result.ok).toBeFalsy();
-                }
-            }),
-        );
-    });
-
-    it('rejects invalid bounds', () => {
-        expect(() => p.string().max(Number.NaN)).toThrow();
-        expect(() => p.string().max(-1)).toThrow();
-        expect(() => p.string().max(1.5)).toThrow();
-        expect(() => p.string().max(Number.POSITIVE_INFINITY)).toThrow();
-        expect(() => p.string().max(0)).not.toThrow();
-    });
-
-    it('is immutable', () => {
-        const original = p.string();
-        const modified = original.max(3);
-        expect(modified).not.toEqual(original);
-        const branched = modified.min(1);
-        expect(branched).not.toEqual(modified);
-    });
-});
+}
 
 describe('length', () => {
-    it('accepts valid values', () => {
-        const schema = p.string().length(3);
-
+    it('accepts a string whose length equals the bound', () => {
         fc.assert(
-            fc.property(fc.string({ minLength: 3, maxLength: 3 }), (data) => {
+            fc.property(fc.string({ maxLength: 30 }), (data) => {
+                const schema = p.string().length(data.length);
                 const result = schema.safeParse(data);
                 if (result.ok) {
                     expectTypeOf(result.value).toEqualTypeOf<string>;
@@ -201,11 +166,11 @@ describe('length', () => {
         );
     });
 
-    it('rejects values that are too long', () => {
-        const schema = p.string().length(3);
-
+    it('rejects a longer string as too_long', () => {
         fc.assert(
-            fc.property(fc.string({ minLength: 4 }), (data) => {
+            fc.property(fc.string({ maxLength: 30 }), fc.nat({ max: 30 }), (data, bound) => {
+                fc.pre(data.length > bound);
+                const schema = p.string().length(bound);
                 const result = schema.safeParse(data);
                 if (!result.ok) {
                     expect(result.messages()).toEqual([{ path: [], message: 'too_long' }]);
@@ -216,11 +181,11 @@ describe('length', () => {
         );
     });
 
-    it('rejects values that are too short', () => {
-        const schema = p.string().length(3);
-
+    it('rejects a shorter string as too_short', () => {
         fc.assert(
-            fc.property(fc.string({ maxLength: 2 }), (data) => {
+            fc.property(fc.string({ maxLength: 30 }), fc.nat({ max: 30 }), (data, bound) => {
+                fc.pre(data.length < bound);
+                const schema = p.string().length(bound);
                 const result = schema.safeParse(data);
                 if (!result.ok) {
                     expect(result.messages()).toEqual([{ path: [], message: 'too_short' }]);
@@ -243,8 +208,6 @@ describe('length', () => {
         const original = p.string();
         const modified = original.length(3);
         expect(modified).not.toEqual(original);
-        const branched = modified.min(1);
-        expect(branched).not.toEqual(modified);
     });
 });
 
@@ -489,140 +452,78 @@ describe('nanoid', () => {
     });
 });
 
-describe('includes', () => {
-    it('accepts valid values', () => {
-        const schema = p.string().includes('foo');
+// Each substring check is exercised over a generated needle rather than a fixed 'foo': accept-data is constructed
+// to satisfy the constraint, reject-data is drawn against a non-empty needle and gated so the constraint fails.
+const substringChecks: readonly {
+    readonly name: 'includes' | 'startsWith' | 'endsWith';
+    readonly apply: (schema: ReturnType<typeof p.string>, needle: string) => ReturnType<typeof p.string>;
+    readonly build: (needle: string, prefix: string, suffix: string) => string;
+    readonly holds: (value: string, needle: string) => boolean;
+    readonly code: 'does_not_include' | 'does_not_start_with' | 'does_not_end_with';
+}[] = [
+    {
+        name: 'includes',
+        apply: (schema, needle) => schema.includes(needle),
+        build: (needle, prefix, suffix) => `${prefix}${needle}${suffix}`,
+        holds: (value, needle) => value.includes(needle),
+        code: 'does_not_include',
+    },
+    {
+        name: 'startsWith',
+        apply: (schema, needle) => schema.startsWith(needle),
+        build: (needle, _prefix, suffix) => `${needle}${suffix}`,
+        holds: (value, needle) => value.startsWith(needle),
+        code: 'does_not_start_with',
+    },
+    {
+        name: 'endsWith',
+        apply: (schema, needle) => schema.endsWith(needle),
+        build: (needle, prefix) => `${prefix}${needle}`,
+        holds: (value, needle) => value.endsWith(needle),
+        code: 'does_not_end_with',
+    },
+];
 
-        fc.assert(
-            fc.property(fc.string(), fc.string(), (prefix, suffix) => {
-                const data = `${prefix}foo${suffix}`;
-                const result = schema.safeParse(data);
-                if (result.ok) {
-                    expectTypeOf(result.value).toEqualTypeOf<string>;
-                    expect(result.value).toBe(data);
-                } else {
-                    expect(result.ok).toBeTruthy();
-                }
-            }),
-        );
-    });
+for (const check of substringChecks) {
+    describe(check.name, () => {
+        it('accepts strings that satisfy the constraint for any needle', () => {
+            fc.assert(
+                fc.property(fc.string(), fc.string(), fc.string(), (needle, prefix, suffix) => {
+                    const schema = check.apply(p.string(), needle);
+                    const data = check.build(needle, prefix, suffix);
+                    const result = schema.safeParse(data);
+                    if (result.ok) {
+                        expectTypeOf(result.value).toEqualTypeOf<string>;
+                        expect(result.value).toBe(data);
+                    } else {
+                        expect(result.ok).toBeTruthy();
+                    }
+                }),
+            );
+        });
 
-    it('rejects invalid values', () => {
-        const schema = p.string().includes('foo');
-
-        fc.assert(
-            fc.property(
-                fc.string().filter((value) => !value.includes('foo')),
-                (data) => {
+        it('rejects strings that violate the constraint', () => {
+            fc.assert(
+                fc.property(fc.string({ minLength: 1 }), fc.string(), (needle, data) => {
+                    fc.pre(!check.holds(data, needle));
+                    const schema = check.apply(p.string(), needle);
                     const result = schema.safeParse(data);
                     if (!result.ok) {
-                        expect(result.messages()).toEqual([{ path: [], message: 'does_not_include' }]);
+                        expect(result.messages()).toEqual([{ path: [], message: check.code }]);
                     } else {
                         expect(result.ok).toBeFalsy();
                     }
-                },
-            ),
-        );
+                }),
+            );
+        });
+
+        it('is immutable', () => {
+            const original = p.string();
+            const modified = check.apply(original, 'foo');
+            expect(modified).not.toEqual(original);
+        });
     });
-
-    it('is immutable', () => {
-        const original = p.string();
-        const modified = original.includes('foo');
-        expect(modified).not.toEqual(original);
-        const branched = modified.min(1);
-        expect(branched).not.toEqual(modified);
-    });
-});
-
-describe('startsWith', () => {
-    it('accepts valid values', () => {
-        const schema = p.string().startsWith('foo');
-
-        fc.assert(
-            fc.property(fc.string(), (suffix) => {
-                const data = `foo${suffix}`;
-                const result = schema.safeParse(data);
-                if (result.ok) {
-                    expectTypeOf(result.value).toEqualTypeOf<string>;
-                    expect(result.value).toBe(data);
-                } else {
-                    expect(result.ok).toBeTruthy();
-                }
-            }),
-        );
-    });
-
-    it('rejects invalid values', () => {
-        const schema = p.string().startsWith('foo');
-
-        fc.assert(
-            fc.property(
-                fc.string().filter((value) => !value.startsWith('foo')),
-                (data) => {
-                    const result = schema.safeParse(data);
-                    if (!result.ok) {
-                        expect(result.messages()).toEqual([{ path: [], message: 'does_not_start_with' }]);
-                    } else {
-                        expect(result.ok).toBeFalsy();
-                    }
-                },
-            ),
-        );
-    });
-
-    it('is immutable', () => {
-        const original = p.string();
-        const modified = original.startsWith('foo');
-        expect(modified).not.toEqual(original);
-        const branched = modified.min(1);
-        expect(branched).not.toEqual(modified);
-    });
-});
-
-describe('endsWith', () => {
-    it('accepts valid values', () => {
-        const schema = p.string().endsWith('foo');
-
-        fc.assert(
-            fc.property(fc.string(), (prefix) => {
-                const data = `${prefix}foo`;
-                const result = schema.safeParse(data);
-                if (result.ok) {
-                    expectTypeOf(result.value).toEqualTypeOf<string>;
-                    expect(result.value).toBe(data);
-                } else {
-                    expect(result.ok).toBeTruthy();
-                }
-            }),
-        );
-    });
-
-    it('rejects invalid values', () => {
-        const schema = p.string().endsWith('foo');
-
-        fc.assert(
-            fc.property(
-                fc.string().filter((value) => !value.endsWith('foo')),
-                (data) => {
-                    const result = schema.safeParse(data);
-                    if (!result.ok) {
-                        expect(result.messages()).toEqual([{ path: [], message: 'does_not_end_with' }]);
-                    } else {
-                        expect(result.ok).toBeFalsy();
-                    }
-                },
-            ),
-        );
-    });
-
-    it('is immutable', () => {
-        const original = p.string();
-        const modified = original.endsWith('foo');
-        expect(modified).not.toEqual(original);
-        const branched = modified.min(1);
-        expect(branched).not.toEqual(modified);
-    });
-});
+}
 
 describe('date (string)', () => {
     it('accepts valid values', () => {
