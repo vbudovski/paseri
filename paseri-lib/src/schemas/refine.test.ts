@@ -16,6 +16,19 @@ it('passes the value through when the predicate returns true', () => {
     }
 });
 
+it('invokes the predicate without a `this` receiver', () => {
+    let observed: unknown = 'unset';
+    const schema = p.number().refine(
+        function (this: unknown, value) {
+            observed = this;
+            return value > 0;
+        },
+        { code: 'positive' },
+    );
+    schema.safeParse(1);
+    expect(observed).toBeUndefined();
+});
+
 it('emits the issue at the root path by default', () => {
     const schema = p.string().refine(() => false, { code: 'fails' });
     const result = schema.safeParse('hello');

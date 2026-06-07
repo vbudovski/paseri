@@ -191,11 +191,14 @@ class ChainSchema<FromOutputType, ToOutputType> extends Schema<ToOutputType> {
     _parse(value: unknown, _depth: number, _maxDepth: number): InternalParseResult<ToOutputType> {
         const issueOrSuccessFrom = this._fromSchema._parse(value, _depth, _maxDepth);
 
+        // Invoke through a local so the transformer runs with `this` undefined rather than bound to this schema
+        // instance (see the matching note in RefineSchema): a plain callback must not depend on a receiver.
+        const transformer = this._transformer;
         let transformedResult: ParseResult<ToOutputType>;
         if (issueOrSuccessFrom === undefined) {
-            transformedResult = this._transformer(value as FromOutputType);
+            transformedResult = transformer(value as FromOutputType);
         } else if (isParseSuccess(issueOrSuccessFrom)) {
-            transformedResult = this._transformer(issueOrSuccessFrom.value);
+            transformedResult = transformer(issueOrSuccessFrom.value);
         } else {
             return issueOrSuccessFrom;
         }
@@ -280,7 +283,11 @@ class RefineSchema<OutputType> extends Schema<OutputType> {
 
         const parsed = baseResult === undefined ? (value as OutputType) : baseResult.value;
 
-        if (this._predicate(parsed)) {
+        // Invoke through a local so the predicate runs with `this` undefined rather than bound to this schema
+        // instance. A predicate is a plain callback that must not depend on a receiver; binding it here only ever
+        // exposed our private internals, which was never a supported contract.
+        const predicate = this._predicate;
+        if (predicate(parsed)) {
             return baseResult;
         }
 
