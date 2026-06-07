@@ -75,4 +75,4 @@ const singleton = /* @__PURE__ */ new ZonedDateTimeSchema();
  */
 const zonedDateTime = /* @__PURE__ */ (): ZonedDateTimeSchema => singleton;
 
-export { zonedDateTime };
+export { ZonedDateTimeSchema, zonedDateTime };

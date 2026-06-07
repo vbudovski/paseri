@@ -26,6 +26,17 @@ it('accepts a number value in the set', () => {
     }
 });
 
+it('accepts a negative number value in the set', () => {
+    const schema = p.enum(-1, -2, -3);
+    const result = schema.safeParse(-2);
+    if (result.ok) {
+        expectTypeOf(result.value).toEqualTypeOf<-1 | -2 | -3>;
+        expect(result.value).toBe(-2);
+    } else {
+        expect(result.ok).toBeTruthy();
+    }
+});
+
 it('accepts a bigint value in the set', () => {
     const schema = p.enum(1n, 2n, 3n);
     const result = schema.safeParse(2n);
@@ -62,7 +73,12 @@ it('rejects a value not in the set', () => {
 
 it('distinguishes a number from its string equivalent', () => {
     const schema = p.enum(1);
-    expect(schema.safeParse('1').ok).toBe(false);
+    const result = schema.safeParse('1');
+    if (!result.ok) {
+        expect(result.messages()).toEqual([{ path: [], message: 'invalid_enum_value' }]);
+    } else {
+        expect(result.ok).toBeFalsy();
+    }
 });
 
 it('is unaffected by mutating the source array after construction', () => {
@@ -70,7 +86,11 @@ it('is unaffected by mutating the source array after construction', () => {
     const schema = p.enum(...values);
     (values as unknown as string[]).push('purple');
     const result = schema.safeParse('purple');
-    expect(result.ok).toBe(false);
+    if (!result.ok) {
+        expect(result.messages()).toEqual([{ path: [], message: 'invalid_enum_value' }]);
+    } else {
+        expect(result.ok).toBeFalsy();
+    }
 });
 
 it('rejects empty enum', () => {
@@ -93,7 +113,11 @@ describe('extract', () => {
     it('rejects a value not in the extracted set', () => {
         const schema = p.enum('red', 'green', 'blue').extract('red', 'green');
         const result = schema.safeParse('blue');
-        expect(result.ok).toBe(false);
+        if (!result.ok) {
+            expect(result.messages()).toEqual([{ path: [], message: 'invalid_enum_value' }]);
+        } else {
+            expect(result.ok).toBeFalsy();
+        }
     });
 
     it('is immutable', () => {
@@ -107,7 +131,11 @@ describe('exclude', () => {
     it('rejects an excluded value', () => {
         const schema = p.enum('red', 'green', 'blue').exclude('red');
         const result = schema.safeParse('red');
-        expect(result.ok).toBe(false);
+        if (!result.ok) {
+            expect(result.messages()).toEqual([{ path: [], message: 'invalid_enum_value' }]);
+        } else {
+            expect(result.ok).toBeFalsy();
+        }
     });
 
     it('accepts a non-excluded value', () => {

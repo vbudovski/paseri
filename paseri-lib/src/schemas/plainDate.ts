@@ -87,4 +87,4 @@ const singleton = /* @__PURE__ */ new PlainDateSchema();
  */
 const plainDate = /* @__PURE__ */ (): PlainDateSchema => singleton;
 
-export { plainDate };
+export { PlainDateSchema, plainDate };

@@ -13,6 +13,16 @@ function numberToString(value: number): string {
     return 1 / value === Number.NEGATIVE_INFINITY ? `-${String(value)}` : String(value);
 }
 
+it('invokes the transformer without a `this` receiver', () => {
+    let observed: unknown = 'unset';
+    const schema = p.string().chain(p.string(), function (this: unknown, value) {
+        observed = this;
+        return p.ok(value);
+    });
+    schema.safeParse('x');
+    expect(observed).toBeUndefined();
+});
+
 it('rejects when source schema fails', () => {
     const schema = p.string().chain(p.number(), (value) => {
         return p.ok(Number(value));

@@ -26,4 +26,4 @@ const singleton = /* @__PURE__ */ new SymbolSchema();
  */
 const symbol = /* @__PURE__ */ (): SymbolSchema => singleton;
 
-export { symbol };
+export { SymbolSchema, symbol };

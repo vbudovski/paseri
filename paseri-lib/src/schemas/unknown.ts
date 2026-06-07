@@ -17,4 +17,4 @@ const singleton = /* @__PURE__ */ new UnknownSchema();
  */
 const unknown = /* @__PURE__ */ (): UnknownSchema => singleton;
 
-export { unknown };
+export { UnknownSchema, unknown };

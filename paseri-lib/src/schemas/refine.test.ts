@@ -16,6 +16,19 @@ it('passes the value through when the predicate returns true', () => {
     }
 });
 
+it('invokes the predicate without a `this` receiver', () => {
+    let observed: unknown = 'unset';
+    const schema = p.number().refine(
+        function (this: unknown, value) {
+            observed = this;
+            return value > 0;
+        },
+        { code: 'positive' },
+    );
+    schema.safeParse(1);
+    expect(observed).toBeUndefined();
+});
+
 it('emits the issue at the root path by default', () => {
     const schema = p.string().refine(() => false, { code: 'fails' });
     const result = schema.safeParse('hello');
@@ -81,5 +94,122 @@ it('allows a refined optional field to be omitted', () => {
         expect(result.value).toEqual({});
     } else {
         expect(result.ok).toBeTruthy();
+    }
+});
+
+it('runs the predicate against a defaulted value, not the original undefined', () => {
+    const schema = p
+        .string()
+        .optional()
+        .default('x')
+        .refine((value: string) => value.length > 3, { code: 'too_short' });
+    const result = schema.safeParse(undefined);
+    if (!result.ok) {
+        expect(result.messages()).toEqual([{ path: [], message: 'too_short' }]);
+    } else {
+        expect(result.ok).toBeFalsy();
+    }
+});
+
+it('passes a defaulted value through when the predicate accepts it', () => {
+    const schema = p
+        .string()
+        .optional()
+        .default('xxxxx')
+        .refine((value: string) => value.length > 3, { code: 'too_short' });
+    const result = schema.safeParse(undefined);
+    if (result.ok) {
+        expect(result.value).toBe('xxxxx');
+    } else {
+        expect(result.ok).toBeTruthy();
+    }
+});
+
+it('runs the predicate against a provided value over a default base', () => {
+    const schema = p
+        .string()
+        .optional()
+        .default('xxxxx')
+        .refine((value: string) => value.length > 3, { code: 'too_short' });
+    const result = schema.safeParse('ab');
+    if (!result.ok) {
+        expect(result.messages()).toEqual([{ path: [], message: 'too_short' }]);
+    } else {
+        expect(result.ok).toBeFalsy();
+    }
+});
+
+it('runs the predicate against a stripped object, not the original', () => {
+    const schema = p
+        .object({ a: p.number() })
+        .strip()
+        .refine((value: { a: number }) => Object.keys(value).length === 1, { code: 'extra_keys' });
+    const result = schema.safeParse({ a: 1, b: 2 });
+    if (result.ok) {
+        expect(result.value).toEqual({ a: 1 });
+    } else {
+        expect(result.ok).toBeTruthy();
+    }
+});
+
+it('runs a refined array element predicate against the element default', () => {
+    const schema = p.array(
+        p
+            .string()
+            .optional()
+            .default('xxxxx')
+            .refine((value: string) => value.length > 3, { code: 'too_short' }),
+    );
+    const result = schema.safeParse([undefined]);
+    if (result.ok) {
+        expect(result.value).toEqual(['xxxxx']);
+    } else {
+        expect(result.ok).toBeTruthy();
+    }
+});
+
+it('fails a refined array element when the element default fails the predicate', () => {
+    const schema = p.array(
+        p
+            .string()
+            .optional()
+            .default('x')
+            .refine((value: string) => value.length > 3, { code: 'too_short' }),
+    );
+    const result = schema.safeParse([undefined]);
+    if (!result.ok) {
+        expect(result.messages()).toEqual([{ path: [0], message: 'too_short' }]);
+    } else {
+        expect(result.ok).toBeFalsy();
+    }
+});
+
+it('rejects when a refine over a non-modifying array fails the predicate', () => {
+    const schema = p.array(p.number()).refine((value: number[]) => value.length > 2, { code: 'too_few' });
+    const result = schema.safeParse([1]);
+    if (!result.ok) {
+        expect(result.messages()).toEqual([{ path: [], message: 'too_few' }]);
+    } else {
+        expect(result.ok).toBeFalsy();
+    }
+});
+
+it('passes when a refine over a non-modifying array accepts the predicate', () => {
+    const schema = p.array(p.number()).refine((value: number[]) => value.length > 2, { code: 'too_few' });
+    const result = schema.safeParse([1, 2, 3]);
+    if (result.ok) {
+        expect(result.value).toEqual([1, 2, 3]);
+    } else {
+        expect(result.ok).toBeTruthy();
+    }
+});
+
+it('rejects when a refine over a non-modifying object fails the predicate', () => {
+    const schema = p.object({ a: p.number() }).refine((value: { a: number }) => value.a > 5, { code: 'too_small' });
+    const result = schema.safeParse({ a: 3 });
+    if (!result.ok) {
+        expect(result.messages()).toEqual([{ path: [], message: 'too_small' }]);
+    } else {
+        expect(result.ok).toBeFalsy();
     }
 });

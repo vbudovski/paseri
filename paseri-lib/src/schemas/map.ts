@@ -162,4 +162,4 @@ const map = /* @__PURE__ */ <ElementKeySchemaType extends AnySchemaType, Element
     ...args: ConstructorParameters<typeof MapSchema<ElementKeySchemaType, ElementValueSchemaType>>
 ): MapSchema<ElementKeySchemaType, ElementValueSchemaType> => new MapSchema(...args);
 
-export { map };
+export { MapSchema, map };

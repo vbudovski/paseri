@@ -38,6 +38,16 @@ it('rejects invalid types', () => {
     );
 });
 
+it('rejects a plain-looking object whose own constructor is undefined', () => {
+    const schema = p.record(p.unknown());
+    const result = schema.safeParse({ constructor: undefined });
+    if (!result.ok) {
+        expect(result.messages()).toEqual([{ path: [], message: 'invalid_type' }]);
+    } else {
+        expect(result.ok).toBeFalsy();
+    }
+});
+
 it('rejects invalid elements', () => {
     const schema = p.record(p.number());
     const data = { foo: 123, bad1: 'hello', bar: 456, bad2: 'world' };

@@ -27,4 +27,4 @@ const singleton = /* @__PURE__ */ new UndefinedSchema();
 // `undefined` is a reserved word.
 const undefined_ = /* @__PURE__ */ (): UndefinedSchema => singleton;
 
-export { undefined_ };
+export { UndefinedSchema, undefined_ };

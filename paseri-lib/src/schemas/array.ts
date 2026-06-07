@@ -116,4 +116,4 @@ const array = /* @__PURE__ */ <ElementSchemaType extends AnySchemaType>(
     ...args: ConstructorParameters<typeof ArraySchema<ElementSchemaType>>
 ): ArraySchema<ElementSchemaType> => new ArraySchema(...args);
 
-export { array };
+export { ArraySchema, array };

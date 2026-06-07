@@ -47,34 +47,28 @@ it('rejects invalid dates', () => {
 });
 
 describe('min', () => {
-    it('accepts valid values', () => {
-        const schema = p.date().min(new Date(2020, 0, 1));
-
+    it('accepts at-or-after the bound, rejects before it as too_dated', () => {
         fc.assert(
-            fc.property(fc.date({ min: new Date(2020, 0, 1), noInvalidDate: true }), (data) => {
-                const result = schema.safeParse(data);
-                if (result.ok) {
-                    expectTypeOf(result.value).toEqualTypeOf<Date>;
-                    expect(result.value).toBe(data);
+            fc.property(fc.date({ noInvalidDate: true }), fc.date({ noInvalidDate: true }), (bound, value) => {
+                const result = p.date().min(bound).safeParse(value);
+                if (value.getTime() >= bound.getTime()) {
+                    if (result.ok) {
+                        expectTypeOf(result.value).toEqualTypeOf<Date>;
+                        expect(result.value).toBe(value);
+                    } else {
+                        expect(result.ok).toBeTruthy();
+                    }
                 } else {
-                    expect(result.ok).toBeTruthy();
+                    if (!result.ok) {
+                        expect(result.messages()).toEqual([{ path: [], message: 'too_dated' }]);
+                    } else {
+                        expect(result.ok).toBeFalsy();
+                    }
                 }
             }),
-        );
-    });
-
-    it('rejects invalid values', () => {
-        const schema = p.date().min(new Date(2020, 0, 1));
-
-        fc.assert(
-            fc.property(fc.date({ max: new Date(2019, 11, 31), noInvalidDate: true }), (data) => {
-                const result = schema.safeParse(data);
-                if (!result.ok) {
-                    expect(result.messages()).toEqual([{ path: [], message: 'too_dated' }]);
-                } else {
-                    expect(result.ok).toBeFalsy();
-                }
-            }),
+            // Seed the exact-boundary case (two distinct Dates at the same time): it alone distinguishes an inclusive
+            // bound from an exclusive one, and random dates never coincide to the millisecond.
+            { examples: [[new Date(2020, 0, 1), new Date(2020, 0, 1)]] },
         );
     });
 
@@ -95,40 +89,37 @@ describe('min', () => {
         const schema = p.date().min(bound);
         bound.setFullYear(2030);
 
-        const result = schema.safeParse(new Date(2025, 0, 1));
-        expect(result.ok).toBe(true);
+        const input = new Date(2025, 0, 1);
+        const result = schema.safeParse(input);
+        if (result.ok) {
+            expect(result.value).toBe(input);
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
     });
 });
 
 describe('max', () => {
-    it('accepts valid values', () => {
-        const schema = p.date().max(new Date(2020, 0, 1));
-
+    it('accepts at-or-before the bound, rejects after it as too_recent', () => {
         fc.assert(
-            fc.property(fc.date({ max: new Date(2020, 0, 1), noInvalidDate: true }), (data) => {
-                const result = schema.safeParse(data);
-                if (result.ok) {
-                    expectTypeOf(result.value).toEqualTypeOf<Date>;
-                    expect(result.value).toBe(data);
+            fc.property(fc.date({ noInvalidDate: true }), fc.date({ noInvalidDate: true }), (bound, value) => {
+                const result = p.date().max(bound).safeParse(value);
+                if (value.getTime() <= bound.getTime()) {
+                    if (result.ok) {
+                        expectTypeOf(result.value).toEqualTypeOf<Date>;
+                        expect(result.value).toBe(value);
+                    } else {
+                        expect(result.ok).toBeTruthy();
+                    }
                 } else {
-                    expect(result.ok).toBeTruthy();
+                    if (!result.ok) {
+                        expect(result.messages()).toEqual([{ path: [], message: 'too_recent' }]);
+                    } else {
+                        expect(result.ok).toBeFalsy();
+                    }
                 }
             }),
-        );
-    });
-
-    it('rejects invalid values', () => {
-        const schema = p.date().max(new Date(2020, 0, 1));
-
-        fc.assert(
-            fc.property(fc.date({ min: new Date(2020, 0, 2), noInvalidDate: true }), (data) => {
-                const result = schema.safeParse(data);
-                if (!result.ok) {
-                    expect(result.messages()).toEqual([{ path: [], message: 'too_recent' }]);
-                } else {
-                    expect(result.ok).toBeFalsy();
-                }
-            }),
+            { examples: [[new Date(2020, 0, 1), new Date(2020, 0, 1)]] },
         );
     });
 
@@ -149,8 +140,13 @@ describe('max', () => {
         const schema = p.date().max(bound);
         bound.setFullYear(2010);
 
-        const result = schema.safeParse(new Date(2015, 0, 1));
-        expect(result.ok).toBe(true);
+        const input = new Date(2015, 0, 1);
+        const result = schema.safeParse(input);
+        if (result.ok) {
+            expect(result.value).toBe(input);
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
     });
 });
 

@@ -26,4 +26,4 @@ const singleton = /* @__PURE__ */ new BooleanSchema();
  */
 const boolean = /* @__PURE__ */ (): BooleanSchema => singleton;
 
-export { boolean };
+export { BooleanSchema, boolean };

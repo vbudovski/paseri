@@ -63,26 +63,63 @@ describe('Number', () => {
         // NaN is not a literal type according to TypeScript, so cast to `never` to allow usage with literal.
         const schema = p.literal(Number.NaN as never);
         const result = schema.safeParse(Number.NaN);
-        expect(result.ok).toBe(true);
+        if (result.ok) {
+            expect(result.value).toBe(Number.NaN);
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
     });
 
     it('rejects non-NaN against literal(NaN)', () => {
         // NaN is not a literal type according to TypeScript, so cast to `never` to allow usage with literal.
         const schema = p.literal(Number.NaN as never);
         const result = schema.safeParse(42);
-        expect(result.ok).toBe(false);
+        if (!result.ok) {
+            expect(result.messages()).toEqual([{ path: [], message: 'invalid_value' }]);
+        } else {
+            expect(result.ok).toBeFalsy();
+        }
     });
 
     it('matches -0 against literal(0)', () => {
         const schema = p.literal(0);
         const result = schema.safeParse(-0);
-        expect(result.ok).toBe(true);
+        if (result.ok) {
+            expect(result.value).toBe(-0);
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
     });
 
     it('matches 0 against literal(-0)', () => {
         const schema = p.literal(-0);
         const result = schema.safeParse(0);
-        expect(result.ok).toBe(true);
+        if (result.ok) {
+            expect(result.value).toBe(0);
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
+    });
+
+    it('matches a negative literal', () => {
+        const schema = p.literal(-5);
+        const result = schema.safeParse(-5);
+        if (result.ok) {
+            expectTypeOf(result.value).toEqualTypeOf<-5>;
+            expect(result.value).toBe(-5);
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
+    });
+
+    it('rejects a non-matching value against a negative literal', () => {
+        const schema = p.literal(-5);
+        const result = schema.safeParse(5);
+        if (!result.ok) {
+            expect(result.messages()).toEqual([{ path: [], message: 'invalid_value' }]);
+        } else {
+            expect(result.ok).toBeFalsy();
+        }
     });
 });
 

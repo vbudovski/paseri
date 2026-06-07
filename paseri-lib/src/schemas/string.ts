@@ -268,6 +268,7 @@ export {
     ipCidrRegex,
     ipRegex,
     nanoidRegex,
+    StringSchema,
     string,
     timeRegex,
     uuidRegex,

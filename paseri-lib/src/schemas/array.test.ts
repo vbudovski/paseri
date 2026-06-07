@@ -39,35 +39,37 @@ it('rejects invalid types', () => {
 });
 
 describe('min', () => {
-    it('accepts valid values', () => {
-        const schema = p.array(p.number()).min(3);
-
+    it('accepts in-range and rejects out-of-range values for any bound', () => {
         fc.assert(
-            fc.property(fc.array(fc.float({ noNaN: true }), { minLength: 3 }), (data) => {
+            fc.property(fc.nat({ max: 15 }), fc.array(fc.float({ noNaN: true }), { maxLength: 30 }), (bound, data) => {
+                const schema = p.array(p.number()).min(bound);
                 const result = schema.safeParse(data);
-                if (result.ok) {
-                    expectTypeOf(result.value).toEqualTypeOf<number[]>;
-                    expect(result.value).toBe(data);
+                if (data.length >= bound) {
+                    if (result.ok) {
+                        expectTypeOf(result.value).toEqualTypeOf<number[]>;
+                        expect(result.value).toBe(data);
+                    } else {
+                        expect(result.ok).toBeTruthy();
+                    }
                 } else {
-                    expect(result.ok).toBeTruthy();
+                    if (!result.ok) {
+                        expect(result.messages()).toEqual([{ path: [], message: 'too_short' }]);
+                    } else {
+                        expect(result.ok).toBeFalsy();
+                    }
                 }
             }),
         );
     });
 
-    it('rejects invalid values', () => {
+    it('reports only the length issue when a too-short array also has invalid elements', () => {
         const schema = p.array(p.number()).min(3);
-
-        fc.assert(
-            fc.property(fc.array(fc.float({ noNaN: true }), { maxLength: 2 }), (data) => {
-                const result = schema.safeParse(data);
-                if (!result.ok) {
-                    expect(result.messages()).toEqual([{ path: [], message: 'too_short' }]);
-                } else {
-                    expect(result.ok).toBeFalsy();
-                }
-            }),
-        );
+        const result = schema.safeParse(['bad', 'worse']);
+        if (!result.ok) {
+            expect(result.messages()).toEqual([{ path: [], message: 'too_short' }]);
+        } else {
+            expect(result.ok).toBeFalsy();
+        }
     });
 
     it('rejects invalid bounds', () => {
@@ -88,35 +90,37 @@ describe('min', () => {
 });
 
 describe('max', () => {
-    it('accepts valid values', () => {
-        const schema = p.array(p.number()).max(3);
-
+    it('accepts in-range and rejects out-of-range values for any bound', () => {
         fc.assert(
-            fc.property(fc.array(fc.float({ noNaN: true }), { maxLength: 3 }), (data) => {
+            fc.property(fc.nat({ max: 15 }), fc.array(fc.float({ noNaN: true }), { maxLength: 30 }), (bound, data) => {
+                const schema = p.array(p.number()).max(bound);
                 const result = schema.safeParse(data);
-                if (result.ok) {
-                    expectTypeOf(result.value).toEqualTypeOf<number[]>;
-                    expect(result.value).toBe(data);
+                if (data.length <= bound) {
+                    if (result.ok) {
+                        expectTypeOf(result.value).toEqualTypeOf<number[]>;
+                        expect(result.value).toBe(data);
+                    } else {
+                        expect(result.ok).toBeTruthy();
+                    }
                 } else {
-                    expect(result.ok).toBeTruthy();
+                    if (!result.ok) {
+                        expect(result.messages()).toEqual([{ path: [], message: 'too_long' }]);
+                    } else {
+                        expect(result.ok).toBeFalsy();
+                    }
                 }
             }),
         );
     });
 
-    it('rejects invalid values', () => {
-        const schema = p.array(p.number()).max(3);
-
-        fc.assert(
-            fc.property(fc.array(fc.float({ noNaN: true }), { minLength: 4 }), (data) => {
-                const result = schema.safeParse(data);
-                if (!result.ok) {
-                    expect(result.messages()).toEqual([{ path: [], message: 'too_long' }]);
-                } else {
-                    expect(result.ok).toBeFalsy();
-                }
-            }),
-        );
+    it('reports only the length issue when a too-long array also has invalid elements', () => {
+        const schema = p.array(p.number()).max(1);
+        const result = schema.safeParse([1, 'bad', 'worse']);
+        if (!result.ok) {
+            expect(result.messages()).toEqual([{ path: [], message: 'too_long' }]);
+        } else {
+            expect(result.ok).toBeFalsy();
+        }
     });
 
     it('rejects invalid bounds', () => {
@@ -137,11 +141,10 @@ describe('max', () => {
 });
 
 describe('length', () => {
-    it('accepts valid values', () => {
-        const schema = p.array(p.number()).length(3);
-
+    it('accepts an array whose length equals the bound', () => {
         fc.assert(
-            fc.property(fc.array(fc.float({ noNaN: true }), { minLength: 3, maxLength: 3 }), (data) => {
+            fc.property(fc.array(fc.float({ noNaN: true }), { maxLength: 30 }), (data) => {
+                const schema = p.array(p.number()).length(data.length);
                 const result = schema.safeParse(data);
                 if (result.ok) {
                     expectTypeOf(result.value).toEqualTypeOf<number[]>;
@@ -153,11 +156,11 @@ describe('length', () => {
         );
     });
 
-    it('rejects values that are too long', () => {
-        const schema = p.array(p.number()).length(3);
-
+    it('rejects a longer array as too_long', () => {
         fc.assert(
-            fc.property(fc.array(fc.float({ noNaN: true }), { minLength: 4 }), (data) => {
+            fc.property(fc.array(fc.float({ noNaN: true }), { maxLength: 30 }), fc.nat({ max: 30 }), (data, bound) => {
+                fc.pre(data.length > bound);
+                const schema = p.array(p.number()).length(bound);
                 const result = schema.safeParse(data);
                 if (!result.ok) {
                     expect(result.messages()).toEqual([{ path: [], message: 'too_long' }]);
@@ -168,11 +171,11 @@ describe('length', () => {
         );
     });
 
-    it('rejects values that are too short', () => {
-        const schema = p.array(p.number()).length(3);
-
+    it('rejects a shorter array as too_short', () => {
         fc.assert(
-            fc.property(fc.array(fc.float({ noNaN: true }), { maxLength: 2 }), (data) => {
+            fc.property(fc.array(fc.float({ noNaN: true }), { maxLength: 30 }), fc.nat({ max: 30 }), (data, bound) => {
+                fc.pre(data.length < bound);
+                const schema = p.array(p.number()).length(bound);
                 const result = schema.safeParse(data);
                 if (!result.ok) {
                     expect(result.messages()).toEqual([{ path: [], message: 'too_short' }]);

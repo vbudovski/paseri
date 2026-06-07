@@ -75,4 +75,4 @@ const singleton = /* @__PURE__ */ new InstantSchema();
  */
 const instant = /* @__PURE__ */ (): InstantSchema => singleton;
 
-export { instant };
+export { InstantSchema, instant };

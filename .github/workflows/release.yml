@@ -42,6 +42,18 @@ jobs:
           minColorRange: 50
           maxColorRange: 90
 
+      - name: Update paseri-compiler coverage badge
+        uses: schneegans/dynamic-badges-action@0e50b8bad39e7e1afd3e4e9c2b7dd145fad07501 # v1.8.0
+        with:
+          auth: ${{ secrets.GIST_SECRET }}
+          gistID: 80548a1b87f9f00fe1ae426ca6a2a517
+          filename: vbudovski_paseri-compiler_main-coverage.svg
+          label: coverage
+          message: ${{ needs.test.outputs.compiler_coverage }}%
+          valColorRange: ${{ needs.test.outputs.compiler_coverage }}
+          minColorRange: 50
+          maxColorRange: 90
+
       - name: Update bundle size badge
         uses: schneegans/dynamic-badges-action@0e50b8bad39e7e1afd3e4e9c2b7dd145fad07501 # v1.8.0
         with:

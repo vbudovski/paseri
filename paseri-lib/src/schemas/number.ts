@@ -166,4 +166,4 @@ const singleton = /* @__PURE__ */ new NumberSchema();
  */
 const number = /* @__PURE__ */ (): NumberSchema => singleton;
 
-export { number };
+export { NumberSchema, number };

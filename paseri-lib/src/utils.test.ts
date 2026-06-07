@@ -39,9 +39,11 @@ describe('isPlainObject', () => {
         fc.assert(
             fc.property(
                 fc.anything({ withDate: true, withSet: true, withMap: true }).filter((value) => {
-                    if (typeof value !== 'object' || value === null) return false;
-                    const proto = Object.getPrototypeOf(value);
-                    return proto !== Object.prototype && proto !== null;
+                    if (typeof value !== 'object' || value === null) {
+                        return false;
+                    }
+                    const prototype = Object.getPrototypeOf(value);
+                    return prototype !== Object.prototype && prototype !== null;
                 }),
                 (data) => {
                     expect(isPlainObject(data)).toBe(false);

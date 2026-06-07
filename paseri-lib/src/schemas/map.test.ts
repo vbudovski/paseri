@@ -38,49 +38,42 @@ it('rejects invalid types', () => {
 });
 
 describe('min', () => {
-    it('accepts valid values', () => {
-        const schema = p.map(p.number(), p.string()).min(3);
-
+    it('accepts in-range and rejects out-of-range values for any bound', () => {
         fc.assert(
             fc.property(
-                fc
-                    .array(fc.tuple(fc.float({ noNaN: true }), fc.string()), { minLength: 3 })
-                    .filter((value) => new Map(value).size >= 3),
-                (data) => {
+                fc.nat({ max: 15 }),
+                fc.array(fc.tuple(fc.float({ noNaN: true }), fc.string()), { maxLength: 30 }),
+                (bound, data) => {
                     const dataAsMap = new Map(data);
-
+                    const schema = p.map(p.number(), p.string()).min(bound);
                     const result = schema.safeParse(dataAsMap);
-                    if (result.ok) {
-                        expectTypeOf(result.value).toEqualTypeOf<Map<number, string>>;
-                        expect(result.value).toBe(dataAsMap);
+                    if (dataAsMap.size >= bound) {
+                        if (result.ok) {
+                            expectTypeOf(result.value).toEqualTypeOf<Map<number, string>>;
+                            expect(result.value).toBe(dataAsMap);
+                        } else {
+                            expect(result.ok).toBeTruthy();
+                        }
                     } else {
-                        expect(result.ok).toBeTruthy();
+                        if (!result.ok) {
+                            expect(result.messages()).toEqual([{ path: [], message: 'too_short' }]);
+                        } else {
+                            expect(result.ok).toBeFalsy();
+                        }
                     }
                 },
             ),
         );
     });
 
-    it('rejects invalid values', () => {
+    it('reports only the size issue when a too-small map also has invalid entries', () => {
         const schema = p.map(p.number(), p.string()).min(3);
-
-        fc.assert(
-            fc.property(
-                fc
-                    .array(fc.tuple(fc.float({ noNaN: true }), fc.string()), { maxLength: 2 })
-                    .filter((value) => new Map(value).size <= 2),
-                (data) => {
-                    const dataAsMap = new Map(data);
-
-                    const result = schema.safeParse(dataAsMap);
-                    if (!result.ok) {
-                        expect(result.messages()).toEqual([{ path: [], message: 'too_short' }]);
-                    } else {
-                        expect(result.ok).toBeFalsy();
-                    }
-                },
-            ),
-        );
+        const result = schema.safeParse(new Map<number, unknown>([[1, 2]]));
+        if (!result.ok) {
+            expect(result.messages()).toEqual([{ path: [], message: 'too_short' }]);
+        } else {
+            expect(result.ok).toBeFalsy();
+        }
     });
 
     it('rejects invalid bounds', () => {
@@ -101,49 +94,47 @@ describe('min', () => {
 });
 
 describe('max', () => {
-    it('accepts valid values', () => {
-        const schema = p.map(p.number(), p.string()).max(3);
-
+    it('accepts in-range and rejects out-of-range values for any bound', () => {
         fc.assert(
             fc.property(
-                fc
-                    .array(fc.tuple(fc.float({ noNaN: true }), fc.string()), { maxLength: 3 })
-                    .filter((value) => new Map(value).size <= 3),
-                (data) => {
+                fc.nat({ max: 15 }),
+                fc.array(fc.tuple(fc.float({ noNaN: true }), fc.string()), { maxLength: 30 }),
+                (bound, data) => {
                     const dataAsMap = new Map(data);
-
+                    const schema = p.map(p.number(), p.string()).max(bound);
                     const result = schema.safeParse(dataAsMap);
-                    if (result.ok) {
-                        expectTypeOf(result.value).toEqualTypeOf<Map<number, string>>;
-                        expect(result.value).toBe(dataAsMap);
+                    if (dataAsMap.size <= bound) {
+                        if (result.ok) {
+                            expectTypeOf(result.value).toEqualTypeOf<Map<number, string>>;
+                            expect(result.value).toBe(dataAsMap);
+                        } else {
+                            expect(result.ok).toBeTruthy();
+                        }
                     } else {
-                        expect(result.ok).toBeTruthy();
+                        if (!result.ok) {
+                            expect(result.messages()).toEqual([{ path: [], message: 'too_long' }]);
+                        } else {
+                            expect(result.ok).toBeFalsy();
+                        }
                     }
                 },
             ),
         );
     });
 
-    it('rejects invalid values', () => {
-        const schema = p.map(p.number(), p.string()).max(3);
-
-        fc.assert(
-            fc.property(
-                fc
-                    .array(fc.tuple(fc.float({ noNaN: true }), fc.string()), { minLength: 4 })
-                    .filter((value) => new Map(value).size >= 4),
-                (data) => {
-                    const dataAsMap = new Map(data);
-
-                    const result = schema.safeParse(dataAsMap);
-                    if (!result.ok) {
-                        expect(result.messages()).toEqual([{ path: [], message: 'too_long' }]);
-                    } else {
-                        expect(result.ok).toBeFalsy();
-                    }
-                },
-            ),
+    it('reports only the size issue when a too-large map also has invalid entries', () => {
+        const schema = p.map(p.number(), p.string()).max(1);
+        const result = schema.safeParse(
+            new Map<number, unknown>([
+                [1, 'a'],
+                [2, 3],
+            ]),
         );
+        if (!result.ok) {
+            expect(result.messages()).toEqual([{ path: [], message: 'too_long' }]);
+        } else {
+            expect(result.ok).toBeFalsy();
+        }
     });
 
     it('rejects invalid bounds', () => {
@@ -164,40 +155,31 @@ describe('max', () => {
 });
 
 describe('size', () => {
-    it('accepts valid values', () => {
-        const schema = p.map(p.number(), p.string()).size(3);
-
+    it('accepts a map whose size equals the bound', () => {
         fc.assert(
-            fc.property(
-                fc
-                    .array(fc.tuple(fc.float({ noNaN: true }), fc.string()), { minLength: 3, maxLength: 3 })
-                    .filter((value) => new Map(value).size === 3),
-                (data) => {
-                    const dataAsMap = new Map(data);
-
-                    const result = schema.safeParse(dataAsMap);
-                    if (result.ok) {
-                        expectTypeOf(result.value).toEqualTypeOf<Map<number, string>>;
-                        expect(result.value).toBe(dataAsMap);
-                    } else {
-                        expect(result.ok).toBeTruthy();
-                    }
-                },
-            ),
+            fc.property(fc.array(fc.tuple(fc.float({ noNaN: true }), fc.string()), { maxLength: 30 }), (data) => {
+                const dataAsMap = new Map(data);
+                const schema = p.map(p.number(), p.string()).size(dataAsMap.size);
+                const result = schema.safeParse(dataAsMap);
+                if (result.ok) {
+                    expectTypeOf(result.value).toEqualTypeOf<Map<number, string>>;
+                    expect(result.value).toBe(dataAsMap);
+                } else {
+                    expect(result.ok).toBeTruthy();
+                }
+            }),
         );
     });
 
-    it('rejects values that are too long', () => {
-        const schema = p.map(p.number(), p.string()).size(3);
-
+    it('rejects a larger map as too_long', () => {
         fc.assert(
             fc.property(
-                fc
-                    .array(fc.tuple(fc.float({ noNaN: true }), fc.string()), { minLength: 4 })
-                    .filter((value) => new Map(value).size >= 4),
-                (data) => {
+                fc.array(fc.tuple(fc.float({ noNaN: true }), fc.string()), { maxLength: 30 }),
+                fc.nat({ max: 30 }),
+                (data, bound) => {
                     const dataAsMap = new Map(data);
-
+                    fc.pre(dataAsMap.size > bound);
+                    const schema = p.map(p.number(), p.string()).size(bound);
                     const result = schema.safeParse(dataAsMap);
                     if (!result.ok) {
                         expect(result.messages()).toEqual([{ path: [], message: 'too_long' }]);
@@ -209,17 +191,15 @@ describe('size', () => {
         );
     });
 
-    it('rejects values that are too short', () => {
-        const schema = p.map(p.number(), p.string()).size(3);
-
+    it('rejects a smaller map as too_short', () => {
         fc.assert(
             fc.property(
-                fc
-                    .array(fc.tuple(fc.float({ noNaN: true }), fc.string()), { maxLength: 2 })
-                    .filter((value) => new Map(value).size <= 2),
-                (data) => {
+                fc.array(fc.tuple(fc.float({ noNaN: true }), fc.string()), { maxLength: 30 }),
+                fc.nat({ max: 30 }),
+                (data, bound) => {
                     const dataAsMap = new Map(data);
-
+                    fc.pre(dataAsMap.size < bound);
+                    const schema = p.map(p.number(), p.string()).size(bound);
                     const result = schema.safeParse(dataAsMap);
                     if (!result.ok) {
                         expect(result.messages()).toEqual([{ path: [], message: 'too_short' }]);

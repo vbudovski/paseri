@@ -46,6 +46,54 @@ it('exposes the shape', () => {
     expectTypeOf(schema.shape).toEqualTypeOf<typeof shape>;
 });
 
+it('rejects a plain-looking object whose own constructor is undefined', () => {
+    const schema = p.object({ a: p.number() }).passthrough();
+    const result = schema.safeParse({ a: 1, constructor: undefined });
+    if (!result.ok) {
+        expect(result.messages()).toEqual([{ path: [], message: 'invalid_type' }]);
+    } else {
+        expect(result.ok).toBeFalsy();
+    }
+});
+
+it('rejects an array whose prototype was reset to Object.prototype', () => {
+    const schema = p.object({ a: p.number() });
+    const value: unknown[] = [];
+    Object.setPrototypeOf(value, Object.prototype);
+    const result = schema.safeParse(value);
+    if (!result.ok) {
+        expect(result.messages()).toEqual([{ path: [], message: 'invalid_type' }]);
+    } else {
+        expect(result.ok).toBeFalsy();
+    }
+});
+
+it('rejects a nested constructor-undefined object through a shape-checkable record field', () => {
+    const schema = p.object({ inner: p.record(p.unknown()) });
+    const result = schema.safeParse({ inner: { constructor: undefined } });
+    if (!result.ok) {
+        expect(result.messages()).toEqual([{ path: ['inner'], message: 'invalid_type' }]);
+    } else {
+        expect(result.ok).toBeFalsy();
+    }
+});
+
+it('reports all sibling field errors (order is not contractual)', () => {
+    // The relative order of sibling field errors is not part of the contract; assert the set (sorted) so the test
+    // is order-agnostic.
+    const schema = p.object({ a: p.string(), b: p.string() });
+    const result = schema.safeParse({ b: 123, a: 456 });
+    if (!result.ok) {
+        const sorted = [...result.messages()].sort((x, y) => String(x.path).localeCompare(String(y.path)));
+        expect(sorted).toEqual([
+            { path: ['a'], message: 'invalid_type' },
+            { path: ['b'], message: 'invalid_type' },
+        ]);
+    } else {
+        expect(result.ok).toBeFalsy();
+    }
+});
+
 it('rejects empty object', () => {
     // @ts-expect-error Intentionally silence the type error to validate runtime check.
     expect(() => p.object()).toThrow('Object must contain at least one field.');
@@ -87,6 +135,19 @@ describe('strip', () => {
         );
     });
 
+    it('strips an unrecognised key when an optional field is absent', () => {
+        // Mirror of the strict-mode regression: the unknown key and the absent optional cancel out
+        // in key count, so the sanitiser must still remove the unknown key.
+        const schema = p.object({ foo: p.string(), bar: p.string().optional() }).strip();
+
+        const result = schema.safeParse({ foo: 'hello', extra: 'boom' });
+        if (result.ok) {
+            expect(result.value).toEqual({ foo: 'hello' });
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
+    });
+
     it('is immutable', () => {
         const original = p.object({ foo: p.string() });
         const modified = original.strip();
@@ -99,6 +160,7 @@ describe('strip', () => {
         const schema = p.object({ foo: p.string() }).strip();
         const data = Object.freeze({ foo: 'bar' });
 
+        // White-box: the unmodified fast path returns `undefined` (not a wrapped result), observable only via _parse.
         const issueOrSuccess = schema._parse(data, 0, 1000);
         expect(issueOrSuccess).toBe(undefined);
     });
@@ -107,8 +169,12 @@ describe('strip', () => {
         const schema = p.object({ child: p.object({ foo: p.string() }).strip() }).strip();
         const data = Object.freeze({ child: { foo: 'bar', extra: 'baz' } });
 
-        const issueOrSuccess = schema._parse(data, 0, 1000);
-        expect(issueOrSuccess).toEqual({ ok: true, value: { child: { foo: 'bar' } } });
+        const result = schema.safeParse(data);
+        if (result.ok) {
+            expect(result.value).toEqual({ child: { foo: 'bar' } });
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
     });
 
     it('preserves transform when child is transformed to undefined', () => {
@@ -151,9 +217,9 @@ describe('strip', () => {
 
     // In Annex B environments (browsers, Node.js), __proto__ is an accessor on Object.prototype. Bracket-notation
     // assignment on a plain {} triggers the setter instead of creating an own property, which can cause __proto__ to
-    // bypass unrecognized-key detection and strip-mode sanitization. These tests use Object.create(null) for input data
+    // bypass unrecognised-key detection and strip-mode sanitisation. These tests use Object.create(null) for input data
     // (where __proto__ is a regular own property) to verify the schema handles the key correctly regardless of runtime.
-    it('strips unrecognized __proto__ key without modified children', () => {
+    it('strips unrecognised __proto__ key without modified children', () => {
         const schema = p.object({ name: p.string() }).strip();
         const data = Object.create(null);
         data.name = 'alice';
@@ -168,7 +234,7 @@ describe('strip', () => {
         }
     });
 
-    it('strips unrecognized __proto__ key with modified children', () => {
+    it('strips unrecognised __proto__ key with modified children', () => {
         const schema = p.object({ child: p.object({ foo: p.string() }).strip() }).strip();
         const data = Object.create(null);
         data.child = { foo: 'bar', extra: 'baz' };
@@ -215,6 +281,19 @@ describe('strict', () => {
         );
     });
 
+    it('rejects an unrecognised key when an optional field is absent', () => {
+        // The unknown key and the absent optional cancel out in key count, so extras detection
+        // must not rely on the key count alone.
+        const schema = p.object({ foo: p.string(), bar: p.string().optional() });
+
+        const result = schema.safeParse({ foo: 'hello', extra: 'boom' });
+        if (!result.ok) {
+            expect(result.messages()).toEqual([{ path: ['extra'], message: 'unrecognized_key' }]);
+        } else {
+            expect(result.ok).toBeFalsy();
+        }
+    });
+
     it('is immutable', () => {
         const original = p.object({ foo: p.string() });
         const modified = original.strict();
@@ -227,6 +306,7 @@ describe('strict', () => {
         const schema = p.object({ foo: p.string() });
         const data = Object.freeze({ foo: 'bar' });
 
+        // White-box: the unmodified fast path returns `undefined` (not a wrapped result), observable only via _parse.
         const issueOrSuccess = schema._parse(data, 0, 1000);
         expect(issueOrSuccess).toBe(undefined);
     });
@@ -247,7 +327,7 @@ describe('strict', () => {
         );
     });
 
-    it('only flags truly unrecognized keys, not Object.prototype collisions', () => {
+    it('only flags truly unrecognised keys, not Object.prototype collisions', () => {
         const prototypeKeys = [...Object.getOwnPropertyNames(Object.getPrototypeOf({})), '__proto__'];
 
         fc.assert(
@@ -313,6 +393,7 @@ describe('passthrough', () => {
         const schema = p.object({ foo: p.string() }).passthrough();
         const data = Object.freeze({ foo: 'bar' });
 
+        // White-box: the unmodified fast path returns `undefined` (not a wrapped result), observable only via _parse.
         const issueOrSuccess = schema._parse(data, 0, 1000);
         expect(issueOrSuccess).toBe(undefined);
     });
@@ -408,7 +489,7 @@ it('treats chained optional as required', () => {
         field: p
             .string()
             .optional()
-            .chain(p.string(), (v) => p.ok(v ?? 'default')),
+            .chain(p.string(), (value) => p.ok(value ?? 'default')),
         required: p.string(),
     });
     const data = { required: 'hello' };
@@ -672,12 +753,12 @@ describe('partial', () => {
 describe('required', () => {
     it('requires every field', () => {
         const schema = p.object({ foo: p.string().optional(), bar: p.number().optional() }).required();
-        const ok = schema.safeParse({ foo: 'hi', bar: 1 });
-        if (ok.ok) {
-            expectTypeOf(ok.value).toEqualTypeOf<{ foo: string; bar: number }>;
-            expect(ok.value).toEqual({ foo: 'hi', bar: 1 });
+        const result = schema.safeParse({ foo: 'hi', bar: 1 });
+        if (result.ok) {
+            expectTypeOf(result.value).toEqualTypeOf<{ foo: string; bar: number }>;
+            expect(result.value).toEqual({ foo: 'hi', bar: 1 });
         } else {
-            expect(ok.ok).toBeTruthy();
+            expect(result.ok).toBeTruthy();
         }
     });
 

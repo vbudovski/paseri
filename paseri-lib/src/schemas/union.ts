@@ -141,4 +141,4 @@ const union = /* @__PURE__ */ <TupleType extends ValidTupleType>(
     ...args: ConstructorParameters<typeof UnionSchema<TupleType>>
 ): UnionSchema<TupleType> => new UnionSchema(...args);
 
-export { findDiscriminator, union };
+export { findDiscriminator, UnionSchema, union };

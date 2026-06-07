@@ -101,4 +101,4 @@ const singleton = /* @__PURE__ */ new BigIntSchema();
  */
 const bigint = /* @__PURE__ */ (): BigIntSchema => singleton;
 
-export { bigint };
+export { BigIntSchema, bigint };

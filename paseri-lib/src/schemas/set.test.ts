@@ -38,45 +38,38 @@ it('rejects invalid types', () => {
 });
 
 describe('min', () => {
-    it('accepts valid values', () => {
-        const schema = p.set(p.number()).min(3);
-
+    it('accepts in-range and rejects out-of-range values for any bound', () => {
         fc.assert(
-            fc.property(
-                fc.array(fc.float({ noNaN: true }), { minLength: 3 }).filter((value) => new Set(value).size >= 3),
-                (data) => {
-                    const dataAsSet = new Set(data);
-
-                    const result = schema.safeParse(dataAsSet);
+            fc.property(fc.nat({ max: 15 }), fc.array(fc.float({ noNaN: true }), { maxLength: 30 }), (bound, data) => {
+                const dataAsSet = new Set(data);
+                const schema = p.set(p.number()).min(bound);
+                const result = schema.safeParse(dataAsSet);
+                if (dataAsSet.size >= bound) {
                     if (result.ok) {
                         expectTypeOf(result.value).toEqualTypeOf<Set<number>>;
                         expect(result.value).toBe(dataAsSet);
                     } else {
                         expect(result.ok).toBeTruthy();
                     }
-                },
-            ),
-        );
-    });
-
-    it('rejects invalid values', () => {
-        const schema = p.set(p.number()).min(3);
-
-        fc.assert(
-            fc.property(
-                fc.array(fc.float({ noNaN: true }), { maxLength: 2 }).filter((value) => new Set(value).size <= 2),
-                (data) => {
-                    const dataAsSet = new Set(data);
-
-                    const result = schema.safeParse(dataAsSet);
+                } else {
                     if (!result.ok) {
                         expect(result.messages()).toEqual([{ path: [], message: 'too_short' }]);
                     } else {
                         expect(result.ok).toBeFalsy();
                     }
-                },
-            ),
+                }
+            }),
         );
+    });
+
+    it('reports only the size issue when a too-small set also has invalid elements', () => {
+        const schema = p.set(p.number()).min(3);
+        const result = schema.safeParse(new Set(['bad', 'worse']));
+        if (!result.ok) {
+            expect(result.messages()).toEqual([{ path: [], message: 'too_short' }]);
+        } else {
+            expect(result.ok).toBeFalsy();
+        }
     });
 
     it('rejects invalid bounds', () => {
@@ -97,45 +90,38 @@ describe('min', () => {
 });
 
 describe('max', () => {
-    it('accepts valid values', () => {
-        const schema = p.set(p.number()).max(3);
-
+    it('accepts in-range and rejects out-of-range values for any bound', () => {
         fc.assert(
-            fc.property(
-                fc.array(fc.float({ noNaN: true }), { maxLength: 3 }).filter((value) => new Set(value).size <= 3),
-                (data) => {
-                    const dataAsSet = new Set(data);
-
-                    const result = schema.safeParse(dataAsSet);
+            fc.property(fc.nat({ max: 15 }), fc.array(fc.float({ noNaN: true }), { maxLength: 30 }), (bound, data) => {
+                const dataAsSet = new Set(data);
+                const schema = p.set(p.number()).max(bound);
+                const result = schema.safeParse(dataAsSet);
+                if (dataAsSet.size <= bound) {
                     if (result.ok) {
                         expectTypeOf(result.value).toEqualTypeOf<Set<number>>;
                         expect(result.value).toBe(dataAsSet);
                     } else {
                         expect(result.ok).toBeTruthy();
                     }
-                },
-            ),
-        );
-    });
-
-    it('rejects invalid values', () => {
-        const schema = p.set(p.number()).max(3);
-
-        fc.assert(
-            fc.property(
-                fc.array(fc.float({ noNaN: true }), { minLength: 4 }).filter((value) => new Set(value).size >= 4),
-                (data) => {
-                    const dataAsSet = new Set(data);
-
-                    const result = schema.safeParse(dataAsSet);
+                } else {
                     if (!result.ok) {
                         expect(result.messages()).toEqual([{ path: [], message: 'too_long' }]);
                     } else {
                         expect(result.ok).toBeFalsy();
                     }
-                },
-            ),
+                }
+            }),
         );
+    });
+
+    it('reports only the size issue when a too-large set also has invalid elements', () => {
+        const schema = p.set(p.number()).max(1);
+        const result = schema.safeParse(new Set([1, 'bad', 'worse']));
+        if (!result.ok) {
+            expect(result.messages()).toEqual([{ path: [], message: 'too_long' }]);
+        } else {
+            expect(result.ok).toBeFalsy();
+        }
     });
 
     it('rejects invalid bounds', () => {
@@ -156,66 +142,51 @@ describe('max', () => {
 });
 
 describe('size', () => {
-    it('accepts valid values', () => {
-        const schema = p.set(p.number()).size(3);
-
+    it('accepts a set whose size equals the bound', () => {
         fc.assert(
-            fc.property(
-                fc
-                    .array(fc.float({ noNaN: true }), { minLength: 3, maxLength: 3 })
-                    .filter((value) => new Set(value).size === 3),
-                (data) => {
-                    const dataAsSet = new Set(data);
-
-                    const result = schema.safeParse(dataAsSet);
-                    if (result.ok) {
-                        expectTypeOf(result.value).toEqualTypeOf<Set<number>>;
-                        expect(result.value).toBe(dataAsSet);
-                    } else {
-                        expect(result.ok).toBeTruthy();
-                    }
-                },
-            ),
+            fc.property(fc.array(fc.float({ noNaN: true }), { maxLength: 30 }), (data) => {
+                const dataAsSet = new Set(data);
+                const schema = p.set(p.number()).size(dataAsSet.size);
+                const result = schema.safeParse(dataAsSet);
+                if (result.ok) {
+                    expectTypeOf(result.value).toEqualTypeOf<Set<number>>;
+                    expect(result.value).toBe(dataAsSet);
+                } else {
+                    expect(result.ok).toBeTruthy();
+                }
+            }),
         );
     });
 
-    it('rejects values that are too long', () => {
-        const schema = p.set(p.number()).size(3);
-
+    it('rejects a larger set as too_long', () => {
         fc.assert(
-            fc.property(
-                fc.array(fc.float({ noNaN: true }), { minLength: 4 }).filter((value) => new Set(value).size >= 4),
-                (data) => {
-                    const dataAsSet = new Set(data);
-
-                    const result = schema.safeParse(dataAsSet);
-                    if (!result.ok) {
-                        expect(result.messages()).toEqual([{ path: [], message: 'too_long' }]);
-                    } else {
-                        expect(result.ok).toBeFalsy();
-                    }
-                },
-            ),
+            fc.property(fc.array(fc.float({ noNaN: true }), { maxLength: 30 }), fc.nat({ max: 30 }), (data, bound) => {
+                const dataAsSet = new Set(data);
+                fc.pre(dataAsSet.size > bound);
+                const schema = p.set(p.number()).size(bound);
+                const result = schema.safeParse(dataAsSet);
+                if (!result.ok) {
+                    expect(result.messages()).toEqual([{ path: [], message: 'too_long' }]);
+                } else {
+                    expect(result.ok).toBeFalsy();
+                }
+            }),
         );
     });
 
-    it('rejects values that are too short', () => {
-        const schema = p.set(p.number()).size(3);
-
+    it('rejects a smaller set as too_short', () => {
         fc.assert(
-            fc.property(
-                fc.array(fc.float({ noNaN: true }), { maxLength: 2 }).filter((value) => new Set(value).size <= 2),
-                (data) => {
-                    const dataAsSet = new Set(data);
-
-                    const result = schema.safeParse(dataAsSet);
-                    if (!result.ok) {
-                        expect(result.messages()).toEqual([{ path: [], message: 'too_short' }]);
-                    } else {
-                        expect(result.ok).toBeFalsy();
-                    }
-                },
-            ),
+            fc.property(fc.array(fc.float({ noNaN: true }), { maxLength: 30 }), fc.nat({ max: 30 }), (data, bound) => {
+                const dataAsSet = new Set(data);
+                fc.pre(dataAsSet.size < bound);
+                const schema = p.set(p.number()).size(bound);
+                const result = schema.safeParse(dataAsSet);
+                if (!result.ok) {
+                    expect(result.messages()).toEqual([{ path: [], message: 'too_short' }]);
+                } else {
+                    expect(result.ok).toBeFalsy();
+                }
+            }),
         );
     });
 

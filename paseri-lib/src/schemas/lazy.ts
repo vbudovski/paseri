@@ -41,4 +41,4 @@ const lazy = /* @__PURE__ */ <OutputType>(
     ...args: ConstructorParameters<typeof LazySchema<OutputType>>
 ): LazySchema<OutputType> => new LazySchema(...args);
 
-export { lazy };
+export { LazySchema, lazy };

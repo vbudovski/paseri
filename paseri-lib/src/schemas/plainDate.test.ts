@@ -4,19 +4,32 @@ import { expectTypeOf } from 'expect-type';
 import fc from 'fast-check';
 import * as p from '../index.ts';
 
+// Spans the full ISO year range and re-expresses each date in every built-in calendar: iso8601 values exercise the
+// lexicographic field-compare fast path, while other calendars report divergent .year/.month/.day and defer to
+// Temporal.compare. Day caps at 28 so every month is valid.
+const calendars = [
+    'iso8601',
+    'gregory',
+    'hebrew',
+    'islamic-umalqura',
+    'indian',
+    'persian',
+    'buddhist',
+    'japanese',
+    'chinese',
+    'coptic',
+    'ethiopic',
+    'roc',
+    'dangi',
+];
 const plainDateArb = fc
-    .date({
-        min: new Date('1970-01-01T00:00:00Z'),
-        max: new Date('2100-12-31T00:00:00Z'),
-        noInvalidDate: true,
+    .record({
+        year: fc.integer({ min: -5000, max: 9999 }),
+        month: fc.integer({ min: 1, max: 12 }),
+        day: fc.integer({ min: 1, max: 28 }),
+        calendar: fc.constantFrom(...calendars),
     })
-    .map((d) =>
-        Temporal.PlainDate.from({
-            year: d.getUTCFullYear(),
-            month: d.getUTCMonth() + 1,
-            day: d.getUTCDate(),
-        }),
-    );
+    .map(({ year, month, day, calendar }) => Temporal.PlainDate.from({ year, month, day }).withCalendar(calendar));
 
 it('accepts valid types', () => {
     const schema = p.plainDate();
@@ -55,47 +68,35 @@ it('rejects invalid types', () => {
 });
 
 describe('min', () => {
-    it('accepts valid values', () => {
-        const boundary = Temporal.PlainDate.from('2020-01-01');
-        const schema = p.plainDate().min(boundary);
-
+    it('accepts at-or-after the bound, rejects before it as too_dated', () => {
         fc.assert(
-            fc.property(
-                plainDateArb.filter((d) => Temporal.PlainDate.compare(d, boundary) >= 0),
-                (data) => {
-                    const result = schema.safeParse(data);
+            fc.property(plainDateArb, plainDateArb, (bound, value) => {
+                const result = p.plainDate().min(bound).safeParse(value);
+                if (Temporal.PlainDate.compare(value, bound) >= 0) {
                     if (result.ok) {
                         expectTypeOf(result.value).toEqualTypeOf<Temporal.PlainDate>;
-                        expect(result.value).toBe(data);
+                        expect(result.value).toBe(value);
                     } else {
                         expect(result.ok).toBeTruthy();
                     }
-                },
-            ),
-        );
-    });
-
-    it('rejects invalid values', () => {
-        const boundary = Temporal.PlainDate.from('2020-01-01');
-        const schema = p.plainDate().min(boundary);
-
-        fc.assert(
-            fc.property(
-                plainDateArb.filter((d) => Temporal.PlainDate.compare(d, boundary) < 0),
-                (data) => {
-                    const result = schema.safeParse(data);
+                } else {
                     if (!result.ok) {
-                        expect(result.messages()).toEqual([
-                            {
-                                path: [],
-                                message: 'too_dated',
-                            },
-                        ]);
+                        expect(result.messages()).toEqual([{ path: [], message: 'too_dated' }]);
                     } else {
                         expect(result.ok).toBeFalsy();
                     }
-                },
-            ),
+                }
+            }),
+            // Seed the exact-boundary case in a different calendar than the bound: compare ties at 0 (ordering is
+            // calendar-independent), pinning both the inclusive bound and that the cross-calendar path agrees.
+            {
+                examples: [
+                    [
+                        Temporal.PlainDate.from('2020-01-01'),
+                        Temporal.PlainDate.from('2020-01-01').withCalendar('japanese'),
+                    ],
+                ],
+            },
         );
     });
 
@@ -109,47 +110,33 @@ describe('min', () => {
 });
 
 describe('max', () => {
-    it('accepts valid values', () => {
-        const boundary = Temporal.PlainDate.from('2020-01-01');
-        const schema = p.plainDate().max(boundary);
-
+    it('accepts at-or-before the bound, rejects after it as too_recent', () => {
         fc.assert(
-            fc.property(
-                plainDateArb.filter((d) => Temporal.PlainDate.compare(d, boundary) <= 0),
-                (data) => {
-                    const result = schema.safeParse(data);
+            fc.property(plainDateArb, plainDateArb, (bound, value) => {
+                const result = p.plainDate().max(bound).safeParse(value);
+                if (Temporal.PlainDate.compare(value, bound) <= 0) {
                     if (result.ok) {
                         expectTypeOf(result.value).toEqualTypeOf<Temporal.PlainDate>;
-                        expect(result.value).toBe(data);
+                        expect(result.value).toBe(value);
                     } else {
                         expect(result.ok).toBeTruthy();
                     }
-                },
-            ),
-        );
-    });
-
-    it('rejects invalid values', () => {
-        const boundary = Temporal.PlainDate.from('2020-01-01');
-        const schema = p.plainDate().max(boundary);
-
-        fc.assert(
-            fc.property(
-                plainDateArb.filter((d) => Temporal.PlainDate.compare(d, boundary) > 0),
-                (data) => {
-                    const result = schema.safeParse(data);
+                } else {
                     if (!result.ok) {
-                        expect(result.messages()).toEqual([
-                            {
-                                path: [],
-                                message: 'too_recent',
-                            },
-                        ]);
+                        expect(result.messages()).toEqual([{ path: [], message: 'too_recent' }]);
                     } else {
                         expect(result.ok).toBeFalsy();
                     }
-                },
-            ),
+                }
+            }),
+            {
+                examples: [
+                    [
+                        Temporal.PlainDate.from('2020-01-01'),
+                        Temporal.PlainDate.from('2020-01-01').withCalendar('japanese'),
+                    ],
+                ],
+            },
         );
     });
 

@@ -1,4 +1,5 @@
 import type { StandardSchemaV1 } from '@standard-schema/spec';
+import type { IR, IRContext, IRGraph } from '../introspect/ir.ts';
 import type { CustomIssueCode, TreeNode } from '../issue.ts';
 import type { Translations } from '../message.ts';
 import type { InternalParseResult, ParseResult } from '../result.ts';
@@ -37,6 +38,18 @@ abstract class Schema<OutputType> implements StandardSchemaV1<unknown, OutputTyp
             },
         };
     }
+
+    /**
+     * Builds the intermediate representation node for this schema. Populated at runtime by the `./introspect`
+     * side-effect subpath; calling it before importing that subpath fails with `_emit is not a function`.
+     */
+    declare _emit: (context: IRContext) => IR;
+    /**
+     * Produces the {@link IRGraph} for this schema — the input consumed by paseri-compiler. Populated at runtime by
+     * the `./introspect` side-effect subpath; calling it before importing that subpath fails with
+     * `toIR is not a function`.
+     */
+    declare toIR: () => IRGraph;
 
     protected abstract _clone(): Schema<OutputType>;
     public abstract _parse(value: unknown, _depth: number, _maxDepth: number): InternalParseResult<OutputType>;
@@ -155,6 +168,12 @@ class ChainSchema<FromOutputType, ToOutputType> extends Schema<ToOutputType> {
     private readonly _toSchema: Schema<ToOutputType>;
     private readonly _transformer: (value: FromOutputType) => ParseResult<ToOutputType>;
 
+    /**
+     * Populated by the `./introspect` side-effect subpath when it wraps `Schema.prototype.chain`. Stays `undefined`
+     * for callers who never import introspect.
+     */
+    declare _callSiteFile?: string | undefined;
+
     constructor(
         fromSchema: Schema<FromOutputType>,
         toSchema: Schema<ToOutputType>,
@@ -172,11 +191,14 @@ class ChainSchema<FromOutputType, ToOutputType> extends Schema<ToOutputType> {
     _parse(value: unknown, _depth: number, _maxDepth: number): InternalParseResult<ToOutputType> {
         const issueOrSuccessFrom = this._fromSchema._parse(value, _depth, _maxDepth);
 
+        // Invoke through a local so the transformer runs with `this` undefined rather than bound to this schema
+        // instance (see the matching note in RefineSchema): a plain callback must not depend on a receiver.
+        const transformer = this._transformer;
         let transformedResult: ParseResult<ToOutputType>;
         if (issueOrSuccessFrom === undefined) {
-            transformedResult = this._transformer(value as FromOutputType);
+            transformedResult = transformer(value as FromOutputType);
         } else if (isParseSuccess(issueOrSuccessFrom)) {
-            transformedResult = this._transformer(issueOrSuccessFrom.value);
+            transformedResult = transformer(issueOrSuccessFrom.value);
         } else {
             return issueOrSuccessFrom;
         }
@@ -227,6 +249,12 @@ class RefineSchema<OutputType> extends Schema<OutputType> {
     private readonly _path: readonly (string | number)[];
     private readonly _params: Record<string, unknown> | undefined;
 
+    /**
+     * Populated by the `./introspect` side-effect subpath when it wraps `Schema.prototype.refine`. Stays `undefined`
+     * for callers who never import introspect.
+     */
+    declare _callSiteFile?: string | undefined;
+
     constructor(
         base: Schema<OutputType>,
         predicate: (value: OutputType) => boolean,
@@ -255,7 +283,11 @@ class RefineSchema<OutputType> extends Schema<OutputType> {
 
         const parsed = baseResult === undefined ? (value as OutputType) : baseResult.value;
 
-        if (this._predicate(parsed)) {
+        // Invoke through a local so the predicate runs with `this` undefined rather than bound to this schema
+        // instance. A predicate is a plain callback that must not depend on a receiver; binding it here only ever
+        // exposed our private internals, which was never a supported contract.
+        const predicate = this._predicate;
+        if (predicate(parsed)) {
             return baseResult;
         }
 
@@ -274,4 +306,4 @@ class RefineSchema<OutputType> extends Schema<OutputType> {
 type AnySchemaType = Schema<unknown>;
 
 export type { AnySchemaType, ParseOptions };
-export { DefaultSchema, OptionalSchema, RefineSchema, Schema };
+export { ChainSchema, DefaultSchema, NullableSchema, OptionalSchema, RefineSchema, Schema };

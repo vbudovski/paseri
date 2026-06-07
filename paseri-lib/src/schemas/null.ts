@@ -27,4 +27,4 @@ const singleton = /* @__PURE__ */ new NullSchema();
 // `null` is a reserved word.
 const null_ = /* @__PURE__ */ (): NullSchema => singleton;
 
-export { null_ };
+export { NullSchema, null_ };
