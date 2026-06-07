@@ -1,7 +1,7 @@
 [![Coverage](https://gist.githubusercontent.com/vbudovski/80548a1b87f9f00fe1ae426ca6a2a517/raw/vbudovski_paseri_main-coverage.svg)](https://github.com/vbudovski/paseri/actions/workflows/release.yml)
 [![Bundle Size](https://gist.githubusercontent.com/vbudovski/80548a1b87f9f00fe1ae426ca6a2a517/raw/vbudovski_paseri_main-bundlesize.svg)](https://github.com/vbudovski/paseri/actions/workflows/release.yml)
-[![JSR](https://jsr.io/badges/@vbudovski/paseri)](https://jsr.io/@vbudovski/paseri)
-[![JSR Score](https://jsr.io/badges/@vbudovski/paseri/score)](https://jsr.io/@vbudovski/paseri)
+[![JSR](https://jsr.io/badges/@paseri/paseri)](https://jsr.io/@paseri/paseri)
+[![JSR Score](https://jsr.io/badges/@paseri/paseri/score)](https://jsr.io/@paseri/paseri)
 
 ---
 
@@ -16,23 +16,23 @@ of this library.
 ## Installation
 
 ```shell
-deno add jsr:@vbudovski/paseri
+deno add jsr:@paseri/paseri
 ```
 
 ```shell
-bunx jsr add @vbudovski/paseri
+bunx jsr add @paseri/paseri
 ```
 
 ```shell
-pnpm add jsr:@vbudovski/paseri
+pnpm add jsr:@paseri/paseri
 ```
 
 ```shell
-yarn add jsr:@vbudovski/paseri
+yarn add jsr:@paseri/paseri
 ```
 
 ```shell
-npx jsr add @vbudovski/paseri
+npx jsr add @paseri/paseri
 ```
 
 ## Acknowledgements

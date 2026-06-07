@@ -9,7 +9,7 @@ import { Playground } from "../../../../../components/Playground.tsx";
 ## Example
 
 ```typescript
-import * as p from '@vbudovski/paseri';
+import * as p from '@paseri/paseri';
 
 const schema = p.union(p.number(), p.string());
 const data = 'foo';
@@ -34,7 +34,7 @@ If every member of a union is an object schema and they share a common literal f
 field as a discriminator.
 
 ```typescript
-import * as p from '@vbudovski/paseri';
+import * as p from '@paseri/paseri';
 
 const schema = p.union(
     p.object({

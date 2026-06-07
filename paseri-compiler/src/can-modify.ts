@@ -1,4 +1,4 @@
-import type { IR, IRGraph } from '@vbudovski/paseri/introspect';
+import type { IR, IRGraph } from '@paseri/paseri/introspect';
 import type { State } from './state.ts';
 
 type RefResolver = (name: string) => boolean;

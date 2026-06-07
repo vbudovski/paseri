@@ -1,5 +1,5 @@
-import * as p from '@vbudovski/paseri';
-import { en } from '@vbudovski/paseri/locales';
+import * as p from '@paseri/paseri';
+import { en } from '@paseri/paseri/locales';
 import { formatResult } from './format.ts';
 
 self.onmessage = (event: MessageEvent<{ schema: string; data: string }>) => {

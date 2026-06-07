@@ -12,7 +12,7 @@ import { Playground } from "../../../../../components/Playground.tsx";
 ## Example
 
 ```typescript
-import * as p from '@vbudovski/paseri';
+import * as p from '@paseri/paseri';
 
 const schema = p.object({
     foo: p.string(),
@@ -46,7 +46,7 @@ if (!result.ok) {
 This is the default behaviour. Errors are raised for any unrecognised keys in the data.
 
 ```typescript
-import * as p from '@vbudovski/paseri';
+import * as p from '@paseri/paseri';
 
 const schema = p
     .object({
@@ -71,7 +71,7 @@ if (!result.ok) {
 Unrecognised keys are stripped from the parsed value.
 
 ```typescript
-import * as p from '@vbudovski/paseri';
+import * as p from '@paseri/paseri';
 
 const schema = p
     .object({
@@ -97,7 +97,7 @@ if (result.ok) {
 Unrecognised keys are preserved in the parsed value.
 
 ```typescript
-import * as p from '@vbudovski/paseri';
+import * as p from '@paseri/paseri';
 
 const schema = p
     .object({
@@ -128,7 +128,7 @@ of the second schema will replace the keys of the first schema if there is any o
 inherit the behaviour of the second schema for any unknown keys.
 
 ```typescript
-import * as p from '@vbudovski/paseri';
+import * as p from '@paseri/paseri';
 
 const schema1 = p.object({
     foo: p.string(),
@@ -154,7 +154,7 @@ p.object({
 Analogous to TypeScript's built-in `Pick` utility type. Creates a schema that contains only the selected keys.
 
 ```typescript
-import * as p from '@vbudovski/paseri';
+import * as p from '@paseri/paseri';
 
 const schema = p.object({
     foo: p.string(),
@@ -174,7 +174,7 @@ p.object({
 Analogous to TypeScript's built-in `Omit` utility type. Creates a schema that contains all except the selected keys.
 
 ```typescript
-import * as p from '@vbudovski/paseri';
+import * as p from '@paseri/paseri';
 
 const schema = p.object({
     foo: p.string(),
@@ -195,7 +195,7 @@ Analogous to TypeScript's built-in `Partial` utility type. Makes every field opt
 are passed.
 
 ```typescript
-import * as p from '@vbudovski/paseri';
+import * as p from '@paseri/paseri';
 
 const schema = p.object({
     foo: p.string(),
@@ -226,7 +226,7 @@ Analogous to TypeScript's built-in `Required` utility type. Makes every field re
 any are passed.
 
 ```typescript
-import * as p from '@vbudovski/paseri';
+import * as p from '@paseri/paseri';
 
 const schema = p.object({
     foo: p.string().optional(),

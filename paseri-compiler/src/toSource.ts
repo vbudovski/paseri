@@ -1,4 +1,4 @@
-import type { IR, IRGraph } from '@vbudovski/paseri/introspect';
+import type { IR, IRGraph } from '@paseri/paseri/introspect';
 import ts from 'typescript';
 import {
     binary,
@@ -107,7 +107,7 @@ function selectRuntimeStatements(needs: ReadonlySet<string>): ts.Statement[] {
 
 /**
  * Walks the IR graph to determine which inlined utilities (`isPlainObject`, `deepFreeze`) to splice and whether
- * `addIssue` is imported. The result/issue/message contract is always imported from `@vbudovski/paseri/internal`.
+ * `addIssue` is imported. The result/issue/message contract is always imported from `@paseri/paseri/internal`.
  */
 function analyzeNeeds(graph: IRGraph): Set<string> {
     const needs = new Set<string>();
@@ -193,7 +193,7 @@ function internalImportStatement(needs: ReadonlySet<string>): string {
         ? ['addIssue', 'issueCodes', 'ParseErrorResult', 'PaseriError']
         : ['issueCodes', 'ParseErrorResult', 'PaseriError'];
     const types = ['type CustomIssueCode', 'type ParseResult', 'type TreeNode'];
-    return `import { ${[...values, ...types].join(', ')} } from '@vbudovski/paseri/internal';`;
+    return `import { ${[...values, ...types].join(', ')} } from '@paseri/paseri/internal';`;
 }
 
 /**
@@ -526,9 +526,9 @@ function emitNamedFunction(name: string, ir: IR, state: State): ts.FunctionDecla
  *
  * @example
  * ```ts
- * import * as p from '@vbudovski/paseri';
- * import '@vbudovski/paseri/introspect';
- * import { toSource } from '@vbudovski/paseri-compiler';
+ * import * as p from '@paseri/paseri';
+ * import '@paseri/paseri/introspect';
+ * import { toSource } from '@paseri/compiler';
  *
  * const schema = p.object({ hello: p.string() });
  * const source = toSource(schema.toIR(), { name: 'Greeting' });

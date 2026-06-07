@@ -4,8 +4,8 @@
  * @example Apply a locale to parse error messages
  *
  * ```typescript
- * import * as p from '@vbudovski/paseri';
- * import { en_AU } from '@vbudovski/paseri/locales';
+ * import * as p from '@paseri/paseri';
+ * import { en_AU } from '@paseri/paseri/locales';
  *
  * const result = p.string().safeParse(123);
  * if (!result.ok) {

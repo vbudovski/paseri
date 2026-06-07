@@ -2,7 +2,7 @@
 // `safeParse*` return as `ParseResult<OutputType>` instead of `ParseResult<unknown>`, mirroring `Infer`. Pure
 // type-level output: every node it produces is erased at runtime, so it never affects emitted JS.
 
-import type { IR, IRGraph } from '@vbudovski/paseri/introspect';
+import type { IR, IRGraph } from '@paseri/paseri/introspect';
 import ts from 'typescript';
 
 const { factory } = ts;

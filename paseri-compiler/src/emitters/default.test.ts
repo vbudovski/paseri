@@ -1,7 +1,7 @@
+import { object, string } from '@paseri/paseri';
 import { expect } from '@std/expect';
 import { describe, it } from '@std/testing/bdd';
-import { object, string } from '@vbudovski/paseri';
-import '@vbudovski/paseri/introspect';
+import '@paseri/paseri/introspect';
 import { toSource } from '../toSource.ts';
 
 describe('emitDefault', () => {

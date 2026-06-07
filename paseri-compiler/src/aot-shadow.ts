@@ -2,9 +2,9 @@
 // match. Skips schemas that can't AOT-compile (no validator means no parity check); other compile/eval failures
 // surface as test errors.
 
-import { Schema } from '@vbudovski/paseri';
-import type { IR, IRGraph } from '@vbudovski/paseri/introspect';
-import '@vbudovski/paseri/introspect';
+import { Schema } from '@paseri/paseri';
+import type { IR, IRGraph } from '@paseri/paseri/introspect';
+import '@paseri/paseri/introspect';
 import ts from 'typescript';
 import { ResolutionError } from './resolver.ts';
 import { toSource } from './toSource.ts';
@@ -17,7 +17,7 @@ const moduleCache = new Map<string, unknown>([
     [PASERI_LIB_INDEX_URL, await import(PASERI_LIB_INDEX_URL)],
     // Generated validators import the result/message contract from this subpath (keyed by the bare specifier the
     // generated `import` uses, which `bindImports` looks up verbatim).
-    ['@vbudovski/paseri/internal', await import('@vbudovski/paseri/internal')],
+    ['@paseri/paseri/internal', await import('@paseri/paseri/internal')],
 ]);
 
 interface ParityParseResult {

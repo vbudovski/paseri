@@ -1,6 +1,6 @@
 [![Coverage](https://gist.githubusercontent.com/vbudovski/80548a1b87f9f00fe1ae426ca6a2a517/raw/vbudovski_paseri-compiler_main-coverage.svg)](https://github.com/vbudovski/paseri/actions/workflows/release.yml)
-[![JSR](https://jsr.io/badges/@vbudovski/paseri-compiler)](https://jsr.io/@vbudovski/paseri-compiler)
-[![JSR Score](https://jsr.io/badges/@vbudovski/paseri-compiler/score)](https://jsr.io/@vbudovski/paseri-compiler)
+[![JSR](https://jsr.io/badges/@paseri/compiler)](https://jsr.io/@paseri/compiler)
+[![JSR Score](https://jsr.io/badges/@paseri/compiler/score)](https://jsr.io/@paseri/compiler)
 
 ---
 
@@ -12,23 +12,23 @@ Paseri schema, it emits a TypeScript source file containing the parser, for fast
 ## Installation
 
 ```shell
-deno add jsr:@vbudovski/paseri jsr:@vbudovski/paseri-compiler
+deno add jsr:@paseri/paseri jsr:@paseri/compiler
 ```
 
 ```shell
-bunx jsr add @vbudovski/paseri @vbudovski/paseri-compiler
+bunx jsr add @paseri/paseri @paseri/compiler
 ```
 
 ```shell
-pnpm add jsr:@vbudovski/paseri jsr:@vbudovski/paseri-compiler
+pnpm add jsr:@paseri/paseri jsr:@paseri/compiler
 ```
 
 ```shell
-yarn add jsr:@vbudovski/paseri jsr:@vbudovski/paseri-compiler
+yarn add jsr:@paseri/paseri jsr:@paseri/compiler
 ```
 
 ```shell
-npx jsr add @vbudovski/paseri @vbudovski/paseri-compiler
+npx jsr add @paseri/paseri @paseri/compiler
 ```
 
 ## Usage
@@ -36,9 +36,9 @@ npx jsr add @vbudovski/paseri @vbudovski/paseri-compiler
 Compile a schema to a TypeScript module:
 
 ```typescript
-import * as p from '@vbudovski/paseri';
-import '@vbudovski/paseri/introspect';
-import { toSource } from '@vbudovski/paseri-compiler';
+import * as p from '@paseri/paseri';
+import '@paseri/paseri/introspect';
+import { toSource } from '@paseri/compiler';
 
 const schema = p.object({
     hello: p.string(),
@@ -52,7 +52,7 @@ The generated module exports `safeParseGreeting` &mdash; a drop-in for the runti
 `ParseResult`, compiled ahead of time for faster parsing:
 
 ```typescript ignore
-import { en } from '@vbudovski/paseri/locales';
+import { en } from '@paseri/paseri/locales';
 import { safeParseGreeting } from './greeting.ts';
 
 const data = { hello: 'world' };

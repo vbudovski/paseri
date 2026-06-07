@@ -1,4 +1,4 @@
-# @vbudovski/paseri-compiler
+# @paseri/compiler
 
 ## 0.1.0
 

@@ -1,6 +1,6 @@
 // Codegen-time state threaded through every emitter.
 
-import type { SerializedCallback } from '@vbudovski/paseri/introspect';
+import type { SerializedCallback } from '@paseri/paseri/introspect';
 import ts from 'typescript';
 import {
     bigintLiteral,

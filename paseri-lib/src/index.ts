@@ -5,7 +5,7 @@
  * @example Validate input with `safeParse`
  *
  * ```typescript
- * import * as p from '@vbudovski/paseri';
+ * import * as p from '@paseri/paseri';
  *
  * const schema = p.object({
  *     hello: p.string(),
@@ -22,7 +22,7 @@
  * @example Derive a TypeScript type from a schema
  *
  * ```typescript
- * import * as p from '@vbudovski/paseri';
+ * import * as p from '@paseri/paseri';
  *
  * const User = p.object({
  *     name: p.string(),
@@ -37,7 +37,7 @@
  * @example Validate input with `parse` (throws `PaseriError`)
  *
  * ```typescript
- * import * as p from '@vbudovski/paseri';
+ * import * as p from '@paseri/paseri';
  *
  * const schema = p.object({
  *     hello: p.string(),

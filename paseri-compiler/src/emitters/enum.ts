@@ -1,4 +1,4 @@
-import type { IR } from '@vbudovski/paseri/introspect';
+import type { IR } from '@paseri/paseri/introspect';
 import ts from 'typescript';
 import { call, ifStatement, not, primitiveToString, property, stringLiteral } from '../builders.ts';
 import { emitFailureRouting, leafExpression } from '../issues.ts';

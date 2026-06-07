@@ -1,6 +1,6 @@
+import * as p from '@paseri/paseri';
 import { expect } from '@std/expect';
 import { it } from '@std/testing/bdd';
-import * as p from '@vbudovski/paseri';
 import './aot-shadow.ts';
 
 // Helpers live at top level so the resolver finds them when it scans this file as the refine call site. Each exercises

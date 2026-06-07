@@ -1,4 +1,4 @@
-import type { IR } from '@vbudovski/paseri/introspect';
+import type { IR } from '@paseri/paseri/introspect';
 import type ts from 'typescript';
 import { ifStatement, notEquals, nullExpression } from '../builders.ts';
 import { emitSuccessRouting } from '../issues.ts';

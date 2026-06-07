@@ -12,7 +12,7 @@ import { Playground } from "../../../../../components/Playground.tsx";
 ## Example
 
 ```typescript
-import * as p from '@vbudovski/paseri';
+import * as p from '@paseri/paseri';
 
 const schema = p.enum('red', 'green', 'blue');
 const data = 'red';
@@ -39,7 +39,7 @@ Returns a new enum schema containing only the listed values. Each argument must 
 call fails to type-check.
 
 ```typescript
-import * as p from '@vbudovski/paseri';
+import * as p from '@paseri/paseri';
 
 const Color = p.enum('red', 'green', 'blue');
 const Primary = Color.extract('red', 'green');
@@ -55,7 +55,7 @@ Returns a new enum schema with the listed values removed. Each argument must be 
 call fails to type-check.
 
 ```typescript
-import * as p from '@vbudovski/paseri';
+import * as p from '@paseri/paseri';
 
 const Color = p.enum('red', 'green', 'blue');
 const NonPrimary = Color.exclude('red');

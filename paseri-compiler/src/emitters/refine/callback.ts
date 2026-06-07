@@ -1,4 +1,4 @@
-import type { SerializedCallback } from '@vbudovski/paseri/introspect';
+import type { SerializedCallback } from '@paseri/paseri/introspect';
 import ts from 'typescript';
 import { ResolutionError, resolveBindings } from '../../resolver.ts';
 import { freshIdentifier, type State } from '../../state.ts';
