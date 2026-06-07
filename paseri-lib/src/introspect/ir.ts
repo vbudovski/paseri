@@ -1,11 +1,20 @@
 // Intermediate representation of a Paseri schema's structure. The shape is a graph rather than a tree so that cycles
 // introduced via LazySchema can be broken with named refs.
 
+/**
+ * Serialisable graph form of a Paseri schema, produced by `schema.toIR()`. The structure is a graph rather than a
+ * tree so that cycles introduced via `lazy()` can be broken: `entry` is the root node, and `named` holds shared nodes
+ * referenced by `{ kind: 'ref' }` entries elsewhere in the graph.
+ */
 interface IRGraph {
     readonly entry: IR;
     readonly named: Readonly<Record<string, IR>>;
 }
 
+/**
+ * A single node in an {@link IRGraph}. A discriminated union keyed by `kind`, with one arm per Paseri schema type;
+ * composite arms (`array`, `object`, `union`, …) nest further `IR` nodes for their children.
+ */
 type IR =
     | { kind: 'string'; checks: readonly StringCheck[] }
     | { kind: 'number'; checks: readonly NumberCheck[] }
@@ -49,6 +58,11 @@ type IR =
     | { kind: 'chain'; from: IR; to: IR; callback: SerializedCallback }
     | { kind: 'unsupported'; schema: 'refine' | 'chain'; reason: string };
 
+/**
+ * Serialised form of a `.refine()` / `.chain()` callback, captured at schema-construction time. Carries the callback
+ * source plus enough surrounding context (parameter names, free identifiers, call site) for paseri-compiler to
+ * re-emit it ahead of time.
+ */
 interface SerializedCallback {
     readonly source: string;
     readonly name: string;
@@ -62,8 +76,10 @@ interface SerializedCallback {
     readonly callSiteFile?: string;
 }
 
+/** How an `object` node treats keys not declared in its schema: drop them, reject them, or pass them through. */
 type ObjectMode = 'strip' | 'strict' | 'passthrough';
 
+/** A validation constraint recorded on a `string` node, mirroring the chainable checks on a string schema. */
 type StringCheck =
     | { name: 'min' | 'max'; value: number }
     | { name: 'includes' | 'startsWith' | 'endsWith'; value: string }
@@ -73,14 +89,19 @@ type StringCheck =
           flags: string;
       };
 
+/** A validation constraint recorded on a `number` node, mirroring the chainable checks on a number schema. */
 type NumberCheck = { name: 'gt' | 'gte' | 'lt' | 'lte'; value: number } | { name: 'int' | 'finite' | 'safe' };
 
+/** A validation constraint recorded on a `bigint` node, mirroring the chainable checks on a bigint schema. */
 type BigIntCheck = { name: 'gt' | 'gte' | 'lt' | 'lte'; value: bigint };
 
+/** A length constraint recorded on an `array` node. */
 type LengthCheck = { name: 'min' | 'max'; value: number };
 
+/** A size constraint recorded on a `set` or `map` node. */
 type SizeCheck = { name: 'min' | 'max'; value: number };
 
+/** A bound constraint recorded on a temporal node (`date`, `instant`, `plainDate`, …), parameterised by its value type. */
 type TemporalCheck<ValueType> = { name: 'min' | 'max'; value: ValueType };
 
 // Recursion state threaded through every `_emit(context)` call.
