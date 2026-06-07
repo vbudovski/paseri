@@ -35,7 +35,13 @@ const config: ReturnType<typeof defineConfig> = defineConfig({
                 },
                 {
                     label: 'Reference',
-                    autogenerate: { directory: 'reference' },
+                    items: [
+                        { label: 'Messages', slug: 'reference/messages' },
+                        { label: 'Schema', autogenerate: { directory: 'reference/Schema' } },
+                        // Badge comes from the page's `sidebar.badge` frontmatter (single source; also drives the
+                        // page-title badge via the PageTitle override).
+                        { label: 'Ahead-of-time Compiler', slug: 'reference/compiler' },
+                    ],
                 },
             ],
         }),

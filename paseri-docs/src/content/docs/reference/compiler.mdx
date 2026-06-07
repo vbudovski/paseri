@@ -1,0 +1,90 @@
+---
+title: "Ahead-of-time Compiler"
+description: "Compile a Paseri schema ahead of time into a TypeScript module containing the parser, for faster validation."
+sidebar:
+    badge:
+        text: Beta
+        variant: caution
+---
+
+import { Badge, Tabs, TabItem } from '@astrojs/starlight/components';
+
+<p><Badge text="Beta" variant="caution" size="large" /></p>
+
+The `@vbudovski/paseri-compiler` package compiles a Paseri schema ahead of time into a TypeScript module containing the parser, for faster validation.
+
+## Installation
+
+The `@vbudovski/paseri-compiler` package is a companion to Paseri; install both.
+
+<Tabs syncKey="packageManager">
+    <TabItem label="Deno" icon="deno">
+        ```shell
+        deno add jsr:@vbudovski/paseri jsr:@vbudovski/paseri-compiler
+        ```
+    </TabItem>
+    <TabItem label="Bun" icon="bun">
+        ```shell
+        bunx jsr add @vbudovski/paseri @vbudovski/paseri-compiler
+        ```
+    </TabItem>
+    <TabItem label="pnpm" icon="pnpm">
+        ```shell
+        pnpm add jsr:@vbudovski/paseri jsr:@vbudovski/paseri-compiler
+        ```
+    </TabItem>
+    <TabItem label="yarn" icon="seti:yarn">
+        ```shell
+        yarn add jsr:@vbudovski/paseri jsr:@vbudovski/paseri-compiler
+        ```
+    </TabItem>
+    <TabItem label="npm" icon="seti:npm">
+        ```shell
+        npx jsr add @vbudovski/paseri @vbudovski/paseri-compiler
+        ```
+    </TabItem>
+</Tabs>
+
+## Compiling a schema
+
+Import `@vbudovski/paseri/introspect`, then pass `schema.toIR()` to `toSource`, which returns the module source as a string:
+
+```typescript
+import * as p from '@vbudovski/paseri';
+import '@vbudovski/paseri/introspect';
+import { toSource } from '@vbudovski/paseri-compiler';
+
+const schema = p.object({
+    hello: p.string(),
+});
+
+const source = toSource(schema.toIR(), { name: 'Greeting' });
+// Write `source` to a file (e.g. `greeting.ts`) as part of your build.
+```
+
+## Using the generated module
+
+The generated module exports `safeParseGreeting` &mdash; a drop-in for the runtime schema that returns the same `ParseResult`:
+
+```typescript
+import { en } from '@vbudovski/paseri/locales';
+import { safeParseGreeting } from './greeting.ts';
+
+const data = { hello: 'world' };
+const result = safeParseGreeting(data);
+if (result.ok) {
+    console.log(`Hello ${result.value.hello}!`);
+} else {
+    const messages = result.messages(en);
+    throw new Error(`Parsing failed: ${messages}`);
+}
+```
+
+It also exports a throwing `parseGreeting` &mdash; the counterpart of the runtime schema's `parse`, returning the value or throwing a `PaseriError`:
+
+```typescript
+import { parseGreeting } from './greeting.ts';
+
+const greeting = parseGreeting({ hello: 'world' });
+console.log(`Hello ${greeting.hello}!`);
+```
