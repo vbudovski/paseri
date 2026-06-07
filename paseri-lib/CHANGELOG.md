@@ -1,5 +1,18 @@
 # @paseri/paseri
 
+## 1.2.0
+
+### Minor Changes
+
+- 8fe88ea: Renamed the published package from `@vbudovski/paseri` to `@paseri/paseri`. Update imports to the new specifier; the `introspect` and `locales` subpaths carry over unchanged (`@paseri/paseri/introspect`, `@paseri/paseri/locales`).
+
+### Patch Changes
+
+- 4dd1bf3: Improve `parse` performance by avoiding an unnecessary allocation and unwrapping of the value.
+- 473ba56: Reject empty tuple and object schemas at runtime on top of existing type checks.
+- 2d2d2b7: Reject undersized union and empty enum schemas at runtime on top of existing type checks.
+- 8c34f00: Invoke `.refine()` / `.chain()` callbacks without a `this` receiver. A non-arrow callback's `this` was previously bound to the internal schema instance (only ever exposing private fields); depending on it was never supported. Arrow callbacks and explicitly-bound functions are unaffected.
+
 ## 1.1.0
 
 ### Minor Changes
