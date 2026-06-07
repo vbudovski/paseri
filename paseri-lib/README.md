@@ -24,7 +24,7 @@ bunx jsr add @vbudovski/paseri
 ```
 
 ```shell
-pnpm i jsr:@vbudovski/paseri
+pnpm add jsr:@vbudovski/paseri
 ```
 
 ```shell
