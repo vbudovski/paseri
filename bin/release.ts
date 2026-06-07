@@ -55,6 +55,11 @@ async function assertCleanTree(): Promise<void> {
 async function refreshMain(): Promise<void> {
     await run('git', ['checkout', 'main']);
     await run('git', ['pull', '--ff-only']);
+    // Refresh the release branch's remote-tracking ref so the later
+    // --force-with-lease push has an accurate lease (a stale or missing
+    // ref — e.g. after the prior PR's branch was deleted on merge —
+    // otherwise gets rejected as stale and aborts before the PR step).
+    await run('git', ['fetch', '--prune', 'origin']);
 }
 
 async function recreateReleaseBranch(): Promise<void> {
