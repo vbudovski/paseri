@@ -71,7 +71,21 @@ async function recreateReleaseBranch(): Promise<void> {
 }
 
 async function findExistingPr(): Promise<string | null> {
-    const { code, stdout } = await capture('gh', ['pr', 'view', RELEASE_BRANCH, '--json', 'url', '--jq', '.url']);
+    // Only an OPEN PR counts as existing. `gh pr view <branch>` also returns
+    // the previous release's MERGED PR (the branch name is reused every
+    // cycle), which we'd then wrongly edit instead of opening a fresh PR.
+    const { code, stdout } = await capture('gh', [
+        'pr',
+        'list',
+        '--head',
+        RELEASE_BRANCH,
+        '--state',
+        'open',
+        '--json',
+        'url',
+        '--jq',
+        '.[0].url // empty',
+    ]);
     if (code !== 0 || stdout.length === 0) {
         return null;
     }
