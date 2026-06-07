@@ -1,4 +1,4 @@
-import type { IR } from '@vbudovski/paseri/introspect';
+import type { IR } from '@paseri/paseri/introspect';
 import type ts from 'typescript';
 import { assign, equals, ifStatement, returnStatement, trueLiteral, undefinedExpression } from '../builders.ts';
 import { successPayload } from '../issues.ts';

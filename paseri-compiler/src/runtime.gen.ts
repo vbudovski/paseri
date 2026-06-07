@@ -6,7 +6,7 @@ const RUNTIME_SOURCE = `// biome-ignore-all lint/correctness/noUnusedVariables: 
 // generate_runtime\` embeds its verbatim text into \`runtime.gen.ts\`, and \`selectRuntimeStatements()\` in
 // \`toSource.ts\` parses that string at codegen time, including only the declarations each schema needs. Re-run the
 // task after editing this file. The result/issue/message contract is NOT here — generated code imports it from
-// \`@vbudovski/paseri/internal\` so it reuses the runtime's exact machinery (see \`toSource.ts\`).
+// \`@paseri/paseri/internal\` so it reuses the runtime's exact machinery (see \`toSource.ts\`).
 
 // Mirrors paseri-lib's \`utils.ts\` isPlainObject exactly — the compiled object/record predicate must accept and reject
 // the same values as the runtime. Keep these in lockstep (the \`constructor\` and \`Array.isArray\` branches both matter).

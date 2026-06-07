@@ -6,7 +6,7 @@ In order to support localised error messages, each parsing error produces a uniq
 in the messages object for the selected locale. When calling the `messages` method on either the `safeParse` result or
 the exception thrown from `parse`, pass the desired messages object as the parameter to get human-readable strings.
 Calling `messages` without a locale returns the raw issue codes (e.g. `invalid_email`), which is useful when you only
-need to inspect error codes programmatically. Locales are imported from `@vbudovski/paseri/locales`.
+need to inspect error codes programmatically. Locales are imported from `@paseri/paseri/locales`.
 
 ## Contributing new translations
 
@@ -23,7 +23,7 @@ You can extend the messages object to add your custom error codes and correspond
 optionally accept a `params` object for templated values.
 
 ```typescript
-import { en, type Translations } from '@vbudovski/paseri/locales';
+import { en, type Translations } from '@paseri/paseri/locales';
 
 const enCustom = {
     ...en,

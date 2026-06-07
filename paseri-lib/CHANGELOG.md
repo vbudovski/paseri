@@ -1,4 +1,4 @@
-# @vbudovski/paseri
+# @paseri/paseri
 
 ## 1.1.0
 

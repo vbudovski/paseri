@@ -2,7 +2,7 @@
 // turn a failing check into either an early return (return-sink) or an
 // accumulator update (accumulate-sink).
 
-import { issueCodes } from '@vbudovski/paseri/internal';
+import { issueCodes } from '@paseri/paseri/internal';
 import type ts from 'typescript';
 import {
     asConst,
@@ -44,7 +44,7 @@ function nestExpression(keyExpression: ts.Expression, child: ts.Expression): ts.
 
 /**
  * Builds `new ParseErrorResult(issue)` — the runtime's failure result, imported from
- * `@vbudovski/paseri/internal`. Reusing it means `.messages(locale?)` is the runtime's exact implementation, so the
+ * `@paseri/paseri/internal`. Reusing it means `.messages(locale?)` is the runtime's exact implementation, so the
  * compiled output can't drift from it.
  */
 function failurePayload(issueExpression: ts.Expression): ts.Expression {

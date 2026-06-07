@@ -1,5 +1,5 @@
-import type { Schema } from '@vbudovski/paseri';
-import '@vbudovski/paseri/introspect';
+import type { Schema } from '@paseri/paseri';
+import '@paseri/paseri/introspect';
 import { toSource } from '../src/index.ts';
 
 interface CompiledResult {

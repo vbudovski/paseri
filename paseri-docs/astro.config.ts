@@ -61,8 +61,8 @@ const config: ReturnType<typeof defineConfig> = defineConfig({
     vite: {
         resolve: {
             alias: {
-                '@vbudovski/paseri/locales': path.resolve(__dirname, '../paseri-lib/src/locales/index.ts'),
-                '@vbudovski/paseri': path.resolve(__dirname, '../paseri-lib/src/index.ts'),
+                '@paseri/paseri/locales': path.resolve(__dirname, '../paseri-lib/src/locales/index.ts'),
+                '@paseri/paseri': path.resolve(__dirname, '../paseri-lib/src/index.ts'),
             },
             // Dev-time SSR otherwise loads two `preact` instances (one via
             // `@astrojs/preact`'s renderer, one via the page's component

@@ -1,4 +1,4 @@
-import type { IR } from '@vbudovski/paseri/introspect';
+import type { IR } from '@paseri/paseri/introspect';
 import type ts from 'typescript';
 import type { Sink, State } from '../state.ts';
 import { emitEpochTemporalSchema } from './_temporal-checks.ts';

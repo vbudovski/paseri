@@ -1,4 +1,4 @@
-import * as p from '@vbudovski/paseri';
+import * as p from '@paseri/paseri';
 import { compile } from './_harness.ts';
 
 const { bench } = Deno;

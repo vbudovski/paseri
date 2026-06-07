@@ -9,27 +9,27 @@ import { Tabs, TabItem } from '@astrojs/starlight/components';
 <Tabs syncKey="packageManager">
     <TabItem label="Deno" icon="deno">
         ```shell
-        deno add jsr:@vbudovski/paseri
+        deno add jsr:@paseri/paseri
         ```
     </TabItem>
     <TabItem label="Bun" icon="bun">
         ```shell
-        bunx jsr add @vbudovski/paseri
+        bunx jsr add @paseri/paseri
         ```
     </TabItem>
     <TabItem label="pnpm" icon="pnpm">
         ```shell
-        pnpm add jsr:@vbudovski/paseri
+        pnpm add jsr:@paseri/paseri
         ```
     </TabItem>
     <TabItem label="yarn" icon="seti:yarn">
         ```shell
-        yarn add jsr:@vbudovski/paseri
+        yarn add jsr:@paseri/paseri
         ```
     </TabItem>
     <TabItem label="npm" icon="seti:npm">
         ```shell
-        npx jsr add @vbudovski/paseri
+        npx jsr add @paseri/paseri
         ```
     </TabItem>
 </Tabs>
@@ -38,8 +38,8 @@ import { Tabs, TabItem } from '@astrojs/starlight/components';
 ## Creating your first schema
 
 ```typescript
-import * as p from '@vbudovski/paseri';
-import { en } from '@vbudovski/paseri/locales';
+import * as p from '@paseri/paseri';
+import { en } from '@paseri/paseri/locales';
 
 const schema = p.object({
     hello: p.string(),

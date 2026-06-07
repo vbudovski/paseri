@@ -1,7 +1,7 @@
+import * as p from '@paseri/paseri';
 import { expect } from '@std/expect';
 import { it } from '@std/testing/bdd';
-import * as p from '@vbudovski/paseri';
-import '@vbudovski/paseri/introspect';
+import '@paseri/paseri/introspect';
 import { compileSync, compileThrowingSync } from './aot-shadow.ts';
 import { toSource } from './toSource.ts';
 

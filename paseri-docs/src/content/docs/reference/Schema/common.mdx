@@ -15,7 +15,7 @@ returned with the appropriate type, otherwise an exception containing a `message
 [messages](/reference/messages/) reference for details.
 
 ```typescript
-import * as p from '@vbudovski/paseri';
+import * as p from '@paseri/paseri';
 
 const schema = p.string();
 try {
@@ -34,8 +34,8 @@ The `safeParse` method takes a `value` parameter as input. The result is a discr
 the raw issue codes.
 
 ```typescript
-import * as p from '@vbudovski/paseri';
-import { en } from '@vbudovski/paseri/locales';
+import * as p from '@paseri/paseri';
+import { en } from '@paseri/paseri/locales';
 
 const schema = p.string();
 const result = schema.safeParse('foo');
@@ -51,7 +51,7 @@ if (result.ok) {
 Allow any schema to accept `undefined` as a valid value.
 
 ```typescript
-import * as p from '@vbudovski/paseri';
+import * as p from '@paseri/paseri';
 
 const schema = p.string().optional();
 const result = schema.safeParse(undefined);
@@ -65,7 +65,7 @@ if (result.ok) {
 To substitute a value when the input is `undefined`, follow `.optional()` with `.default(value)`.
 
 ```typescript
-import * as p from '@vbudovski/paseri';
+import * as p from '@paseri/paseri';
 
 const schema = p.number().optional().default(123);
 const result = schema.safeParse(undefined);
@@ -85,7 +85,7 @@ leak across parses sharing the default.
 Allow any schema to accept `null` as a valid value.
 
 ```typescript
-import * as p from '@vbudovski/paseri';
+import * as p from '@paseri/paseri';
 
 const schema = p.string().nullable();
 const result = schema.safeParse(null);
@@ -104,7 +104,7 @@ The transformer function must *not* throw! Instead, return an error code using t
 :::
 
 ```typescript
-import * as p from '@vbudovski/paseri';
+import * as p from '@paseri/paseri';
 
 const schema = p.string().chain(p.bigint(), (value) => {
     try {
@@ -129,7 +129,7 @@ The error code `'invalid_bigint'` is a custom code. Custom error codes require a
 [matching locale entry](/reference/messages/#custom-error-codes).
 
 ```typescript
-import * as p from '@vbudovski/paseri';
+import * as p from '@paseri/paseri';
 
 const schema = p.string().chain(p.number(), (value) => {
     const n = Number(value);
@@ -146,7 +146,7 @@ Add a custom check to any schema. The predicate runs on the parsed value and if 
 given path. Multiple `.refine()` calls short-circuit on the first failure.
 
 ```typescript
-import * as p from '@vbudovski/paseri';
+import * as p from '@paseri/paseri';
 
 const schema = p
     .object({
@@ -174,7 +174,7 @@ You can use the `Infer` type to determine the result type of any schema. This is
 manually define a type that could easily get out of sync with the schema definition.
 
 ```typescript
-import * as p from '@vbudovski/paseri';
+import * as p from '@paseri/paseri';
 
 const schema = p.object({
     foo: p.string(),
