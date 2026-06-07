@@ -1,5 +1,11 @@
 # @paseri/paseri
 
+## 1.2.1
+
+### Patch Changes
+
+- 80d169e: Document the `introspect` subpath: add a module overview with a usage example and JSDoc for each exported IR type (`IR`, `IRGraph`, `SerializedCallback`, and the `*Check` constraint aliases).
+
 ## 1.2.0
 
 ### Minor Changes
