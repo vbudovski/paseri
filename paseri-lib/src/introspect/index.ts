@@ -1,7 +1,25 @@
-// Side-effect subpath. Importing this module installs working `toIR()` and `_emit()` implementations on every Paseri
-// schema's prototype; before this subpath is imported, the base `Schema` class only declares them as runtime-attached
-// fields and calling either fails with `<name> is not a function`. The per-class `_emit` augmentations that `toIR()`
-// dispatches into live in the sibling files below.
+/**
+ * Schema introspection for [Paseri](https://paseri.dev): serialise any schema to a structured intermediate
+ * representation ({@link IRGraph}) for tooling such as paseri-compiler.
+ *
+ * This is a side-effect subpath. Importing it installs working `toIR()` implementations on every Paseri schema's
+ * prototype; before it is imported, the base `Schema` class only declares `toIR()` as a runtime-attached field and
+ * calling it fails with `toIR is not a function`.
+ *
+ * @example Serialise a schema to its intermediate representation
+ *
+ * ```typescript
+ * import * as p from '@paseri/paseri';
+ * import '@paseri/paseri/introspect';
+ *
+ * const schema = p.object({ hello: p.string() });
+ * const graph = schema.toIR();
+ *
+ * console.log(graph.entry.kind); // 'object'
+ * ```
+ *
+ * @module
+ */
 
 import { Schema } from '../schemas/schema.ts';
 import './_callsite.ts';
