@@ -37,9 +37,7 @@ const config: ReturnType<typeof defineConfig> = defineConfig({
                     label: 'Reference',
                     items: [
                         { label: 'Messages', slug: 'reference/messages' },
-                        { label: 'Schema', autogenerate: { directory: 'reference/Schema' } },
-                        // Badge comes from the page's `sidebar.badge` frontmatter (single source; also drives the
-                        // page-title badge via the PageTitle override).
+                        { label: 'Schema', items: [{ autogenerate: { directory: 'reference/Schema' } }] },
                         { label: 'Ahead-of-time Compiler', slug: 'reference/compiler' },
                     ],
                 },
@@ -49,6 +47,7 @@ const config: ReturnType<typeof defineConfig> = defineConfig({
         sitemap(),
     ],
     markdown: {
+        gfm: true,
         rehypePlugins: [
             [
                 rehypeExternalLinks,
