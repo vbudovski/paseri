@@ -55,9 +55,6 @@ li a {
     }
 
     .charts-css.bar {
-        --color-1: var(--sl-color-accent);
-        --color-2: var(--sl-color-gray-2);
-        --color-3: var(--sl-color-gray-3);
         --primary-axis-color: var(--sl-color-gray-1);
         --secondary-axes-color: var(--sl-color-gray-5);
         --aspect-ratio: 4 / 3;
@@ -86,5 +83,55 @@ li a {
     .title-main {
         font-size: var(--sl-text-h3);
         line-height: var(--sl-line-height-headings);
+    }
+
+    a {
+        color: var(--sl-color-text-accent);
+    }
+
+    a:hover {
+        color: var(--sl-color-white);
+    }
+}
+
+:root[data-theme="dark"] .performance-chart.not-content {
+    .charts-css.bar {
+        --color-1: var(--sl-color-accent);
+        --color-2: var(--sl-color-accent-low);
+        --color-3: var(--sl-color-gray-2);
+        --color-4: var(--sl-color-gray-3);
+    }
+
+    td.label > .data {
+        color: var(--sl-color-white);
+
+        a {
+            color: var(--sl-color-gray-2);
+        }
+
+        a:hover {
+            color: var(--sl-color-black);
+        }
+    }
+}
+
+:root[data-theme="light"] .performance-chart.not-content {
+    .charts-css.bar {
+        --color-1: var(--sl-color-accent);
+        --color-2: var(--sl-color-accent-low);
+        --color-3: var(--sl-color-gray-2);
+        --color-4: var(--sl-color-gray-3);
+    }
+
+    td.label > .data {
+        color: var(--sl-color-black);
+
+        a {
+            color: var(--sl-color-gray-6);
+        }
+
+        a:hover {
+            color: var(--sl-color-white);
+        }
     }
 }
