@@ -24,6 +24,12 @@ jobs:
       contents: read
     uses: ./.github/workflows/changeset-check.yml
 
+  zizmor:
+    permissions:
+      contents: read
+      security-events: write
+    uses: ./.github/workflows/zizmor.yml
+
   test:
     needs: [lint, commitlint]
     permissions:

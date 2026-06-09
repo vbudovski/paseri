@@ -22,6 +22,7 @@ jobs:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Set up Deno
         uses: denoland/setup-deno@667a34cdef165d8d2b2e98dde39547c9daac7282 # v2
@@ -36,7 +37,9 @@ jobs:
 
       - name: Write main metric
         if: github.ref == 'refs/heads/main'
-        run: printf '%s' "${{ steps.bundle.outputs.BUNDLE_SIZE }}" > main-bundlesize.txt
+        env:
+          BUNDLE_SIZE: ${{ steps.bundle.outputs.BUNDLE_SIZE }}
+        run: printf '%s' "$BUNDLE_SIZE" > main-bundlesize.txt
 
       - name: Save main bundle size metric
         if: github.ref == 'refs/heads/main'
@@ -57,8 +60,10 @@ jobs:
       - name: Compute bundle size delta
         if: github.event_name == 'pull_request'
         id: delta
+        env:
+          PR_SIZE_RAW: ${{ steps.bundle.outputs.BUNDLE_SIZE }}
         run: |
-          pr_size="${{ steps.bundle.outputs.BUNDLE_SIZE }}"
+          pr_size="$PR_SIZE_RAW"
           # Strict whitelist on PR value (digits, dot, single trailing IEC suffix).
           pr_size=$(printf '%s' "$pr_size" | tr -cd '0-9.KMG' | head -c 16)
           if [ -f main-bundlesize.txt ]; then
