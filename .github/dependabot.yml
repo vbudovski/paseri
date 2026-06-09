@@ -8,3 +8,22 @@ updates:
       default-days: 7
     commit-message:
       prefix: fix
+  - package-ecosystem: deno
+    directories:
+      - "/"
+      - "/paseri-lib"
+      - "/paseri-compiler"
+      - "/paseri-docs"
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      deno-minor-patch:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
+    commit-message:
+      prefix: fix
