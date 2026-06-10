@@ -21,6 +21,38 @@ it('accepts valid types', () => {
     );
 });
 
+it('infers key optionality from the schema kind, not the value type', () => {
+    const schema = p.object({
+        plain: p.string().optional(),
+        optionalThenNullable: p.string().optional().nullable(),
+        nullableThenOptional: p.string().nullable().optional(),
+        valueUndefined: p.union(p.string(), p.undefined()),
+        explicitUndefined: p.undefined(),
+        defaulted: p.string().optional().default('x'),
+    });
+
+    const result = schema.safeParse({
+        plain: 'a',
+        optionalThenNullable: null,
+        nullableThenOptional: 'b',
+        valueUndefined: 'c',
+        explicitUndefined: undefined,
+    });
+    if (result.ok) {
+        expectTypeOf(result.value).toEqualTypeOf<{
+            plain?: string | undefined;
+            optionalThenNullable?: string | null | undefined;
+            nullableThenOptional?: string | null | undefined;
+            valueUndefined: string | undefined;
+            explicitUndefined: undefined;
+            defaulted: string;
+        }>;
+        expect(result.value.defaulted).toBe('x');
+    } else {
+        expect(result.ok).toBeTruthy();
+    }
+});
+
 it('rejects symbol shape keys', () => {
     // Symbol-keyed fields were silently ignored by the parser (never validated, never required) and are
     // unrepresentable in compiled validators, so they are rejected at construction.
@@ -790,7 +822,7 @@ describe('partial', () => {
         const schema = p.object({ foo: p.string(), bar: p.number() }).partial();
         const result = schema.safeParse({});
         if (result.ok) {
-            expectTypeOf(result.value).toEqualTypeOf<{ foo?: string; bar?: number }>;
+            expectTypeOf(result.value).toEqualTypeOf<{ foo?: string | undefined; bar?: number | undefined }>;
             expect(result.value).toEqual({});
         } else {
             expect(result.ok).toBeTruthy();
@@ -801,7 +833,7 @@ describe('partial', () => {
         const schema = p.object({ foo: p.string(), bar: p.number() }).partial('foo');
         const result = schema.safeParse({ bar: 1 });
         if (result.ok) {
-            expectTypeOf(result.value).toEqualTypeOf<{ foo?: string; bar: number }>;
+            expectTypeOf(result.value).toEqualTypeOf<{ foo?: string | undefined; bar: number }>;
             expect(result.value).toEqual({ bar: 1 });
         } else {
             expect(result.ok).toBeTruthy();
@@ -871,7 +903,7 @@ describe('required', () => {
         const schema = p.object({ foo: p.string().optional(), bar: p.number().optional() }).required('foo');
         const result = schema.safeParse({ foo: 'hi' });
         if (result.ok) {
-            expectTypeOf(result.value).toEqualTypeOf<{ foo: string; bar?: number }>;
+            expectTypeOf(result.value).toEqualTypeOf<{ foo: string; bar?: number | undefined }>;
             expect(result.value).toEqual({ foo: 'hi' });
         } else {
             expect(result.ok).toBeTruthy();

@@ -99,8 +99,8 @@ abstract class Schema<OutputType> implements StandardSchemaV1<unknown, OutputTyp
     optional(): OptionalSchema<OutputType> {
         return new OptionalSchema(this);
     }
-    nullable(): NullableSchema<OutputType> {
-        return new NullableSchema(this);
+    nullable(): NullableSchema<OutputType, this> {
+        return new NullableSchema<OutputType, this>(this);
     }
     chain<ToOutputType>(
         schema: Schema<ToOutputType>,
@@ -145,16 +145,21 @@ class OptionalSchema<OutputType> extends Schema<OutputType | undefined> {
     }
 }
 
-class NullableSchema<OutputType> extends Schema<OutputType | null> {
-    private readonly _schema: Schema<OutputType>;
+// The inner schema type parameter lets `Infer` see through nullable to an OptionalSchema underneath,
+// mirroring the runtime's `_isOptional` delegation (optional and nullable compose in any order).
+class NullableSchema<
+    OutputType,
+    InnerSchemaType extends Schema<OutputType> = Schema<OutputType>,
+> extends Schema<OutputType | null> {
+    private readonly _schema: InnerSchemaType;
 
-    constructor(schema: Schema<OutputType>) {
+    constructor(schema: InnerSchemaType) {
         super();
 
         this._schema = schema;
     }
-    protected _clone(): NullableSchema<OutputType> {
-        return new NullableSchema(this._schema);
+    protected _clone(): NullableSchema<OutputType, InnerSchemaType> {
+        return new NullableSchema<OutputType, InnerSchemaType>(this._schema);
     }
     _parse(value: unknown, _depth: number, _maxDepth: number): InternalParseResult<OutputType | null> {
         if (value === null) {
