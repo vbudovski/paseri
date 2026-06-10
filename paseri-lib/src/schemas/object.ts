@@ -6,7 +6,11 @@ import { defineProtoProperty, isPlainObject } from '../utils.ts';
 import { type AnySchemaType, DefaultSchema, type OptionalSchema, Schema } from './schema.ts';
 
 type ValidShapeType<ShapeType> = NonEmptyObject<{
-    [Key in keyof ShapeType]: ShapeType[Key] extends Schema<infer OutputType> ? Schema<OutputType> : never;
+    [Key in keyof ShapeType]: Key extends symbol
+        ? never
+        : ShapeType[Key] extends Schema<infer OutputType>
+          ? Schema<OutputType>
+          : never;
 }>;
 
 type Mode = 'strip' | 'strict' | 'passthrough';
@@ -43,7 +47,15 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
     constructor(shape: ShapeType) {
         super();
 
-        if (!shape || Object.keys(shape).length === 0) {
+        if (!shape) {
+            throw new Error('Object must contain at least one field.');
+        }
+        // Symbol-keyed fields would be invisible to the string-keyed parse loops and are unrepresentable
+        // in compiled validators (a unique symbol has no emittable reference), so reject them up front.
+        if (Object.getOwnPropertySymbols(shape).length > 0) {
+            throw new Error('Object fields must use string keys.');
+        }
+        if (Object.keys(shape).length === 0) {
             throw new Error('Object must contain at least one field.');
         }
 

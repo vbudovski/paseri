@@ -6,20 +6,29 @@ import * as p from '../index.ts';
 import { isPlainObject } from '../utils.ts';
 
 it('accepts valid types', () => {
-    const bar = Symbol.for('bar');
-    const schema = p.object({ foo: p.string(), 1: p.number(), [bar]: p.number() });
+    const schema = p.object({ foo: p.string(), 1: p.number() });
 
     fc.assert(
-        fc.property(fc.record({ foo: fc.string(), 1: fc.float({ noNaN: true }), [bar]: fc.integer() }), (data) => {
+        fc.property(fc.record({ foo: fc.string(), 1: fc.float({ noNaN: true }) }), (data) => {
             const result = schema.safeParse(data);
             if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<{ foo: string; 1: number; [bar]: number }>;
+                expectTypeOf(result.value).toEqualTypeOf<{ foo: string; 1: number }>;
                 expect(result.value).toEqual(data);
             } else {
                 expect(result.ok).toBeTruthy();
             }
         }),
     );
+});
+
+it('rejects symbol shape keys', () => {
+    // Symbol-keyed fields were silently ignored by the parser (never validated, never required) and are
+    // unrepresentable in compiled validators, so they are rejected at construction.
+    const bar = Symbol.for('bar');
+    // @ts-expect-error Intentionally silence the type error to validate runtime check.
+    expect(() => p.object({ foo: p.string(), [bar]: p.number() })).toThrow('Object fields must use string keys.');
+    // @ts-expect-error Intentionally silence the type error to validate runtime check.
+    expect(() => p.object({ [bar]: p.number() })).toThrow('Object fields must use string keys.');
 });
 
 it('rejects invalid types', () => {
