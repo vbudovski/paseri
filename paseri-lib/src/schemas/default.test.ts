@@ -144,6 +144,41 @@ describe('inside object schemas', () => {
         }
     });
 
+    it('substitutes for missing required fields in strip mode when an unrecognised key is present', () => {
+        const schema = p
+            .object({
+                host: p.string(),
+                port: p.number().optional().default(123),
+            })
+            .strip();
+        const result = schema.safeParse({ host: 'localhost', extra: 'remove me' });
+        if (result.ok) {
+            expect(result.value).toEqual({ host: 'localhost', port: 123 });
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
+    });
+
+    it('substitutes for a missing field whose base schema accepts undefined', () => {
+        const schema = p.object({ nested: p.object({ value: p.unknown().optional().default('x') }) });
+        const result = schema.safeParse({ nested: {} });
+        if (result.ok) {
+            expect(result.value).toEqual({ nested: { value: 'x' } });
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
+    });
+
+    it('still errors on a missing sibling field whose schema accepts undefined', () => {
+        const schema = p.object({ value: p.unknown(), port: p.number().optional().default(123) });
+        const result = schema.safeParse({});
+        if (!result.ok) {
+            expect(result.messages()).toEqual([{ path: ['value'], message: 'missing_value' }]);
+        } else {
+            expect(result.ok).toBeFalsy();
+        }
+    });
+
     it('still errors on missing fields without a default', () => {
         const schema = p.object({
             host: p.string(),

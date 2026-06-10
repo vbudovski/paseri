@@ -269,13 +269,45 @@ function emitObjectSlowPath(ir: ObjectIR, valueExpression: ts.Expression, sink: 
                       ),
                   )
                 : assign(elementAccess(sanitizedIdentifier, innerKey), recordAccess(valueExpression, innerKey));
-        return [
+        const statements: ts.Statement[] = [
             constStatement(sanitizedIdentifier, recordType, objectLiteral({})),
             forIn(innerKey, valueExpression, [
                 ifStatement(call(property(unrecognized, 'has'), [innerKey]), [continueStatement()]),
                 assignment,
             ]),
         ];
+        if (hasModifications && modifiedIdentifier) {
+            // Default fills target keys absent from the input, so the loop above never copies them.
+            const modifiedKey = freshIdentifier(state, 'modifiedKey');
+            statements.push(
+                ifStatement(
+                    binary(
+                        hasModifications,
+                        ts.SyntaxKind.AmpersandAmpersandToken,
+                        notEquals(modifiedIdentifier, undefinedExpression),
+                    ),
+                    [
+                        forIn(modifiedKey, modifiedIdentifier, [
+                            ifStatement(
+                                not(
+                                    call(property(identifier('Object'), 'hasOwn'), [
+                                        recordCast(valueExpression),
+                                        modifiedKey,
+                                    ]),
+                                ),
+                                [
+                                    assign(
+                                        elementAccess(sanitizedIdentifier, modifiedKey),
+                                        recordAccess(modifiedIdentifier, modifiedKey),
+                                    ),
+                                ],
+                            ),
+                        ]),
+                    ],
+                ),
+            );
+        }
+        return statements;
     };
 
     const successStatements: ts.Statement[] = [];

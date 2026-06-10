@@ -150,6 +150,15 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
                 }
             }
 
+            if (hasModifiedChildValue) {
+                // Default fills target keys absent from the input, so the loop above never copies them.
+                for (const key in modifiedValues) {
+                    if (!Object.hasOwn(value, key)) {
+                        sanitizedValue[key] = modifiedValues[key];
+                    }
+                }
+            }
+
             return { ok: true, value: sanitizedValue as Infer<ShapeType> };
         }
 
