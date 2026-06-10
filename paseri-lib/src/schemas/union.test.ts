@@ -126,6 +126,30 @@ it('accepts valid discriminated union values', () => {
     );
 });
 
+it('discriminates on a later shared literal key when the first collides', () => {
+    // `version` is the first shared literal key but its values collide; `kind` discriminates. The union
+    // must construct and dispatch on `kind` rather than throwing at construction.
+    const schema = p.union(
+        p.object({ version: p.literal(1), kind: p.literal('a') }),
+        p.object({ version: p.literal(1), kind: p.literal('b'), extra: p.number() }),
+    );
+
+    const first = schema.safeParse({ version: 1, kind: 'a' });
+    if (first.ok) {
+        expect(first.value).toEqual({ version: 1, kind: 'a' });
+    } else {
+        expect(first.ok).toBeTruthy();
+    }
+
+    // Dispatch reaches the second member: its missing field is reported, proving `kind: 'b'` selected it.
+    const second = schema.safeParse({ version: 1, kind: 'b' });
+    if (!second.ok) {
+        expect(second.messages()).toEqual([{ path: ['extra'], message: 'missing_value' }]);
+    } else {
+        expect(second.ok).toBeFalsy();
+    }
+});
+
 it('rejects invalid discriminator values', () => {
     const schema = p.union(
         p.object({ shape: p.literal('circle'), radius: p.number() }),
@@ -205,6 +229,23 @@ describe('findDiscriminator', () => {
         ] as const;
         const discriminators = findDiscriminator(...elements);
         expect(discriminators).toEqual({ found: false });
+    });
+
+    it('falls back to the next common key on duplicate values', () => {
+        const elements = [
+            p.object({ version: p.literal(1), kind: p.literal('a') }),
+            p.object({ version: p.literal(1), kind: p.literal('b') }),
+        ] as const;
+        const discriminators = findDiscriminator(...elements);
+        expect(discriminators).toEqual({
+            found: true,
+            key: 'kind',
+            schemas: new Map<string, unknown>([
+                ['a', elements[0]],
+                ['b', elements[1]],
+            ]),
+            options: ["'a'", "'b'"],
+        });
     });
 
     it('throws on duplicate discriminator values', () => {

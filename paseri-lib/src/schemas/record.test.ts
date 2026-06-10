@@ -75,6 +75,23 @@ it('returns new value when child is modified', () => {
     }
 });
 
+it('returns new value when a __proto__ entry is modified', () => {
+    // Regression: the modified entry was assigned into the internal accumulator's __proto__ slot in
+    // Annex B environments (Node/browsers, Deno with --unstable-unsafe-proto) and was lost.
+    const schema = p.record(p.object({ foo: p.string() }).strip());
+    const data = Object.create(null);
+    data['__proto__'] = { foo: 'bar', extra: 'baz' };
+    data.other = { foo: 'qux' };
+
+    const result = schema.safeParse(data);
+    if (result.ok) {
+        expect(Object.getOwnPropertyDescriptor(result.value, '__proto__')?.value).toEqual({ foo: 'bar' });
+        expect(Object.getPrototypeOf(result.value)).toBe(Object.prototype);
+    } else {
+        expect(result.ok).toBeTruthy();
+    }
+});
+
 it('accepts optional values', () => {
     const schema = p.record(p.number()).optional();
 

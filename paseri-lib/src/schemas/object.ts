@@ -2,11 +2,15 @@ import type { IsEqual, Merge, NonEmptyObject, TupleToUnion } from 'type-fest';
 import type { Infer } from '../infer.ts';
 import { addIssue, issueCodes, type LeafNode, type TreeNode } from '../issue.ts';
 import { type InternalParseResult, isParseSuccess } from '../result.ts';
-import { isPlainObject } from '../utils.ts';
+import { defineProtoProperty, isPlainObject } from '../utils.ts';
 import { type AnySchemaType, DefaultSchema, type OptionalSchema, Schema } from './schema.ts';
 
 type ValidShapeType<ShapeType> = NonEmptyObject<{
-    [Key in keyof ShapeType]: ShapeType[Key] extends Schema<infer OutputType> ? Schema<OutputType> : never;
+    [Key in keyof ShapeType]: Key extends symbol
+        ? never
+        : ShapeType[Key] extends Schema<infer OutputType>
+          ? Schema<OutputType>
+          : never;
 }>;
 
 type Mode = 'strip' | 'strict' | 'passthrough';
@@ -43,7 +47,15 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
     constructor(shape: ShapeType) {
         super();
 
-        if (!shape || Object.keys(shape).length === 0) {
+        if (!shape) {
+            throw new Error('Object must contain at least one field.');
+        }
+        // Symbol-keyed fields would be invisible to the string-keyed parse loops and are unrepresentable
+        // in compiled validators (a unique symbol has no emittable reference), so reject them up front.
+        if (Object.getOwnPropertySymbols(shape).length > 0) {
+            throw new Error('Object fields must use string keys.');
+        }
+        if (Object.keys(shape).length === 0) {
             throw new Error('Object must contain at least one field.');
         }
 
@@ -64,6 +76,7 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
         }
 
         let seen = 0;
+        let enumerated = 0;
         const modifiedValues: Record<PropertyKey, unknown> = {};
         // A Set avoids the __proto__ accessor issue that affects plain objects in browsers/Node.js.
         let unrecognisedKeys: Set<string> | undefined;
@@ -71,6 +84,7 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
 
         let issue: TreeNode | undefined;
         for (const key in value) {
+            enumerated++;
             const schema = this._shape[key];
             if (schema?._parse) {
                 seen++;
@@ -85,7 +99,11 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
                 if (isParseSuccess(issueOrSuccess)) {
                     // Success, but childValue was modified.
                     hasModifiedChildValue = true;
-                    modifiedValues[key] = issueOrSuccess.value;
+                    if (key === '__proto__') {
+                        defineProtoProperty(modifiedValues, issueOrSuccess.value);
+                    } else {
+                        modifiedValues[key] = issueOrSuccess.value;
+                    }
                 } else {
                     issue = addIssue(issue, {
                         type: 'nest',
@@ -102,19 +120,54 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
         }
 
         if (seen < this._shapeSize) {
+            // An unseen shape key is either absent or own-but-non-enumerable (hidden from for...in but still
+            // readable at the declared key, so it must be validated). Hidden own keys exist iff the own-name
+            // count exceeds the enumerated count; the per-key probe below only runs in that exotic case.
+            const hasHiddenKeys = Object.getOwnPropertyNames(value).length !== enumerated;
             for (const key of this._requiredKeys) {
                 if (!Object.hasOwn(value, key)) {
-                    const schema = this._shape[key];
-                    if (schema instanceof DefaultSchema) {
-                        hasModifiedChildValue = true;
-                        modifiedValues[key] = schema._getDefault();
+                    const issueOrSuccess = this._parseMissingKey(key, _depth, _maxDepth);
+                    if (issueOrSuccess === undefined) {
                         continue;
                     }
-                    issue = addIssue(issue, {
-                        type: 'nest',
-                        key,
-                        child: this.issues.MISSING_VALUE,
-                    });
+                    if (isParseSuccess(issueOrSuccess)) {
+                        hasModifiedChildValue = true;
+                        if (key === '__proto__') {
+                            defineProtoProperty(modifiedValues, issueOrSuccess.value);
+                        } else {
+                            modifiedValues[key] = issueOrSuccess.value;
+                        }
+                    } else {
+                        issue = addIssue(issue, {
+                            type: 'nest',
+                            key,
+                            child: issueOrSuccess,
+                        });
+                    }
+                }
+            }
+            if (hasHiddenKeys) {
+                for (const key of this._shapeKeys) {
+                    if (Object.hasOwn(value, key) && !Object.prototype.propertyIsEnumerable.call(value, key)) {
+                        const schema = this._shape[key];
+                        const issueOrSuccess = schema._parse(value[key], _depth, _maxDepth);
+                        if (issueOrSuccess !== undefined) {
+                            if (isParseSuccess(issueOrSuccess)) {
+                                hasModifiedChildValue = true;
+                                if (key === '__proto__') {
+                                    defineProtoProperty(modifiedValues, issueOrSuccess.value);
+                                } else {
+                                    modifiedValues[key] = issueOrSuccess.value;
+                                }
+                            } else {
+                                issue = addIssue(issue, {
+                                    type: 'nest',
+                                    key,
+                                    child: issueOrSuccess,
+                                });
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -144,9 +197,28 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
                 }
 
                 if (hasModifiedChildValue && Object.hasOwn(modifiedValues, key)) {
-                    sanitizedValue[key] = modifiedValues[key];
+                    if (key === '__proto__') {
+                        defineProtoProperty(sanitizedValue, modifiedValues[key]);
+                    } else {
+                        sanitizedValue[key] = modifiedValues[key];
+                    }
+                } else if (key === '__proto__') {
+                    defineProtoProperty(sanitizedValue, value[key]);
                 } else {
                     sanitizedValue[key] = value[key];
+                }
+            }
+
+            if (hasModifiedChildValue) {
+                // Default fills target keys absent from the input, so the loop above never copies them.
+                for (const key in modifiedValues) {
+                    if (!Object.hasOwn(value, key)) {
+                        if (key === '__proto__') {
+                            defineProtoProperty(sanitizedValue, modifiedValues[key]);
+                        } else {
+                            sanitizedValue[key] = modifiedValues[key];
+                        }
+                    }
                 }
             }
 
@@ -158,6 +230,21 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
         }
 
         return undefined;
+    }
+    /**
+     * Resolves a missing required key: substitutes the default (a wrapped default runs the whole wrapper
+     * chain, so a missing key behaves exactly like explicit undefined) or reports `missing_value`. Kept
+     * out of the fallback loop so its body stays small.
+     */
+    private _parseMissingKey(key: PropertyKey, _depth: number, _maxDepth: number): InternalParseResult<unknown> {
+        const schema = this._shape[key];
+        if (schema instanceof DefaultSchema) {
+            return { ok: true, value: schema._getDefault() };
+        }
+        if (schema._hasDefault()) {
+            return schema._parse(undefined, _depth, _maxDepth);
+        }
+        return this.issues.MISSING_VALUE;
     }
     get shape(): ShapeType {
         return this._shape;

@@ -2,8 +2,8 @@ import type { IR } from '@paseri/paseri/introspect';
 import ts from 'typescript';
 import {
     assign,
+    assignOwnPropertyDynamic,
     call,
-    elementAccess,
     equals,
     falseLiteral,
     identifier,
@@ -92,7 +92,7 @@ function emitRecord(ir: RecordIR, valueExpression: ts.Expression, sink: Sink, st
                 ifStatement(equals(modifiedIdentifier, undefinedExpression), [
                     assign(modifiedIdentifier, objectLiteral({})),
                 ]),
-                assign(elementAccess(modifiedIdentifier, keyIdentifier), valueIdentifier),
+                assignOwnPropertyDynamic(modifiedIdentifier, keyIdentifier, valueIdentifier),
                 assign(hasModifications, trueLiteral),
             ]),
         );

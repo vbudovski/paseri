@@ -57,6 +57,11 @@ abstract class Schema<OutputType> implements StandardSchemaV1<unknown, OutputTyp
     public _isOptional(): boolean {
         return false;
     }
+    // Whether a default fires for undefined input. Nullable/refine delegate (like _isOptional); chain is
+    // deliberately a semantic boundary for wrapper traits and does not.
+    public _hasDefault(): boolean {
+        return false;
+    }
     public _unwrapOptional(): Schema<unknown> {
         return this;
     }
@@ -94,8 +99,8 @@ abstract class Schema<OutputType> implements StandardSchemaV1<unknown, OutputTyp
     optional(): OptionalSchema<OutputType> {
         return new OptionalSchema(this);
     }
-    nullable(): NullableSchema<OutputType> {
-        return new NullableSchema(this);
+    nullable(): NullableSchema<OutputType, this> {
+        return new NullableSchema<OutputType, this>(this);
     }
     chain<ToOutputType>(
         schema: Schema<ToOutputType>,
@@ -140,16 +145,21 @@ class OptionalSchema<OutputType> extends Schema<OutputType | undefined> {
     }
 }
 
-class NullableSchema<OutputType> extends Schema<OutputType | null> {
-    private readonly _schema: Schema<OutputType>;
+// The inner schema type parameter lets `Infer` see through nullable to an OptionalSchema underneath,
+// mirroring the runtime's `_isOptional` delegation (optional and nullable compose in any order).
+class NullableSchema<
+    OutputType,
+    InnerSchemaType extends Schema<OutputType> = Schema<OutputType>,
+> extends Schema<OutputType | null> {
+    private readonly _schema: InnerSchemaType;
 
-    constructor(schema: Schema<OutputType>) {
+    constructor(schema: InnerSchemaType) {
         super();
 
         this._schema = schema;
     }
-    protected _clone(): NullableSchema<OutputType> {
-        return new NullableSchema(this._schema);
+    protected _clone(): NullableSchema<OutputType, InnerSchemaType> {
+        return new NullableSchema<OutputType, InnerSchemaType>(this._schema);
     }
     _parse(value: unknown, _depth: number, _maxDepth: number): InternalParseResult<OutputType | null> {
         if (value === null) {
@@ -160,6 +170,9 @@ class NullableSchema<OutputType> extends Schema<OutputType | null> {
     }
     override _isOptional(): boolean {
         return this._schema._isOptional();
+    }
+    override _hasDefault(): boolean {
+        return this._schema._hasDefault();
     }
 }
 
@@ -240,6 +253,9 @@ class DefaultSchema<OutputType> extends Schema<OutputType> {
     _getDefault(): OutputType {
         return this._default;
     }
+    override _hasDefault(): boolean {
+        return true;
+    }
 }
 
 class RefineSchema<OutputType> extends Schema<OutputType> {
@@ -273,6 +289,9 @@ class RefineSchema<OutputType> extends Schema<OutputType> {
     }
     override _isOptional(): boolean {
         return this._base._isOptional();
+    }
+    override _hasDefault(): boolean {
+        return this._base._hasDefault();
     }
     _parse(value: unknown, _depth: number, _maxDepth: number): InternalParseResult<OutputType> {
         const baseResult = this._base._parse(value, _depth, _maxDepth);

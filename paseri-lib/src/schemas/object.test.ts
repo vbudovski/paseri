@@ -6,20 +6,61 @@ import * as p from '../index.ts';
 import { isPlainObject } from '../utils.ts';
 
 it('accepts valid types', () => {
-    const bar = Symbol.for('bar');
-    const schema = p.object({ foo: p.string(), 1: p.number(), [bar]: p.number() });
+    const schema = p.object({ foo: p.string(), 1: p.number() });
 
     fc.assert(
-        fc.property(fc.record({ foo: fc.string(), 1: fc.float({ noNaN: true }), [bar]: fc.integer() }), (data) => {
+        fc.property(fc.record({ foo: fc.string(), 1: fc.float({ noNaN: true }) }), (data) => {
             const result = schema.safeParse(data);
             if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<{ foo: string; 1: number; [bar]: number }>;
+                expectTypeOf(result.value).toEqualTypeOf<{ foo: string; 1: number }>;
                 expect(result.value).toEqual(data);
             } else {
                 expect(result.ok).toBeTruthy();
             }
         }),
     );
+});
+
+it('infers key optionality from the schema kind, not the value type', () => {
+    const schema = p.object({
+        plain: p.string().optional(),
+        optionalThenNullable: p.string().optional().nullable(),
+        nullableThenOptional: p.string().nullable().optional(),
+        valueUndefined: p.union(p.string(), p.undefined()),
+        explicitUndefined: p.undefined(),
+        defaulted: p.string().optional().default('x'),
+    });
+
+    const result = schema.safeParse({
+        plain: 'a',
+        optionalThenNullable: null,
+        nullableThenOptional: 'b',
+        valueUndefined: 'c',
+        explicitUndefined: undefined,
+    });
+    if (result.ok) {
+        expectTypeOf(result.value).toEqualTypeOf<{
+            plain?: string | undefined;
+            optionalThenNullable?: string | null | undefined;
+            nullableThenOptional?: string | null | undefined;
+            valueUndefined: string | undefined;
+            explicitUndefined: undefined;
+            defaulted: string;
+        }>;
+        expect(result.value.defaulted).toBe('x');
+    } else {
+        expect(result.ok).toBeTruthy();
+    }
+});
+
+it('rejects symbol shape keys', () => {
+    // Symbol-keyed fields were silently ignored by the parser (never validated, never required) and are
+    // unrepresentable in compiled validators, so they are rejected at construction.
+    const bar = Symbol.for('bar');
+    // @ts-expect-error Intentionally silence the type error to validate runtime check.
+    expect(() => p.object({ foo: p.string(), [bar]: p.number() })).toThrow('Object fields must use string keys.');
+    // @ts-expect-error Intentionally silence the type error to validate runtime check.
+    expect(() => p.object({ [bar]: p.number() })).toThrow('Object fields must use string keys.');
 });
 
 it('rejects invalid types', () => {
@@ -219,6 +260,23 @@ describe('strip', () => {
     // assignment on a plain {} triggers the setter instead of creating an own property, which can cause __proto__ to
     // bypass unrecognised-key detection and strip-mode sanitisation. These tests use Object.create(null) for input data
     // (where __proto__ is a regular own property) to verify the schema handles the key correctly regardless of runtime.
+    it('sanitises a strip child under a __proto__ key', () => {
+        // Regression: the sanitised child was assigned into the internal accumulator's __proto__ slot in
+        // Annex B environments, so the original child (junk included) survived in the output.
+        const schema = p.object({ ['__proto__']: p.object({ a: p.number() }).strip(), other: p.string() });
+        const data = Object.create(null);
+        data['__proto__'] = { a: 1, junk: 2 };
+        data.other = 'x';
+
+        const result = schema.safeParse(data);
+        if (result.ok) {
+            expect(Object.getOwnPropertyDescriptor(result.value, '__proto__')?.value).toEqual({ a: 1 });
+            expect(Object.getPrototypeOf(result.value)).toBe(Object.prototype);
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
+    });
+
     it('strips unrecognised __proto__ key without modified children', () => {
         const schema = p.object({ name: p.string() }).strip();
         const data = Object.create(null);
@@ -413,6 +471,75 @@ it('rejects missing keys', () => {
             { path: ['child1'], message: 'missing_value' },
             { path: ['child3'], message: 'missing_value' },
         ]);
+    } else {
+        expect(result.ok).toBeFalsy();
+    }
+});
+
+it('rejects missing required fields whose schemas accept undefined', () => {
+    // `unknown`/`undefined` field schemas accept the value `undefined`, but a missing key is still missing.
+    const schema = p.object({ child1: p.unknown(), child2: p.undefined() });
+    const result = schema.safeParse({});
+    if (!result.ok) {
+        const sorted = [...result.messages()].sort((x, y) => String(x.path).localeCompare(String(y.path)));
+        expect(sorted).toEqual([
+            { path: ['child1'], message: 'missing_value' },
+            { path: ['child2'], message: 'missing_value' },
+        ]);
+    } else {
+        expect(result.ok).toBeFalsy();
+    }
+});
+
+it('rejects an object whose only key is unrecognised when the missing field accepts undefined', () => {
+    const schema = p.object({ child1: p.unknown() });
+    const result = schema.safeParse({ other: 1 });
+    if (!result.ok) {
+        const sorted = [...result.messages()].sort((x, y) => String(x.path).localeCompare(String(y.path)));
+        expect(sorted).toEqual([
+            { path: ['child1'], message: 'missing_value' },
+            { path: ['other'], message: 'unrecognized_key' },
+        ]);
+    } else {
+        expect(result.ok).toBeFalsy();
+    }
+});
+
+it('validates a non-enumerable own required field against its schema', () => {
+    const schema = p.object({ visible: p.string(), hidden: p.number() });
+    const data: Record<string, unknown> = { visible: 'ok' };
+    Object.defineProperty(data, 'hidden', { value: 'not a number', enumerable: false });
+
+    const result = schema.safeParse(data);
+    if (!result.ok) {
+        expect(result.messages()).toEqual([{ path: ['hidden'], message: 'invalid_type' }]);
+    } else {
+        expect(result.ok).toBeFalsy();
+    }
+});
+
+it('accepts a conforming non-enumerable own required field', () => {
+    const schema = p.object({ visible: p.string(), hidden: p.number() });
+    const data: Record<string, unknown> = { visible: 'ok' };
+    Object.defineProperty(data, 'hidden', { value: 42, enumerable: false });
+
+    const result = schema.safeParse(data);
+    if (result.ok) {
+        expect(result.value.visible).toBe('ok');
+        expect(result.value.hidden).toBe(42);
+    } else {
+        expect(result.ok).toBeTruthy();
+    }
+});
+
+it('validates a non-enumerable own optional field against its schema', () => {
+    const schema = p.object({ visible: p.string(), hidden: p.number().optional() });
+    const data: Record<string, unknown> = { visible: 'ok' };
+    Object.defineProperty(data, 'hidden', { value: 'not a number', enumerable: false });
+
+    const result = schema.safeParse(data);
+    if (!result.ok) {
+        expect(result.messages()).toEqual([{ path: ['hidden'], message: 'invalid_type' }]);
     } else {
         expect(result.ok).toBeFalsy();
     }
@@ -695,7 +822,7 @@ describe('partial', () => {
         const schema = p.object({ foo: p.string(), bar: p.number() }).partial();
         const result = schema.safeParse({});
         if (result.ok) {
-            expectTypeOf(result.value).toEqualTypeOf<{ foo?: string; bar?: number }>;
+            expectTypeOf(result.value).toEqualTypeOf<{ foo?: string | undefined; bar?: number | undefined }>;
             expect(result.value).toEqual({});
         } else {
             expect(result.ok).toBeTruthy();
@@ -706,7 +833,7 @@ describe('partial', () => {
         const schema = p.object({ foo: p.string(), bar: p.number() }).partial('foo');
         const result = schema.safeParse({ bar: 1 });
         if (result.ok) {
-            expectTypeOf(result.value).toEqualTypeOf<{ foo?: string; bar: number }>;
+            expectTypeOf(result.value).toEqualTypeOf<{ foo?: string | undefined; bar: number }>;
             expect(result.value).toEqual({ bar: 1 });
         } else {
             expect(result.ok).toBeTruthy();
@@ -776,7 +903,7 @@ describe('required', () => {
         const schema = p.object({ foo: p.string().optional(), bar: p.number().optional() }).required('foo');
         const result = schema.safeParse({ foo: 'hi' });
         if (result.ok) {
-            expectTypeOf(result.value).toEqualTypeOf<{ foo: string; bar?: number }>;
+            expectTypeOf(result.value).toEqualTypeOf<{ foo: string; bar?: number | undefined }>;
             expect(result.value).toEqual({ foo: 'hi' });
         } else {
             expect(result.ok).toBeTruthy();

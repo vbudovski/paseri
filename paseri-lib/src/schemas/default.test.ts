@@ -144,6 +144,130 @@ describe('inside object schemas', () => {
         }
     });
 
+    it('substitutes for missing required fields in strip mode when an unrecognised key is present', () => {
+        const schema = p
+            .object({
+                host: p.string(),
+                port: p.number().optional().default(123),
+            })
+            .strip();
+        const result = schema.safeParse({ host: 'localhost', extra: 'remove me' });
+        if (result.ok) {
+            expect(result.value).toEqual({ host: 'localhost', port: 123 });
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
+    });
+
+    it('substitutes for a missing field whose base schema accepts undefined', () => {
+        const schema = p.object({ nested: p.object({ value: p.unknown().optional().default('x') }) });
+        const result = schema.safeParse({ nested: {} });
+        if (result.ok) {
+            expect(result.value).toEqual({ nested: { value: 'x' } });
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
+    });
+
+    it('substitutes for a missing field whose default is wrapped in nullable', () => {
+        const schema = p.object({ value: p.string().optional().default('x').nullable(), other: p.number() });
+        const result = schema.safeParse({ other: 1 });
+        if (result.ok) {
+            expect(result.value).toEqual({ value: 'x', other: 1 });
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
+    });
+
+    it('treats a missing wrapped-default field exactly like explicit undefined', () => {
+        const schema = p.object({ value: p.string().optional().default('x').nullable() });
+        const missing = schema.safeParse({});
+        const explicit = schema.safeParse({ value: undefined });
+        if (missing.ok && explicit.ok) {
+            expect(missing.value).toEqual(explicit.value);
+        } else {
+            expect(missing.ok && explicit.ok).toBeTruthy();
+        }
+    });
+
+    it('still accepts null for a nullable-wrapped default field', () => {
+        const schema = p.object({ value: p.string().optional().default('x').nullable() });
+        const result = schema.safeParse({ value: null });
+        if (result.ok) {
+            expect(result.value).toEqual({ value: null });
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
+    });
+
+    it('runs a refinement on the substituted default for a missing field', () => {
+        const schema = p.object({
+            value: p
+                .string()
+                .optional()
+                .default('x')
+                .refine((current) => current !== 'x', { code: 'rejects_default' }),
+        });
+        const missing = schema.safeParse({});
+        const explicit = schema.safeParse({ value: undefined });
+        if (!missing.ok && !explicit.ok) {
+            expect(missing.messages()).toEqual(explicit.messages());
+        } else {
+            expect(!missing.ok && !explicit.ok).toBeTruthy();
+        }
+    });
+
+    it('substitutes for a missing __proto__ field', () => {
+        // Regression: the default fill went through the inherited __proto__ setter on the internal
+        // accumulator in Annex B environments (Node/browsers, Deno with --unstable-unsafe-proto) and
+        // silently vanished from the output.
+        const schema = p.object({ ['__proto__']: p.number().optional().default(5), other: p.string() });
+        const result = schema.safeParse({ other: 'x' });
+        if (result.ok) {
+            expect(Object.hasOwn(result.value, '__proto__')).toBe(true);
+            expect(Object.getOwnPropertyDescriptor(result.value, '__proto__')?.value).toBe(5);
+            expect(Object.getPrototypeOf(result.value)).toBe(Object.prototype);
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
+    });
+
+    it('does not substitute for a non-enumerable own field', () => {
+        const schema = p.object({ port: p.number().optional().default(123) });
+        const data: Record<string, unknown> = {};
+        Object.defineProperty(data, 'port', { value: 8080, enumerable: false });
+
+        const result = schema.safeParse(data);
+        if (result.ok) {
+            expect(result.value.port).toBe(8080);
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
+    });
+
+    it('validates a non-enumerable own field against the defaulted base schema', () => {
+        const schema = p.object({ port: p.number().optional().default(123) });
+        const data: Record<string, unknown> = {};
+        Object.defineProperty(data, 'port', { value: 'not a number', enumerable: false });
+
+        const result = schema.safeParse(data);
+        if (!result.ok) {
+            expect(result.messages()).toEqual([{ path: ['port'], message: 'invalid_type' }]);
+        } else {
+            expect(result.ok).toBeFalsy();
+        }
+    });
+
+    it('still errors on a missing sibling field whose schema accepts undefined', () => {
+        const schema = p.object({ value: p.unknown(), port: p.number().optional().default(123) });
+        const result = schema.safeParse({});
+        if (!result.ok) {
+            expect(result.messages()).toEqual([{ path: ['value'], message: 'missing_value' }]);
+        } else {
+            expect(result.ok).toBeFalsy();
+        }
+    });
+
     it('still errors on missing fields without a default', () => {
         const schema = p.object({
             host: p.string(),

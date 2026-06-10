@@ -4,6 +4,7 @@
 
 import type { IR, IRGraph } from '@paseri/paseri/introspect';
 import ts from 'typescript';
+import { isFieldOptional } from './emitters/object/common.ts';
 
 const { factory } = ts;
 
@@ -46,26 +47,16 @@ function literalType(value: string | number | bigint | boolean): ts.TypeNode {
     return factory.createLiteralTypeNode(factory.createNumericLiteral(value));
 }
 
-// Mirrors `InferObject`: a field whose output includes `undefined` becomes optional (`?:`) with `undefined` removed.
-function stripUndefined(type: ts.TypeNode): { optional: boolean; type: ts.TypeNode } {
-    if (!ts.isUnionTypeNode(type)) {
-        return { optional: false, type };
-    }
-    const members = type.types.filter((member) => member.kind !== ts.SyntaxKind.UndefinedKeyword);
-    if (members.length === type.types.length) {
-        return { optional: false, type };
-    }
-    return { optional: true, type: members.length === 1 ? members[0] : factory.createUnionTypeNode(members) };
-}
-
 function objectType(ir: Extract<IR, { kind: 'object' }>): ts.TypeNode {
+    // Key optionality mirrors the runtime's `_isOptional` via the IR (which, unlike the TS-level Infer,
+    // also sees through refine); the value type keeps `undefined` since an explicit undefined passes
+    // through, so the key can be present holding it.
     const members = Object.entries(ir.fields).map(([name, fieldIR]) => {
-        const { optional, type } = stripUndefined(emitType(fieldIR));
         return factory.createPropertySignature(
             undefined,
             factory.createStringLiteral(name),
-            optional ? factory.createToken(ts.SyntaxKind.QuestionToken) : undefined,
-            type,
+            isFieldOptional(fieldIR) ? factory.createToken(ts.SyntaxKind.QuestionToken) : undefined,
+            emitType(fieldIR),
         );
     });
     return factory.createTypeLiteralNode(members);

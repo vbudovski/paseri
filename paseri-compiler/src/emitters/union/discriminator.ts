@@ -35,7 +35,8 @@ function findDiscriminator(union: UnionIR): Discriminator | undefined {
         return undefined;
     }
     const objectMembers = union.members as readonly ObjectIR[];
-    const counts: Record<string, number> = {};
+    // Null prototype: keys come from user shapes, so __proto__/constructor must behave as plain keys.
+    const counts: Record<string, number> = Object.create(null);
     for (const member of objectMembers) {
         for (const [key, field] of Object.entries(member.fields)) {
             if (field.kind === 'literal') {
@@ -43,21 +44,32 @@ function findDiscriminator(union: UnionIR): Discriminator | undefined {
             }
         }
     }
-    const key = Object.entries(counts).find(([, count]) => count === objectMembers.length)?.[0];
-    if (key === undefined) {
-        return undefined;
-    }
-    const cases: { value: LiteralIR['value']; member: ObjectIR }[] = [];
-    const expected: string[] = [];
-    for (const member of objectMembers) {
-        const field = member.fields[key];
-        if (field.kind !== 'literal') {
-            return undefined;
+    const candidateKeys = Object.entries(counts)
+        .filter(([, count]) => count === objectMembers.length)
+        .map(([entryKey]) => entryKey);
+    // Same selection rule as the runtime's findDiscriminator: the first candidate key whose values are
+    // all distinct wins, so runtime and compiled dispatch agree on the discriminator (the choice is
+    // observable through which member's issues a partial match reports).
+    for (const key of candidateKeys) {
+        const cases: { value: LiteralIR['value']; member: ObjectIR }[] = [];
+        const expected: string[] = [];
+        const seenValues = new Set<LiteralIR['value']>();
+        let usable = true;
+        for (const member of objectMembers) {
+            const field = member.fields[key];
+            if (field.kind !== 'literal' || seenValues.has(field.value)) {
+                usable = false;
+                break;
+            }
+            seenValues.add(field.value);
+            cases.push({ value: field.value, member });
+            expected.push(primitiveToString(field.value));
         }
-        cases.push({ value: field.value, member });
-        expected.push(primitiveToString(field.value));
+        if (usable) {
+            return { key, cases, expected };
+        }
     }
-    return { key, cases, expected };
+    return undefined;
 }
 
 function discriminatorMatch(discriminatorValue: ts.Expression, literal: LiteralIR['value']): ts.Expression {

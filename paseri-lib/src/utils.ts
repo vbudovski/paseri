@@ -16,6 +16,16 @@ function isPlainObject(value: unknown): value is Record<PropertyKey, unknown> {
     return Object.getPrototypeOf(value) === Object.prototype || Object.getPrototypeOf(value) === null;
 }
 
+/**
+ * Creates an own `__proto__` data property. In Annex B environments (browsers, Node.js — not Deno, which
+ * removes the accessor) a bare `target['__proto__'] = value` invokes the inherited Object.prototype setter
+ * and mutates the prototype instead of creating the key. Callers guard with `key === '__proto__'` inline
+ * so the hot store sites stay plain assignments.
+ */
+function defineProtoProperty(target: Record<PropertyKey, unknown>, value: unknown): void {
+    Object.defineProperty(target, '__proto__', { value, writable: true, enumerable: true, configurable: true });
+}
+
 function primitiveToString(value: Primitive): string {
     if (typeof value === 'bigint') {
         return `${value}n`;
@@ -40,4 +50,4 @@ function deepFreeze<ValueType>(value: ValueType): ValueType {
     return value;
 }
 
-export { deepFreeze, isPlainObject, primitiveToString };
+export { deepFreeze, defineProtoProperty, isPlainObject, primitiveToString };
