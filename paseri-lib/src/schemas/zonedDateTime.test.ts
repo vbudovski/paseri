@@ -4,14 +4,16 @@ import { expectTypeOf } from 'expect-type';
 import fc from 'fast-check';
 import * as p from '../index.ts';
 
+// Spans the full Instant range so bounds checks see pre-epoch values and sub-millisecond differences;
+// zone and calendar vary but are not part of the ordering.
 const zonedDateTimeArb = fc
     .tuple(
-        fc.date({ min: new Date('1970-01-01T00:00:00Z'), max: new Date('2100-12-31T00:00:00Z'), noInvalidDate: true }),
+        fc.bigInt({ min: -8_640_000_000_000_000_000_000n, max: 8_640_000_000_000_000_000_000n }),
         fc.constantFrom('UTC', 'America/New_York', 'Asia/Kolkata', 'Australia/Eucla', 'Pacific/Kiritimati'),
         fc.constantFrom('iso8601', 'hebrew', 'japanese', 'islamic-umalqura'),
     )
-    .map(([d, timeZone, calendar]) =>
-        Temporal.Instant.fromEpochMilliseconds(d.getTime()).toZonedDateTimeISO(timeZone).withCalendar(calendar),
+    .map(([epochNanoseconds, timeZone, calendar]) =>
+        Temporal.Instant.fromEpochNanoseconds(epochNanoseconds).toZonedDateTimeISO(timeZone).withCalendar(calendar),
     );
 
 it('accepts valid types', () => {

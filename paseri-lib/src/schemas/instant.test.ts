@@ -4,9 +4,10 @@ import { expectTypeOf } from 'expect-type';
 import fc from 'fast-check';
 import * as p from '../index.ts';
 
+// Spans the full Instant range so bounds checks see pre-epoch values and sub-millisecond differences.
 const instantArb = fc
-    .date({ min: new Date('1970-01-01T00:00:00Z'), max: new Date('2100-12-31T00:00:00Z'), noInvalidDate: true })
-    .map((d) => Temporal.Instant.fromEpochMilliseconds(d.getTime()));
+    .bigInt({ min: -8_640_000_000_000_000_000_000n, max: 8_640_000_000_000_000_000_000n })
+    .map((epochNanoseconds) => Temporal.Instant.fromEpochNanoseconds(epochNanoseconds));
 
 it('accepts valid types', () => {
     const schema = p.instant();
