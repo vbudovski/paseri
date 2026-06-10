@@ -18,9 +18,11 @@ import {
     instanceOf,
     literalExpression,
     not,
+    notEquals,
     numericLiteral,
     property,
     recordAccess,
+    recordCast,
     returnStatement,
     stringLiteral,
     trueLiteral,
@@ -108,6 +110,56 @@ function emitShapeHelper(
     state.hoistedDeclarations.push(helperFunction);
     state.shapeHelperCache.set(key, helperName);
     return helperName;
+}
+
+/**
+ * Whether the expression `tryShape(ir, ...)` builds can evaluate to true for `undefined` — i.e. whether reading an
+ * absent object key could satisfy the field's shape check. Required fields with such shapes need an explicit
+ * presence conjunct (see the `object` arm and `tryEmitDefaultObjectEntry`). Conservative: kinds not known to reject
+ * undefined return true (the presence check is always sound for a required field, it just costs one `in` test).
+ */
+function shapeMatchesUndefined(ir: IR): boolean {
+    switch (ir.kind) {
+        case 'undefined':
+        case 'unknown':
+        case 'optional':
+            return true;
+        case 'nullable':
+        case 'refine':
+            return shapeMatchesUndefined(ir.inner);
+        case 'union':
+            return ir.members.some(shapeMatchesUndefined);
+        case 'default':
+            // The `default` arm guards with `value !== undefined` whenever its inner shape accepts undefined.
+            return false;
+        case 'string':
+        case 'number':
+        case 'bigint':
+        case 'boolean':
+        case 'null':
+        case 'symbol':
+        case 'never':
+        case 'literal':
+        case 'enum':
+        case 'date':
+        case 'duration':
+        case 'instant':
+        case 'plainDate':
+        case 'plainDateTime':
+        case 'plainMonthDay':
+        case 'plainTime':
+        case 'plainYearMonth':
+        case 'zonedDateTime':
+        case 'record':
+        case 'set':
+        case 'map':
+        case 'array':
+        case 'tuple':
+        case 'object':
+            return false;
+        default:
+            return true;
+    }
 }
 
 /**
@@ -311,11 +363,23 @@ function tryShape(
             }
             return binary(equals(valueExpression, undefinedExpression), ts.SyntaxKind.BarBarToken, innerShape);
         }
-        case 'default':
-            // Fast path delegates to the inner's shape check. Undefined inputs (where
-            // the default would fire) fail the inner check and route to the slow path,
-            // which applies the default correctly.
-            return tryShape(ir.inner, valueExpression, strictLevels, state);
+        case 'default': {
+            // Fast path delegates to the inner's shape check. Undefined inputs (where the default would fire)
+            // must fail the shape and route to the slow path, which applies the default; when the inner shape
+            // itself accepts undefined, that needs an explicit non-undefined guard.
+            const innerShape = tryShape(ir.inner, valueExpression, strictLevels, state);
+            if (innerShape === undefined) {
+                return undefined;
+            }
+            if (shapeMatchesUndefined(ir.inner)) {
+                return binary(
+                    notEquals(valueExpression, undefinedExpression),
+                    ts.SyntaxKind.AmpersandAmpersandToken,
+                    innerShape,
+                );
+            }
+            return innerShape;
+        }
         case 'refine': {
             const innerShape = tryShape(ir.inner, valueExpression, strictLevels, state);
             if (innerShape === undefined) {
@@ -586,6 +650,16 @@ function tryShape(
                 if (fieldShape === undefined) {
                     return undefined;
                 }
+                if (!isFieldOptional(fieldIR) && shapeMatchesUndefined(fieldIR)) {
+                    // A required field whose shape accepts undefined would otherwise match an absent key
+                    // (`value["k"]` reads undefined); require presence explicitly. Prototype-name fields are
+                    // rejected above, so `in` can't hit an inherited key.
+                    result = binary(
+                        result,
+                        ts.SyntaxKind.AmpersandAmpersandToken,
+                        binary(stringLiteral(fieldName), ts.SyntaxKind.InKeyword, recordCast(valueExpression)),
+                    );
+                }
                 result = binary(result, ts.SyntaxKind.AmpersandAmpersandToken, fieldShape);
             }
             if (ir.mode === 'strict' || ir.mode === 'strip') {
@@ -607,4 +681,4 @@ function tryShape(
     }
 }
 
-export { tryShape };
+export { shapeMatchesUndefined, tryShape };

@@ -36,7 +36,7 @@ import { successPayload } from '../../issues.ts';
 import { freshIdentifier, registerDefault, type State } from '../../state.ts';
 import { findDiscriminator } from '../union/discriminator.ts';
 import { isFieldOptional, PROTOTYPE_NAMES, SHAPE_ENTRY_ELIGIBLE_KINDS, type StrictLevel } from './common.ts';
-import { tryShape } from './shape.ts';
+import { shapeMatchesUndefined, tryShape } from './shape.ts';
 
 /** Whether a discriminant value can be used as a `switch` case label (strict-equality matchable as a literal). */
 function isSwitchSafe(value: unknown): boolean {
@@ -251,6 +251,15 @@ function tryEmitDefaultObjectEntry(
             const fieldShape = tryShape(fieldIR, accessor, strictLevels, state);
             if (fieldShape === undefined) {
                 return undefined;
+            }
+            if (!isFieldOptional(fieldIR) && shapeMatchesUndefined(fieldIR)) {
+                // Same presence guard as tryShape's object arm: a required field whose shape accepts undefined
+                // must not treat an absent key as matching.
+                shape = binary(
+                    shape,
+                    ts.SyntaxKind.AmpersandAmpersandToken,
+                    binary(stringLiteral(fieldName), ts.SyntaxKind.InKeyword, recordCast(valueExpression)),
+                );
             }
             shape = binary(shape, ts.SyntaxKind.AmpersandAmpersandToken, fieldShape);
             if (isFieldOptional(fieldIR)) {

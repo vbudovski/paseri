@@ -418,6 +418,35 @@ it('rejects missing keys', () => {
     }
 });
 
+it('rejects missing required fields whose schemas accept undefined', () => {
+    // `unknown`/`undefined` field schemas accept the value `undefined`, but a missing key is still missing.
+    const schema = p.object({ child1: p.unknown(), child2: p.undefined() });
+    const result = schema.safeParse({});
+    if (!result.ok) {
+        const sorted = [...result.messages()].sort((x, y) => String(x.path).localeCompare(String(y.path)));
+        expect(sorted).toEqual([
+            { path: ['child1'], message: 'missing_value' },
+            { path: ['child2'], message: 'missing_value' },
+        ]);
+    } else {
+        expect(result.ok).toBeFalsy();
+    }
+});
+
+it('rejects an object whose only key is unrecognised when the missing field accepts undefined', () => {
+    const schema = p.object({ child1: p.unknown() });
+    const result = schema.safeParse({ other: 1 });
+    if (!result.ok) {
+        const sorted = [...result.messages()].sort((x, y) => String(x.path).localeCompare(String(y.path)));
+        expect(sorted).toEqual([
+            { path: ['child1'], message: 'missing_value' },
+            { path: ['other'], message: 'unrecognized_key' },
+        ]);
+    } else {
+        expect(result.ok).toBeFalsy();
+    }
+});
+
 it('rejects deeply missing keys', () => {
     const schema = p.object({
         string1: p.string(),
