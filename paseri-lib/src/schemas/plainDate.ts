@@ -8,6 +8,11 @@ const TAG_MAX = 1;
 interface PlainDateCheck {
     tag: typeof TAG_MIN | typeof TAG_MAX;
     param: Temporal.PlainDate;
+    // Precomputed at construction; only meaningful when boundIsIso (zero placeholders keep the shape monomorphic).
+    boundIsIso: boolean;
+    boundYear: number;
+    boundMonth: number;
+    boundDay: number;
     issue: TreeNode;
 }
 
@@ -37,17 +42,40 @@ class PlainDateSchema extends Schema<Temporal.PlainDate> {
 
         if (this._checks !== undefined) {
             const checks = this._checks;
+            // For iso8601 values the public getters equal the ISO slots that compare orders by;
+            // other calendars diverge and take the exact compare call.
+            const valueIsIso = value.calendarId === 'iso8601';
+            let year = 0;
+            let month = 0;
+            let day = 0;
+            if (valueIsIso) {
+                year = value.year;
+                month = value.month;
+                day = value.day;
+            }
             for (let i = 0; i < checks.length; i++) {
-                const { tag, param, issue } = checks[i];
-                switch (tag) {
+                const check = checks[i];
+                let comparison: number;
+                if (!check.boundIsIso || !valueIsIso) {
+                    comparison = Temporal.PlainDate.compare(value, check.param);
+                } else if (year !== check.boundYear) {
+                    comparison = year < check.boundYear ? -1 : 1;
+                } else if (month !== check.boundMonth) {
+                    comparison = month < check.boundMonth ? -1 : 1;
+                } else if (day !== check.boundDay) {
+                    comparison = day < check.boundDay ? -1 : 1;
+                } else {
+                    comparison = 0;
+                }
+                switch (check.tag) {
                     case TAG_MIN:
-                        if (Temporal.PlainDate.compare(value, param) < 0) {
-                            return issue;
+                        if (comparison < 0) {
+                            return check.issue;
                         }
                         break;
                     case TAG_MAX:
-                        if (Temporal.PlainDate.compare(value, param) > 0) {
-                            return issue;
+                        if (comparison > 0) {
+                            return check.issue;
                         }
                         break;
                 }
@@ -59,9 +87,14 @@ class PlainDateSchema extends Schema<Temporal.PlainDate> {
     min(value: Temporal.PlainDate): PlainDateSchema {
         const cloned = this._clone();
         cloned._checks = cloned._checks || [];
+        const boundIsIso = value.calendarId === 'iso8601';
         cloned._checks.push({
             tag: TAG_MIN,
             param: value,
+            boundIsIso,
+            boundYear: boundIsIso ? value.year : 0,
+            boundMonth: boundIsIso ? value.month : 0,
+            boundDay: boundIsIso ? value.day : 0,
             issue: this.issues.TOO_DATED,
         });
 
@@ -70,9 +103,14 @@ class PlainDateSchema extends Schema<Temporal.PlainDate> {
     max(value: Temporal.PlainDate): PlainDateSchema {
         const cloned = this._clone();
         cloned._checks = cloned._checks || [];
+        const boundIsIso = value.calendarId === 'iso8601';
         cloned._checks.push({
             tag: TAG_MAX,
             param: value,
+            boundIsIso,
+            boundYear: boundIsIso ? value.year : 0,
+            boundMonth: boundIsIso ? value.month : 0,
+            boundDay: boundIsIso ? value.day : 0,
             issue: this.issues.TOO_RECENT,
         });
 
