@@ -47,7 +47,7 @@ import {
 } from '../../issues.ts';
 import { freshIdentifier, registerDefault, type Sink, type State } from '../../state.ts';
 import { emitValidation } from '../../toSource.ts';
-import { isFieldOptional, type ObjectIR, safeIdentifier, shadowsPrototype } from './common.ts';
+import { containsDefault, isFieldOptional, type ObjectIR, safeIdentifier, shadowsPrototype } from './common.ts';
 
 /**
  * Slow path: `for..in` loop with switch dispatch over field names. Used when
@@ -195,6 +195,11 @@ function emitObjectSlowPath(ir: ObjectIR, valueExpression: ts.Expression, sink: 
             ];
         } else if (isFieldOptional(fieldIR)) {
             unseenBody = [ifStatement(hasOwnCall, coreStatements)];
+        } else if (containsDefault(fieldIR)) {
+            // A wrapped default: the absent-key read yields undefined, so running the regular validation
+            // chain applies the default exactly as it would for explicit undefined; an own hidden key
+            // takes the same statements and validates its value instead.
+            unseenBody = coreStatements;
         } else {
             unseenBody = [
                 ifStatement(hasOwnCall, coreStatements, [

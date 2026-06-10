@@ -57,6 +57,11 @@ abstract class Schema<OutputType> implements StandardSchemaV1<unknown, OutputTyp
     public _isOptional(): boolean {
         return false;
     }
+    // Whether a default fires for undefined input. Nullable/refine delegate (like _isOptional); chain is
+    // deliberately a semantic boundary for wrapper traits and does not.
+    public _hasDefault(): boolean {
+        return false;
+    }
     public _unwrapOptional(): Schema<unknown> {
         return this;
     }
@@ -161,6 +166,9 @@ class NullableSchema<OutputType> extends Schema<OutputType | null> {
     override _isOptional(): boolean {
         return this._schema._isOptional();
     }
+    override _hasDefault(): boolean {
+        return this._schema._hasDefault();
+    }
 }
 
 class ChainSchema<FromOutputType, ToOutputType> extends Schema<ToOutputType> {
@@ -240,6 +248,9 @@ class DefaultSchema<OutputType> extends Schema<OutputType> {
     _getDefault(): OutputType {
         return this._default;
     }
+    override _hasDefault(): boolean {
+        return true;
+    }
 }
 
 class RefineSchema<OutputType> extends Schema<OutputType> {
@@ -273,6 +284,9 @@ class RefineSchema<OutputType> extends Schema<OutputType> {
     }
     override _isOptional(): boolean {
         return this._base._isOptional();
+    }
+    override _hasDefault(): boolean {
+        return this._base._hasDefault();
     }
     _parse(value: unknown, _depth: number, _maxDepth: number): InternalParseResult<OutputType> {
         const baseResult = this._base._parse(value, _depth, _maxDepth);

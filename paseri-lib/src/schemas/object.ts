@@ -114,21 +114,24 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
             const hasHiddenKeys = Object.getOwnPropertyNames(value).length !== enumerated;
             for (const key of this._requiredKeys) {
                 if (!Object.hasOwn(value, key)) {
-                    const schema = this._shape[key];
-                    if (schema instanceof DefaultSchema) {
-                        hasModifiedChildValue = true;
-                        if (key === '__proto__') {
-                            defineProtoProperty(modifiedValues, schema._getDefault());
-                        } else {
-                            modifiedValues[key] = schema._getDefault();
-                        }
+                    const issueOrSuccess = this._parseMissingKey(key, _depth, _maxDepth);
+                    if (issueOrSuccess === undefined) {
                         continue;
                     }
-                    issue = addIssue(issue, {
-                        type: 'nest',
-                        key,
-                        child: this.issues.MISSING_VALUE,
-                    });
+                    if (isParseSuccess(issueOrSuccess)) {
+                        hasModifiedChildValue = true;
+                        if (key === '__proto__') {
+                            defineProtoProperty(modifiedValues, issueOrSuccess.value);
+                        } else {
+                            modifiedValues[key] = issueOrSuccess.value;
+                        }
+                    } else {
+                        issue = addIssue(issue, {
+                            type: 'nest',
+                            key,
+                            child: issueOrSuccess,
+                        });
+                    }
                 }
             }
             if (hasHiddenKeys) {
@@ -215,6 +218,21 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
         }
 
         return undefined;
+    }
+    /**
+     * Resolves a missing required key: substitutes the default (a wrapped default runs the whole wrapper
+     * chain, so a missing key behaves exactly like explicit undefined) or reports `missing_value`. Kept
+     * out of the fallback loop so its body stays small.
+     */
+    private _parseMissingKey(key: PropertyKey, _depth: number, _maxDepth: number): InternalParseResult<unknown> {
+        const schema = this._shape[key];
+        if (schema instanceof DefaultSchema) {
+            return { ok: true, value: schema._getDefault() };
+        }
+        if (schema._hasDefault()) {
+            return schema._parse(undefined, _depth, _maxDepth);
+        }
+        return this.issues.MISSING_VALUE;
     }
     get shape(): ShapeType {
         return this._shape;

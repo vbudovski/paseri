@@ -14,6 +14,20 @@ function isFieldOptional(ir: FieldIR): boolean {
     return false;
 }
 
+/**
+ * Whether a default fires for undefined input — the IR mirror of the runtime's `_hasDefault`:
+ * nullable/refine delegate, chain is a semantic boundary.
+ */
+function containsDefault(ir: FieldIR): boolean {
+    if (ir.kind === 'default') {
+        return true;
+    }
+    if (ir.kind === 'nullable' || ir.kind === 'refine') {
+        return containsDefault(ir.inner);
+    }
+    return false;
+}
+
 function safeIdentifier(name: string): string {
     return name.replace(/[^a-zA-Z0-9_]/g, '_');
 }
@@ -70,6 +84,7 @@ const SHAPE_ENTRY_ELIGIBLE_KINDS: Set<IR['kind']> = new Set<IR['kind']>([
 ]);
 
 export {
+    containsDefault,
     type FieldIR,
     isFieldOptional,
     type ObjectIR,

@@ -169,6 +169,54 @@ describe('inside object schemas', () => {
         }
     });
 
+    it('substitutes for a missing field whose default is wrapped in nullable', () => {
+        const schema = p.object({ value: p.string().optional().default('x').nullable(), other: p.number() });
+        const result = schema.safeParse({ other: 1 });
+        if (result.ok) {
+            expect(result.value).toEqual({ value: 'x', other: 1 });
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
+    });
+
+    it('treats a missing wrapped-default field exactly like explicit undefined', () => {
+        const schema = p.object({ value: p.string().optional().default('x').nullable() });
+        const missing = schema.safeParse({});
+        const explicit = schema.safeParse({ value: undefined });
+        if (missing.ok && explicit.ok) {
+            expect(missing.value).toEqual(explicit.value);
+        } else {
+            expect(missing.ok && explicit.ok).toBeTruthy();
+        }
+    });
+
+    it('still accepts null for a nullable-wrapped default field', () => {
+        const schema = p.object({ value: p.string().optional().default('x').nullable() });
+        const result = schema.safeParse({ value: null });
+        if (result.ok) {
+            expect(result.value).toEqual({ value: null });
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
+    });
+
+    it('runs a refinement on the substituted default for a missing field', () => {
+        const schema = p.object({
+            value: p
+                .string()
+                .optional()
+                .default('x')
+                .refine((current) => current !== 'x', { code: 'rejects_default' }),
+        });
+        const missing = schema.safeParse({});
+        const explicit = schema.safeParse({ value: undefined });
+        if (!missing.ok && !explicit.ok) {
+            expect(missing.messages()).toEqual(explicit.messages());
+        } else {
+            expect(!missing.ok && !explicit.ok).toBeTruthy();
+        }
+    });
+
     it('substitutes for a missing __proto__ field', () => {
         // Regression: the default fill went through the inherited __proto__ setter on the internal
         // accumulator in Annex B environments (Node/browsers, Deno with --unstable-unsafe-proto) and
