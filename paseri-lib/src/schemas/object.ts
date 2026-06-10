@@ -111,7 +111,8 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
                         child: issueOrSuccess,
                     });
                 }
-            } else {
+            } else if (this._mode !== 'passthrough') {
+                // Passthrough never consumes the set; skipping it saves the allocation and adds.
                 if (!unrecognisedKeys) {
                     unrecognisedKeys = new Set();
                 }
