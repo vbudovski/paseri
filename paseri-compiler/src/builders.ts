@@ -290,10 +290,55 @@ function primitiveToString(value: string | number | bigint | boolean): string {
     return String(value);
 }
 
+/**
+ * Statement assigning an own data property under a statically-known key. A bare `target["__proto__"] = v`
+ * invokes the inherited Object.prototype setter in Annex B environments (browsers, Node.js), so that one
+ * key is written with `Object.defineProperty` instead.
+ */
+function assignOwnProperty(target: ts.Expression, key: string, value: ts.Expression): ts.Statement {
+    if (key !== '__proto__') {
+        return assign(elementAccess(target, stringLiteral(key)), value);
+    }
+    return expressionStatement(
+        call(property(identifier('Object'), 'defineProperty'), [
+            target,
+            stringLiteral(key),
+            objectLiteral({ value, writable: trueLiteral, enumerable: trueLiteral, configurable: trueLiteral }),
+        ]),
+    );
+}
+
+/**
+ * Statement assigning an own data property under a runtime key (loop variable): emits a `__proto__` guard
+ * choosing `Object.defineProperty` over plain assignment. See `assignOwnProperty`.
+ */
+function assignOwnPropertyDynamic(target: ts.Expression, key: ts.Expression, value: ts.Expression): ts.Statement {
+    return ifStatement(
+        equals(key, stringLiteral('__proto__')),
+        [
+            expressionStatement(
+                call(property(identifier('Object'), 'defineProperty'), [
+                    target,
+                    key,
+                    objectLiteral({
+                        value,
+                        writable: trueLiteral,
+                        enumerable: trueLiteral,
+                        configurable: trueLiteral,
+                    }),
+                ]),
+            ),
+        ],
+        [assign(elementAccess(target, key), value)],
+    );
+}
+
 export {
     arrowFunction,
     asConst,
     assign,
+    assignOwnProperty,
+    assignOwnPropertyDynamic,
     asType,
     bigintLiteral,
     binary,

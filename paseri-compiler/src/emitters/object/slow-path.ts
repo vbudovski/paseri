@@ -1,6 +1,8 @@
 import ts from 'typescript';
 import {
     assign,
+    assignOwnProperty,
+    assignOwnPropertyDynamic,
     binary,
     breakStatement,
     call,
@@ -8,7 +10,6 @@ import {
     constStatement,
     continueStatement,
     defaultClause,
-    elementAccess,
     equals,
     expressionStatement,
     falseLiteral,
@@ -91,7 +92,8 @@ function emitObjectSlowPath(ir: ObjectIR, valueExpression: ts.Expression, sink: 
     const unrecognizedIdentifier = trackUnrecognized ? freshIdentifier(state, 'unrecognized') : undefined;
     // Seen flags for EVERY field: a flag plus one presence test on the unseen path distinguishes absent
     // from own-but-non-enumerable exactly; static codegen makes the flags free (locals).
-    const seenFieldIdentifiers: Record<string, ts.Identifier> = {};
+    // Null prototype: keyed by user field names, so __proto__ must behave as a plain key.
+    const seenFieldIdentifiers: Record<string, ts.Identifier> = Object.create(null);
     for (const [fieldName] of fields) {
         seenFieldIdentifiers[fieldName] = freshIdentifier(state, `seen_${safeIdentifier(fieldName)}`);
     }
@@ -161,7 +163,7 @@ function emitObjectSlowPath(ir: ObjectIR, valueExpression: ts.Expression, sink: 
                     ifStatement(equals(modifiedIdentifier, undefinedExpression), [
                         assign(modifiedIdentifier, modifiedInit()),
                     ]),
-                    assign(elementAccess(modifiedIdentifier, stringLiteral(fieldName)), fieldIdentifier),
+                    assignOwnProperty(modifiedIdentifier, fieldName, fieldIdentifier),
                     assign(hasModifications, trueLiteral),
                 ]),
             );
@@ -187,7 +189,7 @@ function emitObjectSlowPath(ir: ObjectIR, valueExpression: ts.Expression, sink: 
                     ifStatement(equals(modifiedIdentifier, undefinedExpression), [
                         assign(modifiedIdentifier, modifiedInit()),
                     ]),
-                    assign(elementAccess(modifiedIdentifier, stringLiteral(fieldName)), defaultIdentifier),
+                    assignOwnProperty(modifiedIdentifier, fieldName, defaultIdentifier),
                     assign(hasModifications, trueLiteral),
                 ]),
             ];
@@ -248,8 +250,9 @@ function emitObjectSlowPath(ir: ObjectIR, valueExpression: ts.Expression, sink: 
     const buildSanitized = (innerKey: ts.Identifier, unrecognized: ts.Identifier): ts.Statement[] => {
         const assignment =
             hasModifications && modifiedIdentifier
-                ? assign(
-                      elementAccess(sanitizedIdentifier, innerKey),
+                ? assignOwnPropertyDynamic(
+                      sanitizedIdentifier,
+                      innerKey,
                       ternary(
                           binary(
                               hasModifications,
@@ -263,7 +266,7 @@ function emitObjectSlowPath(ir: ObjectIR, valueExpression: ts.Expression, sink: 
                           recordAccess(valueExpression, innerKey),
                       ),
                   )
-                : assign(elementAccess(sanitizedIdentifier, innerKey), recordAccess(valueExpression, innerKey));
+                : assignOwnPropertyDynamic(sanitizedIdentifier, innerKey, recordAccess(valueExpression, innerKey));
         const statements: ts.Statement[] = [
             constStatement(sanitizedIdentifier, recordType, objectLiteral({})),
             forIn(innerKey, valueExpression, [
@@ -291,8 +294,9 @@ function emitObjectSlowPath(ir: ObjectIR, valueExpression: ts.Expression, sink: 
                                     ]),
                                 ),
                                 [
-                                    assign(
-                                        elementAccess(sanitizedIdentifier, modifiedKey),
+                                    assignOwnPropertyDynamic(
+                                        sanitizedIdentifier,
+                                        modifiedKey,
                                         recordAccess(modifiedIdentifier, modifiedKey),
                                     ),
                                 ],

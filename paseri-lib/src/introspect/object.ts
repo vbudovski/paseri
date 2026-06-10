@@ -9,7 +9,8 @@ interface Internals {
 
 ObjectSchema.prototype._emit = function (context: IRContext): IR {
     const internals = this as unknown as Internals;
-    const fields: Record<string, IR> = {};
+    // Null prototype: a __proto__ shape key must land in the map, not hit the inherited setter.
+    const fields: Record<string, IR> = Object.create(null);
     for (const key in internals._shape) {
         fields[key] = internals._shape[key]._emit(context);
     }

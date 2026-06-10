@@ -2,7 +2,7 @@ import type { IsEqual, Merge, NonEmptyObject, TupleToUnion } from 'type-fest';
 import type { Infer } from '../infer.ts';
 import { addIssue, issueCodes, type LeafNode, type TreeNode } from '../issue.ts';
 import { type InternalParseResult, isParseSuccess } from '../result.ts';
-import { isPlainObject } from '../utils.ts';
+import { defineProtoProperty, isPlainObject } from '../utils.ts';
 import { type AnySchemaType, DefaultSchema, type OptionalSchema, Schema } from './schema.ts';
 
 type ValidShapeType<ShapeType> = NonEmptyObject<{
@@ -87,7 +87,11 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
                 if (isParseSuccess(issueOrSuccess)) {
                     // Success, but childValue was modified.
                     hasModifiedChildValue = true;
-                    modifiedValues[key] = issueOrSuccess.value;
+                    if (key === '__proto__') {
+                        defineProtoProperty(modifiedValues, issueOrSuccess.value);
+                    } else {
+                        modifiedValues[key] = issueOrSuccess.value;
+                    }
                 } else {
                     issue = addIssue(issue, {
                         type: 'nest',
@@ -113,7 +117,11 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
                     const schema = this._shape[key];
                     if (schema instanceof DefaultSchema) {
                         hasModifiedChildValue = true;
-                        modifiedValues[key] = schema._getDefault();
+                        if (key === '__proto__') {
+                            defineProtoProperty(modifiedValues, schema._getDefault());
+                        } else {
+                            modifiedValues[key] = schema._getDefault();
+                        }
                         continue;
                     }
                     issue = addIssue(issue, {
@@ -131,7 +139,11 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
                         if (issueOrSuccess !== undefined) {
                             if (isParseSuccess(issueOrSuccess)) {
                                 hasModifiedChildValue = true;
-                                modifiedValues[key] = issueOrSuccess.value;
+                                if (key === '__proto__') {
+                                    defineProtoProperty(modifiedValues, issueOrSuccess.value);
+                                } else {
+                                    modifiedValues[key] = issueOrSuccess.value;
+                                }
                             } else {
                                 issue = addIssue(issue, {
                                     type: 'nest',
@@ -170,7 +182,13 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
                 }
 
                 if (hasModifiedChildValue && Object.hasOwn(modifiedValues, key)) {
-                    sanitizedValue[key] = modifiedValues[key];
+                    if (key === '__proto__') {
+                        defineProtoProperty(sanitizedValue, modifiedValues[key]);
+                    } else {
+                        sanitizedValue[key] = modifiedValues[key];
+                    }
+                } else if (key === '__proto__') {
+                    defineProtoProperty(sanitizedValue, value[key]);
                 } else {
                     sanitizedValue[key] = value[key];
                 }
@@ -180,7 +198,11 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
                 // Default fills target keys absent from the input, so the loop above never copies them.
                 for (const key in modifiedValues) {
                     if (!Object.hasOwn(value, key)) {
-                        sanitizedValue[key] = modifiedValues[key];
+                        if (key === '__proto__') {
+                            defineProtoProperty(sanitizedValue, modifiedValues[key]);
+                        } else {
+                            sanitizedValue[key] = modifiedValues[key];
+                        }
                     }
                 }
             }

@@ -28,7 +28,8 @@ function findDiscriminator<TupleType extends ValidTupleType>(...elements: TupleT
         return { found: false };
     }
 
-    const counts: Record<string, number> = {};
+    // Null prototype: keys come from user shapes, so __proto__/constructor must behave as plain keys.
+    const counts: Record<string, number> = Object.create(null);
     for (const element of elements) {
         for (const [key, schema] of Object.entries(element.shape)) {
             if (schema instanceof LiteralSchema) {

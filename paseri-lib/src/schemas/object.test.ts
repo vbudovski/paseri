@@ -219,6 +219,23 @@ describe('strip', () => {
     // assignment on a plain {} triggers the setter instead of creating an own property, which can cause __proto__ to
     // bypass unrecognised-key detection and strip-mode sanitisation. These tests use Object.create(null) for input data
     // (where __proto__ is a regular own property) to verify the schema handles the key correctly regardless of runtime.
+    it('sanitises a strip child under a __proto__ key', () => {
+        // Regression: the sanitised child was assigned into the internal accumulator's __proto__ slot in
+        // Annex B environments, so the original child (junk included) survived in the output.
+        const schema = p.object({ ['__proto__']: p.object({ a: p.number() }).strip(), other: p.string() });
+        const data = Object.create(null);
+        data['__proto__'] = { a: 1, junk: 2 };
+        data.other = 'x';
+
+        const result = schema.safeParse(data);
+        if (result.ok) {
+            expect(Object.getOwnPropertyDescriptor(result.value, '__proto__')?.value).toEqual({ a: 1 });
+            expect(Object.getPrototypeOf(result.value)).toBe(Object.prototype);
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
+    });
+
     it('strips unrecognised __proto__ key without modified children', () => {
         const schema = p.object({ name: p.string() }).strip();
         const data = Object.create(null);

@@ -169,6 +169,21 @@ describe('inside object schemas', () => {
         }
     });
 
+    it('substitutes for a missing __proto__ field', () => {
+        // Regression: the default fill went through the inherited __proto__ setter on the internal
+        // accumulator in Annex B environments (Node/browsers, Deno with --unstable-unsafe-proto) and
+        // silently vanished from the output.
+        const schema = p.object({ ['__proto__']: p.number().optional().default(5), other: p.string() });
+        const result = schema.safeParse({ other: 'x' });
+        if (result.ok) {
+            expect(Object.hasOwn(result.value, '__proto__')).toBe(true);
+            expect(Object.getOwnPropertyDescriptor(result.value, '__proto__')?.value).toBe(5);
+            expect(Object.getPrototypeOf(result.value)).toBe(Object.prototype);
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
+    });
+
     it('does not substitute for a non-enumerable own field', () => {
         const schema = p.object({ port: p.number().optional().default(123) });
         const data: Record<string, unknown> = {};

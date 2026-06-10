@@ -35,7 +35,8 @@ function findDiscriminator(union: UnionIR): Discriminator | undefined {
         return undefined;
     }
     const objectMembers = union.members as readonly ObjectIR[];
-    const counts: Record<string, number> = {};
+    // Null prototype: keys come from user shapes, so __proto__/constructor must behave as plain keys.
+    const counts: Record<string, number> = Object.create(null);
     for (const member of objectMembers) {
         for (const [key, field] of Object.entries(member.fields)) {
             if (field.kind === 'literal') {

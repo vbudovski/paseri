@@ -1,7 +1,7 @@
 import type { Infer } from '../infer.ts';
 import { addIssue, issueCodes, type LeafNode, type TreeNode } from '../issue.ts';
 import { type InternalParseResult, isParseSuccess } from '../result.ts';
-import { isPlainObject } from '../utils.ts';
+import { defineProtoProperty, isPlainObject } from '../utils.ts';
 import { type AnySchemaType, Schema } from './schema.ts';
 
 class RecordSchema<ElementSchemaType extends AnySchemaType> extends Schema<
@@ -45,7 +45,11 @@ class RecordSchema<ElementSchemaType extends AnySchemaType> extends Schema<
                 if (!modifiedValues) {
                     modifiedValues = {};
                 }
-                modifiedValues[key] = issueOrSuccess.value;
+                if (key === '__proto__') {
+                    defineProtoProperty(modifiedValues, issueOrSuccess.value);
+                } else {
+                    modifiedValues[key] = issueOrSuccess.value;
+                }
             } else {
                 issue = addIssue(issue, { type: 'nest', key, child: issueOrSuccess });
             }
