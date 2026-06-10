@@ -5,7 +5,11 @@ import './index.ts';
 
 describe('plainYearMonth', () => {
     it('emits an empty-check plainYearMonth IR', () => {
-        expect(plainYearMonth().toIR()).toEqual({ entry: { kind: 'plainYearMonth', checks: [] }, named: {} });
+        expect(plainYearMonth().toIR()).toEqual({
+            entry: { kind: 'plainYearMonth', checks: [] },
+            named: {},
+            cycles: [],
+        });
     });
 
     it('emits min with a Temporal.PlainYearMonth value', () => {

@@ -55,6 +55,29 @@ it('types the refine before-snapshot const so generated modules type-check', () 
     expect(/const _refineBefore\d+ =/.test(source)).toBe(false);
 });
 
+it('inlines acyclic lazy targets instead of emitting named functions', () => {
+    // A forward-reference lazy never recurses, so its target is inlined at the ref site with a statically-known
+    // depth — no `_lazy_0` function, no per-call result allocation. The cyclic case below keeps its function.
+    const userSchema = p.object({ name: p.string() });
+    const acyclicSource = toSource(p.object({ author: p.lazy(() => userSchema) }).toIR(), { name: 'Acyclic' });
+    expect(/function _lazy_\d+\(/.test(acyclicSource)).toBe(false);
+    expect(acyclicSource.includes('_slowAcyclic')).toBe(true);
+
+    type Node = { next?: Node | undefined };
+    const cyclicSchema: p.Schema<Node> = p.lazy(() => p.object({ next: cyclicSchema.optional() }));
+    const cyclicSource = toSource(cyclicSchema.toIR(), { name: 'Cyclic' });
+    expect(/function _lazy_\d+\(value: unknown, depth: number, maxDepth: number\)/.test(cyclicSource)).toBe(true);
+});
+
+it('emits a constant depth boundary check for nested acyclic lazy targets', () => {
+    const inner = p.object({ value: p.string() });
+    const schema = p.lazy(() => p.object({ child: p.lazy(() => inner) }));
+    const source = toSource(schema.toIR(), { name: 'Nested' });
+    // The outer boundary is depth 0 (statically dead, omitted); the inner is depth 1.
+    expect(source.includes('1 >= maxDepth')).toBe(true);
+    expect(source.includes('0 >= maxDepth')).toBe(false);
+});
+
 it('emits a recursive shape fast path for lazy schemas', () => {
     type Comment = { body: string; reply?: Comment | undefined };
     const schema: p.Schema<Comment> = p.lazy(() => p.object({ body: p.string(), reply: schema.optional() }));

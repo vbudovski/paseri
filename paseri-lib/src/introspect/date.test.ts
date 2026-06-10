@@ -5,7 +5,7 @@ import './index.ts';
 
 describe('date', () => {
     it('emits an empty-check date IR', () => {
-        expect(date().toIR()).toEqual({ entry: { kind: 'date', checks: [] }, named: {} });
+        expect(date().toIR()).toEqual({ entry: { kind: 'date', checks: [] }, named: {}, cycles: [] });
     });
 
     it('emits min with a Date value', () => {

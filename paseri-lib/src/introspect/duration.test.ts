@@ -5,6 +5,6 @@ import './index.ts';
 
 describe('duration', () => {
     it('emits a duration IR', () => {
-        expect(duration().toIR()).toEqual({ entry: { kind: 'duration' }, named: {} });
+        expect(duration().toIR()).toEqual({ entry: { kind: 'duration' }, named: {}, cycles: [] });
     });
 });

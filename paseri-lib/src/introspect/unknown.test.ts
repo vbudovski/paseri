@@ -5,6 +5,6 @@ import './index.ts';
 
 describe('unknown', () => {
     it('emits an unknown IR', () => {
-        expect(unknown().toIR()).toEqual({ entry: { kind: 'unknown' }, named: {} });
+        expect(unknown().toIR()).toEqual({ entry: { kind: 'unknown' }, named: {}, cycles: [] });
     });
 });

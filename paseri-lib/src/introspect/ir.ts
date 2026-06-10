@@ -9,6 +9,12 @@
 interface IRGraph {
     readonly entry: IR;
     readonly named: Readonly<Record<string, IR>>;
+    /**
+     * Names from `named` whose emission re-entered themselves — i.e. targets that actually participate in a
+     * recursion cycle. A `ref` to any other name is a forward reference or shared subtree: it terminates, and its
+     * recursion depth at any use site is statically known. Consumers (paseri-compiler) may inline such targets.
+     */
+    readonly cycles: readonly string[];
 }
 
 /**
@@ -108,6 +114,10 @@ type TemporalCheck<ValueType> = { name: 'min' | 'max'; value: ValueType };
 interface IRContext {
     readonly visited: WeakMap<object, string>;
     readonly named: Record<string, IR>;
+    /** Names whose target is still being emitted; a ref to one of these is a cycle back-edge. */
+    readonly emitting: Set<string>;
+    /** Names confirmed to participate in a cycle, collected for `IRGraph.cycles`. */
+    readonly cycles: Set<string>;
     nextId: number;
 }
 

@@ -5,6 +5,6 @@ import './index.ts';
 
 describe('boolean', () => {
     it('emits a boolean IR', () => {
-        expect(boolean().toIR()).toEqual({ entry: { kind: 'boolean' }, named: {} });
+        expect(boolean().toIR()).toEqual({ entry: { kind: 'boolean' }, named: {}, cycles: [] });
     });
 });

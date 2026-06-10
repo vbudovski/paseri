@@ -5,7 +5,7 @@ import './index.ts';
 
 describe('plainTime', () => {
     it('emits an empty-check plainTime IR', () => {
-        expect(plainTime().toIR()).toEqual({ entry: { kind: 'plainTime', checks: [] }, named: {} });
+        expect(plainTime().toIR()).toEqual({ entry: { kind: 'plainTime', checks: [] }, named: {}, cycles: [] });
     });
 
     it('emits min with a Temporal.PlainTime value', () => {

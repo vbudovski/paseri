@@ -122,6 +122,12 @@ interface State {
     /** The graph's named (lazy/recursive) entries keyed by emitted function name. Empty until `toSource` populates it. */
     namedIRs: Readonly<Record<string, IR>>;
     /**
+     * Names from `IRGraph.cycles` — targets that actually recurse. Refs to any OTHER named entry are forward
+     * references/shared subtrees and are inlined at the ref site with statically-tracked depth instead of a
+     * function call. Empty until `toSource` populates it.
+     */
+    cyclicNames: ReadonlySet<string>;
+    /**
      * Per named (lazy) entry, the recursive boolean shape helper's identifier — or `'failed'` when the target (or a
      * ref it transitively reaches) isn't shape-checkable, so later shape attempts bail without regenerating.
      */
@@ -163,6 +169,7 @@ function makeState(trustedBareSpecifiers: ReadonlySet<string> = new Set()): Stat
         callbackCache: new WeakMap(),
         namedCanModify: new Map(),
         namedIRs: {},
+        cyclicNames: new Set(),
         refShapeCache: new Map(),
         refShapeSession: undefined,
         refShapeUses: 0,

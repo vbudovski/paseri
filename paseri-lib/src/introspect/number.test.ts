@@ -5,7 +5,7 @@ import './index.ts';
 
 describe('number', () => {
     it('emits an empty-check number IR', () => {
-        expect(number().toIR()).toEqual({ entry: { kind: 'number', checks: [] }, named: {} });
+        expect(number().toIR()).toEqual({ entry: { kind: 'number', checks: [] }, named: {}, cycles: [] });
     });
 
     it('emits gte', () => {

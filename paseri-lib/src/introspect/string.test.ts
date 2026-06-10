@@ -16,7 +16,7 @@ import './index.ts';
 
 describe('string', () => {
     it('emits an empty-check string IR', () => {
-        expect(string().toIR()).toEqual({ entry: { kind: 'string', checks: [] }, named: {} });
+        expect(string().toIR()).toEqual({ entry: { kind: 'string', checks: [] }, named: {}, cycles: [] });
     });
 
     it('emits min', () => {

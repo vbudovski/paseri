@@ -5,7 +5,7 @@ import './index.ts';
 
 describe('instant', () => {
     it('emits an empty-check instant IR', () => {
-        expect(instant().toIR()).toEqual({ entry: { kind: 'instant', checks: [] }, named: {} });
+        expect(instant().toIR()).toEqual({ entry: { kind: 'instant', checks: [] }, named: {}, cycles: [] });
     });
 
     it('emits min with a Temporal.Instant value', () => {

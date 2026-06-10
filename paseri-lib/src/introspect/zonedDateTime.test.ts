@@ -5,7 +5,7 @@ import './index.ts';
 
 describe('zonedDateTime', () => {
     it('emits an empty-check zonedDateTime IR', () => {
-        expect(zonedDateTime().toIR()).toEqual({ entry: { kind: 'zonedDateTime', checks: [] }, named: {} });
+        expect(zonedDateTime().toIR()).toEqual({ entry: { kind: 'zonedDateTime', checks: [] }, named: {}, cycles: [] });
     });
 
     it('emits min with a Temporal.ZonedDateTime value', () => {

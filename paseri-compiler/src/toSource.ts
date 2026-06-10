@@ -557,6 +557,8 @@ function toSource(graph: IRGraph, options: ToSourceOptions): string {
     const state = makeState(new Set(options.trustedBareSpecifiers ?? []));
     state.namedCanModify = computeNamedCanModify(graph);
     state.namedIRs = graph.named;
+    state.cyclicNames = new Set(graph.cycles);
+    // Any named entry (cyclic or not) means lazy boundaries exist, so the maxDepth option/validation applies.
     const needsDepth = Object.keys(graph.named).length > 0;
     const exportedName = `safeParse${options.name}`;
     const throwingName = `parse${options.name}`;
@@ -580,6 +582,10 @@ function toSource(graph: IRGraph, options: ToSourceOptions): string {
 
     const namedFunctions: ts.Statement[] = [];
     for (const [name, ir] of Object.entries(graph.named)) {
+        // Acyclic targets are inlined at their ref sites (see emitInlinedRef); only true cycles need a function.
+        if (!state.cyclicNames.has(name)) {
+            continue;
+        }
         namedFunctions.push(emitNamedFunction(name, ir, state));
     }
     const splitFunctions = tryEmitSplitFunctions(exportedName, slowName, graph.entry, needsDepth, state);

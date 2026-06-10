@@ -5,6 +5,6 @@ import './index.ts';
 
 describe('null', () => {
     it('emits a null IR', () => {
-        expect(null_().toIR()).toEqual({ entry: { kind: 'null' }, named: {} });
+        expect(null_().toIR()).toEqual({ entry: { kind: 'null' }, named: {}, cycles: [] });
     });
 });

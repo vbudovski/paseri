@@ -5,6 +5,6 @@ import './index.ts';
 
 describe('plainMonthDay', () => {
     it('emits a plainMonthDay IR', () => {
-        expect(plainMonthDay().toIR()).toEqual({ entry: { kind: 'plainMonthDay' }, named: {} });
+        expect(plainMonthDay().toIR()).toEqual({ entry: { kind: 'plainMonthDay' }, named: {}, cycles: [] });
     });
 });

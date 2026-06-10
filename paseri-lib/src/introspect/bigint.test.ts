@@ -5,7 +5,7 @@ import './index.ts';
 
 describe('bigint', () => {
     it('emits an empty-check bigint IR', () => {
-        expect(bigint().toIR()).toEqual({ entry: { kind: 'bigint', checks: [] }, named: {} });
+        expect(bigint().toIR()).toEqual({ entry: { kind: 'bigint', checks: [] }, named: {}, cycles: [] });
     });
 
     it('emits gte', () => {

@@ -16,7 +16,9 @@ import {
     functionType,
     identifier,
     ifStatement,
+    incrementDepth,
     instanceOf,
+    isZeroDepth,
     letStatement,
     literalExpression,
     not,
@@ -988,11 +990,37 @@ function tryShape(
             return result;
         }
         case 'ref': {
-            // Recursive (lazy) target: delegate to a hoisted boolean helper mirroring the named function's depth
-            // accounting. `maxDepth` is always in scope when the graph has refs; the guard is defensive.
+            // `maxDepth` is always in scope when the graph has refs; the guard is defensive.
             if (state.maxDepthIdentifier === undefined) {
                 return undefined;
             }
+            if (!state.cyclicNames.has(ir.name)) {
+                // Acyclic (forward-reference / shared) target: inline its shape with the boundary as a
+                // `depth < maxDepth` conjunct (omitted at the statically-dead entry depth 0). A false routes to
+                // the slow path, whose inlined statement form reports `too_deep` at the same depth.
+                const target = state.namedIRs[ir.name];
+                const savedDepth = state.currentDepth;
+                state.currentDepth = incrementDepth(savedDepth);
+                const targetShape = tryShapeSelfContained(target, valueExpression, state);
+                state.currentDepth = savedDepth;
+                if (targetShape === undefined) {
+                    return undefined;
+                }
+                if (isZeroDepth(savedDepth)) {
+                    return targetShape;
+                }
+                if (!ts.isNumericLiteral(savedDepth)) {
+                    // The conjunct references a scoped depth parameter (inside a container helper or a cyclic
+                    // function); count it so the helper threads (depth, maxDepth) through its signature.
+                    state.refShapeUses += 1;
+                }
+                return binary(
+                    binary(savedDepth, ts.SyntaxKind.LessThanToken, state.maxDepthIdentifier),
+                    ts.SyntaxKind.AmpersandAmpersandToken,
+                    targetShape,
+                );
+            }
+            // Cyclic target: delegate to a hoisted boolean helper mirroring the named function's depth accounting.
             const helperName = getOrCreateRefShapeHelper(ir.name, state);
             if (helperName === undefined) {
                 return undefined;

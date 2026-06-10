@@ -5,7 +5,7 @@ import './index.ts';
 
 describe('plainDateTime', () => {
     it('emits an empty-check plainDateTime IR', () => {
-        expect(plainDateTime().toIR()).toEqual({ entry: { kind: 'plainDateTime', checks: [] }, named: {} });
+        expect(plainDateTime().toIR()).toEqual({ entry: { kind: 'plainDateTime', checks: [] }, named: {}, cycles: [] });
     });
 
     it('emits min with a Temporal.PlainDateTime value', () => {
