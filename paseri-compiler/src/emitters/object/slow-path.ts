@@ -46,7 +46,7 @@ import {
 } from '../../issues.ts';
 import { freshIdentifier, registerDefault, type Sink, type State } from '../../state.ts';
 import { emitValidation } from '../../toSource.ts';
-import { isFieldOptional, type ObjectIR, safeIdentifier } from './common.ts';
+import { isFieldOptional, type ObjectIR, safeIdentifier, shadowsPrototype } from './common.ts';
 
 /**
  * Slow path: `for..in` loop with switch dispatch over field names. Used when
@@ -59,7 +59,6 @@ function emitObjectSlowPath(ir: ObjectIR, valueExpression: ts.Expression, sink: 
     const fields = Object.entries(ir.fields);
     const mode = ir.mode;
     const trackUnrecognized = mode === 'strict' || mode === 'strip';
-    const needsMissing = fields.some(([, fieldIR]) => !isFieldOptional(fieldIR));
     // Need the modification map when any child can modify OR strip mode is active
     // (strip rebuilds when unrecognised keys are present).
     const fieldModifies = new Map<string, boolean>(fields.map(([name, fieldIR]) => [name, modifies(fieldIR, state)]));
@@ -89,18 +88,12 @@ function emitObjectSlowPath(ir: ObjectIR, valueExpression: ts.Expression, sink: 
                   false,
               )
             : modified;
-    // Per-field presence flags are enough on their own for missing-key detection;
-    // a separate count gives no measurable benefit and costs an increment per
-    // iteration of the dispatch loop.
     const unrecognizedIdentifier = trackUnrecognized ? freshIdentifier(state, 'unrecognized') : undefined;
+    // Seen flags for EVERY field: a flag plus one presence test on the unseen path distinguishes absent
+    // from own-but-non-enumerable exactly; static codegen makes the flags free (locals).
     const seenFieldIdentifiers: Record<string, ts.Identifier> = {};
-    if (needsMissing) {
-        for (const [fieldName, fieldIR] of fields) {
-            if (isFieldOptional(fieldIR)) {
-                continue;
-            }
-            seenFieldIdentifiers[fieldName] = freshIdentifier(state, `seen_${safeIdentifier(fieldName)}`);
-        }
+    for (const [fieldName] of fields) {
+        seenFieldIdentifiers[fieldName] = freshIdentifier(state, `seen_${safeIdentifier(fieldName)}`);
     }
 
     const stateStatements: ts.Statement[] = [
@@ -131,6 +124,7 @@ function emitObjectSlowPath(ir: ObjectIR, valueExpression: ts.Expression, sink: 
 
     const keyIdentifier = freshIdentifier(state, 'key');
     const clauses: ts.CaseOrDefaultClause[] = [];
+    const unseenStatements: ts.Statement[] = [];
 
     for (const [fieldName, fieldIR] of fields) {
         const seenFieldIdentifier = seenFieldIdentifiers[fieldName];
@@ -138,18 +132,14 @@ function emitObjectSlowPath(ir: ObjectIR, valueExpression: ts.Expression, sink: 
         const childCanModify = fieldModifies.get(fieldName) === true;
         const fieldIsModified = childCanModify ? freshIdentifier(state, 'fieldModified') : undefined;
 
-        const caseBody: ts.Statement[] = [];
-        if (seenFieldIdentifier) {
-            caseBody.push(assign(seenFieldIdentifier, trueLiteral));
-        }
         // Use the literal field name for the property access. V8 inline-caches
         // `value["fieldName"]` like a dot-access on a stable shape; the dynamic
         // `value[loopKey]` form forces a generic lookup per iteration.
-        caseBody.push(
+        const coreStatements: ts.Statement[] = [
             letStatement(fieldIdentifier, undefined, recordAccess(valueExpression, stringLiteral(fieldName))),
-        );
+        ];
         if (fieldIsModified) {
-            caseBody.push(letStatement(fieldIsModified, undefined, falseLiteral));
+            coreStatements.push(letStatement(fieldIsModified, undefined, falseLiteral));
         }
 
         const childSink: Sink =
@@ -162,11 +152,11 @@ function emitObjectSlowPath(ir: ObjectIR, valueExpression: ts.Expression, sink: 
                   }
                 : { kind: 'accumulate', issueIdentifier, keyExpression: stringLiteral(fieldName) };
 
-        caseBody.push(...emitValidation(fieldIR, fieldIdentifier, childSink, state));
+        coreStatements.push(...emitValidation(fieldIR, fieldIdentifier, childSink, state));
 
         if (childCanModify && fieldIsModified && modifiedIdentifier && hasModifications) {
             // Collect the child's modified value into the parent's `modified` map.
-            caseBody.push(
+            coreStatements.push(
                 ifStatement(fieldIsModified, [
                     ifStatement(equals(modifiedIdentifier, undefinedExpression), [
                         assign(modifiedIdentifier, modifiedInit()),
@@ -177,8 +167,46 @@ function emitObjectSlowPath(ir: ObjectIR, valueExpression: ts.Expression, sink: 
             );
         }
 
+        const caseBody: ts.Statement[] = [assign(seenFieldIdentifier, trueLiteral), ...coreStatements];
         caseBody.push(breakStatement());
         clauses.push(caseClause(stringLiteral(fieldName), caseBody));
+
+        // After-loop handler for a key the dispatch loop never saw: own-present means hidden from
+        // for...in but still readable, so validate it like an enumerated key (the core nodes are reused —
+        // the case clause and this if-block are separate scopes); otherwise the key is absent. The bare
+        // `in` operator beats the `Object.hasOwn` call and only differs from own-presence for
+        // prototype-shadowing field names, which keep `hasOwn`.
+        const hasOwnCall = shadowsPrototype(fieldName)
+            ? call(property(identifier('Object'), 'hasOwn'), [recordCast(valueExpression), stringLiteral(fieldName)])
+            : binary(stringLiteral(fieldName), ts.SyntaxKind.InKeyword, recordCast(valueExpression));
+        let unseenBody: ts.Statement[];
+        if (fieldIR.kind === 'default' && modifiedIdentifier && hasModifications) {
+            const defaultIdentifier = registerDefault(state, fieldIR.value);
+            unseenBody = [
+                ifStatement(hasOwnCall, coreStatements, [
+                    ifStatement(equals(modifiedIdentifier, undefinedExpression), [
+                        assign(modifiedIdentifier, modifiedInit()),
+                    ]),
+                    assign(elementAccess(modifiedIdentifier, stringLiteral(fieldName)), defaultIdentifier),
+                    assign(hasModifications, trueLiteral),
+                ]),
+            ];
+        } else if (isFieldOptional(fieldIR)) {
+            unseenBody = [ifStatement(hasOwnCall, coreStatements)];
+        } else {
+            unseenBody = [
+                ifStatement(hasOwnCall, coreStatements, [
+                    assign(
+                        issueIdentifier,
+                        call(identifier('addIssue'), [
+                            issueIdentifier,
+                            nestExpression(stringLiteral(fieldName), leafExpression('missing_value')),
+                        ]),
+                    ),
+                ]),
+            ];
+        }
+        unseenStatements.push(ifStatement(not(seenFieldIdentifier), unseenBody));
     }
 
     if (trackUnrecognized && unrecognizedIdentifier) {
@@ -194,39 +222,6 @@ function emitObjectSlowPath(ir: ObjectIR, valueExpression: ts.Expression, sink: 
 
     const dispatchLoop = forIn(keyIdentifier, valueExpression, [switchStatement(keyIdentifier, clauses)]);
 
-    const missingStatements: ts.Statement[] = [];
-    if (needsMissing) {
-        for (const [fieldName, fieldIR] of fields) {
-            if (isFieldOptional(fieldIR)) {
-                continue;
-            }
-            const seenFieldIdentifier = seenFieldIdentifiers[fieldName];
-            if (fieldIR.kind === 'default' && modifiedIdentifier && hasModifications) {
-                const defaultIdentifier = registerDefault(state, fieldIR.value);
-                missingStatements.push(
-                    ifStatement(not(seenFieldIdentifier), [
-                        ifStatement(equals(modifiedIdentifier, undefinedExpression), [
-                            assign(modifiedIdentifier, modifiedInit()),
-                        ]),
-                        assign(elementAccess(modifiedIdentifier, stringLiteral(fieldName)), defaultIdentifier),
-                        assign(hasModifications, trueLiteral),
-                    ]),
-                );
-            } else {
-                missingStatements.push(
-                    ifStatement(not(seenFieldIdentifier), [
-                        assign(
-                            issueIdentifier,
-                            call(identifier('addIssue'), [
-                                issueIdentifier,
-                                nestExpression(stringLiteral(fieldName), leafExpression('missing_value')),
-                            ]),
-                        ),
-                    ]),
-                );
-            }
-        }
-    }
     let strictBlock: ts.Statement | undefined;
     if (mode === 'strict' && unrecognizedIdentifier) {
         const innerKey = freshIdentifier(state, 'unrecognizedKey');
@@ -356,7 +351,7 @@ function emitObjectSlowPath(ir: ObjectIR, valueExpression: ts.Expression, sink: 
         }
     }
 
-    const innerBody: ts.Statement[] = [...stateStatements, dispatchLoop, ...missingStatements];
+    const innerBody: ts.Statement[] = [...stateStatements, dispatchLoop, ...unseenStatements];
     if (strictBlock) {
         innerBody.push(strictBlock);
     }

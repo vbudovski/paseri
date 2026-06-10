@@ -169,6 +169,32 @@ describe('inside object schemas', () => {
         }
     });
 
+    it('does not substitute for a non-enumerable own field', () => {
+        const schema = p.object({ port: p.number().optional().default(123) });
+        const data: Record<string, unknown> = {};
+        Object.defineProperty(data, 'port', { value: 8080, enumerable: false });
+
+        const result = schema.safeParse(data);
+        if (result.ok) {
+            expect(result.value.port).toBe(8080);
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
+    });
+
+    it('validates a non-enumerable own field against the defaulted base schema', () => {
+        const schema = p.object({ port: p.number().optional().default(123) });
+        const data: Record<string, unknown> = {};
+        Object.defineProperty(data, 'port', { value: 'not a number', enumerable: false });
+
+        const result = schema.safeParse(data);
+        if (!result.ok) {
+            expect(result.messages()).toEqual([{ path: ['port'], message: 'invalid_type' }]);
+        } else {
+            expect(result.ok).toBeFalsy();
+        }
+    });
+
     it('still errors on a missing sibling field whose schema accepts undefined', () => {
         const schema = p.object({ value: p.unknown(), port: p.number().optional().default(123) });
         const result = schema.safeParse({});

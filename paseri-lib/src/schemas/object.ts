@@ -64,6 +64,7 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
         }
 
         let seen = 0;
+        let enumerated = 0;
         const modifiedValues: Record<PropertyKey, unknown> = {};
         // A Set avoids the __proto__ accessor issue that affects plain objects in browsers/Node.js.
         let unrecognisedKeys: Set<string> | undefined;
@@ -71,6 +72,7 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
 
         let issue: TreeNode | undefined;
         for (const key in value) {
+            enumerated++;
             const schema = this._shape[key];
             if (schema?._parse) {
                 seen++;
@@ -102,6 +104,10 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
         }
 
         if (seen < this._shapeSize) {
+            // An unseen shape key is either absent or own-but-non-enumerable (hidden from for...in but still
+            // readable at the declared key, so it must be validated). Hidden own keys exist iff the own-name
+            // count exceeds the enumerated count; the per-key probe below only runs in that exotic case.
+            const hasHiddenKeys = Object.getOwnPropertyNames(value).length !== enumerated;
             for (const key of this._requiredKeys) {
                 if (!Object.hasOwn(value, key)) {
                     const schema = this._shape[key];
@@ -115,6 +121,26 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
                         key,
                         child: this.issues.MISSING_VALUE,
                     });
+                }
+            }
+            if (hasHiddenKeys) {
+                for (const key of this._shapeKeys) {
+                    if (Object.hasOwn(value, key) && !Object.prototype.propertyIsEnumerable.call(value, key)) {
+                        const schema = this._shape[key];
+                        const issueOrSuccess = schema._parse(value[key], _depth, _maxDepth);
+                        if (issueOrSuccess !== undefined) {
+                            if (isParseSuccess(issueOrSuccess)) {
+                                hasModifiedChildValue = true;
+                                modifiedValues[key] = issueOrSuccess.value;
+                            } else {
+                                issue = addIssue(issue, {
+                                    type: 'nest',
+                                    key,
+                                    child: issueOrSuccess,
+                                });
+                            }
+                        }
+                    }
                 }
             }
         }

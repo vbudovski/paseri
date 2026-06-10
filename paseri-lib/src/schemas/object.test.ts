@@ -447,6 +447,46 @@ it('rejects an object whose only key is unrecognised when the missing field acce
     }
 });
 
+it('validates a non-enumerable own required field against its schema', () => {
+    const schema = p.object({ visible: p.string(), hidden: p.number() });
+    const data: Record<string, unknown> = { visible: 'ok' };
+    Object.defineProperty(data, 'hidden', { value: 'not a number', enumerable: false });
+
+    const result = schema.safeParse(data);
+    if (!result.ok) {
+        expect(result.messages()).toEqual([{ path: ['hidden'], message: 'invalid_type' }]);
+    } else {
+        expect(result.ok).toBeFalsy();
+    }
+});
+
+it('accepts a conforming non-enumerable own required field', () => {
+    const schema = p.object({ visible: p.string(), hidden: p.number() });
+    const data: Record<string, unknown> = { visible: 'ok' };
+    Object.defineProperty(data, 'hidden', { value: 42, enumerable: false });
+
+    const result = schema.safeParse(data);
+    if (result.ok) {
+        expect(result.value.visible).toBe('ok');
+        expect(result.value.hidden).toBe(42);
+    } else {
+        expect(result.ok).toBeTruthy();
+    }
+});
+
+it('validates a non-enumerable own optional field against its schema', () => {
+    const schema = p.object({ visible: p.string(), hidden: p.number().optional() });
+    const data: Record<string, unknown> = { visible: 'ok' };
+    Object.defineProperty(data, 'hidden', { value: 'not a number', enumerable: false });
+
+    const result = schema.safeParse(data);
+    if (!result.ok) {
+        expect(result.messages()).toEqual([{ path: ['hidden'], message: 'invalid_type' }]);
+    } else {
+        expect(result.ok).toBeFalsy();
+    }
+});
+
 it('rejects deeply missing keys', () => {
     const schema = p.object({
         string1: p.string(),
