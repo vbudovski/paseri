@@ -39,7 +39,16 @@ type IR =
     | { kind: 'map'; key: IR; value: IR; checks: readonly SizeCheck[] }
     | { kind: 'record'; element: IR }
     | { kind: 'object'; fields: Readonly<Record<string, IR>>; mode: ObjectMode }
-    | { kind: 'union'; members: readonly IR[] }
+    | {
+          kind: 'union';
+          members: readonly IR[];
+          /**
+           * The discriminator key the runtime selected at construction (a field present on every member with a
+           * distinct literal value), recorded so consumers dispatch on the same key the runtime does. Absent when
+           * the union has no usable discriminator.
+           */
+          discriminator?: string;
+      }
     | { kind: 'optional'; inner: IR }
     | { kind: 'nullable'; inner: IR }
     | { kind: 'default'; inner: IR; value: unknown }

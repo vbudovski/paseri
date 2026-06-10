@@ -26,50 +26,23 @@ interface Discriminator {
 }
 
 /**
- * Finds a discriminator key for the union: a field present on every member
- * (which must be an object) with a literal value. Returns undefined if no
- * such key exists, including when any member isn't an object.
+ * Builds the dispatch table from the discriminator key the runtime recorded (`union.discriminator`) — compiled
+ * dispatch mirrors the runtime's choice instead of re-deriving it (observable via which member a partial match
+ * blames). Undefined when no key was recorded (→ try-each). Members are known to carry distinct literals there.
  */
 function findDiscriminator(union: UnionIR): Discriminator | undefined {
-    if (!union.members.every((member) => member.kind === 'object')) {
+    const key = union.discriminator;
+    if (key === undefined) {
         return undefined;
     }
-    const objectMembers = union.members as readonly ObjectIR[];
-    // Null prototype: keys come from user shapes, so __proto__/constructor must behave as plain keys.
-    const counts: Record<string, number> = Object.create(null);
-    for (const member of objectMembers) {
-        for (const [key, field] of Object.entries(member.fields)) {
-            if (field.kind === 'literal') {
-                counts[key] = (counts[key] ?? 0) + 1;
-            }
-        }
+    const cases: { value: LiteralIR['value']; member: ObjectIR }[] = [];
+    const expected: string[] = [];
+    for (const member of union.members as readonly ObjectIR[]) {
+        const field = member.fields[key] as LiteralIR;
+        cases.push({ value: field.value, member });
+        expected.push(primitiveToString(field.value));
     }
-    const candidateKeys = Object.entries(counts)
-        .filter(([, count]) => count === objectMembers.length)
-        .map(([entryKey]) => entryKey);
-    // Same selection rule as the runtime's findDiscriminator: the first candidate key whose values are
-    // all distinct wins, so runtime and compiled dispatch agree on the discriminator (the choice is
-    // observable through which member's issues a partial match reports).
-    for (const key of candidateKeys) {
-        const cases: { value: LiteralIR['value']; member: ObjectIR }[] = [];
-        const expected: string[] = [];
-        const seenValues = new Set<LiteralIR['value']>();
-        let usable = true;
-        for (const member of objectMembers) {
-            const field = member.fields[key];
-            if (field.kind !== 'literal' || seenValues.has(field.value)) {
-                usable = false;
-                break;
-            }
-            seenValues.add(field.value);
-            cases.push({ value: field.value, member });
-            expected.push(primitiveToString(field.value));
-        }
-        if (usable) {
-            return { key, cases, expected };
-        }
-    }
-    return undefined;
+    return { key, cases, expected };
 }
 
 function discriminatorMatch(discriminatorValue: ts.Expression, literal: LiteralIR['value']): ts.Expression {
