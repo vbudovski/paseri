@@ -1,4 +1,4 @@
-import type { TupleToUnion } from 'type-fest';
+import type { Primitive, TupleToUnion } from 'type-fest';
 import type { Infer } from '../infer.ts';
 import { addIssue, issueCodes, type LeafNode, type TreeNode } from '../issue.ts';
 import type { InternalParseResult } from '../result.ts';
@@ -37,28 +37,43 @@ function findDiscriminator<TupleType extends ValidTupleType>(...elements: TupleT
             }
         }
     }
-    const key = Object.entries(counts)
+    const candidateKeys = Object.entries(counts)
         .filter(([, count]) => count === elements.length)
-        .map(([key]) => key)
-        .shift();
-    if (!key) {
-        return { found: false };
-    }
+        .map(([key]) => key);
 
-    const schemas = new Map<unknown, AnySchemaType>();
-    const options: string[] = [];
-    for (const element of elements) {
-        const value = (element.shape[key] as LiteralSchema<never>).value;
+    // Try each candidate key in turn: the first whose values are all distinct discriminates. Only when
+    // every candidate collides was a discriminator clearly intended but unusable, so fail loudly.
+    let duplicate: { readonly key: string; readonly value: Primitive } | undefined;
+    for (const key of candidateKeys) {
+        const schemas = new Map<unknown, AnySchemaType>();
+        const options: string[] = [];
+        let collided = false;
+        for (const element of elements) {
+            const value = (element.shape[key] as LiteralSchema<never>).value;
 
-        if (schemas.has(value)) {
-            throw new Error(`Duplicate discriminator value ${primitiveToString(value)} for key '${key}'.`);
+            if (schemas.has(value)) {
+                collided = true;
+                if (duplicate === undefined) {
+                    duplicate = { key, value };
+                }
+                break;
+            }
+
+            schemas.set(value, element);
+            options.push(primitiveToString(value));
         }
-
-        schemas.set(value, element);
-        options.push(primitiveToString(value));
+        if (!collided) {
+            return { found: true, key, schemas, options };
+        }
     }
 
-    return { found: true, key, schemas, options };
+    if (duplicate !== undefined) {
+        throw new Error(
+            `Duplicate discriminator value ${primitiveToString(duplicate.value)} for key '${duplicate.key}'.`,
+        );
+    }
+
+    return { found: false };
 }
 
 class UnionSchema<TupleType extends ValidTupleType> extends Schema<Infer<TupleToUnion<TupleType>>> {
