@@ -1,5 +1,21 @@
 # @paseri/compiler
 
+## 0.3.0
+
+### Minor Changes
+
+- 58ecc55: Compiled validators inline acyclic `lazy()` targets (forward references and shared subtrees) at their use sites with statically-tracked depth boundaries, instead of emitting named functions and threading depth parameters through the module: ~3.5% faster on valid input for the forward-reference pattern, at some emitted-size cost for multiply-referenced targets.
+
+### Patch Changes
+
+- 4109c4d: Compiled validators stay below V8's optimise-size limit (nested object validation outlines into hoisted, deduplicated helpers) and read each entry field once instead of re-loading it per check: ~30% faster invalid-input validation on wide nested schemas, ~34-77% faster valid-input validation on wide objects, and up to ~66% smaller emitted modules.
+- 213829d: Compiled validators keep the shape fast path for schemas with lazy (recursive) fields and for containers of strict-mode objects: ~12-18% faster on valid input for the affected schemas, with allocation-free success paths.
+- ab87d72: Union IR nodes record the discriminator key the runtime selected at construction; the compiler dispatches on the recorded key instead of re-deriving the selection rule. Generated output is unchanged.
+- ecb54d3: JSR documentation fixes: the landing-page examples now pass a locale to `messages()`, and `toSource` documents the `parse<Name>` export alongside `safeParse<Name>`.
+- 5d28a82: Generated modules with a refine inside an array, set, map, or record element now pass strict `deno check`: the refine before-snapshot const is explicitly annotated, breaking a loop back-edge inference cycle (TS7022).
+- 9b42484: Compiled validators no longer let a later union member accept input that the runtime resolves by applying an earlier member's default.
+- 9b42484: Unions on the accumulate path skip their issue machinery when a member shape-matches cleanly. Generated modules no longer carry dead shape helpers or duplicate trailing success returns.
+
 ## 0.2.0
 
 ### Minor Changes
