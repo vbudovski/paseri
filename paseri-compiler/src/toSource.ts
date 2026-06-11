@@ -429,6 +429,15 @@ function buildThrowingWrapper(
     );
 }
 
+/**
+ * Whether the emitted body already ends in an unconditional `return` — appending the trailing success return after
+ * one would emit unreachable dead code (and, for large schemas, duplicate the full inline output type).
+ */
+function endsWithReturn(statements: readonly ts.Statement[]): boolean {
+    const last = statements[statements.length - 1];
+    return last !== undefined && ts.isReturnStatement(last);
+}
+
 /** Assembles a top-level `(value [, options]) => ParseResult<Infer>` function from an IR, with optional export. */
 function buildValidatorFunction(
     name: string,
@@ -442,7 +451,7 @@ function buildValidatorFunction(
     const body = emitValidation(ir, entry.valueParameter, sink, state);
     const trailingSuccess = emitSuccessRouting(sink);
     const statements: ts.Statement[] = [...entry.setupStatements, ...body];
-    if (trailingSuccess !== undefined) {
+    if (trailingSuccess !== undefined && !endsWithReturn(body)) {
         statements.push(trailingSuccess);
     }
     return buildEntryFunction(name, isExported, entry.parameters, statements, emitType(ir));
@@ -477,7 +486,15 @@ function tryEmitSplitFunctions(
     // Build the slow function only once the split is confirmed — emitting it before the shape-entry check would leak
     // its hoisted constants (e.g. regexes) into the module even when we bail back to a single emitted function.
     const slowFunction = buildValidatorFunction(slowName, false, ir, needsDepth, state);
-    const entryFunction = buildEntryFunction(exportedName, true, entry.parameters, shapeEntryBody, emitType(ir));
+    // The setup statements matter on the fast path too: recursive shape helpers read `maxDepth`, and an invalid
+    // `maxDepth` must throw even when the shape check would otherwise accept the value outright.
+    const entryFunction = buildEntryFunction(
+        exportedName,
+        true,
+        entry.parameters,
+        [...entry.setupStatements, ...shapeEntryBody],
+        emitType(ir),
+    );
     return [slowFunction, entryFunction];
 }
 
@@ -502,7 +519,7 @@ function emitNamedFunction(name: string, ir: IR, state: State): ts.FunctionDecla
         returnStatement(failurePayload(leafExpression('too_deep'))),
     ]);
     const statements: ts.Statement[] = [tooDeepCheck, ...body];
-    if (trailingSuccess !== undefined) {
+    if (trailingSuccess !== undefined && !endsWithReturn(body)) {
         statements.push(trailingSuccess);
     }
 
@@ -539,6 +556,7 @@ function emitNamedFunction(name: string, ir: IR, state: State): ts.FunctionDecla
 function toSource(graph: IRGraph, options: ToSourceOptions): string {
     const state = makeState(new Set(options.trustedBareSpecifiers ?? []));
     state.namedCanModify = computeNamedCanModify(graph);
+    state.namedIRs = graph.named;
     const needsDepth = Object.keys(graph.named).length > 0;
     const exportedName = `safeParse${options.name}`;
     const throwingName = `parse${options.name}`;

@@ -185,6 +185,17 @@ it('rejects non-object input to discriminated union', () => {
     );
 });
 
+it("applies an earlier member's default rather than matching a later member", () => {
+    // First-match semantics: member one matches `{}` by applying its default, so the union must return the
+    // defaulted value even though member two would accept the input unmodified.
+    const schema = p.union(p.object({ a: p.number().optional().default(1) }), p.object({ b: p.number().optional() }));
+    const result = schema.safeParse({});
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+        expect(result.value).toEqual({ a: 1 });
+    }
+});
+
 it('rejects undersized union', () => {
     // @ts-expect-error Intentionally silence the type error to validate runtime check.
     expect(() => p.union()).toThrow('Union must contain at least two members.');

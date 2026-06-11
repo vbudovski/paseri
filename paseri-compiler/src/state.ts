@@ -1,6 +1,6 @@
 // Codegen-time state threaded through every emitter.
 
-import type { SerializedCallback } from '@paseri/paseri/introspect';
+import type { IR, SerializedCallback } from '@paseri/paseri/introspect';
 import ts from 'typescript';
 import {
     bigintLiteral,
@@ -119,6 +119,24 @@ interface State {
      * letting pure recursive schemas keep the object fast path. Empty until `toSource` populates it.
      */
     namedCanModify: ReadonlyMap<string, boolean>;
+    /** The graph's named (lazy/recursive) entries keyed by emitted function name. Empty until `toSource` populates it. */
+    namedIRs: Readonly<Record<string, IR>>;
+    /**
+     * Per named (lazy) entry, the recursive boolean shape helper's identifier — or `'failed'` when the target (or a
+     * ref it transitively reaches) isn't shape-checkable, so later shape attempts bail without regenerating.
+     */
+    readonly refShapeCache: Map<string, ts.Identifier | 'failed'>;
+    /**
+     * In-flight ref-shape generation transaction (see `getOrCreateRefShapeHelper` in `object/shape.ts`). Shape-helper
+     * declarations buffer here, then flush on success or discard (with their `shapeHelperCache` keys) on failure —
+     * a helper built under a target that proves unshapeable could reference a recursive identifier that never emits.
+     */
+    refShapeSession: { bufferedDeclarations: ts.Statement[]; names: string[]; shapeHelperKeys: string[] } | undefined;
+    /**
+     * Count of ref-shape-helper call sites emitted so far. Container shape arms snapshot it around element
+     * generation to learn whether the element's expression needs depth/maxDepth threaded into the hoisted helper.
+     */
+    refShapeUses: number;
     /**
      * Identifiers the generated module already binds — runtime helpers, the internal import, the entry/slow functions,
      * and named (lazy) graph entries. A refine/chain callback whose resolved free identifier would clash with one of
@@ -144,6 +162,10 @@ function makeState(trustedBareSpecifiers: ReadonlySet<string> = new Set()): Stat
         maxDepthIdentifier: undefined,
         callbackCache: new WeakMap(),
         namedCanModify: new Map(),
+        namedIRs: {},
+        refShapeCache: new Map(),
+        refShapeSession: undefined,
+        refShapeUses: 0,
         reservedIdentifiers: new Set(),
     };
 }
