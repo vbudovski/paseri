@@ -80,6 +80,12 @@ interface State {
      */
     readonly shapeHelperCache: Map<string, ts.Identifier>;
     /**
+     * Maps an outlined object-issues helper's normalized body to its hoisted identifier, so structurally-identical
+     * nested objects share one helper (see `object/outline.ts`). Kept separate from `shapeHelperCache` because shape
+     * keys participate in `refShapeSession` rollback and these never do.
+     */
+    readonly objectIssuesHelperCache: Map<string, ts.Identifier>;
+    /**
      * Module-scope declarations to splice ahead of the entry functions: hoisted consts (defaults, enum `Set`s,
      * temporal bounds) plus emitted shape-helper functions. Printed through the TypeScript printer, unlike `textHoists`.
      */
@@ -160,6 +166,7 @@ function makeState(trustedBareSpecifiers: ReadonlySet<string> = new Set()): Stat
         enumCache: new Map(),
         boundsCache: new Map(),
         shapeHelperCache: new Map(),
+        objectIssuesHelperCache: new Map(),
         hoistedDeclarations: [],
         textHoists: [],
         importHoists: [],

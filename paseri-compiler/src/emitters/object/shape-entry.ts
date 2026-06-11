@@ -16,6 +16,7 @@ import {
     ifStatement,
     letStatement,
     literalExpression,
+    not,
     notEquals,
     nullExpression,
     numericLiteral,
@@ -337,6 +338,65 @@ function tryEmitDefaultObjectEntry(
 }
 
 /**
+ * Statement-form shape check for a top-level object entry: each field is read once into a local and its shape
+ * expression tests that local, replacing the giant-boolean form whose conjuncts re-load the property for every
+ * check. Same match semantics — a failing check routes to the slow call exactly like a false conjunct — and
+ * field shapes still come from `tryShape`, so nested structure, strict levels, and the bail conditions
+ * (prototype-name fields, unshapeable field) match the expression form.
+ */
+function tryEmitObjectShapeEntryBody(
+    ir: Extract<IR, { kind: 'object' }>,
+    valueExpression: ts.Expression,
+    slowCall: ts.Statement,
+    state: State,
+): ts.Statement[] | undefined {
+    const fields = Object.entries(ir.fields);
+    for (const [name] of fields) {
+        if (PROTOTYPE_NAMES.has(name)) {
+            return undefined;
+        }
+    }
+    const strictLevels: StrictLevel[] = [];
+    const statements: ts.Statement[] = [
+        ifStatement(not(call(identifier('isPlainObject'), [valueExpression])), [slowCall]),
+    ];
+    const optionalFieldNames: string[] = [];
+    let requiredCount = 0;
+    for (const [fieldName, fieldIR] of fields) {
+        if (!isFieldOptional(fieldIR) && shapeMatchesUndefined(fieldIR)) {
+            // Same presence guard as tryShape's object arm: a required field whose shape accepts undefined must
+            // not treat an absent key as matching. Prototype-name fields are rejected above, so `in` is safe.
+            statements.push(
+                ifStatement(
+                    not(binary(stringLiteral(fieldName), ts.SyntaxKind.InKeyword, recordCast(valueExpression))),
+                    [slowCall],
+                ),
+            );
+        }
+        const fieldLocal = freshIdentifier(state, 'field');
+        const fieldShape = tryShape(fieldIR, fieldLocal, strictLevels, state);
+        if (fieldShape === undefined) {
+            return undefined;
+        }
+        statements.push(
+            constStatement(fieldLocal, undefined, recordAccess(valueExpression, stringLiteral(fieldName))),
+            ifStatement(not(fieldShape), [slowCall]),
+        );
+        if (isFieldOptional(fieldIR)) {
+            optionalFieldNames.push(fieldName);
+        } else {
+            requiredCount += 1;
+        }
+    }
+    if (ir.mode === 'strict' || ir.mode === 'strip') {
+        strictLevels.push({ valueExpression, requiredCount, optionalFieldNames });
+    }
+    const outputType = emitType(ir);
+    const successReturn = returnStatement(successPayload(valueExpression, outputType));
+    return [...statements, ...buildSuccessWithExtrasCheck(strictLevels, successReturn, slowCall, state)];
+}
+
+/**
  * Tries to emit a split pair (tiny exported entry + private slow function)
  * for object-typed entries whose structure can be expressed as a pure boolean
  * shape check. Keeps the slow function cold on the happy path. Returns
@@ -363,7 +423,7 @@ function tryEmitShapeEntryBody(
         }
     }
     // Objects with top-level `.default()` fields: apply the defaults inline rather than routing the default-firing
-    // case to the slow path. Returns undefined for objects with no defaults (→ generic path below) or with
+    // case to the slow path. Returns undefined for objects with no defaults (→ statement form below) or with
     // modifications the lean path can't handle.
     if (ir.kind === 'object') {
         const defaultStatements = withShapeAttempt(state, () =>
@@ -371,6 +431,12 @@ function tryEmitShapeEntryBody(
         );
         if (defaultStatements !== undefined) {
             return defaultStatements;
+        }
+        const statementForm = withShapeAttempt(state, () =>
+            tryEmitObjectShapeEntryBody(ir, valueExpression, slowCall, state),
+        );
+        if (statementForm !== undefined) {
+            return statementForm;
         }
     }
     const generic = withShapeAttempt(state, () => {
