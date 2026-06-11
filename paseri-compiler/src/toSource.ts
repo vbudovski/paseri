@@ -429,6 +429,15 @@ function buildThrowingWrapper(
     );
 }
 
+/**
+ * Whether the emitted body already ends in an unconditional `return` — appending the trailing success return after
+ * one would emit unreachable dead code (and, for large schemas, duplicate the full inline output type).
+ */
+function endsWithReturn(statements: readonly ts.Statement[]): boolean {
+    const last = statements[statements.length - 1];
+    return last !== undefined && ts.isReturnStatement(last);
+}
+
 /** Assembles a top-level `(value [, options]) => ParseResult<Infer>` function from an IR, with optional export. */
 function buildValidatorFunction(
     name: string,
@@ -442,7 +451,7 @@ function buildValidatorFunction(
     const body = emitValidation(ir, entry.valueParameter, sink, state);
     const trailingSuccess = emitSuccessRouting(sink);
     const statements: ts.Statement[] = [...entry.setupStatements, ...body];
-    if (trailingSuccess !== undefined) {
+    if (trailingSuccess !== undefined && !endsWithReturn(body)) {
         statements.push(trailingSuccess);
     }
     return buildEntryFunction(name, isExported, entry.parameters, statements, emitType(ir));
@@ -510,7 +519,7 @@ function emitNamedFunction(name: string, ir: IR, state: State): ts.FunctionDecla
         returnStatement(failurePayload(leafExpression('too_deep'))),
     ]);
     const statements: ts.Statement[] = [tooDeepCheck, ...body];
-    if (trailingSuccess !== undefined) {
+    if (trailingSuccess !== undefined && !endsWithReturn(body)) {
         statements.push(trailingSuccess);
     }
 

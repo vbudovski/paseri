@@ -22,16 +22,44 @@ import { modifies } from '../../can-modify.ts';
 import { emitFailureRouting, emitSuccessRouting, successPayload } from '../../issues.ts';
 import { freshIdentifier, type Sink, type State } from '../../state.ts';
 import { emitValidation } from '../../toSource.ts';
+import { containsReachableDefault, tryShapeSelfContained, withShapeAttempt } from '../object/shape.ts';
 import { emitDiscriminatedUnion, findDiscriminator } from './discriminator.ts';
 
 const { factory } = ts;
 
 type UnionIR = Extract<IR, { kind: 'union' }>;
 
+const { BarBarToken } = ts.SyntaxKind;
+
+/**
+ * Boolean OR over the leading run of exactly-shapeable members, bypassing the try-each form's per-member issue
+ * allocation: an exact member's shape is false iff it doesn't match, so a match means first-match resolves to the
+ * unmodified input. The run stops at the first unshapeable member and at the first with a reachable `.default()`
+ * (its shape under-matches, so a later member must not accept the input in its place). Undefined if none are shapeable.
+ */
+function tryBuildShapePreCheck(ir: UnionIR, valueExpression: ts.Expression, state: State): ts.Expression | undefined {
+    const memberShapes: ts.Expression[] = [];
+    for (const member of ir.members) {
+        if (containsReachableDefault(member, state, new Set())) {
+            break;
+        }
+        const memberShape = withShapeAttempt(state, () => tryShapeSelfContained(member, valueExpression, state));
+        if (memberShape === undefined) {
+            break;
+        }
+        memberShapes.push(memberShape);
+    }
+    if (memberShapes.length === 0) {
+        return undefined;
+    }
+    return memberShapes.reduce((left, right) => factory.createBinaryExpression(left, BarBarToken, right));
+}
+
 /**
  * Emits union validation. Dispatches to `emitDiscriminatedUnion` when a
  * discriminator field is found; otherwise emits the general try-each-member
- * form (set `memberSuccess` on first match, accumulate per-member issues).
+ * form (set `memberSuccess` on first match, accumulate per-member issues),
+ * preceded by a boolean shape pre-check that bypasses it on clean matches.
  */
 function emitUnion(ir: UnionIR, valueExpression: ts.Expression, sink: Sink, state: State): ts.Statement[] {
     const discriminator = findDiscriminator(ir);
@@ -39,6 +67,7 @@ function emitUnion(ir: UnionIR, valueExpression: ts.Expression, sink: Sink, stat
         return emitDiscriminatedUnion(discriminator, valueExpression, sink, state);
     }
 
+    const preCheck = tryBuildShapePreCheck(ir, valueExpression, state);
     const memberSuccess = freshIdentifier(state, 'success');
     const issueIdentifier = freshIdentifier(state, 'issue');
     const anyMemberCanModify = ir.members.some((member) => modifies(member, state));
@@ -130,7 +159,18 @@ function emitUnion(ir: UnionIR, valueExpression: ts.Expression, sink: Sink, stat
         ]),
     );
 
-    return [block(statements)];
+    if (preCheck === undefined) {
+        return [block(statements)];
+    }
+    if (sink.kind === 'return') {
+        const preCheckSuccess = emitSuccessRouting(sink);
+        if (preCheckSuccess !== undefined) {
+            return [ifStatement(preCheck, [preCheckSuccess]), block(statements)];
+        }
+        return [block(statements)];
+    }
+    // Accumulate sink: a pre-check match means no issue and no modification, so the whole try-each is skipped.
+    return [ifStatement(not(preCheck), [block(statements)])];
 }
 
 export { emitUnion };

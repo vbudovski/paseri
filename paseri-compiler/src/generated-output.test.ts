@@ -96,6 +96,28 @@ it('emits no dead shape helpers when the entry is unshapeable', () => {
     expect(source.includes('_shapeArray')).toBe(false);
 });
 
+it('emits a boolean pre-check ahead of the union try-each so clean matches skip the issue machinery', () => {
+    // The chain field keeps the object off the shape fast path, so the union runs in accumulate form — which
+    // previously allocated per-member issue nodes even when a later member matched.
+    const schema = p.object({
+        role: p.union(p.literal('admin'), p.literal('user'), p.literal('guest')),
+        id: p.string().chain(p.number(), (value) => ({ ok: true, value: Number(value) })),
+    });
+    const source = toSource(schema.toIR(), { name: 'Pre' });
+    expect(/if \(!\(_value\d+ === "admin" \|\| _value\d+ === "user" \|\| _value\d+ === "guest"\)\)/.test(source)).toBe(
+        true,
+    );
+});
+
+it('emits exactly one success return per validator function', () => {
+    // The trailing success return is skipped when the emitted body already ends in a return — the duplicate was
+    // unreachable and repeated the full inline output type.
+    const source = toSource(p.object({ hello: p.string() }).toIR(), { name: 'Single' });
+    const successReturns = source.match(/return \{ ok: true as const/g) ?? [];
+    // One in the slow function and one in the shape entry's success path.
+    expect(successReturns.length).toBe(2);
+});
+
 it('throws on an invalid maxDepth, matching the runtime', () => {
     type Node = { children: Node[] };
     const schema: p.Schema<Node> = p.lazy(() => p.object({ children: p.array(schema) }));
