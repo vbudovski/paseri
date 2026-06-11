@@ -36,7 +36,7 @@ import { successPayload } from '../../issues.ts';
 import { freshIdentifier, registerDefault, type State } from '../../state.ts';
 import { findDiscriminator } from '../union/discriminator.ts';
 import { isFieldOptional, PROTOTYPE_NAMES, SHAPE_ENTRY_ELIGIBLE_KINDS, type StrictLevel } from './common.ts';
-import { shapeMatchesUndefined, tryShape } from './shape.ts';
+import { containsReachableDefault, shapeMatchesUndefined, tryShape, withShapeAttempt } from './shape.ts';
 
 /** Whether a discriminant value can be used as a `switch` case label (strict-equality matchable as a literal). */
 function isSwitchSafe(value: unknown): boolean {
@@ -102,15 +102,21 @@ function buildSuccessWithExtrasCheck(
     return statements;
 }
 
+type MemberPlan = { readonly shape: ts.Expression; readonly strictLevels: StrictLevel[] };
+
 /**
- * Strict-union fast path: when a union entry has at least one member whose
- * shape pushes strict/strip levels, the single-OR-chain form can't attribute
- * extras counts to specific members. Instead, emit one `if (member_shape)`
- * block per member with its own extras check; on a mismatch (shape fails, or
- * shape matched but extras present) control falls through to the next member,
- * matching Paseri's runtime union semantics ("try each, return first
- * success"). If no member needs extras detection this returns undefined so
- * the caller falls back to the cheaper OR-chain form.
+ * Union fast path. Two forms, tried in order:
+ *
+ * Discriminated dispatch (every member an object sharing a literal key with distinct values): `switch` on the key —
+ * O(1) to reach the matching member. A member's shape failing routes to the slow call, never to a sibling, so
+ * under-matching shapes (members containing a `.default()`) are sound here.
+ *
+ * Sequential per-member blocks otherwise: `if (member_shape) <extras check + success>` per member, falling through
+ * to the next member and finally the slow call — the runtime's first-match semantics. Fallthrough makes
+ * under-matching shapes unsound (a later member would accept input the runtime resolves via an earlier member's
+ * default), so the usable run of members stops at the first default-containing or unshapeable member; with no
+ * leading run there's nothing to gain, and when the run covers every member without extras handling the caller's
+ * cheaper OR-chain form (tryShape's `case 'union'` arm) is used instead.
  */
 function tryEmitUnionShapeEntryBody(
     ir: Extract<IR, { kind: 'union' }>,
@@ -119,40 +125,20 @@ function tryEmitUnionShapeEntryBody(
     state: State,
 ): ts.Statement[] | undefined {
     const outputType = emitType(ir);
-    type MemberPlan = { readonly shape: ts.Expression; readonly strictLevels: StrictLevel[] };
-    const plans: MemberPlan[] = [];
-    let allShapeable = true;
-    for (const member of ir.members) {
-        const memberStrictLevels: StrictLevel[] = [];
-        const memberShape = tryShape(member, valueExpression, memberStrictLevels, state);
-        if (memberShape === undefined) {
-            allShapeable = false;
-            break;
-        }
-        plans.push({ shape: memberShape, strictLevels: memberStrictLevels });
-    }
-    if (!allShapeable) {
-        // A member (e.g. a chain, or a refine whose predicate can't be resolved) isn't shape-checkable, so the whole
-        // union would otherwise run try-each on the entry — slow for valid input, not just on rejection. Fast-path
-        // the leading shape-checkable prefix instead: a leading pure member's shape match IS its full match, and the
-        // union is first-match, so returning it is correct; anything not matching the prefix falls to the try-each
-        // slow function over all members. With no shape-checkable prefix there's nothing to gain, so bail.
-        if (plans.length === 0) {
-            return undefined;
-        }
-        const prefixSuccess = returnStatement(successPayload(valueExpression, outputType));
-        const prefixBlocks = plans.map((plan) =>
-            ifStatement(plan.shape, buildSuccessWithExtrasCheck(plan.strictLevels, prefixSuccess, slowCall, state)),
-        );
-        return [...prefixBlocks, slowCall];
-    }
-    // Discriminated fast path: when every member is an object sharing a literal key with distinct values, dispatch on
-    // that key with a `switch` instead of testing each member's shape in sequence — O(1) to reach the matching member
-    // rather than O(members). Skipped when a discriminant value can't be a switch case label (NaN, null, etc.); those
-    // fall through to the per-member form below.
     const discriminator = findDiscriminator(ir);
-    if (discriminator !== undefined) {
-        if (discriminator.cases.every((entry) => isSwitchSafe(entry.value))) {
+    if (discriminator?.cases.every((entry) => isSwitchSafe(entry.value))) {
+        // One transactional attempt for the whole switch: if any member turns out unshapeable, every plan's hoisted
+        // helpers roll back rather than lingering as dead module code.
+        const dispatchStatements = withShapeAttempt(state, () => {
+            const plans: MemberPlan[] = [];
+            for (const member of ir.members) {
+                const memberStrictLevels: StrictLevel[] = [];
+                const memberShape = tryShape(member, valueExpression, memberStrictLevels, state);
+                if (memberShape === undefined) {
+                    return undefined;
+                }
+                plans.push({ shape: memberShape, strictLevels: memberStrictLevels });
+            }
             const successReturn = returnStatement(successPayload(valueExpression, outputType));
             const clauses: ts.CaseOrDefaultClause[] = plans.map((plan, index) =>
                 caseClause(literalExpression(discriminator.cases[index].value as string | number | bigint | boolean), [
@@ -171,16 +157,43 @@ function tryEmitUnionShapeEntryBody(
             );
             const dispatch = switchStatement(recordAccess(valueExpression, stringLiteral(discriminator.key)), clauses);
             return [ifStatement(objectGuard, [dispatch]), slowCall];
+        });
+        if (dispatchStatements !== undefined) {
+            return dispatchStatements;
         }
     }
-    if (plans.every((plan) => plan.strictLevels.length === 0)) {
-        // No member needs per-member extras handling — let the caller use the
-        // cheaper OR-chain form via tryShape's `case 'union'` arm.
+    const prefixPlans: MemberPlan[] = [];
+    let sawCutoff = false;
+    for (const member of ir.members) {
+        // Check for defaults BEFORE generating the member's shape: a default-containing member never participates
+        // in the sequential form, and generating its shape first would hoist helpers that go dead when it's cut.
+        if (containsReachableDefault(member, state, new Set())) {
+            sawCutoff = true;
+            break;
+        }
+        const plan = withShapeAttempt(state, () => {
+            const memberStrictLevels: StrictLevel[] = [];
+            const memberShape = tryShape(member, valueExpression, memberStrictLevels, state);
+            if (memberShape === undefined) {
+                return undefined;
+            }
+            return { shape: memberShape, strictLevels: memberStrictLevels };
+        });
+        if (plan === undefined) {
+            sawCutoff = true;
+            break;
+        }
+        prefixPlans.push(plan);
+    }
+    if (prefixPlans.length === 0) {
+        return undefined;
+    }
+    if (!sawCutoff && prefixPlans.every((plan) => plan.strictLevels.length === 0)) {
         return undefined;
     }
     const successReturn = returnStatement(successPayload(valueExpression, outputType));
     const memberBlocks: ts.Statement[] = [];
-    for (const plan of plans) {
+    for (const plan of prefixPlans) {
         const successStatements = buildSuccessWithExtrasCheck(plan.strictLevels, successReturn, slowCall, state);
         memberBlocks.push(ifStatement(plan.shape, successStatements));
     }
@@ -353,20 +366,28 @@ function tryEmitShapeEntryBody(
     // case to the slow path. Returns undefined for objects with no defaults (→ generic path below) or with
     // modifications the lean path can't handle.
     if (ir.kind === 'object') {
-        const defaultStatements = tryEmitDefaultObjectEntry(ir, valueExpression, slowCall, state);
+        const defaultStatements = withShapeAttempt(state, () =>
+            tryEmitDefaultObjectEntry(ir, valueExpression, slowCall, state),
+        );
         if (defaultStatements !== undefined) {
             return defaultStatements;
         }
     }
-    const strictLevels: StrictLevel[] = [];
-    const shape = tryShape(ir, valueExpression, strictLevels, state);
-    if (shape === undefined) {
+    const generic = withShapeAttempt(state, () => {
+        const strictLevels: StrictLevel[] = [];
+        const shape = tryShape(ir, valueExpression, strictLevels, state);
+        if (shape === undefined) {
+            return undefined;
+        }
+        return { shape, strictLevels };
+    });
+    if (generic === undefined) {
         return undefined;
     }
     const outputType = emitType(ir);
     const successReturn = returnStatement(successPayload(valueExpression, outputType));
-    const successStatements = buildSuccessWithExtrasCheck(strictLevels, successReturn, slowCall, state);
-    return [ifStatement(shape, successStatements), slowCall];
+    const successStatements = buildSuccessWithExtrasCheck(generic.strictLevels, successReturn, slowCall, state);
+    return [ifStatement(generic.shape, successStatements), slowCall];
 }
 
 export { tryEmitShapeEntryBody };

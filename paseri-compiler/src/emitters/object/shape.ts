@@ -162,6 +162,93 @@ function emitExtrasHelper(state: State, requiredCount: number, optionalFieldName
 }
 
 /**
+ * Whether validating `ir` can apply a `.default()` anywhere — including through named (lazy) targets. A default
+ * makes a shape under-matching (false while the runtime MATCHES, with modification), which is sound when shape
+ * failure routes to the slow path but unsound when it falls through to a sibling union member: the sibling would
+ * fast-accept the input unmodified while the runtime returns the earlier member's defaulted value. Union shape
+ * forms with member-to-member fallthrough must therefore cut off at the first default-containing member.
+ */
+function containsReachableDefault(ir: IR, state: State, visited: Set<string>): boolean {
+    switch (ir.kind) {
+        case 'default':
+            return true;
+        case 'optional':
+        case 'nullable':
+        case 'refine':
+            return containsReachableDefault(ir.inner, state, visited);
+        case 'array':
+        case 'set':
+        case 'record':
+            return containsReachableDefault(ir.element, state, visited);
+        case 'map':
+            return (
+                containsReachableDefault(ir.key, state, visited) || containsReachableDefault(ir.value, state, visited)
+            );
+        case 'tuple':
+            return ir.elements.some((element) => containsReachableDefault(element, state, visited));
+        case 'object':
+            return Object.values(ir.fields).some((field) => containsReachableDefault(field, state, visited));
+        case 'union':
+            return ir.members.some((member) => containsReachableDefault(member, state, visited));
+        case 'chain':
+            return containsReachableDefault(ir.from, state, visited) || containsReachableDefault(ir.to, state, visited);
+        case 'ref': {
+            if (visited.has(ir.name)) {
+                return false;
+            }
+            visited.add(ir.name);
+            const target = state.namedIRs[ir.name];
+            return target !== undefined && containsReachableDefault(target, state, visited);
+        }
+        default:
+            return false;
+    }
+}
+
+/**
+ * Runs one shape-generation attempt transactionally. Helper declarations created inside (container shape helpers,
+ * extras helpers, recursive ref helpers) buffer on `state.refShapeSession`; when `generate` fails (returns
+ * undefined) the attempt's additions are rolled back — declarations discarded, dedup-cache keys evicted, and
+ * completed-but-discarded ref helpers un-cached so a later attempt can regenerate them (structurally failed refs
+ * stay `'failed'`). A leftover declaration could otherwise reference a recursive identifier that is never emitted,
+ * and even a self-contained one would be dead module code. The outermost attempt owns the session and flushes the
+ * surviving buffer to `hoistedDeclarations`; nested attempts (union members inside an entry attempt, refs inside
+ * anything) roll back only their own slice.
+ */
+function withShapeAttempt<T>(state: State, generate: () => T | undefined): T | undefined {
+    const isRoot = state.refShapeSession === undefined;
+    if (isRoot) {
+        state.refShapeSession = { bufferedDeclarations: [], names: [], shapeHelperKeys: [] };
+    }
+    const session = state.refShapeSession;
+    if (session === undefined) {
+        return undefined;
+    }
+    const declarationsMark = session.bufferedDeclarations.length;
+    const namesMark = session.names.length;
+    const keysMark = session.shapeHelperKeys.length;
+    const result = generate();
+    if (result === undefined) {
+        for (const name of session.names.slice(namesMark)) {
+            if (state.refShapeCache.get(name) !== 'failed') {
+                state.refShapeCache.delete(name);
+            }
+        }
+        for (const key of session.shapeHelperKeys.slice(keysMark)) {
+            state.shapeHelperCache.delete(key);
+        }
+        session.bufferedDeclarations.length = declarationsMark;
+        session.names.length = namesMark;
+        session.shapeHelperKeys.length = keysMark;
+    }
+    if (isRoot) {
+        state.hoistedDeclarations.push(...session.bufferedDeclarations);
+        state.refShapeSession = undefined;
+    }
+    return result;
+}
+
+/**
  * `tryShape` for positions where strict/strip levels can't aggregate into the caller's statement-form extras pass
  * (container elements, union members, ref targets): each level folds into the expression itself as a hoisted
  * key-count helper call. The calls are appended AFTER the structural conjuncts, so a count only runs once every
@@ -246,10 +333,8 @@ function depthThreading(
  * same entry check and the same `depth + 1` at nested ref calls — so it returns false for every input the runtime
  * rejects with `too_deep`, and the slow path reproduces the issue.
  *
- * Generation is transactional. A helper generated while the target (or anything it transitively references) turns
- * out unshapeable could reference a recursive identifier that will never be emitted, so declarations buffer on the
- * session and are flushed only when the outermost attempt succeeds; on failure they're discarded, their dedup-cache
- * keys removed, and every name the attempt touched is cached as `'failed'` so later references bail immediately.
+ * Generation runs inside `withShapeAttempt`; on failure the attempt's declarations roll back and the name is cached
+ * as `'failed'` (structural unshapeability is permanent) so later references bail immediately.
  */
 function getOrCreateRefShapeHelper(name: string, state: State): ts.Identifier | undefined {
     const cached = state.refShapeCache.get(name);
@@ -263,69 +348,56 @@ function getOrCreateRefShapeHelper(name: string, state: State): ts.Identifier | 
     if (target === undefined) {
         return undefined;
     }
-    const isOutermost = state.refShapeSession === undefined;
-    if (isOutermost) {
-        state.refShapeSession = { bufferedDeclarations: [], names: [], shapeHelperKeys: [] };
-    }
-    const session = state.refShapeSession;
-    if (session === undefined) {
-        return undefined;
-    }
-    const helperName = freshIdentifier(state, 'shapeLazy');
-    // Cache before generating the body: a recursive reference to `name` mid-generation resolves to this identifier.
-    state.refShapeCache.set(name, helperName);
-    session.names.push(name);
-
-    const valueParameter = identifier('value');
-    const depthParameter = identifier('depth');
-    const maxDepthParameter = identifier('maxDepth');
-    const savedDepth = state.currentDepth;
-    const savedMaxDepth = state.maxDepthIdentifier;
-    state.currentDepth = binary(depthParameter, ts.SyntaxKind.PlusToken, numericLiteral(1));
-    state.maxDepthIdentifier = maxDepthParameter;
-    const shape = tryShapeSelfContained(target, valueParameter, state);
-    state.currentDepth = savedDepth;
-    state.maxDepthIdentifier = savedMaxDepth;
-
-    if (shape === undefined) {
-        // A nested failure unwinds through every enclosing frame (each sees its own `shape === undefined`), so only
-        // the outermost frame cleans up — and it sees the full set of names and buffered declarations.
-        if (isOutermost) {
-            for (const failedName of session.names) {
-                state.refShapeCache.set(failedName, 'failed');
-            }
-            for (const key of session.shapeHelperKeys) {
-                state.shapeHelperCache.delete(key);
-            }
-            state.refShapeSession = undefined;
+    const result = withShapeAttempt(state, () => {
+        const session = state.refShapeSession;
+        if (session === undefined) {
+            return undefined;
         }
-        return undefined;
-    }
+        const helperName = freshIdentifier(state, 'shapeLazy');
+        // Cache before generating the body: a recursive reference to `name` mid-generation resolves to this
+        // identifier. The attempt records the name, so a failure rolls the cache entry back.
+        state.refShapeCache.set(name, helperName);
+        session.names.push(name);
 
-    const helperFunction = factory.createFunctionDeclaration(
-        undefined,
-        undefined,
-        helperName,
-        undefined,
-        [
-            factory.createParameterDeclaration(undefined, undefined, valueParameter, undefined, unknownType),
-            factory.createParameterDeclaration(undefined, undefined, depthParameter, undefined, numberType),
-            factory.createParameterDeclaration(undefined, undefined, maxDepthParameter, undefined, numberType),
-        ],
-        factory.createKeywordTypeNode(ts.SyntaxKind.BooleanKeyword),
-        block([
-            ifStatement(binary(depthParameter, ts.SyntaxKind.GreaterThanEqualsToken, maxDepthParameter), [
-                returnStatement(falseLiteral),
+        const valueParameter = identifier('value');
+        const depthParameter = identifier('depth');
+        const maxDepthParameter = identifier('maxDepth');
+        const savedDepth = state.currentDepth;
+        const savedMaxDepth = state.maxDepthIdentifier;
+        state.currentDepth = binary(depthParameter, ts.SyntaxKind.PlusToken, numericLiteral(1));
+        state.maxDepthIdentifier = maxDepthParameter;
+        const shape = tryShapeSelfContained(target, valueParameter, state);
+        state.currentDepth = savedDepth;
+        state.maxDepthIdentifier = savedMaxDepth;
+        if (shape === undefined) {
+            return undefined;
+        }
+
+        const helperFunction = factory.createFunctionDeclaration(
+            undefined,
+            undefined,
+            helperName,
+            undefined,
+            [
+                factory.createParameterDeclaration(undefined, undefined, valueParameter, undefined, unknownType),
+                factory.createParameterDeclaration(undefined, undefined, depthParameter, undefined, numberType),
+                factory.createParameterDeclaration(undefined, undefined, maxDepthParameter, undefined, numberType),
+            ],
+            factory.createKeywordTypeNode(ts.SyntaxKind.BooleanKeyword),
+            block([
+                ifStatement(binary(depthParameter, ts.SyntaxKind.GreaterThanEqualsToken, maxDepthParameter), [
+                    returnStatement(falseLiteral),
+                ]),
+                returnStatement(shape),
             ]),
-            returnStatement(shape),
-        ]),
-    );
-    session.bufferedDeclarations.push(helperFunction);
-    if (isOutermost) {
-        state.hoistedDeclarations.push(...session.bufferedDeclarations);
-        state.refShapeSession = undefined;
+        );
+        session.bufferedDeclarations.push(helperFunction);
+        return helperName;
+    });
+    if (result === undefined) {
+        state.refShapeCache.set(name, 'failed');
     }
-    return helperName;
+    return result;
 }
 
 /**
@@ -630,6 +702,12 @@ function tryShape(
             return call(property(setIdentifier, 'has'), [valueExpression]);
         }
         case 'union': {
+            // A member containing a reachable default has an under-matching shape: false while the runtime would
+            // match it (applying the default). In an OR-chain that lets a LATER member accept the input unmodified
+            // when the runtime returns the earlier member's defaulted value — so bail the whole union.
+            if (ir.members.some((member) => containsReachableDefault(member, state, new Set()))) {
+                return undefined;
+            }
             // Members get fresh strictLevels, folded into each member's own expression: we don't know which member
             // will match at codegen time, so member-specific extras counts can't aggregate with the parent's. A
             // member whose extras check fails simply doesn't match, and the next member (or the slow path) runs —
@@ -927,4 +1005,4 @@ function tryShape(
     }
 }
 
-export { shapeMatchesUndefined, tryShape };
+export { containsReachableDefault, shapeMatchesUndefined, tryShape, tryShapeSelfContained, withShapeAttempt };

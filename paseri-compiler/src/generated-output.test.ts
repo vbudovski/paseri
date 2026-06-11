@@ -84,6 +84,18 @@ it('discards ref shape helpers when the lazy target is unshapeable', () => {
     expect(result.ok).toBe(true);
 });
 
+it('emits no dead shape helpers when the entry is unshapeable', () => {
+    // The chain field makes the whole entry unshapeable, so the attempt bails AFTER the array field's shape walk
+    // would have hoisted its element helper; the transactional rollback must discard it rather than leave a dead
+    // module-scope function.
+    const schema = p.object({
+        items: p.array(p.string()),
+        id: p.string().chain(p.number(), (value) => ({ ok: true, value: Number(value) })),
+    });
+    const source = toSource(schema.toIR(), { name: 'Bailed' });
+    expect(source.includes('_shapeArray')).toBe(false);
+});
+
 it('throws on an invalid maxDepth, matching the runtime', () => {
     type Node = { children: Node[] };
     const schema: p.Schema<Node> = p.lazy(() => p.object({ children: p.array(schema) }));
