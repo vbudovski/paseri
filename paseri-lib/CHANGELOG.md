@@ -1,5 +1,18 @@
 # @paseri/paseri
 
+## 1.4.0
+
+### Minor Changes
+
+- 58ecc55: `toIR()` graphs now include `cycles` — the named entries that actually participate in a recursion cycle — so consumers can distinguish true recursion from forward references and shared subtrees.
+- ab87d72: Union IR nodes record the discriminator key the runtime selected at construction; the compiler dispatches on the recorded key instead of re-deriving the selection rule. Generated output is unchanged.
+
+### Patch Changes
+
+- ecb54d3: JSR documentation fixes: the landing-page examples now pass a locale to `messages()`, and `toSource` documents the `parse<Name>` export alongside `safeParse<Name>`.
+- e472338: Passthrough-mode objects with unrecognised keys parse ~35-40% faster: the parser no longer collects unrecognised keys it never consumes in that mode.
+- 33a05e0: Temporal bound checks are 6-20x faster: Instant and ZonedDateTime bounds compare by precomputed epoch nanoseconds, and Plain\* bounds compare by ISO fields when both sides use the iso8601 calendar.
+
 ## 1.3.0
 
 ### Minor Changes
