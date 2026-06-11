@@ -521,8 +521,9 @@ function emitNamedFunction(name: string, ir: IR, state: State): ts.FunctionDecla
 
 /**
  * Compiles an IR graph into a TypeScript module that exports a `safeParse${options.name}` validator
- * matching paseri-lib's runtime `safeParse` shape. The returned source is a complete file — runtime helpers,
- * defaults, predicate hoists, and named-ref functions all inlined — ready to write to disk or evaluate in place.
+ * matching paseri-lib's runtime `safeParse` shape, plus a throwing `parse${options.name}` counterpart.
+ * The returned source is a complete file — runtime helpers, defaults, predicate hoists, and named-ref
+ * functions all inlined — ready to write to disk or evaluate in place.
  *
  * @example
  * ```ts
