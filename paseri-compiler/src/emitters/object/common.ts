@@ -58,15 +58,15 @@ function shadowsPrototype(name: string): boolean {
 
 /**
  * Captures one strict-or-strip object level encountered during the shape walk so the caller can emit a follow-up
- * extras check after the shape check. `requiredCount` is the number of always-present fields; `optionalAccessors`
- * are the value-access expressions for the optional fields, used to count how many are actually present. The extras
- * threshold is `requiredCount + (present optionals)` rather than the static field count: an absent optional would
- * otherwise leave room for an unknown key without the input key count exceeding the field count.
+ * extras check after the shape check. `requiredCount` is the number of always-present fields; `optionalFieldNames`
+ * are the optional fields' keys, used to count how many are actually present. The extras threshold is
+ * `requiredCount + (present optionals)` rather than the static field count: an absent optional would otherwise
+ * leave room for an unknown key without the input key count exceeding the field count.
  */
 type StrictLevel = {
     readonly valueExpression: ts.Expression;
     readonly requiredCount: number;
-    readonly optionalAccessors: readonly ts.Expression[];
+    readonly optionalFieldNames: readonly string[];
 };
 
 /**
@@ -81,6 +81,7 @@ const SHAPE_ENTRY_ELIGIBLE_KINDS: Set<IR['kind']> = new Set<IR['kind']>([
     'record',
     'set',
     'map',
+    'ref',
 ]);
 
 export {

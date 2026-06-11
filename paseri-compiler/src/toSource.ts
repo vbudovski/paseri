@@ -477,7 +477,15 @@ function tryEmitSplitFunctions(
     // Build the slow function only once the split is confirmed — emitting it before the shape-entry check would leak
     // its hoisted constants (e.g. regexes) into the module even when we bail back to a single emitted function.
     const slowFunction = buildValidatorFunction(slowName, false, ir, needsDepth, state);
-    const entryFunction = buildEntryFunction(exportedName, true, entry.parameters, shapeEntryBody, emitType(ir));
+    // The setup statements matter on the fast path too: recursive shape helpers read `maxDepth`, and an invalid
+    // `maxDepth` must throw even when the shape check would otherwise accept the value outright.
+    const entryFunction = buildEntryFunction(
+        exportedName,
+        true,
+        entry.parameters,
+        [...entry.setupStatements, ...shapeEntryBody],
+        emitType(ir),
+    );
     return [slowFunction, entryFunction];
 }
 
@@ -539,6 +547,7 @@ function emitNamedFunction(name: string, ir: IR, state: State): ts.FunctionDecla
 function toSource(graph: IRGraph, options: ToSourceOptions): string {
     const state = makeState(new Set(options.trustedBareSpecifiers ?? []));
     state.namedCanModify = computeNamedCanModify(graph);
+    state.namedIRs = graph.named;
     const needsDepth = Object.keys(graph.named).length > 0;
     const exportedName = `safeParse${options.name}`;
     const throwingName = `parse${options.name}`;

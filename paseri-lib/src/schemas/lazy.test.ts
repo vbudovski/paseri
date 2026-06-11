@@ -75,6 +75,19 @@ it('rejects invalid types', () => {
     );
 });
 
+it('rejects unknown keys in recursive nodes', () => {
+    type Comment = { body: string; reply?: Comment | undefined };
+    const schema: p.Schema<Comment> = p.lazy(() => p.object({ body: p.string(), reply: schema.optional() }));
+
+    expect(schema.safeParse({ body: 'a', reply: { body: 'b' } }).ok).toBe(true);
+
+    const result = schema.safeParse({ body: 'a', reply: { body: 'b', extra: 1 } });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+        expect(result.messages()).toEqual([{ path: ['reply', 'extra'], message: 'unrecognized_key' }]);
+    }
+});
+
 describe('maxDepth', () => {
     it('rejects data deeper than the default maxDepth', () => {
         const schema: p.Schema<Node> = p.lazy(() => p.object({ children: p.array(schema) }));

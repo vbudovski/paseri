@@ -43,6 +43,47 @@ it('types the hoisted refine predicate const so generated modules type-check', (
     expect(/const _refine\d+: \(value: number\) => boolean =/.test(source)).toBe(true);
 });
 
+it('emits a recursive shape fast path for lazy schemas', () => {
+    type Comment = { body: string; reply?: Comment | undefined };
+    const schema: p.Schema<Comment> = p.lazy(() => p.object({ body: p.string(), reply: schema.optional() }));
+    const source = toSource(p.object({ pinned: schema }).toIR(), { name: 'Thread' });
+    expect(/function _shapeLazy\d+\(value: unknown, depth: number, maxDepth: number\): boolean/.test(source)).toBe(
+        true,
+    );
+    expect(source.includes('_slowThread')).toBe(true);
+});
+
+it('emits a shape fast path for containers of strict objects', () => {
+    // The element object's strict-extras level can't aggregate into the entry's statement-form count pass, so it
+    // folds into the element shape as a hoisted key-count helper instead of bailing the whole fast path.
+    const source = toSource(p.object({ items: p.array(p.object({ id: p.number() })) }).toIR(), { name: 'List' });
+    expect(/function _extrasOk\d+/.test(source)).toBe(true);
+    expect(source.includes('_slowList')).toBe(true);
+});
+
+it('discards ref shape helpers when the lazy target is unshapeable', () => {
+    // The chain inside the recursive target has no shape form, so the ref helper's generation fails midway. The
+    // partially built helpers must be discarded — a leftover declaration could reference a recursive identifier
+    // that is never emitted — and the schema must still compile via the accumulate path.
+    type Node = { id: number; child?: Node | undefined };
+    // Capture-free chain callback (no closed-over identifiers), so the schema still compiles via the accumulate path.
+    const schema: p.Schema<Node> = p.lazy(() =>
+        p.object({
+            id: p.string().chain(p.number(), (value) => ({ ok: true, value: Number(value) })),
+            child: schema.optional(),
+        }),
+    );
+    const source = toSource(p.object({ root: schema }).toIR(), { name: 'Unshapeable' });
+    expect(source.includes('_shapeLazy')).toBe(false);
+    const validator = compileSync(schema as p.Schema<unknown>);
+    expect(validator).not.toBe(null);
+    if (validator === null) {
+        return;
+    }
+    const result = validator({ id: '3', child: { id: '4' } });
+    expect(result.ok).toBe(true);
+});
+
 it('throws on an invalid maxDepth, matching the runtime', () => {
     type Node = { children: Node[] };
     const schema: p.Schema<Node> = p.lazy(() => p.object({ children: p.array(schema) }));

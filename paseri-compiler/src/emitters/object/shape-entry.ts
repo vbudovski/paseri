@@ -74,7 +74,7 @@ function buildSuccessWithExtrasCheck(
         return [successReturn];
     }
     const statements: ts.Statement[] = [];
-    for (const { valueExpression: levelValue, requiredCount, optionalAccessors } of strictLevels) {
+    for (const { valueExpression: levelValue, requiredCount, optionalFieldNames } of strictLevels) {
         const countIdentifier = freshIdentifier(state, 'count');
         const keyIdentifier = freshIdentifier(state, 'k');
         statements.push(letStatement(countIdentifier, undefined, numericLiteral(0)));
@@ -83,11 +83,15 @@ function buildSuccessWithExtrasCheck(
         // that are actually present. Comparing against the static field count would accept an unknown key whenever an
         // optional field is absent — its missing slot leaves room for the extra without the key count exceeding it.
         let threshold: ts.Expression = numericLiteral(requiredCount);
-        for (const accessor of optionalAccessors) {
+        for (const fieldName of optionalFieldNames) {
             threshold = binary(
                 threshold,
                 ts.SyntaxKind.PlusToken,
-                ternary(notEquals(accessor, undefinedExpression), numericLiteral(1), numericLiteral(0)),
+                ternary(
+                    notEquals(recordAccess(levelValue, stringLiteral(fieldName)), undefinedExpression),
+                    numericLiteral(1),
+                    numericLiteral(0),
+                ),
             );
         }
         statements.push(
@@ -217,7 +221,7 @@ function tryEmitDefaultObjectEntry(
     }
     const strictLevels: StrictLevel[] = [];
     const defaults: { readonly key: string; readonly accessor: ts.Expression; readonly id: ts.Identifier }[] = [];
-    const optionalAccessors: ts.Expression[] = [];
+    const optionalFieldNames: string[] = [];
     let requiredCount = 0;
     let shape: ts.Expression = binary(
         equals(typeofExpression(valueExpression), stringLiteral('object')),
@@ -243,7 +247,7 @@ function tryEmitDefaultObjectEntry(
                 binary(equals(accessor, undefinedExpression), ts.SyntaxKind.BarBarToken, innerShape),
             );
             defaults.push({ key: fieldName, accessor, id: registerDefault(state, fieldIR.value) });
-            optionalAccessors.push(accessor);
+            optionalFieldNames.push(fieldName);
         } else {
             if (modifies(fieldIR, state)) {
                 return undefined;
@@ -263,7 +267,7 @@ function tryEmitDefaultObjectEntry(
             }
             shape = binary(shape, ts.SyntaxKind.AmpersandAmpersandToken, fieldShape);
             if (isFieldOptional(fieldIR)) {
-                optionalAccessors.push(accessor);
+                optionalFieldNames.push(fieldName);
             } else {
                 requiredCount += 1;
             }
@@ -283,7 +287,7 @@ function tryEmitDefaultObjectEntry(
         ),
     );
     if (ir.mode === 'strict' || ir.mode === 'strip') {
-        strictLevels.push({ valueExpression, requiredCount, optionalAccessors });
+        strictLevels.push({ valueExpression, requiredCount, optionalFieldNames });
     }
     // On success: if any default field is absent, clone the value and fill in the absent defaults; otherwise the
     // value is already complete, so return it untouched (no allocation on the all-present happy path).

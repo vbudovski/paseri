@@ -9,6 +9,7 @@ import {
     constStatement,
     elementAccess,
     equals,
+    expressionStatement,
     falseLiteral,
     forIn,
     forOf,
@@ -16,15 +17,18 @@ import {
     identifier,
     ifStatement,
     instanceOf,
+    letStatement,
     literalExpression,
     not,
     notEquals,
     numericLiteral,
+    postfixIncrement,
     property,
     recordAccess,
     recordCast,
     returnStatement,
     stringLiteral,
+    ternary,
     trueLiteral,
     typeofExpression,
     undefinedExpression,
@@ -78,19 +82,22 @@ function normalizeShapeHelper(helperFunction: ts.FunctionDeclaration): string {
     return text;
 }
 
+const numberType = factory.createKeywordTypeNode(ts.SyntaxKind.NumberKeyword);
+
+type HelperParameter = { readonly name: ts.Identifier; readonly type: ts.TypeNode };
+
 /**
- * Hoists a module-scope `function <namePrefix>N(<parameter>: <type>): boolean`
- * containing `loopStatement` followed by `return true`. Returns the helper's
- * name. Used by container shape-checks (array/record/set/map) to outline a
- * tight per-element check that V8 can inline at the call site. Deduplicated by
- * normalized body, so structurally-identical helpers share one declaration.
+ * Hoists a module-scope `function <namePrefix>N(...parameters): boolean` with the given body. Returns the helper's
+ * name. Used by container shape-checks (array/record/set/map) to outline a tight per-element check that V8 can
+ * inline at the call site, and by the strict-extras key-count check. Deduplicated by normalized body, so
+ * structurally-identical helpers share one declaration. While a ref-shape transaction is open the declaration is
+ * buffered on it instead of hoisted directly (see `State.refShapeSession`).
  */
 function emitShapeHelper(
     state: State,
     namePrefix: string,
-    parameter: ts.Identifier,
-    parameterType: ts.TypeNode,
-    loopStatement: ts.Statement,
+    parameters: readonly HelperParameter[],
+    bodyStatements: readonly ts.Statement[],
 ): ts.Identifier {
     const helperName = freshIdentifier(state, namePrefix);
     const helperFunction = factory.createFunctionDeclaration(
@@ -98,17 +105,226 @@ function emitShapeHelper(
         undefined,
         helperName,
         undefined,
-        [factory.createParameterDeclaration(undefined, undefined, parameter, undefined, parameterType)],
+        parameters.map((parameter) =>
+            factory.createParameterDeclaration(undefined, undefined, parameter.name, undefined, parameter.type),
+        ),
         factory.createKeywordTypeNode(ts.SyntaxKind.BooleanKeyword),
-        block([loopStatement, returnStatement(trueLiteral)]),
+        block(bodyStatements),
     );
     const key = normalizeShapeHelper(helperFunction);
     const existing = state.shapeHelperCache.get(key);
     if (existing !== undefined) {
         return existing;
     }
-    state.hoistedDeclarations.push(helperFunction);
+    if (state.refShapeSession !== undefined) {
+        state.refShapeSession.bufferedDeclarations.push(helperFunction);
+        state.refShapeSession.shapeHelperKeys.push(key);
+    } else {
+        state.hoistedDeclarations.push(helperFunction);
+    }
     state.shapeHelperCache.set(key, helperName);
+    return helperName;
+}
+
+/**
+ * Hoists `function _extrasOkN(obj): boolean` returning whether `obj`'s enumerable key count stays within
+ * `requiredCount` plus the actually-present optional fields — the same threshold `buildSuccessWithExtrasCheck`
+ * emits in statement form. Used where a strict/strip level can't propagate to the entry's statement-form pass
+ * (container elements, union members, recursive ref targets): a `false` routes the value to the slow path, which
+ * re-validates and reports the unrecognised keys exactly.
+ */
+function emitExtrasHelper(state: State, requiredCount: number, optionalFieldNames: readonly string[]): ts.Identifier {
+    const objectParameter = freshIdentifier(state, 'obj');
+    const countIdentifier = freshIdentifier(state, 'count');
+    const keyIdentifier = freshIdentifier(state, 'k');
+    let threshold: ts.Expression = numericLiteral(requiredCount);
+    for (const fieldName of optionalFieldNames) {
+        threshold = binary(
+            threshold,
+            ts.SyntaxKind.PlusToken,
+            ternary(
+                notEquals(recordAccess(objectParameter, stringLiteral(fieldName)), undefinedExpression),
+                numericLiteral(1),
+                numericLiteral(0),
+            ),
+        );
+    }
+    const statements: ts.Statement[] = [
+        letStatement(countIdentifier, undefined, numericLiteral(0)),
+        forIn(keyIdentifier, objectParameter, [expressionStatement(postfixIncrement(countIdentifier))]),
+        returnStatement(binary(countIdentifier, ts.SyntaxKind.LessThanEqualsToken, threshold)),
+    ];
+    const parameterType = factory.createTypeReferenceNode('Record', [
+        factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword),
+        unknownType,
+    ]);
+    return emitShapeHelper(state, 'extrasOk', [{ name: objectParameter, type: parameterType }], statements);
+}
+
+/**
+ * `tryShape` for positions where strict/strip levels can't aggregate into the caller's statement-form extras pass
+ * (container elements, union members, ref targets): each level folds into the expression itself as a hoisted
+ * key-count helper call. The calls are appended AFTER the structural conjuncts, so a count only runs once every
+ * field of its level is known present — the same ordering argument as `buildSuccessWithExtrasCheck`.
+ */
+function tryShapeSelfContained(ir: IR, valueExpression: ts.Expression, state: State): ts.Expression | undefined {
+    const strictLevels: StrictLevel[] = [];
+    let result = tryShape(ir, valueExpression, strictLevels, state);
+    if (result === undefined) {
+        return undefined;
+    }
+    for (const level of strictLevels) {
+        const helperName = emitExtrasHelper(state, level.requiredCount, level.optionalFieldNames);
+        result = binary(
+            result,
+            ts.SyntaxKind.AmpersandAmpersandToken,
+            call(helperName, [recordCast(level.valueExpression)]),
+        );
+    }
+    return result;
+}
+
+interface ScopedShape<T> {
+    readonly result: T;
+    /** Whether generation emitted any recursive ref-helper call, i.e. the depth parameters are actually referenced. */
+    readonly usedRef: boolean;
+    readonly depthParameter: ts.Identifier;
+    readonly maxDepthParameter: ts.Identifier;
+}
+
+/**
+ * Runs `generate` with `state.currentDepth` / `state.maxDepthIdentifier` pointed at fresh parameter identifiers, so
+ * recursive ref-helper calls emitted inside a hoisted container helper reference the helper's own parameters rather
+ * than identifiers from the enclosing scope (which wouldn't exist at module scope). The caller threads the
+ * parameters through the helper signature when `usedRef` is set, passing the enclosing scope's depth verbatim — the
+ * `+ 1` per lazy level is applied at ref-helper boundaries, mirroring the runtime's accounting.
+ */
+function withScopedDepth<T>(state: State, generate: () => T | undefined): ScopedShape<T> | undefined {
+    const depthParameter = freshIdentifier(state, 'depth');
+    const maxDepthParameter = freshIdentifier(state, 'maxDepth');
+    const savedDepth = state.currentDepth;
+    const savedMaxDepth = state.maxDepthIdentifier;
+    const usesBefore = state.refShapeUses;
+    state.currentDepth = depthParameter;
+    state.maxDepthIdentifier = maxDepthParameter;
+    const result = generate();
+    state.currentDepth = savedDepth;
+    state.maxDepthIdentifier = savedMaxDepth;
+    if (result === undefined) {
+        return undefined;
+    }
+    return { result, usedRef: state.refShapeUses > usesBefore, depthParameter, maxDepthParameter };
+}
+
+/**
+ * The extra helper parameters and call-site arguments for a container helper whose element shape used recursive
+ * refs. Returns undefined when threading is needed but no `maxDepth` is in scope (unreachable in practice: refs only
+ * exist when the entry threads depth).
+ */
+function depthThreading(
+    scoped: ScopedShape<unknown>,
+    state: State,
+): { readonly parameters: HelperParameter[]; readonly callArguments: ts.Expression[] } | undefined {
+    if (!scoped.usedRef) {
+        return { parameters: [], callArguments: [] };
+    }
+    if (state.maxDepthIdentifier === undefined) {
+        return undefined;
+    }
+    return {
+        parameters: [
+            { name: scoped.depthParameter, type: numberType },
+            { name: scoped.maxDepthParameter, type: numberType },
+        ],
+        callArguments: [state.currentDepth, state.maxDepthIdentifier],
+    };
+}
+
+/**
+ * Returns the recursive boolean shape helper `_shapeLazyN(value, depth, maxDepth)` for a named (lazy) graph entry,
+ * generating and hoisting it on first use. The helper mirrors the named function's depth accounting exactly — the
+ * same entry check and the same `depth + 1` at nested ref calls — so it returns false for every input the runtime
+ * rejects with `too_deep`, and the slow path reproduces the issue.
+ *
+ * Generation is transactional. A helper generated while the target (or anything it transitively references) turns
+ * out unshapeable could reference a recursive identifier that will never be emitted, so declarations buffer on the
+ * session and are flushed only when the outermost attempt succeeds; on failure they're discarded, their dedup-cache
+ * keys removed, and every name the attempt touched is cached as `'failed'` so later references bail immediately.
+ */
+function getOrCreateRefShapeHelper(name: string, state: State): ts.Identifier | undefined {
+    const cached = state.refShapeCache.get(name);
+    if (cached === 'failed') {
+        return undefined;
+    }
+    if (cached !== undefined) {
+        return cached;
+    }
+    const target = state.namedIRs[name];
+    if (target === undefined) {
+        return undefined;
+    }
+    const isOutermost = state.refShapeSession === undefined;
+    if (isOutermost) {
+        state.refShapeSession = { bufferedDeclarations: [], names: [], shapeHelperKeys: [] };
+    }
+    const session = state.refShapeSession;
+    if (session === undefined) {
+        return undefined;
+    }
+    const helperName = freshIdentifier(state, 'shapeLazy');
+    // Cache before generating the body: a recursive reference to `name` mid-generation resolves to this identifier.
+    state.refShapeCache.set(name, helperName);
+    session.names.push(name);
+
+    const valueParameter = identifier('value');
+    const depthParameter = identifier('depth');
+    const maxDepthParameter = identifier('maxDepth');
+    const savedDepth = state.currentDepth;
+    const savedMaxDepth = state.maxDepthIdentifier;
+    state.currentDepth = binary(depthParameter, ts.SyntaxKind.PlusToken, numericLiteral(1));
+    state.maxDepthIdentifier = maxDepthParameter;
+    const shape = tryShapeSelfContained(target, valueParameter, state);
+    state.currentDepth = savedDepth;
+    state.maxDepthIdentifier = savedMaxDepth;
+
+    if (shape === undefined) {
+        // A nested failure unwinds through every enclosing frame (each sees its own `shape === undefined`), so only
+        // the outermost frame cleans up — and it sees the full set of names and buffered declarations.
+        if (isOutermost) {
+            for (const failedName of session.names) {
+                state.refShapeCache.set(failedName, 'failed');
+            }
+            for (const key of session.shapeHelperKeys) {
+                state.shapeHelperCache.delete(key);
+            }
+            state.refShapeSession = undefined;
+        }
+        return undefined;
+    }
+
+    const helperFunction = factory.createFunctionDeclaration(
+        undefined,
+        undefined,
+        helperName,
+        undefined,
+        [
+            factory.createParameterDeclaration(undefined, undefined, valueParameter, undefined, unknownType),
+            factory.createParameterDeclaration(undefined, undefined, depthParameter, undefined, numberType),
+            factory.createParameterDeclaration(undefined, undefined, maxDepthParameter, undefined, numberType),
+        ],
+        factory.createKeywordTypeNode(ts.SyntaxKind.BooleanKeyword),
+        block([
+            ifStatement(binary(depthParameter, ts.SyntaxKind.GreaterThanEqualsToken, maxDepthParameter), [
+                returnStatement(falseLiteral),
+            ]),
+            returnStatement(shape),
+        ]),
+    );
+    session.bufferedDeclarations.push(helperFunction);
+    if (isOutermost) {
+        state.hoistedDeclarations.push(...session.bufferedDeclarations);
+        state.refShapeSession = undefined;
+    }
     return helperName;
 }
 
@@ -414,17 +630,14 @@ function tryShape(
             return call(property(setIdentifier, 'has'), [valueExpression]);
         }
         case 'union': {
-            // Members get fresh strictLevels: we don't know which will match at
-            // codegen time, so member-specific extras counts can't aggregate with
-            // the parent's. Any member needing extras detection bails the union.
+            // Members get fresh strictLevels, folded into each member's own expression: we don't know which member
+            // will match at codegen time, so member-specific extras counts can't aggregate with the parent's. A
+            // member whose extras check fails simply doesn't match, and the next member (or the slow path) runs —
+            // the same first-match semantics as the runtime's try-each.
             const memberShapes: ts.Expression[] = [];
             for (const member of ir.members) {
-                const memberStrictLevels: StrictLevel[] = [];
-                const memberShape = tryShape(member, valueExpression, memberStrictLevels, state);
+                const memberShape = tryShapeSelfContained(member, valueExpression, state);
                 if (memberShape === undefined) {
-                    return undefined;
-                }
-                if (memberStrictLevels.length > 0) {
                     return undefined;
                 }
                 memberShapes.push(memberShape);
@@ -436,60 +649,67 @@ function tryShape(
             return result;
         }
         case 'record': {
-            const elementStrictLevels: StrictLevel[] = [];
             const elementParameter = freshIdentifier(state, 'el');
-            const elementShape = tryShape(ir.element, elementParameter, elementStrictLevels, state);
-            if (elementShape === undefined) {
+            const scoped = withScopedDepth(state, () => tryShapeSelfContained(ir.element, elementParameter, state));
+            if (scoped === undefined) {
                 return undefined;
             }
-            if (elementStrictLevels.length > 0) {
+            const threading = depthThreading(scoped, state);
+            if (threading === undefined) {
                 return undefined;
             }
             const objectParameter = freshIdentifier(state, 'obj');
             const keyIdentifier = freshIdentifier(state, 'k');
             const forInLoop = forIn(keyIdentifier, objectParameter, [
                 constStatement(elementParameter, undefined, elementAccess(objectParameter, keyIdentifier)),
-                ifStatement(not(elementShape), [returnStatement(falseLiteral)]),
+                ifStatement(not(scoped.result), [returnStatement(falseLiteral)]),
             ]);
             const helperName = emitShapeHelper(
                 state,
                 'shapeRecord',
-                objectParameter,
-                factory.createTypeReferenceNode('Record', [
-                    factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword),
-                    unknownType,
-                ]),
-                forInLoop,
+                [
+                    {
+                        name: objectParameter,
+                        type: factory.createTypeReferenceNode('Record', [
+                            factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword),
+                            unknownType,
+                        ]),
+                    },
+                    ...threading.parameters,
+                ],
+                [forInLoop, returnStatement(trueLiteral)],
             );
             // `isPlainObject` (always spliced for record schemas) gates the shape; the hoisted helper iterates the
             // unknown-key set. Call the spliced predicate so it stays in lockstep with paseri-lib's check.
             const result = binary(
                 call(identifier('isPlainObject'), [valueExpression]),
                 ts.SyntaxKind.AmpersandAmpersandToken,
-                call(helperName, [valueExpression]),
+                call(helperName, [valueExpression, ...threading.callArguments]),
             );
             return result;
         }
         case 'set': {
-            const elementStrictLevels: StrictLevel[] = [];
             const elementParameter = freshIdentifier(state, 'el');
-            const elementShape = tryShape(ir.element, elementParameter, elementStrictLevels, state);
-            if (elementShape === undefined) {
+            const scoped = withScopedDepth(state, () => tryShapeSelfContained(ir.element, elementParameter, state));
+            if (scoped === undefined) {
                 return undefined;
             }
-            if (elementStrictLevels.length > 0) {
+            const threading = depthThreading(scoped, state);
+            if (threading === undefined) {
                 return undefined;
             }
             const setParameter = freshIdentifier(state, 'set');
             const forOfLoop = forOf(elementParameter, setParameter, [
-                ifStatement(not(elementShape), [returnStatement(falseLiteral)]),
+                ifStatement(not(scoped.result), [returnStatement(falseLiteral)]),
             ]);
             const helperName = emitShapeHelper(
                 state,
                 'shapeSet',
-                setParameter,
-                factory.createTypeReferenceNode('Set', [unknownType]),
-                forOfLoop,
+                [
+                    { name: setParameter, type: factory.createTypeReferenceNode('Set', [unknownType]) },
+                    ...threading.parameters,
+                ],
+                [forOfLoop, returnStatement(trueLiteral)],
             );
             let result: ts.Expression = instanceOf(valueExpression, identifier('Set'));
             for (const check of ir.checks) {
@@ -501,26 +721,33 @@ function tryShape(
                     binary(property(valueExpression, 'size'), op, numericLiteral(check.value)),
                 );
             }
-            result = binary(result, ts.SyntaxKind.AmpersandAmpersandToken, call(helperName, [valueExpression]));
+            result = binary(
+                result,
+                ts.SyntaxKind.AmpersandAmpersandToken,
+                call(helperName, [valueExpression, ...threading.callArguments]),
+            );
             return result;
         }
         case 'map': {
-            const keyStrictLevels: StrictLevel[] = [];
             const keyParameter = freshIdentifier(state, 'mk');
-            const keyShape = tryShape(ir.key, keyParameter, keyStrictLevels, state);
-            if (keyShape === undefined) {
-                return undefined;
-            }
-            if (keyStrictLevels.length > 0) {
-                return undefined;
-            }
-            const valueStrictLevels: StrictLevel[] = [];
             const valueElementParameter = freshIdentifier(state, 'mv');
-            const valueShape = tryShape(ir.value, valueElementParameter, valueStrictLevels, state);
-            if (valueShape === undefined) {
+            // Key and value shapes share one depth scope — they live in the same hoisted helper.
+            const scoped = withScopedDepth(state, () => {
+                const keyShape = tryShapeSelfContained(ir.key, keyParameter, state);
+                if (keyShape === undefined) {
+                    return undefined;
+                }
+                const valueShape = tryShapeSelfContained(ir.value, valueElementParameter, state);
+                if (valueShape === undefined) {
+                    return undefined;
+                }
+                return { keyShape, valueShape };
+            });
+            if (scoped === undefined) {
                 return undefined;
             }
-            if (valueStrictLevels.length > 0) {
+            const threading = depthThreading(scoped, state);
+            if (threading === undefined) {
                 return undefined;
             }
             const mapParameter = freshIdentifier(state, 'm');
@@ -530,15 +757,17 @@ function tryShape(
             const forOfLoop = forOf(entryParameter, mapParameter, [
                 constStatement(keyParameter, undefined, elementAccess(entryParameter, numericLiteral(0))),
                 constStatement(valueElementParameter, undefined, elementAccess(entryParameter, numericLiteral(1))),
-                ifStatement(not(keyShape), [returnStatement(falseLiteral)]),
-                ifStatement(not(valueShape), [returnStatement(falseLiteral)]),
+                ifStatement(not(scoped.result.keyShape), [returnStatement(falseLiteral)]),
+                ifStatement(not(scoped.result.valueShape), [returnStatement(falseLiteral)]),
             ]);
             const helperName = emitShapeHelper(
                 state,
                 'shapeMap',
-                mapParameter,
-                factory.createTypeReferenceNode('Map', [unknownType, unknownType]),
-                forOfLoop,
+                [
+                    { name: mapParameter, type: factory.createTypeReferenceNode('Map', [unknownType, unknownType]) },
+                    ...threading.parameters,
+                ],
+                [forOfLoop, returnStatement(trueLiteral)],
             );
             let result: ts.Expression = instanceOf(valueExpression, identifier('Map'));
             for (const check of ir.checks) {
@@ -550,20 +779,21 @@ function tryShape(
                     binary(property(valueExpression, 'size'), op, numericLiteral(check.value)),
                 );
             }
-            result = binary(result, ts.SyntaxKind.AmpersandAmpersandToken, call(helperName, [valueExpression]));
+            result = binary(
+                result,
+                ts.SyntaxKind.AmpersandAmpersandToken,
+                call(helperName, [valueExpression, ...threading.callArguments]),
+            );
             return result;
         }
         case 'array': {
-            const elementStrictLevels: StrictLevel[] = [];
             const elementParameter = freshIdentifier(state, 'el');
-            const elementShape = tryShape(ir.element, elementParameter, elementStrictLevels, state);
-            if (elementShape === undefined) {
+            const scoped = withScopedDepth(state, () => tryShapeSelfContained(ir.element, elementParameter, state));
+            if (scoped === undefined) {
                 return undefined;
             }
-            // Per-element extras count can't be hoisted into the parent's
-            // strictLevels (one bucket of counts can't accumulate across
-            // every element of an unknown-length array), so bail.
-            if (elementStrictLevels.length > 0) {
+            const threading = depthThreading(scoped, state);
+            if (threading === undefined) {
                 return undefined;
             }
             // Hoisted helper + indexed for-loop. V8 inlines a monomorphic call
@@ -574,7 +804,7 @@ function tryShape(
             const indexIdentifier = freshIdentifier(state, 'i');
             const loopBody = block([
                 constStatement(elementParameter, undefined, elementAccess(arrayParameter, indexIdentifier)),
-                ifStatement(not(elementShape), [returnStatement(falseLiteral)]),
+                ifStatement(not(scoped.result), [returnStatement(falseLiteral)]),
             ]);
             const forLoop = factory.createForStatement(
                 factory.createVariableDeclarationList(
@@ -588,9 +818,8 @@ function tryShape(
             const helperName = emitShapeHelper(
                 state,
                 'shapeArray',
-                arrayParameter,
-                factory.createArrayTypeNode(unknownType),
-                forLoop,
+                [{ name: arrayParameter, type: factory.createArrayTypeNode(unknownType) }, ...threading.parameters],
+                [forLoop, returnStatement(trueLiteral)],
             );
             let result: ts.Expression = call(property(identifier('Array'), 'isArray'), [valueExpression]);
             for (const check of ir.checks) {
@@ -602,7 +831,11 @@ function tryShape(
                     binary(property(valueExpression, 'length'), op, numericLiteral(check.value)),
                 );
             }
-            result = binary(result, ts.SyntaxKind.AmpersandAmpersandToken, call(helperName, [valueExpression]));
+            result = binary(
+                result,
+                ts.SyntaxKind.AmpersandAmpersandToken,
+                call(helperName, [valueExpression, ...threading.callArguments]),
+            );
             return result;
         }
         case 'tuple': {
@@ -663,18 +896,31 @@ function tryShape(
                 result = binary(result, ts.SyntaxKind.AmpersandAmpersandToken, fieldShape);
             }
             if (ir.mode === 'strict' || ir.mode === 'strip') {
-                const optionalAccessors: ts.Expression[] = [];
+                const optionalFieldNames: string[] = [];
                 let requiredCount = 0;
                 for (const [fieldName, fieldIR] of fields) {
                     if (isFieldOptional(fieldIR)) {
-                        optionalAccessors.push(recordAccess(valueExpression, stringLiteral(fieldName)));
+                        optionalFieldNames.push(fieldName);
                     } else {
                         requiredCount += 1;
                     }
                 }
-                strictLevels.push({ valueExpression, requiredCount, optionalAccessors });
+                strictLevels.push({ valueExpression, requiredCount, optionalFieldNames });
             }
             return result;
+        }
+        case 'ref': {
+            // Recursive (lazy) target: delegate to a hoisted boolean helper mirroring the named function's depth
+            // accounting. `maxDepth` is always in scope when the graph has refs; the guard is defensive.
+            if (state.maxDepthIdentifier === undefined) {
+                return undefined;
+            }
+            const helperName = getOrCreateRefShapeHelper(ir.name, state);
+            if (helperName === undefined) {
+                return undefined;
+            }
+            state.refShapeUses += 1;
+            return call(helperName, [valueExpression, state.currentDepth, state.maxDepthIdentifier]);
         }
         default:
             return undefined;
