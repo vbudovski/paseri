@@ -62,9 +62,12 @@ Schema.prototype.toIR = function (): IRGraph {
     const context: IRContext = {
         visited: new WeakMap(),
         named: {},
+        emitting: new Set(),
+        cycles: new Set(),
         nextId: 0,
     };
-    return { entry: this._emit(context), named: context.named };
+    const entry = this._emit(context);
+    return { entry, named: context.named, cycles: [...context.cycles].sort() };
 };
 
 export type {

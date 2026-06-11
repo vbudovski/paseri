@@ -88,6 +88,58 @@ it('rejects unknown keys in recursive nodes', () => {
     }
 });
 
+describe('acyclic lazy (forward reference)', () => {
+    it('validates exactly like the referenced schema', () => {
+        const userSchema = p.object({ name: p.string().min(1), age: p.number().int() });
+        const schema = p.object({ author: p.lazy(() => userSchema) });
+
+        expect(schema.safeParse({ author: { name: 'Mei', age: 34 } }).ok).toBe(true);
+
+        const result = schema.safeParse({ author: { name: '', age: 34.5 } });
+        expect(result.ok).toBe(false);
+        if (!result.ok) {
+            const messages = result.messages();
+            // Sibling order is uncontracted; assert the set.
+            expect(messages.length).toBe(2);
+            expect(messages.map((entry) => entry.path)).toContainEqual(['author', 'name']);
+            expect(messages.map((entry) => entry.path)).toContainEqual(['author', 'age']);
+        }
+    });
+
+    it('counts each acyclic lazy boundary against maxDepth, like the runtime chain', () => {
+        // Two nested boundaries: the outer crossing is depth 0 -> 1, the inner 1 -> 2; the inner check fires
+        // exactly when maxDepth is 1.
+        const inner = p.object({ value: p.string() });
+        const schema = p.lazy(() => p.object({ child: p.lazy(() => inner) }));
+        const input = { child: { value: 'x' } };
+
+        expect(schema.safeParse(input, { maxDepth: 2 }).ok).toBe(true);
+
+        const rejected = schema.safeParse(input, { maxDepth: 1 });
+        expect(rejected.ok).toBe(false);
+        if (!rejected.ok) {
+            const messages = rejected.messages();
+            expect(messages.length).toBe(1);
+            expect(messages[0].message).toBe('too_deep');
+            expect(messages[0].path).toEqual(['child']);
+        }
+    });
+
+    it('validates a shared forward reference at every use site', () => {
+        const addressSchema = p.object({ city: p.string() });
+        const shared = p.lazy(() => addressSchema);
+        const schema = p.object({ home: shared, work: shared });
+
+        expect(schema.safeParse({ home: { city: 'Lisboa' }, work: { city: 'Tokyo' } }).ok).toBe(true);
+
+        const result = schema.safeParse({ home: { city: 'Lisboa' }, work: { city: 7 } });
+        expect(result.ok).toBe(false);
+        if (!result.ok) {
+            expect(result.messages()).toEqual([{ path: ['work', 'city'], message: 'invalid_type' }]);
+        }
+    });
+});
+
 describe('maxDepth', () => {
     it('rejects data deeper than the default maxDepth', () => {
         const schema: p.Schema<Node> = p.lazy(() => p.object({ children: p.array(schema) }));

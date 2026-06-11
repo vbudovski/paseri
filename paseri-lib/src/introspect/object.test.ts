@@ -18,6 +18,7 @@ describe('object', () => {
                 mode: 'strict',
             },
             named: {},
+            cycles: [],
         });
     });
 

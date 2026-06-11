@@ -5,6 +5,6 @@ import './index.ts';
 
 describe('symbol', () => {
     it('emits a symbol IR', () => {
-        expect(symbol().toIR()).toEqual({ entry: { kind: 'symbol' }, named: {} });
+        expect(symbol().toIR()).toEqual({ entry: { kind: 'symbol' }, named: {}, cycles: [] });
     });
 });

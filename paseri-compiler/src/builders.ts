@@ -78,6 +78,23 @@ function binary(left: ts.Expression, operator: ts.BinaryOperator, right: ts.Expr
     return factory.createBinaryExpression(left, operator, right);
 }
 
+/**
+ * Depth expression one level deeper than `expression`. Folds numeric literals so inlined acyclic ref boundaries
+ * carry constants (`2`) rather than chains (`0 + 1 + 1`); a dynamic base (a cyclic function's `depth + 1`) gains a
+ * `+ 1` term instead.
+ */
+function incrementDepth(expression: ts.Expression): ts.Expression {
+    if (ts.isNumericLiteral(expression)) {
+        return numericLiteral(Number(expression.text) + 1);
+    }
+    return binary(expression, ts.SyntaxKind.PlusToken, numericLiteral(1));
+}
+
+/** Whether a depth expression is the statically-known entry depth `0`, where a `>= maxDepth` check can't fire. */
+function isZeroDepth(expression: ts.Expression): boolean {
+    return ts.isNumericLiteral(expression) && Number(expression.text) === 0;
+}
+
 function constStatement(
     name: ts.Identifier | string,
     typeNode: ts.TypeNode | undefined,
@@ -360,7 +377,9 @@ export {
     functionType,
     identifier,
     ifStatement,
+    incrementDepth,
     instanceOf,
+    isZeroDepth,
     labeled,
     letStatement,
     literalExpression,

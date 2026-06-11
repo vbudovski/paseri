@@ -5,6 +5,6 @@ import './index.ts';
 
 describe('undefined', () => {
     it('emits an undefined IR', () => {
-        expect(undefined_().toIR()).toEqual({ entry: { kind: 'undefined' }, named: {} });
+        expect(undefined_().toIR()).toEqual({ entry: { kind: 'undefined' }, named: {}, cycles: [] });
     });
 });
