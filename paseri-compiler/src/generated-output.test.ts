@@ -43,6 +43,18 @@ it('types the hoisted refine predicate const so generated modules type-check', (
     expect(/const _refine\d+: \(value: number\) => boolean =/.test(source)).toBe(true);
 });
 
+it('types the refine before-snapshot const so generated modules type-check', () => {
+    // Inside a container element loop, the snapshot const participates in the loop back-edge's narrowing of the
+    // issue accumulator it compares against (`_refineBeforeN === _issueM`), so its inferred type is circular —
+    // TS7022 in the standalone module. An explicit `TreeNode | undefined` annotation breaks the cycle.
+    const source = toSource(
+        p.object({ tags: p.array(p.string().refine((value) => !value.includes(' '), { code: 'has_space' })) }).toIR(),
+        { name: 'ElementRefine' },
+    );
+    expect(/const _refineBefore\d+: TreeNode \| undefined =/.test(source)).toBe(true);
+    expect(/const _refineBefore\d+ =/.test(source)).toBe(false);
+});
+
 it('emits a recursive shape fast path for lazy schemas', () => {
     type Comment = { body: string; reply?: Comment | undefined };
     const schema: p.Schema<Comment> = p.lazy(() => p.object({ body: p.string(), reply: schema.optional() }));

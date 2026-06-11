@@ -93,9 +93,11 @@ function emitRefine(ir: RefineIR, valueExpression: ts.Expression, sink: Sink, st
     ]);
     // Accumulate sink: the inner check may push an issue and keep going, but
     // we must skip the predicate if it did — the runtime bails on base failure.
+    // The snapshot const needs an explicit annotation: inside a container element loop its inferred type is
+    // circular through the back-edge narrowing of the issue accumulator it compares against (TS7022).
     const snapshotIdentifier = freshIdentifier(state, 'refineBefore');
     return [
-        constStatement(snapshotIdentifier, undefined, sink.issueIdentifier),
+        constStatement(snapshotIdentifier, typeUnion([typeReference('TreeNode'), undefinedType]), sink.issueIdentifier),
         ...innerStatements,
         ifStatement(equals(snapshotIdentifier, sink.issueIdentifier), [guard]),
     ];
