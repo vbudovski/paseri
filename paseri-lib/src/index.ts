@@ -6,6 +6,7 @@
  *
  * ```typescript
  * import * as p from '@paseri/paseri';
+ * import { en } from '@paseri/paseri/locales';
  *
  * const schema = p.object({
  *     hello: p.string(),
@@ -15,7 +16,7 @@
  * if (result.ok) {
  *     console.log(`Hello ${result.value.hello}!`);
  * } else {
- *     console.error(result.messages());
+ *     console.error(result.messages(en));
  * }
  * ```
  *
@@ -38,6 +39,7 @@
  *
  * ```typescript
  * import * as p from '@paseri/paseri';
+ * import { en } from '@paseri/paseri/locales';
  *
  * const schema = p.object({
  *     hello: p.string(),
@@ -48,7 +50,7 @@
  *     console.log(`Hello ${value.hello}!`);
  * } catch (e) {
  *     if (e instanceof p.PaseriError) {
- *         console.error(e.messages());
+ *         console.error(e.messages(en));
  *     }
  * }
  * ```
