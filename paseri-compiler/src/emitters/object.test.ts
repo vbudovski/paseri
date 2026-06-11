@@ -37,4 +37,30 @@ describe('emitObject', () => {
         });
         expect(source).toContain('_default0');
     });
+
+    it('outlines a nested non-modifying object into a hoisted issues-helper', () => {
+        const source = toSource(object({ nested: object({ id: string(), age: number() }) }).toIR(), {
+            name: 'Test',
+        });
+        expect(/function _objectIssues\d+\(_val\d+: unknown\): TreeNode \| undefined/.test(source)).toBe(true);
+    });
+
+    it('deduplicates structurally-identical nested objects to one helper', () => {
+        const source = toSource(
+            object({
+                home: object({ street: string(), city: string() }),
+                work: object({ street: string(), city: string() }),
+            }).toIR(),
+            { name: 'Test' },
+        );
+        const helperCount = (source.match(/function _objectIssues\d+/g) ?? []).length;
+        expect(helperCount).toBe(1);
+    });
+
+    it('keeps a nested object with a default inline (the helper cannot carry modifications)', () => {
+        const source = toSource(object({ nested: object({ lang: string().optional().default('en') }) }).toIR(), {
+            name: 'Test',
+        });
+        expect(source).not.toContain('_objectIssues');
+    });
 });

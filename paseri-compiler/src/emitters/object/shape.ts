@@ -49,9 +49,10 @@ const helperKeyPrinter = ts.createPrinter();
 const helperKeySourceFile = ts.createSourceFile('_helper.ts', '', ts.ScriptTarget.Latest, false, ts.ScriptKind.TS);
 
 /**
- * Collects, in source order, the identifier names a function declaration *binds* — its own name, its parameters, and
- * every variable it declares. Free references (hoisted helper names, regexes, builtins) are deliberately excluded so
- * they survive normalisation intact.
+ * Collects, in source order, the identifier names a function declaration *binds* — its own name, its parameters,
+ * every variable it declares, and every statement label (fresh `_labelCheck<N>` labels would otherwise keep
+ * structurally-identical bodies from sharing a key). Free references (hoisted helper names, regexes, builtins)
+ * are deliberately excluded so they survive normalisation intact.
  */
 function collectBoundNames(node: ts.Node, names: string[]): void {
     if (ts.isFunctionDeclaration(node) && node.name !== undefined && !names.includes(node.name.text)) {
@@ -63,6 +64,9 @@ function collectBoundNames(node: ts.Node, names: string[]): void {
         !names.includes(node.name.text)
     ) {
         names.push(node.name.text);
+    }
+    if (ts.isLabeledStatement(node) && !names.includes(node.label.text)) {
+        names.push(node.label.text);
     }
     ts.forEachChild(node, (child) => collectBoundNames(child, names));
 }
@@ -1033,4 +1037,11 @@ function tryShape(
     }
 }
 
-export { containsReachableDefault, shapeMatchesUndefined, tryShape, tryShapeSelfContained, withShapeAttempt };
+export {
+    containsReachableDefault,
+    normalizeShapeHelper,
+    shapeMatchesUndefined,
+    tryShape,
+    tryShapeSelfContained,
+    withShapeAttempt,
+};
