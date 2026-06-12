@@ -5,6 +5,7 @@
 import { Schema } from '@paseri/paseri';
 import type { IR, IRGraph } from '@paseri/paseri/introspect';
 import '@paseri/paseri/introspect';
+import { blankSourceFile } from 'ts-blank-space';
 import ts from 'typescript';
 import { ResolutionError } from './resolver.ts';
 import { toSource } from './toSource.ts';
@@ -195,10 +196,19 @@ function compileFromGraph(graph: IRGraph): CompiledModule | null {
     if (resolvedImports === null) {
         return null;
     }
-    const moduleSyntaxStripped = stripModuleSyntax(source, parsedSource);
-    const transpiled = ts.transpileModule(moduleSyntaxStripped, {
-        compilerOptions: { target: ts.ScriptTarget.Latest, module: ts.ModuleKind.ESNext },
-    }).outputText;
+    // `blankSourceFile` erases types in place on the already-parsed AST, far cheaper than `ts.transpileModule`'s
+    // re-parse + transform/print. Its output is position-identical to the input, so the import/export ranges
+    // `stripModuleSyntax` reads from `parsedSource` stay valid on the blanked text. Only erasable syntax is
+    // handled; the emitter emits nothing else, so the `transpileModule` fallback is purely defensive.
+    let unsupportedSyntax = false;
+    const blanked = blankSourceFile(parsedSource, () => {
+        unsupportedSyntax = true;
+    });
+    const transpiled = unsupportedSyntax
+        ? ts.transpileModule(stripModuleSyntax(source, parsedSource), {
+              compilerOptions: { target: ts.ScriptTarget.Latest, module: ts.ModuleKind.ESNext },
+          }).outputText
+        : stripModuleSyntax(blanked, parsedSource);
     const argNames = resolvedImports.map((entry) => entry.localName);
     const argValues = resolvedImports.map((entry) => entry.value);
     // `'use strict'` so the body matches the real generated module (an always-strict ES module) — without it a
