@@ -17,8 +17,8 @@ import {
     undefinedType,
     unknownType,
 } from '../../builders.ts';
-import { emitFailureRouting } from '../../issues.ts';
-import { type AccumulateSink, freshIdentifier, type State } from '../../state.ts';
+import { emitFailureRouting, emitSuccessRouting } from '../../issues.ts';
+import { type AccumulateSink, freshIdentifier, type Sink, type State } from '../../state.ts';
 import type { ObjectIR } from './common.ts';
 import { emitObjectInline } from './index.ts';
 import { normalizeShapeHelper } from './shape.ts';
@@ -127,15 +127,16 @@ function getOrCreateObjectIssuesHelper(ir: ObjectIR, threadsDepth: boolean, stat
 }
 
 /**
- * Emits the outlined form of a nested object: a call to the hoisted issues-helper, folding a non-undefined
- * result into the parent's accumulator under the sink's key — the same tree the inline form nests there. Only
- * valid for sinks without an `outputSlot` (the helper reports issues; it cannot carry a modified value).
- * Returns `undefined` when the helper can't be generated; the caller falls back to inline emission.
+ * Emits the outlined form of a non-modifying object: a call to the hoisted issues-helper, routing a
+ * non-undefined result through the sink's failure path. Only valid when the object cannot modify its value
+ * (the helper reports issues; it cannot carry a modified value), so accumulate sinks must carry no
+ * `outputSlot`. Returns `undefined` when the helper can't be generated; the caller falls back to inline
+ * emission.
  */
 function tryEmitOutlinedObject(
     ir: ObjectIR,
     valueExpression: ts.Expression,
-    sink: AccumulateSink,
+    sink: Sink,
     state: State,
 ): ts.Statement[] | undefined {
     const threadsDepth = subtreeHasRef(ir);
@@ -148,10 +149,15 @@ function tryEmitOutlinedObject(
         callArguments.push(state.currentDepth, state.maxDepthIdentifier);
     }
     const childIssue = freshIdentifier(state, 'childIssue');
-    return [
+    const statements: ts.Statement[] = [
         constStatement(childIssue, undefined, call(helperName, callArguments)),
         ifStatement(notEquals(childIssue, undefinedExpression), [emitFailureRouting(childIssue, sink)]),
     ];
+    const trailingSuccess = emitSuccessRouting(sink);
+    if (trailingSuccess !== undefined) {
+        statements.push(trailingSuccess);
+    }
+    return statements;
 }
 
 export { tryEmitOutlinedObject };
