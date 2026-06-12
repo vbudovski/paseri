@@ -12,6 +12,9 @@ function isPlainObject(value: unknown): value is Record<PropertyKey, unknown> {
     if (typeof value !== 'object' || value === null || Array.isArray(value)) {
         return false;
     }
+    if (value.constructor === Object) {
+        return true;
+    }
     if (value.constructor === undefined) {
         return Object.getPrototypeOf(value) === null;
     }
