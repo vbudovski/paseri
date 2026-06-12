@@ -1,4 +1,4 @@
-import { number, object, string } from '@paseri/paseri';
+import { literal, number, object, string, union } from '@paseri/paseri';
 import { expect } from '@std/expect';
 import { describe, it } from '@std/testing/bdd';
 import '@paseri/paseri/introspect';
@@ -62,5 +62,17 @@ describe('emitObject', () => {
             name: 'Test',
         });
         expect(source).not.toContain('_objectIssues');
+    });
+
+    it('outlines the members of a top-level discriminated union', () => {
+        const source = toSource(
+            union(
+                object({ kind: literal('a'), value: string() }),
+                object({ kind: literal('b'), value: number() }),
+            ).toIR(),
+            { name: 'Test' },
+        );
+        const helperCount = (source.match(/function _objectIssues\d+/g) ?? []).length;
+        expect(helperCount).toBe(2);
     });
 });

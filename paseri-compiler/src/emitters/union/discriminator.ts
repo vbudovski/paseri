@@ -11,9 +11,11 @@ import {
     property,
     stringLiteral,
 } from '../../builders.ts';
+import { modifies } from '../../can-modify.ts';
 import { emitFailureRouting, emitTypeCheckedBlock, leafExpression } from '../../issues.ts';
 import type { Sink, State } from '../../state.ts';
 import { emitValidation } from '../../toSource.ts';
+import { tryEmitOutlinedObject } from '../object/outline.ts';
 
 type UnionIR = Extract<IR, { kind: 'union' }>;
 type ObjectIR = Extract<IR, { kind: 'object' }>;
@@ -75,7 +77,15 @@ function emitDiscriminatedUnion(
     let elseBranch: ts.Statement[] | undefined = [emitFailureRouting(discriminatorFailure, sink)];
     for (let i = discriminator.cases.length - 1; i >= 0; i--) {
         const { value, member } = discriminator.cases[i];
-        const memberStatements = emitValidation(member, valueExpression, sink, state);
+        // Inlining every member into one return-sink body crosses V8's optimise-size limit on wide unions;
+        // outline non-modifying members instead. Accumulate sinks already outline via the object emitter.
+        let memberStatements: ts.Statement[] | undefined;
+        if (sink.kind === 'return' && !modifies(member, state)) {
+            memberStatements = tryEmitOutlinedObject(member, valueExpression, sink, state);
+        }
+        if (memberStatements === undefined) {
+            memberStatements = emitValidation(member, valueExpression, sink, state);
+        }
         const condition = discriminatorMatch(discriminatorValue, value);
         elseBranch = [ifStatement(condition, memberStatements, elseBranch)];
     }
