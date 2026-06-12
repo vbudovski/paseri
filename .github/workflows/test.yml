@@ -59,8 +59,8 @@ jobs:
         run: |
           # --unstable-unsafe-proto restores Object.prototype.__proto__ (deleted by default in Deno), so
           # the suite tests the Annex B semantics every browser and default Node.js consumer gets.
-          deno test -P --unstable-unsafe-proto --doc --coverage=.cov-lib paseri-lib/ bin/
-          deno test -P --unstable-unsafe-proto --doc --coverage=.cov-compiler paseri-compiler/
+          deno test -P --unstable-unsafe-proto --doc --parallel --coverage=.cov-lib paseri-lib/ bin/
+          deno test -P --unstable-unsafe-proto --doc --parallel --coverage=.cov-compiler paseri-compiler/
           extract() {
             deno coverage "$1" --include="$2" | grep "All files" | sed 's/\x1B\[[0-9;]\{1,\}[A-Za-z]//g' | cut -d '|' -f 3 | xargs
           }
