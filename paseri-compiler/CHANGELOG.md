@@ -1,5 +1,15 @@
 # @paseri/compiler
 
+## 0.4.0
+
+### Minor Changes
+
+- 47b2a15: `isPlainObject` accepts `constructor === Object` before the reflective prototype check: ~10% faster object and record validation at runtime, ~28% for compiled validators. Objects whose `constructor` resolves to `Object` through a longer prototype chain (e.g. `Object.create({ ... })`) are now treated as plain; such values only arise from in-process prototype manipulation, never from serialised input.
+
+### Patch Changes
+
+- d4da16f: Discriminated union members are outlined into hoisted helpers, keeping wide unions below V8's optimise-size limit: ~36% faster invalid-input validation on a 24-variant union.
+
 ## 0.3.0
 
 ### Minor Changes

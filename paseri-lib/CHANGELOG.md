@@ -1,5 +1,15 @@
 # @paseri/paseri
 
+## 1.5.0
+
+### Minor Changes
+
+- 47b2a15: `isPlainObject` accepts `constructor === Object` before the reflective prototype check: ~10% faster object and record validation at runtime, ~28% for compiled validators. Objects whose `constructor` resolves to `Object` through a longer prototype chain (e.g. `Object.create({ ... })`) are now treated as plain; such values only arise from in-process prototype manipulation, never from serialised input.
+
+### Patch Changes
+
+- c042555: Derived object schemas (merge/pick/omit/partial/required) parse ~30% faster: field lookups now go through a Map, sidestepping V8's slower keyed loads on runtime-assembled shapes. Literal-shaped schemas are unchanged.
+
 ## 1.4.0
 
 ### Minor Changes
