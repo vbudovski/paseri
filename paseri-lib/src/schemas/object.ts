@@ -33,6 +33,9 @@ type UnwrapSomeOptional<ShapeType, Keys extends keyof ShapeType> = {
 
 class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends Schema<Infer<ShapeType>> {
     private readonly _shape: ShapeType;
+    // Set for shapes assembled by derivation methods (merge/pick/omit/partial/required): their V8 maps
+    // make keyed loads ~4-5 ns/key slower than literal-built shapes, so lookups go through a Map instead.
+    private readonly _shapeMap: Map<string, AnySchemaType> | undefined;
     private readonly _shapeKeys: PropertyKey[];
     private readonly _shapeSize: number;
     private readonly _requiredKeys: PropertyKey[];
@@ -44,7 +47,7 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
         MISSING_VALUE: { type: 'leaf', code: issueCodes.MISSING_VALUE },
     } as const satisfies Record<string, LeafNode>;
 
-    constructor(shape: ShapeType) {
+    constructor(shape: ShapeType, isDerivedShape = false) {
         super();
 
         if (!shape) {
@@ -60,12 +63,13 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
         }
 
         this._shape = shape;
+        this._shapeMap = isDerivedShape ? new Map(Object.entries(shape)) : undefined;
         this._shapeKeys = [...Object.keys(shape)];
         this._shapeSize = this._shapeKeys.length;
         this._requiredKeys = this._shapeKeys.filter((key) => !shape[key]._isOptional());
     }
     protected _clone(): ObjectSchema<ShapeType> {
-        const cloned = new ObjectSchema(this._shape);
+        const cloned = new ObjectSchema(this._shape, this._shapeMap !== undefined);
         cloned._mode = this._mode;
 
         return cloned;
@@ -83,40 +87,82 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
         let hasModifiedChildValue = false;
 
         let issue: TreeNode | undefined;
-        for (const key in value) {
-            enumerated++;
-            const schema = this._shape[key];
-            if (schema?._parse) {
-                seen++;
+        const shapeMap = this._shapeMap;
+        // Branch once per parse, not per key: the two loop bodies are identical apart from the lookup
+        // expression — keep them in sync.
+        if (shapeMap === undefined) {
+            for (const key in value) {
+                enumerated++;
+                const schema = this._shape[key];
+                if (schema?._parse) {
+                    seen++;
 
-                const childValue = value[key];
-                const issueOrSuccess = schema._parse(childValue, _depth, _maxDepth);
-                if (issueOrSuccess === undefined) {
-                    // Value is unmodified, so we can take the fast path.
-                    continue;
-                }
-
-                if (isParseSuccess(issueOrSuccess)) {
-                    // Success, but childValue was modified.
-                    hasModifiedChildValue = true;
-                    if (key === '__proto__') {
-                        defineProtoProperty(modifiedValues, issueOrSuccess.value);
-                    } else {
-                        modifiedValues[key] = issueOrSuccess.value;
+                    const childValue = value[key];
+                    const issueOrSuccess = schema._parse(childValue, _depth, _maxDepth);
+                    if (issueOrSuccess === undefined) {
+                        // Value is unmodified, so we can take the fast path.
+                        continue;
                     }
-                } else {
-                    issue = addIssue(issue, {
-                        type: 'nest',
-                        key,
-                        child: issueOrSuccess,
-                    });
+
+                    if (isParseSuccess(issueOrSuccess)) {
+                        // Success, but childValue was modified.
+                        hasModifiedChildValue = true;
+                        if (key === '__proto__') {
+                            defineProtoProperty(modifiedValues, issueOrSuccess.value);
+                        } else {
+                            modifiedValues[key] = issueOrSuccess.value;
+                        }
+                    } else {
+                        issue = addIssue(issue, {
+                            type: 'nest',
+                            key,
+                            child: issueOrSuccess,
+                        });
+                    }
+                } else if (this._mode !== 'passthrough') {
+                    // Passthrough never consumes the set; skipping it saves the allocation and adds.
+                    if (!unrecognisedKeys) {
+                        unrecognisedKeys = new Set();
+                    }
+                    unrecognisedKeys.add(key);
                 }
-            } else if (this._mode !== 'passthrough') {
-                // Passthrough never consumes the set; skipping it saves the allocation and adds.
-                if (!unrecognisedKeys) {
-                    unrecognisedKeys = new Set();
+            }
+        } else {
+            for (const key in value) {
+                enumerated++;
+                const schema = shapeMap.get(key);
+                if (schema?._parse) {
+                    seen++;
+
+                    const childValue = value[key];
+                    const issueOrSuccess = schema._parse(childValue, _depth, _maxDepth);
+                    if (issueOrSuccess === undefined) {
+                        // Value is unmodified, so we can take the fast path.
+                        continue;
+                    }
+
+                    if (isParseSuccess(issueOrSuccess)) {
+                        // Success, but childValue was modified.
+                        hasModifiedChildValue = true;
+                        if (key === '__proto__') {
+                            defineProtoProperty(modifiedValues, issueOrSuccess.value);
+                        } else {
+                            modifiedValues[key] = issueOrSuccess.value;
+                        }
+                    } else {
+                        issue = addIssue(issue, {
+                            type: 'nest',
+                            key,
+                            child: issueOrSuccess,
+                        });
+                    }
+                } else if (this._mode !== 'passthrough') {
+                    // Passthrough never consumes the set; skipping it saves the allocation and adds.
+                    if (!unrecognisedKeys) {
+                        unrecognisedKeys = new Set();
+                    }
+                    unrecognisedKeys.add(key);
                 }
-                unrecognisedKeys.add(key);
             }
         }
 
@@ -238,7 +284,8 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
      * out of the fallback loop so its body stays small.
      */
     private _parseMissingKey(key: PropertyKey, _depth: number, _maxDepth: number): InternalParseResult<unknown> {
-        const schema = this._shape[key];
+        const shapeMap = this._shapeMap;
+        const schema = shapeMap === undefined ? this._shape[key] : (shapeMap.get(key as string) as AnySchemaType);
         if (schema instanceof DefaultSchema) {
             return { ok: true, value: schema._getDefault() };
         }
@@ -272,10 +319,13 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
         other: ObjectSchema<ShapeTypeOther>,
     ): ObjectSchema<Merge<ShapeType, ShapeTypeOther>> {
         // Cast required: TS can't reduce `ShapeType & ShapeTypeOther` to type-fest's `Merge` when both are unresolved generics.
-        const merged = new ObjectSchema<Merge<ShapeType, ShapeTypeOther>>({
-            ...this._shape,
-            ...other._shape,
-        } as Merge<ShapeType, ShapeTypeOther>);
+        const merged = new ObjectSchema<Merge<ShapeType, ShapeTypeOther>>(
+            {
+                ...this._shape,
+                ...other._shape,
+            } as Merge<ShapeType, ShapeTypeOther>,
+            true,
+        );
         merged._mode = other._mode;
 
         return merged;
@@ -287,6 +337,7 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
             Object.fromEntries(
                 Object.entries(this._shape).filter(([key]) => keys.includes(key as keyof ShapeType)),
             ) as Pick<ShapeType, TupleToUnion<Keys>>,
+            true,
         );
     }
     omit<Keys extends [keyof ShapeType, ...(keyof ShapeType)[]]>(
@@ -297,6 +348,7 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
             Object.fromEntries(
                 Object.entries(this._shape).filter(([key]) => !keys.includes(key as keyof ShapeType)),
             ) as Omit<ShapeType, TupleToUnion<Keys>>,
+            true,
         );
     }
     partial<Keys extends (keyof ShapeType)[]>(
@@ -315,7 +367,7 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
             }
         }
 
-        const result = new ObjectSchema(newShape as ShapeType);
+        const result = new ObjectSchema(newShape as ShapeType, true);
         result._mode = this._mode;
 
         return result as unknown as ObjectSchema<
@@ -342,7 +394,7 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
             }
         }
 
-        const result = new ObjectSchema(newShape as ShapeType);
+        const result = new ObjectSchema(newShape as ShapeType, true);
         result._mode = this._mode;
 
         return result as unknown as ObjectSchema<
