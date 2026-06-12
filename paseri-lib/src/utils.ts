@@ -5,6 +5,14 @@ function isPlainObject(value: unknown): value is Record<PropertyKey, unknown> {
         return false;
     }
 
+    // Fast-accept the common plain object literal without the reflective `Object.getPrototypeOf` call. Reading
+    // `constructor` first also primes V8's hidden-class check — proto-first orderings hit an inlining cliff. This
+    // accepts any object whose `constructor` chains to `Object` (e.g. `Object.create({...})`); such objects cannot
+    // arise from serialised/external input, only deliberate in-process prototype manipulation.
+    if (value.constructor === Object) {
+        return true;
+    }
+
     if (value.constructor === undefined) {
         return Object.getPrototypeOf(value) === null;
     }

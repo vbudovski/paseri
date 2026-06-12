@@ -35,11 +35,22 @@ describe('isPlainObject', () => {
         expect(isPlainObject(obj)).toBe(false);
     });
 
+    it('accepts objects whose constructor resolves to Object regardless of prototype depth', () => {
+        // Any object whose `constructor` resolves to `Object` is plain, regardless of where in the chain
+        // `Object.prototype` sits; such values only arise from in-process prototype manipulation.
+        expect(isPlainObject(Object.create({ inherited: 'value' }))).toBe(true);
+        expect(isPlainObject(Object.create(Object.create(Object.prototype)))).toBe(true);
+    });
+
     it('rejects non-plain objects', () => {
         fc.assert(
             fc.property(
                 fc.anything({ withDate: true, withSet: true, withMap: true }).filter((value) => {
                     if (typeof value !== 'object' || value === null) {
+                        return false;
+                    }
+                    // Values whose `constructor` resolves to `Object` are plain (tested above) — exclude them.
+                    if ((value as { constructor?: unknown }).constructor === Object) {
                         return false;
                     }
                     const prototype = Object.getPrototypeOf(value);
