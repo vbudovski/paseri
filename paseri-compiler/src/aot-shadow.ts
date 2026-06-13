@@ -5,6 +5,7 @@
 import { Schema } from '@paseri/paseri';
 import type { IR, IRGraph } from '@paseri/paseri/introspect';
 import '@paseri/paseri/introspect';
+import { blankSourceFile } from 'ts-blank-space';
 import ts from 'typescript';
 import { ResolutionError } from './resolver.ts';
 import { toSource } from './toSource.ts';
@@ -73,7 +74,11 @@ interface CompiledModule {
     readonly parse: ThrowingValidator;
 }
 
+// Two-level cache: `compiledCache` short-circuits repeat parses of the same schema object; `compiledByKey` pools
+// compiled modules across structurally identical schemas (keyed by IR), so a schema rebuilt inside a fast-check
+// property compiles once per distinct shape rather than once per iteration.
 const compiledCache = new WeakMap<object, CompiledModule | null>();
+const compiledByKey = new Map<string, CompiledModule | null>();
 
 interface ResolvedImport {
     readonly localName: string;
@@ -148,19 +153,33 @@ function stripModuleSyntax(source: string, sourceFile: ts.SourceFile): string {
 }
 
 /**
- * Compiles a schema's IR into both generated entries (`safeParse` + the throwing `parse`), evaluated via
- * `new Function(...)` rather than `import(data:...)` — the patched `safeParse` runs synchronously and can't `await` a
- * dynamic import. Returns `null` (and caches the decision) when the schema can't AOT-compile, so subsequent parses
- * short-circuit.
+ * Structural cache key for a graph. `toSource` is a pure function of the graph, so equal keys mean byte-identical
+ * modules that can share one compile — and `JSON.stringify` is far cheaper than deriving the key from `toSource`
+ * output. bigint (the only non-JSON value the IR carries) gets a tagged encoding. Returns `null` when the graph
+ * holds a value JSON can't represent faithfully (symbol/function/`undefined`) so the caller compiles per instance
+ * rather than risk a key collision; such values can't reach the IR today, making the guard forward-compatible only.
  */
-function compileModule(schema: Schema<unknown>): CompiledModule | null {
-    const cached = compiledCache.get(schema);
-    if (cached !== undefined) {
-        return cached;
-    }
-    const graph = schema.toIR();
+function irCacheKey(graph: IRGraph): string | null {
+    let faithful = true;
+    const key = JSON.stringify(graph, (_key, value) => {
+        if (typeof value === 'bigint') {
+            return `bigint@:${value}`;
+        }
+        if (typeof value === 'symbol' || typeof value === 'function' || value === undefined) {
+            faithful = false;
+        }
+        return value;
+    });
+    return faithful ? key : null;
+}
+
+/**
+ * Compiles a graph into both generated entries (`safeParse` + the throwing `parse`), evaluated via `new Function(...)`
+ * rather than `import(data:...)` — the patched `safeParse` runs synchronously and can't `await` a dynamic import.
+ * Returns `null` when the graph can't AOT-compile.
+ */
+function compileFromGraph(graph: IRGraph): CompiledModule | null {
     if (graphContainsUnsupported(graph)) {
-        compiledCache.set(schema, null);
         return null;
     }
     let source: string;
@@ -168,7 +187,6 @@ function compileModule(schema: Schema<unknown>): CompiledModule | null {
         source = toSource(graph, { name: 'Shadow' });
     } catch (error) {
         if (error instanceof ResolutionError) {
-            compiledCache.set(schema, null);
             return null;
         }
         throw error;
@@ -176,13 +194,21 @@ function compileModule(schema: Schema<unknown>): CompiledModule | null {
     const parsedSource = ts.createSourceFile('_shadow.ts', source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
     const resolvedImports = bindImports(parsedSource);
     if (resolvedImports === null) {
-        compiledCache.set(schema, null);
         return null;
     }
-    const moduleSyntaxStripped = stripModuleSyntax(source, parsedSource);
-    const transpiled = ts.transpileModule(moduleSyntaxStripped, {
-        compilerOptions: { target: ts.ScriptTarget.Latest, module: ts.ModuleKind.ESNext },
-    }).outputText;
+    // `blankSourceFile` erases types in place on the already-parsed AST, far cheaper than `ts.transpileModule`'s
+    // re-parse + transform/print. Its output is position-identical to the input, so the import/export ranges
+    // `stripModuleSyntax` reads from `parsedSource` stay valid on the blanked text. Only erasable syntax is
+    // handled; the emitter emits nothing else, so the `transpileModule` fallback is purely defensive.
+    let unsupportedSyntax = false;
+    const blanked = blankSourceFile(parsedSource, () => {
+        unsupportedSyntax = true;
+    });
+    const transpiled = unsupportedSyntax
+        ? ts.transpileModule(stripModuleSyntax(source, parsedSource), {
+              compilerOptions: { target: ts.ScriptTarget.Latest, module: ts.ModuleKind.ESNext },
+          }).outputText
+        : stripModuleSyntax(blanked, parsedSource);
     const argNames = resolvedImports.map((entry) => entry.localName);
     const argValues = resolvedImports.map((entry) => entry.value);
     // `'use strict'` so the body matches the real generated module (an always-strict ES module) — without it a
@@ -192,7 +218,32 @@ function compileModule(schema: Schema<unknown>): CompiledModule | null {
         ...argNames,
         `'use strict';\n${transpiled}\nreturn { safeParse: safeParseShadow, parse: parseShadow };`,
     );
-    const compiled = factory(...argValues) as CompiledModule;
+    return factory(...argValues) as CompiledModule;
+}
+
+/**
+ * Resolves the compiled module for a schema, caching the decision both per schema object and per IR shape (so
+ * structurally identical schemas built at different call sites compile once). Returns `null` (cached) when the schema
+ * can't AOT-compile, so subsequent parses short-circuit.
+ */
+function compileModule(schema: Schema<unknown>): CompiledModule | null {
+    const cached = compiledCache.get(schema);
+    if (cached !== undefined) {
+        return cached;
+    }
+    const graph = schema.toIR();
+    const key = irCacheKey(graph);
+    if (key !== null) {
+        const pooled = compiledByKey.get(key);
+        if (pooled !== undefined) {
+            compiledCache.set(schema, pooled);
+            return pooled;
+        }
+    }
+    const compiled = compileFromGraph(graph);
+    if (key !== null) {
+        compiledByKey.set(key, compiled);
+    }
     compiledCache.set(schema, compiled);
     return compiled;
 }

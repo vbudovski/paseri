@@ -33,7 +33,7 @@ deno task init
 ### Running tests
 
 ```shell
-deno test -P
+deno test -P --unstable-unsafe-proto --parallel
 ```
 
 ### Running benchmarks
