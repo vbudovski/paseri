@@ -14,7 +14,20 @@ describe('emitObject', () => {
 
     it('emits strip-mode sanitized output', () => {
         const source = toSource(object({ id: string() }).strip().toIR(), { name: 'Test' });
+        // Sanitiser lives on the slow path; the entry builds the output directly (next test).
         expect(source).toContain('_sanitized');
+    });
+
+    it('builds strip output inline in the entry (always-copy: no top-level extras scan)', () => {
+        const source = toSource(object({ id: string(), age: number() }).strip().toIR(), { name: 'Test' });
+        // Entry only: slow `_slowTest` is hoisted before it, `parseTest` follows.
+        const entry = source.slice(
+            source.indexOf('export function safeParseTest'),
+            source.indexOf('export function parseTest'),
+        );
+        // Builds a fresh object from the locals (not the original), with no top-level extras count loop.
+        expect(entry).toContain('value: { id: _field');
+        expect(entry).not.toContain('for (const');
     });
 
     it('emits passthrough-mode output preserving extras', () => {

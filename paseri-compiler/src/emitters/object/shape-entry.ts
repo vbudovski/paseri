@@ -2,6 +2,7 @@ import type { IR } from '@paseri/paseri/introspect';
 import ts from 'typescript';
 import {
     assign,
+    assignOwnProperty,
     binary,
     block,
     breakStatement,
@@ -20,10 +21,12 @@ import {
     notEquals,
     nullExpression,
     numericLiteral,
+    objectLiteral,
     postfixIncrement,
     property,
     recordAccess,
     recordCast,
+    recordType,
     returnStatement,
     stringLiteral,
     switchStatement,
@@ -337,6 +340,44 @@ function tryEmitDefaultObjectEntry(
     return [ifStatement(shape, successStatements), slowCall];
 }
 
+type OutputField = { readonly name: string; readonly local: ts.Identifier; readonly optional: boolean };
+
+/**
+ * Strip-mode success: build the output from the validated field locals instead of scanning for extras and
+ * returning the original. Required keys go into a static-key object literal (V8 canonical fast map); optionals
+ * are written only when present (`"k" in value`) so an absent one isn't materialised as `k: undefined`.
+ */
+function emitStripSuccess(
+    outputFields: readonly OutputField[],
+    valueExpression: ts.Expression,
+    outputType: ts.TypeNode,
+    state: State,
+): ts.Statement {
+    const requiredProps: Record<string, ts.Expression> = {};
+    const optionalFields: OutputField[] = [];
+    for (const field of outputFields) {
+        if (field.optional) {
+            optionalFields.push(field);
+        } else {
+            requiredProps[field.name] = field.local;
+        }
+    }
+    if (optionalFields.length === 0) {
+        return returnStatement(successPayload(objectLiteral(requiredProps), outputType));
+    }
+    const outIdentifier = freshIdentifier(state, 'out');
+    const statements: ts.Statement[] = [constStatement(outIdentifier, recordType, objectLiteral(requiredProps))];
+    for (const field of optionalFields) {
+        statements.push(
+            ifStatement(binary(stringLiteral(field.name), ts.SyntaxKind.InKeyword, recordCast(valueExpression)), [
+                assignOwnProperty(outIdentifier, field.name, field.local),
+            ]),
+        );
+    }
+    statements.push(returnStatement(successPayload(outIdentifier, outputType)));
+    return block(statements);
+}
+
 /**
  * Statement-form shape check for a top-level object entry: each field is read once into a local and its shape
  * expression tests that local, replacing the giant-boolean form whose conjuncts re-load the property for every
@@ -362,8 +403,10 @@ function tryEmitObjectShapeEntryBody(
     ];
     const optionalFieldNames: string[] = [];
     let requiredCount = 0;
+    const outputFields: OutputField[] = [];
     for (const [fieldName, fieldIR] of fields) {
-        if (!isFieldOptional(fieldIR) && shapeMatchesUndefined(fieldIR)) {
+        const optional = isFieldOptional(fieldIR);
+        if (!optional && shapeMatchesUndefined(fieldIR)) {
             // Same presence guard as tryShape's object arm: a required field whose shape accepts undefined must
             // not treat an absent key as matching. Prototype-name fields are rejected above, so `in` is safe.
             statements.push(
@@ -382,17 +425,25 @@ function tryEmitObjectShapeEntryBody(
             constStatement(fieldLocal, undefined, recordAccess(valueExpression, stringLiteral(fieldName))),
             ifStatement(not(fieldShape), [slowCall]),
         );
-        if (isFieldOptional(fieldIR)) {
+        outputFields.push({ name: fieldName, local: fieldLocal, optional });
+        if (optional) {
             optionalFieldNames.push(fieldName);
         } else {
             requiredCount += 1;
         }
     }
-    if (ir.mode === 'strict' || ir.mode === 'strip') {
-        strictLevels.push({ valueExpression, requiredCount, optionalFieldNames });
-    }
     const outputType = emitType(ir);
-    const successReturn = returnStatement(successPayload(valueExpression, outputType));
+    let successReturn: ts.Statement;
+    if (ir.mode === 'strip') {
+        // Always-copy: top-level extras are excluded by construction, so no top-level count is pushed. Nested
+        // strict/strip levels keep their count checks below, so every field local copied here is already clean.
+        successReturn = emitStripSuccess(outputFields, valueExpression, outputType, state);
+    } else {
+        if (ir.mode === 'strict') {
+            strictLevels.push({ valueExpression, requiredCount, optionalFieldNames });
+        }
+        successReturn = returnStatement(successPayload(valueExpression, outputType));
+    }
     return [...statements, ...buildSuccessWithExtrasCheck(strictLevels, successReturn, slowCall, state)];
 }
 
