@@ -69,6 +69,8 @@ https://paseri.dev
 
 ---
 
+Part of the [Paseri workspace](https://github.com/vbudovski/paseri).
+
 [^1]: While higher performance is possible using dynamic code execution (JIT) or ahead-of-time (AOT) compilation, these
 approaches
 introduce [security risks](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/eval#never_use_direct_eval!)
@@ -76,7 +78,3 @@ or added build complexity.
 
 [^2]: An [excellent article](https://lexi-lambda.github.io/blog/2019/11/05/parse-don-t-validate/) on the concept of
 type-driven design.
-
----
-
-Part of the [Paseri workspace](https://github.com/vbudovski/paseri).
