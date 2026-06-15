@@ -13,6 +13,9 @@ Deno workspace for [Paseri](https://paseri.dev), a TypeScript parsing and valida
 - [`paseri-compiler`](https://github.com/vbudovski/paseri/tree/main/paseri-compiler) &mdash; ahead-of-time compiler that
   turns a Paseri schema into a TypeScript module containing the parser, published to JSR as
   [`@paseri/compiler`](https://jsr.io/@paseri/compiler).
+- [`paseri-vite-plugin`](https://github.com/vbudovski/paseri/tree/main/paseri-vite-plugin) &mdash; Vite plugin that
+  AOT-compiles Paseri schemas at build time, published to JSR as
+  [`@paseri/vite-plugin`](https://jsr.io/@paseri/vite-plugin).
 - [`paseri-docs`](https://github.com/vbudovski/paseri/tree/main/paseri-docs) &mdash; the
   [paseri.dev](https://paseri.dev) documentation site, built with [Astro](https://astro.build/) and
   [Starlight](https://starlight.astro.build/).

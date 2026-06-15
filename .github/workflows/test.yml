@@ -14,6 +14,9 @@ on:
       compiler_coverage:
         description: "Code coverage percentage for paseri-compiler."
         value: ${{ jobs.unit.outputs.compiler_coverage }}
+      vite_plugin_coverage:
+        description: "Code coverage percentage for paseri-vite-plugin."
+        value: ${{ jobs.unit.outputs.vite_plugin_coverage }}
 
 permissions: {}
 
@@ -27,6 +30,7 @@ jobs:
     outputs:
       lib_coverage: ${{ steps.tests.outputs.LIB_COVERAGE }}
       compiler_coverage: ${{ steps.tests.outputs.COMPILER_COVERAGE }}
+      vite_plugin_coverage: ${{ steps.tests.outputs.VITE_PLUGIN_COVERAGE }}
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
@@ -61,20 +65,27 @@ jobs:
           # the suite tests the Annex B semantics every browser and default Node.js consumer gets.
           deno test -P --unstable-unsafe-proto --doc --parallel --coverage=.cov-lib paseri-lib/ bin/
           deno test -P --unstable-unsafe-proto --doc --parallel --coverage=.cov-compiler paseri-compiler/
+          # The plugin suite spawns a real `vite build` (esbuild/Rollup native, dev server) — its
+          # extra permissions come from paseri-vite-plugin/deno.json via -P. No --doc (not doc-tested)
+          # and no --unstable-unsafe-proto (it doesn't exercise __proto__ Annex B semantics).
+          deno test -P --parallel --coverage=.cov-vite-plugin paseri-vite-plugin/
           extract() {
             deno coverage "$1" --include="$2" | grep "All files" | sed 's/\x1B\[[0-9;]\{1,\}[A-Za-z]//g' | cut -d '|' -f 3 | xargs
           }
           echo "LIB_COVERAGE=$(extract .cov-lib paseri-lib/src/)" >> $GITHUB_OUTPUT
           echo "COMPILER_COVERAGE=$(extract .cov-compiler paseri-compiler/src/)" >> $GITHUB_OUTPUT
+          echo "VITE_PLUGIN_COVERAGE=$(extract .cov-vite-plugin paseri-vite-plugin/src/)" >> $GITHUB_OUTPUT
 
       - name: Write main metrics
         if: github.ref == 'refs/heads/main'
         env:
           LIB_COVERAGE: ${{ steps.tests.outputs.LIB_COVERAGE }}
           COMPILER_COVERAGE: ${{ steps.tests.outputs.COMPILER_COVERAGE }}
+          VITE_PLUGIN_COVERAGE: ${{ steps.tests.outputs.VITE_PLUGIN_COVERAGE }}
         run: |
           printf '%s' "$LIB_COVERAGE" > main-coverage-lib.txt
           printf '%s' "$COMPILER_COVERAGE" > main-coverage-compiler.txt
+          printf '%s' "$VITE_PLUGIN_COVERAGE" > main-coverage-vite-plugin.txt
 
       - name: Save main lib coverage metric
         if: github.ref == 'refs/heads/main'
@@ -89,6 +100,13 @@ jobs:
         with:
           path: main-coverage-compiler.txt
           key: main-metrics-coverage-compiler-${{ github.sha }}
+
+      - name: Save main vite-plugin coverage metric
+        if: github.ref == 'refs/heads/main'
+        uses: actions/cache/save@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
+        with:
+          path: main-coverage-vite-plugin.txt
+          key: main-metrics-coverage-vite-plugin-${{ github.sha }}
 
       - name: Restore main lib coverage metric
         if: github.event_name == 'pull_request'
@@ -108,12 +126,22 @@ jobs:
           restore-keys: |
             main-metrics-coverage-compiler-
 
+      - name: Restore main vite-plugin coverage metric
+        if: github.event_name == 'pull_request'
+        uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
+        with:
+          path: main-coverage-vite-plugin.txt
+          key: main-metrics-coverage-vite-plugin-${{ github.event.pull_request.base.sha }}
+          restore-keys: |
+            main-metrics-coverage-vite-plugin-
+
       - name: Compute coverage delta
         if: github.event_name == 'pull_request'
         id: delta
         env:
           LIB_COVERAGE: ${{ steps.tests.outputs.LIB_COVERAGE }}
           COMPILER_COVERAGE: ${{ steps.tests.outputs.COMPILER_COVERAGE }}
+          VITE_PLUGIN_COVERAGE: ${{ steps.tests.outputs.VITE_PLUGIN_COVERAGE }}
         run: |
           delta_for() {
             local pr_cov="$1"
@@ -131,6 +159,7 @@ jobs:
           }
           IFS='|' read -r lib_pr lib_main lib_delta <<<"$(delta_for "$LIB_COVERAGE" main-coverage-lib.txt)"
           IFS='|' read -r compiler_pr compiler_main compiler_delta <<<"$(delta_for "$COMPILER_COVERAGE" main-coverage-compiler.txt)"
+          IFS='|' read -r vite_plugin_pr vite_plugin_main vite_plugin_delta <<<"$(delta_for "$VITE_PLUGIN_COVERAGE" main-coverage-vite-plugin.txt)"
           {
             echo "## Coverage"
             echo ""
@@ -138,6 +167,7 @@ jobs:
             echo "|---------|---------|------|---|"
             echo "| paseri-lib | ${lib_pr}% | ${lib_main} | ${lib_delta} |"
             echo "| paseri-compiler | ${compiler_pr}% | ${compiler_main} | ${compiler_delta} |"
+            echo "| paseri-vite-plugin | ${vite_plugin_pr}% | ${vite_plugin_main} | ${vite_plugin_delta} |"
           } >> "$GITHUB_STEP_SUMMARY"
           {
             echo "lib_pr=$lib_pr"
@@ -146,6 +176,9 @@ jobs:
             echo "compiler_pr=$compiler_pr"
             echo "compiler_main=$compiler_main"
             echo "compiler_delta=$compiler_delta"
+            echo "vite_plugin_pr=$vite_plugin_pr"
+            echo "vite_plugin_main=$vite_plugin_main"
+            echo "vite_plugin_delta=$vite_plugin_delta"
           } >> "$GITHUB_OUTPUT"
 
       - name: Post coverage comment
@@ -160,6 +193,9 @@ jobs:
           COMPILER_PR: ${{ steps.delta.outputs.compiler_pr }}
           COMPILER_MAIN: ${{ steps.delta.outputs.compiler_main }}
           COMPILER_DELTA: ${{ steps.delta.outputs.compiler_delta }}
+          VITE_PLUGIN_PR: ${{ steps.delta.outputs.vite_plugin_pr }}
+          VITE_PLUGIN_MAIN: ${{ steps.delta.outputs.vite_plugin_main }}
+          VITE_PLUGIN_DELTA: ${{ steps.delta.outputs.vite_plugin_delta }}
         with:
           script: |
             const marker = '<!-- paseri-coverage -->';
@@ -171,6 +207,7 @@ jobs:
               '|---------|---------|------|---|',
               `| paseri-lib | ${process.env.LIB_PR}% | ${process.env.LIB_MAIN} | ${process.env.LIB_DELTA} |`,
               `| paseri-compiler | ${process.env.COMPILER_PR}% | ${process.env.COMPILER_MAIN} | ${process.env.COMPILER_DELTA} |`,
+              `| paseri-vite-plugin | ${process.env.VITE_PLUGIN_PR}% | ${process.env.VITE_PLUGIN_MAIN} | ${process.env.VITE_PLUGIN_DELTA} |`,
             ].join('\n');
             const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,

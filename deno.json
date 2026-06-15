@@ -23,7 +23,7 @@
     "release:prepare": "deno run --allow-read --allow-run=git,gh,deno bin/release.ts",
     "post-publish": "deno run --allow-read --allow-write --allow-run=git,gh bin/post-publish.ts"
   },
-  "workspace": ["paseri-lib", "paseri-compiler", "paseri-docs"],
+  "workspace": ["paseri-lib", "paseri-compiler", "paseri-docs", "paseri-vite-plugin"],
   "test": {
     "permissions": {
       "read": ["bin/lib/__fixtures__"]
