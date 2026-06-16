@@ -1,0 +1,31 @@
+{
+  "$schema": "https://raw.githubusercontent.com/denoland/deno/main/cli/schemas/config-file.v1.json",
+  "name": "@paseri/vite-plugin",
+  "license": "MIT",
+  "version": "0.0.0",
+  "description": "Vite plugin that AOT-compiles Paseri schemas at build time.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "imports": {
+    "@std/expect": "jsr:@std/expect@^1.0.19",
+    "@std/testing": "jsr:@std/testing@^1.0.19",
+    "fast-check": "npm:fast-check@^4.8.0",
+    "vite": "npm:vite@^7"
+  },
+  "test": {
+    "permissions": {
+      "env": true,
+      "read": true,
+      "write": true,
+      "run": true,
+      "sys": true,
+      "ffi": true,
+      "net": true
+    }
+  },
+  "publish": {
+    "include": ["src", "LICENSE.md", "README.md"],
+    "exclude": ["src/**/*.test.ts"]
+  }
+}

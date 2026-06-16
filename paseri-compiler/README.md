@@ -4,7 +4,7 @@
 
 ---
 
-# paseri-compiler
+# Paseri compiler
 
 Ahead-of-time compiler for [Paseri](https://github.com/vbudovski/paseri/blob/main/paseri-lib/README.md). Given a
 Paseri schema, it emits a TypeScript source file containing the parser, for faster validation.
