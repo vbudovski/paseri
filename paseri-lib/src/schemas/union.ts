@@ -23,6 +23,27 @@ interface WithDiscriminatorResult {
 
 type DiscriminatorResult = WithDiscriminatorResult | WithoutDiscriminatorResult;
 
+interface LiteralSetResult {
+    values: Set<unknown>;
+    options: string[];
+}
+
+function findLiteralSet<TupleType extends ValidTupleType>(...elements: TupleType): LiteralSetResult | undefined {
+    if (!elements.every((element) => element instanceof LiteralSchema)) {
+        return undefined;
+    }
+
+    const values = new Set<unknown>();
+    const options: string[] = [];
+    for (const element of elements) {
+        const value = (element as LiteralSchema<never>).value;
+        values.add(value);
+        options.push(primitiveToString(value));
+    }
+
+    return { values, options };
+}
+
 function findDiscriminator<TupleType extends ValidTupleType>(...elements: TupleType): DiscriminatorResult {
     if (!elements.every((element) => element instanceof ObjectSchema)) {
         return { found: false };
@@ -76,9 +97,17 @@ function findDiscriminator<TupleType extends ValidTupleType>(...elements: TupleT
     return { found: false };
 }
 
+// Dispatch discriminant resolved once at construction. A numeric tag keeps `_parse`'s read monomorphic and lets
+// the regular path branch on a single field load instead of probing `_discriminator` then `_literalValues`.
+const STRATEGY_REGULAR = 0;
+const STRATEGY_DISCRIMINATED = 1;
+const STRATEGY_LITERAL_SET = 2;
+
 class UnionSchema<TupleType extends ValidTupleType> extends Schema<Infer<TupleToUnion<TupleType>>> {
     private readonly _elements: TupleType;
     private readonly _discriminator: DiscriminatorResult;
+    private readonly _literalValues: Set<unknown> | undefined;
+    private readonly _strategy: number;
 
     private readonly issues;
 
@@ -91,12 +120,27 @@ class UnionSchema<TupleType extends ValidTupleType> extends Schema<Infer<TupleTo
 
         this._elements = elements;
         this._discriminator = findDiscriminator(...this._elements);
+        // Discriminators require object members, so an all-literal union never has one — probe only when absent.
+        const literalSet = this._discriminator.found ? undefined : findLiteralSet(...this._elements);
+        this._literalValues = literalSet?.values;
+        let strategy = STRATEGY_REGULAR;
+        if (this._discriminator.found) {
+            strategy = STRATEGY_DISCRIMINATED;
+        } else if (literalSet !== undefined) {
+            strategy = STRATEGY_LITERAL_SET;
+        }
+        this._strategy = strategy;
         this.issues = {
             INVALID_TYPE: { type: 'leaf', code: issueCodes.INVALID_TYPE, expected: 'object' },
             INVALID_DISCRIMINATOR_VALUE: {
                 type: 'leaf',
                 code: issueCodes.INVALID_DISCRIMINATOR_VALUE,
                 expected: this._discriminator.found ? this._discriminator.options : [],
+            },
+            INVALID_ENUM_VALUE: {
+                type: 'leaf',
+                code: issueCodes.INVALID_ENUM_VALUE,
+                expected: literalSet ? literalSet.options : [],
             },
         } as const satisfies Record<string, LeafNode>;
     }
@@ -120,6 +164,13 @@ class UnionSchema<TupleType extends ValidTupleType> extends Schema<Infer<TupleTo
 
         return this.issues.INVALID_DISCRIMINATOR_VALUE;
     }
+    _parseLiteralSet(value: unknown): InternalParseResult<Infer<TupleToUnion<TupleType>>> {
+        if ((this._literalValues as Set<unknown>).has(value)) {
+            return undefined;
+        }
+
+        return this.issues.INVALID_ENUM_VALUE;
+    }
     _parseRegular(
         value: unknown,
         _depth: number,
@@ -142,11 +193,15 @@ class UnionSchema<TupleType extends ValidTupleType> extends Schema<Infer<TupleTo
         return issue;
     }
     _parse(value: unknown, _depth: number, _maxDepth: number): InternalParseResult<Infer<TupleToUnion<TupleType>>> {
-        if (this._discriminator.found) {
+        const strategy = this._strategy;
+        if (strategy === STRATEGY_REGULAR) {
+            return this._parseRegular(value, _depth, _maxDepth);
+        }
+        if (strategy === STRATEGY_DISCRIMINATED) {
             return this._parseDiscriminated(value, _depth, _maxDepth);
         }
 
-        return this._parseRegular(value, _depth, _maxDepth);
+        return this._parseLiteralSet(value);
     }
 }
 

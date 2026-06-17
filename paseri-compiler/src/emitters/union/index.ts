@@ -22,14 +22,37 @@ import { modifies } from '../../can-modify.ts';
 import { emitFailureRouting, emitSuccessRouting, successPayload } from '../../issues.ts';
 import { freshIdentifier, type Sink, type State } from '../../state.ts';
 import { emitValidation } from '../../toSource.ts';
+import { emitEnum } from '../enum.ts';
 import { containsReachableDefault, tryShapeSelfContained, withShapeAttempt } from '../object/shape.ts';
 import { emitDiscriminatedUnion, findDiscriminator } from './discriminator.ts';
 
 const { factory } = ts;
 
 type UnionIR = Extract<IR, { kind: 'union' }>;
+type LiteralIR = Extract<IR, { kind: 'literal' }>;
 
 const { BarBarToken } = ts.SyntaxKind;
+
+/**
+ * All-literal unions compile to an enum-style `Set.has` test, converging with the runtime: a single
+ * `invalid_enum_value` leaf on miss, not a per-member `invalid_value` tree. A match falls through to the
+ * trailing success (literals never modify). Undefined unless every member is a bare literal.
+ */
+function tryEmitLiteralSet(
+    ir: UnionIR,
+    valueExpression: ts.Expression,
+    sink: Sink,
+    state: State,
+): ts.Statement[] | undefined {
+    if (!ir.members.every((member) => member.kind === 'literal')) {
+        return undefined;
+    }
+
+    const values = (ir.members as LiteralIR[]).map((member) => member.value);
+    // An all-literal union is an enum by another name; delegate so the membership codegen has one source of
+    // truth (and shares the hoisted Set with any equivalent `enum`).
+    return emitEnum({ kind: 'enum', values }, valueExpression, sink, state);
+}
 
 /**
  * Boolean OR over the leading run of exactly-shapeable members, bypassing the try-each form's per-member issue
@@ -65,6 +88,11 @@ function emitUnion(ir: UnionIR, valueExpression: ts.Expression, sink: Sink, stat
     const discriminator = findDiscriminator(ir);
     if (discriminator !== undefined) {
         return emitDiscriminatedUnion(discriminator, valueExpression, sink, state);
+    }
+
+    const literalSet = tryEmitLiteralSet(ir, valueExpression, sink, state);
+    if (literalSet !== undefined) {
+        return literalSet;
     }
 
     const preCheck = tryBuildShapePreCheck(ir, valueExpression, state);

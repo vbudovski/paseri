@@ -133,15 +133,30 @@ it('emits no dead shape helpers when the entry is unshapeable', () => {
 
 it('emits a boolean pre-check ahead of the union try-each so clean matches skip the issue machinery', () => {
     // The chain field keeps the object off the shape fast path, so the union runs in accumulate form — which
-    // previously allocated per-member issue nodes even when a later member matched.
+    // previously allocated per-member issue nodes even when a later member matched. A mixed literal/primitive
+    // union (not all-literal, so it stays off the Set.has path) exercises the pre-check.
     const schema = p.object({
-        role: p.union(p.literal('admin'), p.literal('user'), p.literal('guest')),
+        role: p.union(p.literal('admin'), p.number()),
         id: p.string().chain(p.number(), (value) => ({ ok: true, value: Number(value) })),
     });
     const source = toSource(schema.toIR(), { name: 'Pre' });
-    expect(/if \(!\(_value\d+ === "admin" \|\| _value\d+ === "user" \|\| _value\d+ === "guest"\)\)/.test(source)).toBe(
-        true,
-    );
+    expect(
+        /if \(!\(_value\d+ === "admin" \|\| typeof _value\d+ === "number" && !\(Number\.isNaN\(_value\d+\)\)\)\)/.test(
+            source,
+        ),
+    ).toBe(true);
+});
+
+it('emits an enum-style Set.has membership test for an all-literal union, converging with the runtime', () => {
+    // Every member is a bare literal, so the union reduces to the same `Set.has` check the runtime takes — a single
+    // `invalid_enum_value` leaf instead of the try-each form's per-member `invalid_value` tree.
+    const schema = p.union(p.literal('admin'), p.literal('user'), p.literal('guest'));
+    const source = toSource(schema.toIR(), { name: 'Roles' });
+    expect(source.includes('new Set<unknown>(["admin", "user", "guest"])')).toBe(true);
+    expect(/\.has\(value\)/.test(source)).toBe(true);
+    expect(source.includes('INVALID_ENUM_VALUE')).toBe(true);
+    // The try-each member-scan machinery must not be emitted.
+    expect(source.includes('_success')).toBe(false);
 });
 
 it('emits exactly one success return per validator function', () => {
