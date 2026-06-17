@@ -203,6 +203,68 @@ it('rejects undersized union', () => {
     expect(() => p.union(p.string())).toThrow('Union must contain at least two members.');
 });
 
+it('accepts every value of an all-literal union', () => {
+    const schema = p.union(p.literal('a'), p.literal(1), p.literal(99n), p.literal(true));
+
+    fc.assert(
+        fc.property(fc.constantFrom('a', 1, 99n, true), (data) => {
+            const result = schema.safeParse(data);
+            if (result.ok) {
+                expectTypeOf(result.value).toEqualTypeOf<'a' | 1 | 99n | true>;
+                expect(result.value).toEqual(data);
+            } else {
+                expect(result.ok).toBeTruthy();
+            }
+        }),
+    );
+});
+
+it('rejects a value outside an all-literal union with a single invalid_enum_value', () => {
+    const schema = p.union(p.literal('a'), p.literal(1), p.literal(99n), p.literal(true));
+
+    fc.assert(
+        fc.property(
+            fc.anything().filter((value) => !(value === 'a' || value === 1 || value === 99n || value === true)),
+            (data) => {
+                const result = schema.safeParse(data);
+                if (!result.ok) {
+                    expect(result.messages()).toEqual([{ path: [], message: 'invalid_enum_value' }]);
+                } else {
+                    expect(result.ok).toBeFalsy();
+                }
+            },
+        ),
+    );
+});
+
+it('keeps the regular per-branch path when a non-literal member is present', () => {
+    // One non-literal member disables the literal-set optimization, so an invalid value must surface a
+    // per-branch failure tree rather than a single invalid_enum_value.
+    const schema = p.union(p.literal('a'), p.number());
+
+    const valid = schema.safeParse(42);
+    expect(valid.ok).toBe(true);
+
+    const invalid = schema.safeParse('nope');
+    if (!invalid.ok) {
+        expect(invalid.messages()).toEqual([
+            { path: [], message: 'invalid_value' },
+            { path: [], message: 'invalid_type' },
+        ]);
+    } else {
+        expect(invalid.ok).toBeFalsy();
+    }
+});
+
+it('keeps a number distinct from its string equivalent in an all-literal union', () => {
+    // The literal-set path stores values in a Set, so `1` and `'1'` stay distinct (Set keys, not object keys).
+    const schema = p.union(p.literal(1), p.literal('1'));
+
+    expect(schema.safeParse(1).ok).toBe(true);
+    expect(schema.safeParse('1').ok).toBe(true);
+    expect(schema.safeParse(2).ok).toBe(false);
+});
+
 describe('findDiscriminator', () => {
     it('returns false when no objects are present', () => {
         const elements = [p.number(), p.string()] as const;
