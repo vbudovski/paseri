@@ -1,5 +1,16 @@
 # @paseri/paseri
 
+## 1.6.0
+
+### Minor Changes
+
+- a6a9545: Optimise all-literal unions (`p.union(p.literal(…), …)`) with an O(1) `Set` membership check, matching `p.enum`. Invalid values now report a single `invalid_enum_value` issue instead of a per-member error tree.
+- 9b477cc: Preserve the inner schema's concrete type through `optional()` and `refine()`: `required()` recovers the original subclass instead of the abstract base, and `Infer` treats an `optional().refine(...)` field as an optional key.
+
+### Patch Changes
+
+- 99a734f: Fix `Infer` returning `{}` instead of `unknown` for `unknown` schemas.
+
 ## 1.5.0
 
 ### Minor Changes
