@@ -95,8 +95,10 @@ function emitType(ir: IR): ts.TypeNode {
         case 'map':
             return factory.createTypeReferenceNode('Map', [emitType(ir.key), emitType(ir.value)]);
         case 'record':
+            // Key is `PropertyKey`, not `string`, to match the runtime: `RecordSchema` extends
+            // `Schema<Infer<Record<PropertyKey, …>>>`, so `Infer` reports `Record<PropertyKey, …>`.
             return factory.createTypeReferenceNode('Record', [
-                keyword(ts.SyntaxKind.StringKeyword),
+                factory.createTypeReferenceNode('PropertyKey'),
                 emitType(ir.element),
             ]);
         case 'object':
