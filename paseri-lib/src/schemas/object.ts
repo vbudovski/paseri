@@ -18,10 +18,11 @@ type Mode = 'strip' | 'strict' | 'passthrough';
 type WrapOptional<S> = S extends OptionalSchema<unknown> | DefaultSchema<unknown>
     ? S
     : S extends Schema<infer T>
-      ? OptionalSchema<T>
+      ? OptionalSchema<T, S>
       : S;
 
-type UnwrapOptional<S> = S extends OptionalSchema<infer T> ? Schema<T> : S;
+// Recover the inner schema's concrete subclass (preserved by `OptionalSchema`), not the abstract base.
+type UnwrapOptional<S> = S extends OptionalSchema<infer _OutputType, infer InnerSchemaType> ? InnerSchemaType : S;
 
 type WrapSomeOptional<ShapeType, Keys extends keyof ShapeType> = {
     [K in keyof ShapeType]: K extends Keys ? WrapOptional<ShapeType[K]> : ShapeType[K];

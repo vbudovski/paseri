@@ -96,8 +96,8 @@ abstract class Schema<OutputType> implements StandardSchemaV1<unknown, OutputTyp
 
         return new ParseErrorResult(issueOrSuccess);
     }
-    optional(): OptionalSchema<OutputType> {
-        return new OptionalSchema(this);
+    optional(): OptionalSchema<OutputType, this> {
+        return new OptionalSchema<OutputType, this>(this);
     }
     nullable(): NullableSchema<OutputType, this> {
         return new NullableSchema<OutputType, this>(this);
@@ -111,21 +111,25 @@ abstract class Schema<OutputType> implements StandardSchemaV1<unknown, OutputTyp
     refine(
         predicate: (value: OutputType) => boolean,
         options: { code: string; path?: (string | number)[]; params?: Record<string, unknown> },
-    ): Schema<OutputType> {
-        return new RefineSchema(this, predicate, options);
+    ): RefineSchema<OutputType, this> {
+        return new RefineSchema<OutputType, this>(this, predicate, options);
     }
 }
 
-class OptionalSchema<OutputType> extends Schema<OutputType | undefined> {
-    private readonly _schema: Schema<OutputType>;
+// The inner schema type parameter preserves the concrete subclass through `.optional()`, so `.required()`
+// (and any other unwrap) recovers it instead of the abstract base — mirrors `NullableSchema`.
+class OptionalSchema<OutputType, InnerSchemaType extends Schema<OutputType> = Schema<OutputType>> extends Schema<
+    OutputType | undefined
+> {
+    private readonly _schema: InnerSchemaType;
 
-    constructor(schema: Schema<OutputType>) {
+    constructor(schema: InnerSchemaType) {
         super();
 
         this._schema = schema;
     }
-    protected _clone(): OptionalSchema<OutputType> {
-        return new OptionalSchema(this._schema);
+    protected _clone(): OptionalSchema<OutputType, InnerSchemaType> {
+        return new OptionalSchema<OutputType, InnerSchemaType>(this._schema);
     }
     _parse(value: unknown, _depth: number, _maxDepth: number): InternalParseResult<OutputType | undefined> {
         if (value === undefined) {
@@ -137,7 +141,7 @@ class OptionalSchema<OutputType> extends Schema<OutputType | undefined> {
     override _isOptional(): boolean {
         return true;
     }
-    override _unwrapOptional(): Schema<OutputType> {
+    override _unwrapOptional(): InnerSchemaType {
         return this._schema;
     }
     default(value: OutputType): DefaultSchema<OutputType> {
@@ -258,9 +262,17 @@ class DefaultSchema<OutputType> extends Schema<OutputType> {
     }
 }
 
-class RefineSchema<OutputType> extends Schema<OutputType> {
-    private readonly _base: Schema<OutputType>;
-    private readonly _predicate: (value: OutputType) => boolean;
+// The inner schema type parameter preserves the concrete base subclass through `.refine()`, and lets `Infer`
+// recurse for key optionality — mirroring the runtime's `_isOptional`/`_hasDefault` delegation below.
+class RefineSchema<
+    OutputType,
+    InnerSchemaType extends Schema<OutputType> = Schema<OutputType>,
+> extends Schema<OutputType> {
+    private readonly _base: InnerSchemaType;
+    // Stored widened to `unknown`: a function field referencing OutputType is contravariant, which would make
+    // RefineSchema (now exposed via `refine()`) invariant and break `Schema<T>` ⊆ `Schema<unknown>`. Sound —
+    // the closure only ever sees a parsed OutputType (see `_parse`); the constructor param keeps callers precise.
+    private readonly _predicate: (value: unknown) => boolean;
     private readonly _code: CustomIssueCode;
     private readonly _path: readonly (string | number)[];
     private readonly _params: Record<string, unknown> | undefined;
@@ -272,19 +284,19 @@ class RefineSchema<OutputType> extends Schema<OutputType> {
     declare _callSiteFile?: string | undefined;
 
     constructor(
-        base: Schema<OutputType>,
+        base: InnerSchemaType,
         predicate: (value: OutputType) => boolean,
         options: { code: string; path?: (string | number)[]; params?: Record<string, unknown> },
     ) {
         super();
 
         this._base = base;
-        this._predicate = predicate;
+        this._predicate = predicate as (value: unknown) => boolean;
         this._code = options.code as CustomIssueCode;
         this._path = options.path ?? [];
         this._params = options.params;
     }
-    protected _clone(): RefineSchema<OutputType> {
+    protected _clone(): RefineSchema<OutputType, InnerSchemaType> {
         return this;
     }
     override _isOptional(): boolean {

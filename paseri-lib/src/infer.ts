@@ -1,21 +1,23 @@
 import type { Merge, Simplify } from 'type-fest';
-import type { AnySchemaType, NullableSchema, OptionalSchema, Schema } from './schemas/schema.ts';
+import type { AnySchemaType, NullableSchema, OptionalSchema, RefineSchema, Schema } from './schemas/schema.ts';
 
 type InferArray<SchemaType> = {
     [Key in keyof SchemaType]: SchemaType[Key] extends Schema<infer OutputType> ? OutputType : never;
 };
 
-// Key optionality mirrors the runtime's `_isOptional`: nominal (an OptionalSchema, seen through
-// nullable), never structural — a schema merely accepting the value `undefined` (e.g.
-// `p.union(p.string(), p.undefined())`) is a required key. Optional values keep `undefined`: an explicit
-// undefined passes through, so the key can be present holding it. Class-erasing wrappers (refine, chain)
-// infer as required keys — stricter than the runtime, never unsound.
+// Key optionality mirrors the runtime's `_isOptional`: nominal (an OptionalSchema, seen through the
+// delegating wrappers nullable and refine), never structural — a schema merely accepting the value
+// `undefined` (e.g. `p.union(p.string(), p.undefined())`) is a required key. Optional values keep
+// `undefined`: an explicit undefined passes through, so the key can be present holding it. Chain does not
+// delegate `_isOptional`, so a chained field infers as a required key — matching the runtime, never unsound.
 type IsOptionalField<SchemaType> =
     SchemaType extends OptionalSchema<unknown>
         ? true
         : SchemaType extends NullableSchema<unknown, infer InnerSchemaType>
           ? IsOptionalField<InnerSchemaType>
-          : false;
+          : SchemaType extends RefineSchema<unknown, infer InnerSchemaType>
+            ? IsOptionalField<InnerSchemaType>
+            : false;
 
 type InferObjectOptional<SchemaType> = {
     [Key in keyof SchemaType as IsOptionalField<SchemaType[Key]> extends true

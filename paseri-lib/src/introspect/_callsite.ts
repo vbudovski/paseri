@@ -50,7 +50,7 @@ Schema.prototype.refine = function <OutputType>(
     this: Schema<OutputType>,
     predicate: (value: OutputType) => boolean,
     options: { code: string; path?: (string | number)[]; params?: Record<string, unknown> },
-): Schema<OutputType> {
+): RefineSchema<OutputType> {
     const callSiteFile = captureCallerFile();
     const result = baseRefine.call(this, predicate, options) as RefineSchema<OutputType>;
     result._callSiteFile = callSiteFile;
