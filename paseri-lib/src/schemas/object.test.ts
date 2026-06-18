@@ -26,6 +26,14 @@ it('infers key optionality from the schema kind, not the value type', () => {
         plain: p.string().optional(),
         optionalThenNullable: p.string().optional().nullable(),
         nullableThenOptional: p.string().nullable().optional(),
+        // Refine delegates `_isOptional` to its base, so an optional base stays an optional key (matching the
+        // runtime); chain, which does not delegate, would instead infer a required key.
+        optionalThenRefined: p
+            .string()
+            .optional()
+            .refine((value) => value === undefined || value.length > 0, {
+                code: 'non_empty',
+            }),
         valueUndefined: p.union(p.string(), p.undefined()),
         explicitUndefined: p.undefined(),
         defaulted: p.string().optional().default('x'),
@@ -43,11 +51,14 @@ it('infers key optionality from the schema kind, not the value type', () => {
             plain?: string | undefined;
             optionalThenNullable?: string | null | undefined;
             nullableThenOptional?: string | null | undefined;
+            optionalThenRefined?: string | undefined;
             valueUndefined: string | undefined;
             explicitUndefined: undefined;
             defaulted: string;
-        }>;
+        }>();
         expect(result.value.defaulted).toBe('x');
+        // Omitted from the input above: an optional refine key is genuinely absent at runtime, not just typed away.
+        expect('optionalThenRefined' in result.value).toBe(false);
     } else {
         expect(result.ok).toBeTruthy();
     }
@@ -887,6 +898,17 @@ describe('required', () => {
         } else {
             expect(result.ok).toBeTruthy();
         }
+
+        // The unwrapped field keeps its concrete subclass (StringSchema/NumberSchema), not the abstract
+        // `Schema<T>` — so subclass methods like `.min` stay chainable. The equality is a compile-time
+        // assertion; it would have failed before the OptionalSchema inner-type fix.
+        expectTypeOf(schema.shape.foo).toEqualTypeOf<ReturnType<typeof p.string>>();
+        expectTypeOf(schema.shape.bar).toEqualTypeOf<ReturnType<typeof p.number>>();
+    });
+
+    it('recovers the concrete inner schema through a partial round-trip', () => {
+        const schema = p.object({ foo: p.string() }).partial().required();
+        expectTypeOf(schema.shape.foo).toEqualTypeOf<ReturnType<typeof p.string>>();
     });
 
     it('rejects a missing field after required()', () => {
