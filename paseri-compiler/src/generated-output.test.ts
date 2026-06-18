@@ -23,11 +23,11 @@ it('record-casts the fast-path default-fill clone so generated modules type-chec
     // The fast path clones the value to fill in absent defaults: `const _out = { ...value }`. Spreading the
     // `object`-narrowed value infers type `{}`, so the fill assignment `_out["count"] = ...` is an implicit-any
     // index error (TS7053) in the standalone module. The slow path already record-casts its clone; the fast path
-    // must too, so the clone is typed `Record<PropertyKey, any>` and indexed assignment is valid.
+    // must too, so the clone is typed `Record<PropertyKey, unknown>` and indexed assignment is valid.
     const source = toSource(p.object({ hello: p.string(), count: p.number().optional().default(0) }).toIR(), {
         name: 'DefaultFill',
     });
-    expect(/const _out\d+ = \{ \.\.\.value as Record<PropertyKey, any> \}/.test(source)).toBe(true);
+    expect(/const _out\d+ = \{ \.\.\.value as Record<PropertyKey, unknown> \}/.test(source)).toBe(true);
 });
 
 it('types the hoisted refine predicate const so generated modules type-check', () => {

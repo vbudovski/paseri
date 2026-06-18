@@ -1,7 +1,7 @@
 {
   "$schema": "https://biomejs.dev/schemas/2.4.16/schema.json",
   "files": {
-    "includes": ["**", "!**/dist", "!**/.astro", "!**/coverage", "!**/.claude"]
+    "includes": ["**", "!**/dist", "!**/.astro", "!**/coverage", "!**/.claude", "!**/*.gen.ts"]
   },
   "assist": { "actions": { "source": { "organizeImports": "on" } } },
   "linter": {
@@ -47,16 +47,5 @@
       "indentWidth": 2
     }
   },
-  "overrides": [
-    {
-      "includes": ["**/*.gen.ts"],
-      "linter": {
-        "rules": {
-          "complexity": {
-            "noUselessEscapeInRegex": "off"
-          }
-        }
-      }
-    }
-  ]
+  "overrides": []
 }

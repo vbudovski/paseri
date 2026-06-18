@@ -194,21 +194,21 @@ function elementAccess(object: ts.Expression, index: ts.Expression): ts.ElementA
     return factory.createElementAccessExpression(object, index);
 }
 
-// Keyed access on the validated value, which is typed `unknown`. The cast erases at runtime (emitted JS is identical
-// to a bare `value[key]`), so it only makes the generated source type-check. The element type is `any` so that the
-// runtime-validated field can flow into the per-kind checks (`.length`, comparisons, indexing, for-in) without a cast
-// at every use; the value is guarded at runtime and the consumer-facing precision comes from the function's return
-// type, not the body.
+// Keyed access on the validated value (typed `unknown`, which isn't indexable). The cast erases at runtime — emitted
+// JS is a bare `value[key]` — so it exists only to make the generated source type-check. The element type is
+// `unknown`, not `any`: every per-kind check narrows the field with a `typeof`/`instanceof` guard before use, and
+// nested fields go to sub-validators that take `unknown`. Consumer-facing precision comes from the return type, not
+// the body.
 const recordType: ts.TypeNode = factory.createTypeReferenceNode('Record', [
     factory.createTypeReferenceNode('PropertyKey'),
-    factory.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword),
+    factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword),
 ]);
 
 function recordAccess(object: ts.Expression, index: ts.Expression): ts.ElementAccessExpression {
     return factory.createElementAccessExpression(factory.createAsExpression(object, recordType), index);
 }
 
-// `<expr> as Record<PropertyKey, any>` — erases at runtime. Used to type output clones/spreads of the validated value.
+// `<expr> as Record<PropertyKey, unknown>` — erases at runtime. Used to type output clones/spreads of the validated value.
 function recordCast(object: ts.Expression): ts.AsExpression {
     return factory.createAsExpression(object, recordType);
 }
