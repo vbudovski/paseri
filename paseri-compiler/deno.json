@@ -10,6 +10,7 @@
   "imports": {
     "@std/expect": "jsr:@std/expect@^1.0.19",
     "@std/testing": "jsr:@std/testing@^1.0.19",
+    "expect-type": "npm:expect-type@^1.3.0",
     "ts-blank-space": "npm:ts-blank-space@^0.9.0",
     "typescript": "npm:typescript@^6.0.3"
   },

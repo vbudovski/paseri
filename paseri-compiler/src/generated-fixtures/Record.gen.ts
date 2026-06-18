@@ -36,7 +36,7 @@ function _shapeRecord6(_obj4: Record<string, unknown>): boolean {
     return true;
 }
 
-function _slowRecord(value: unknown): ParseResult<Record<string, number>> {
+function _slowRecord(value: unknown): ParseResult<Record<PropertyKey, number>> {
     {
         if (!(isPlainObject(value))) {
             return new ParseErrorResult({ type: "leaf", code: issueCodes.INVALID_TYPE, expected: "Record" });
@@ -53,19 +53,19 @@ function _slowRecord(value: unknown): ParseResult<Record<string, number>> {
         if (_issue7 !== undefined) {
             return new ParseErrorResult(_issue7);
         }
-        return { ok: true as const, value: value as Record<string, number> };
+        return { ok: true as const, value: value as Record<PropertyKey, number> };
     }
-    return { ok: true as const, value: value as Record<string, number> };
+    return { ok: true as const, value: value as Record<PropertyKey, number> };
 }
 
-export function safeParseRecord(value: unknown): ParseResult<Record<string, number>> {
+export function safeParseRecord(value: unknown): ParseResult<Record<PropertyKey, number>> {
     if (isPlainObject(value) && _shapeRecord6(value)) {
-        return { ok: true as const, value: value as Record<string, number> };
+        return { ok: true as const, value: value as Record<PropertyKey, number> };
     }
     return _slowRecord(value);
 }
 
-export function parseRecord(value: unknown): Record<string, number> {
+export function parseRecord(value: unknown): Record<PropertyKey, number> {
     const result = safeParseRecord(value);
     if (result.ok) {
         return result.value;
