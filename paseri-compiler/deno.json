@@ -14,7 +14,8 @@
     "typescript": "npm:typescript@^6.0.3"
   },
   "tasks": {
-    "generate_runtime": "deno run --allow-read --allow-write bin/generate_runtime.ts"
+    "generate_runtime": "deno run --allow-read --allow-write bin/generate_runtime.ts",
+    "generate_fixtures": "deno run --allow-read --allow-write --allow-env bin/generate_fixtures.ts"
   },
   "test": {
     "permissions": {
@@ -24,6 +25,12 @@
   },
   "publish": {
     "include": ["src", "LICENSE.md", "README.md"],
-    "exclude": ["src/**/*.test.ts", "src/_test-helpers.ts", "src/aot-shadow.ts", "src/runtime.ts"]
+    "exclude": [
+      "src/**/*.test.ts",
+      "src/_test-helpers.ts",
+      "src/aot-shadow.ts",
+      "src/runtime.ts",
+      "src/generated-fixtures"
+    ]
   }
 }
