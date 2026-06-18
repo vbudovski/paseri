@@ -1,5 +1,16 @@
 # @paseri/compiler
 
+## 0.5.0
+
+### Minor Changes
+
+- a6a9545: Optimise all-literal unions (`p.union(p.literal(…), …)`) with an O(1) `Set` membership check, matching `p.enum`. Invalid values now report a single `invalid_enum_value` issue instead of a per-member error tree.
+
+### Patch Changes
+
+- 9f6052c: Emit `unknown` instead of `any` as the element type in generated record casts.
+- 4d02d3e: Emit `Record<PropertyKey, V>` for compiled record schemas, matching the runtime's `Infer`.
+
 ## 0.4.1
 
 ### Patch Changes
