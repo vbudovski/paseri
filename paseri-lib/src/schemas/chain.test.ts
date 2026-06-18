@@ -107,7 +107,7 @@ it('transforms primitive to primitive', () => {
 
             const result = schema.safeParse(dataAsString);
             if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<number>;
+                expectTypeOf(result.value).toEqualTypeOf<number>();
                 expect(result.value).toBe(data);
             } else {
                 expect(result.ok).toBeTruthy();
@@ -127,7 +127,7 @@ it('transforms primitive to array', () => {
 
             const result = schema.safeParse(dataAsString);
             if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<number[]>;
+                expectTypeOf(result.value).toEqualTypeOf<number[]>();
                 expect(result.value).toEqual(data);
             } else {
                 expect(result.ok).toBeTruthy();
@@ -145,7 +145,7 @@ it('transforms array to primitive', () => {
         fc.property(fc.array(fc.float({ noNaN: true }), { minLength: 1 }), (data) => {
             const result = schema.safeParse(data);
             if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<string>;
+                expectTypeOf(result.value).toEqualTypeOf<string>();
                 const expectedResult = data.map((d) => numberToString(d)).join(',');
                 expect(result.value).toBe(expectedResult);
             } else {
@@ -169,7 +169,7 @@ it('transforms primitive to object, stripping unrecognised keys', () => {
 
             const result = schema.safeParse(dataAsString);
             if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<{ foo: number; bar: number }>;
+                expectTypeOf(result.value).toEqualTypeOf<{ foo: number; bar: number }>();
                 expect(result.value).toEqual({ foo: data[0], bar: data[1] });
             } else {
                 expect(result.ok).toBeTruthy();
@@ -192,7 +192,7 @@ it('transforms object with unrecognised keys to primitive', () => {
             (data) => {
                 const result = schema.safeParse(data);
                 if (result.ok) {
-                    expectTypeOf(result.value).toEqualTypeOf<string>;
+                    expectTypeOf(result.value).toEqualTypeOf<string>();
                     expect(result.value).toBe(`${numberToString(data.foo)},${numberToString(data.bar)}`);
                 } else {
                     expect(result.ok).toBeTruthy();

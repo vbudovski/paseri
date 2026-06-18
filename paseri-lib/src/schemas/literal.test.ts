@@ -9,7 +9,7 @@ describe('String', () => {
         const schema = p.literal('apple');
         const result = schema.safeParse('apple');
         if (result.ok) {
-            expectTypeOf(result.value).toEqualTypeOf<'apple'>;
+            expectTypeOf(result.value).toEqualTypeOf<'apple'>();
             expect(result.value).toBe('apple');
         } else {
             expect(result.ok).toBeTruthy();
@@ -28,7 +28,7 @@ describe('String', () => {
 
     it('exposes the literal value type', () => {
         const schema = p.literal('apple');
-        expectTypeOf(schema.value).toEqualTypeOf<'apple'>;
+        expectTypeOf(schema.value).toEqualTypeOf<'apple'>();
     });
 });
 
@@ -37,7 +37,7 @@ describe('Number', () => {
         const schema = p.literal(123);
         const result = schema.safeParse(123);
         if (result.ok) {
-            expectTypeOf(result.value).toEqualTypeOf<123>;
+            expectTypeOf(result.value).toEqualTypeOf<123>();
             expect(result.value).toBe(123);
         } else {
             expect(result.ok).toBeTruthy();
@@ -56,7 +56,7 @@ describe('Number', () => {
 
     it('exposes the literal value type', () => {
         const schema = p.literal(123);
-        expectTypeOf(schema.value).toEqualTypeOf<123>;
+        expectTypeOf(schema.value).toEqualTypeOf<123>();
     });
 
     it('matches NaN against literal(NaN)', () => {
@@ -105,7 +105,7 @@ describe('Number', () => {
         const schema = p.literal(-5);
         const result = schema.safeParse(-5);
         if (result.ok) {
-            expectTypeOf(result.value).toEqualTypeOf<-5>;
+            expectTypeOf(result.value).toEqualTypeOf<-5>();
             expect(result.value).toBe(-5);
         } else {
             expect(result.ok).toBeTruthy();
@@ -128,7 +128,7 @@ describe('BigInt', () => {
         const schema = p.literal(123n);
         const result = schema.safeParse(123n);
         if (result.ok) {
-            expectTypeOf(result.value).toEqualTypeOf<123n>;
+            expectTypeOf(result.value).toEqualTypeOf<123n>();
             expect(result.value).toBe(123n);
         } else {
             expect(result.ok).toBeTruthy();
@@ -147,7 +147,7 @@ describe('BigInt', () => {
 
     it('exposes the literal value type', () => {
         const schema = p.literal(123n);
-        expectTypeOf(schema.value).toEqualTypeOf<123n>;
+        expectTypeOf(schema.value).toEqualTypeOf<123n>();
     });
 });
 
@@ -156,7 +156,7 @@ describe('Boolean', () => {
         const schema = p.literal(true);
         const result = schema.safeParse(true);
         if (result.ok) {
-            expectTypeOf(result.value).toEqualTypeOf<true>;
+            expectTypeOf(result.value).toEqualTypeOf<true>();
             expect(result.value).toBe(true);
         } else {
             expect(result.ok).toBeTruthy();
@@ -175,7 +175,7 @@ describe('Boolean', () => {
 
     it('exposes the literal value type', () => {
         const schema = p.literal(true);
-        expectTypeOf(schema.value).toEqualTypeOf<true>;
+        expectTypeOf(schema.value).toEqualTypeOf<true>();
     });
 });
 
@@ -186,7 +186,7 @@ it('accepts optional values', () => {
         fc.property(fc.option(fc.constant('apple'), { nil: undefined }), (data) => {
             const result = schema.safeParse(data);
             if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<'apple' | undefined>;
+                expectTypeOf(result.value).toEqualTypeOf<'apple' | undefined>();
                 expect(result.value).toEqual(data);
             } else {
                 expect(result.ok).toBeTruthy();
@@ -202,7 +202,7 @@ it('accepts nullable values', () => {
         fc.property(fc.option(fc.constant('apple'), { nil: null }), (data) => {
             const result = schema.safeParse(data);
             if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<'apple' | null>;
+                expectTypeOf(result.value).toEqualTypeOf<'apple' | null>();
                 expect(result.value).toEqual(data);
             } else {
                 expect(result.ok).toBeTruthy();

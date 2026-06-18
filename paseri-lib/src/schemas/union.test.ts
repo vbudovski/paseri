@@ -12,7 +12,7 @@ it('accepts valid types', () => {
         fc.property(fc.oneof(fc.string(), fc.float({ noNaN: true }), fc.constant(123n)), (data) => {
             const result = schema.safeParse(data);
             if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<string | number | 123n>;
+                expectTypeOf(result.value).toEqualTypeOf<string | number | 123n>();
                 expect(result.value).toEqual(data);
             } else {
                 expect(result.ok).toBeTruthy();
@@ -66,7 +66,7 @@ it('accepts optional values', () => {
             (data) => {
                 const result = schema.safeParse(data);
                 if (result.ok) {
-                    expectTypeOf(result.value).toEqualTypeOf<string | number | 123n | undefined>;
+                    expectTypeOf(result.value).toEqualTypeOf<string | number | 123n | undefined>();
                     expect(result.value).toEqual(data);
                 } else {
                     expect(result.ok).toBeTruthy();
@@ -85,7 +85,7 @@ it('accepts nullable values', () => {
             (data) => {
                 const result = schema.safeParse(data);
                 if (result.ok) {
-                    expectTypeOf(result.value).toEqualTypeOf<string | number | 123n | null>;
+                    expectTypeOf(result.value).toEqualTypeOf<string | number | 123n | null>();
                     expect(result.value).toEqual(data);
                 } else {
                     expect(result.ok).toBeTruthy();
@@ -116,7 +116,7 @@ it('accepts valid discriminated union values', () => {
                 if (result.ok) {
                     expectTypeOf(result.value).toEqualTypeOf<
                         { shape: 'circle'; radius: number } | { shape: 'rectangle'; width: number; height: number }
-                    >;
+                    >();
                     expect(result.value).toEqual(data);
                 } else {
                     expect(result.ok).toBeTruthy();
@@ -210,7 +210,7 @@ it('accepts every value of an all-literal union', () => {
         fc.property(fc.constantFrom('a', 1, 99n, true), (data) => {
             const result = schema.safeParse(data);
             if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<'a' | 1 | 99n | true>;
+                expectTypeOf(result.value).toEqualTypeOf<'a' | 1 | 99n | true>();
                 expect(result.value).toEqual(data);
             } else {
                 expect(result.ok).toBeTruthy();

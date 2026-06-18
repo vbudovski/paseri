@@ -9,7 +9,7 @@ it('passes the value through when the predicate returns true', () => {
     const schema = p.string().refine(() => true, { code: 'never_fires' });
     const result = schema.safeParse('hello');
     if (result.ok) {
-        expectTypeOf(result.value).toEqualTypeOf<string>;
+        expectTypeOf(result.value).toEqualTypeOf<string>();
         expect(result.value).toBe('hello');
     } else {
         expect(result.ok).toBeTruthy();

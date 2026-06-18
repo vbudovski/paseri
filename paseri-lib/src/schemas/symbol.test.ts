@@ -9,7 +9,7 @@ it('accepts valid symbols', () => {
 
     const result = schema.safeParse(data);
     if (result.ok) {
-        expectTypeOf(result.value).toEqualTypeOf<symbol>;
+        expectTypeOf(result.value).toEqualTypeOf<symbol>();
         expect(result.value).toBe(Symbol.for('foo'));
     } else {
         expect(result.ok).toBeTruthy();
@@ -34,7 +34,7 @@ it('accepts optional values', () => {
 
     const result = schema.safeParse(data);
     if (result.ok) {
-        expectTypeOf(result.value).toEqualTypeOf<symbol | undefined>;
+        expectTypeOf(result.value).toEqualTypeOf<symbol | undefined>();
         expect(result.value).toBe(undefined);
     } else {
         expect(result.ok).toBeTruthy();
@@ -47,7 +47,7 @@ it('accepts nullable values', () => {
 
     const result = schema.safeParse(data);
     if (result.ok) {
-        expectTypeOf(result.value).toEqualTypeOf<symbol | null>;
+        expectTypeOf(result.value).toEqualTypeOf<symbol | null>();
         expect(result.value).toBe(null);
     } else {
         expect(result.ok).toBeTruthy();

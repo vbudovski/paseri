@@ -13,7 +13,7 @@ it('accepts valid types', () => {
 
             const result = schema.safeParse(dataAsSet);
             if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<Set<number>>;
+                expectTypeOf(result.value).toEqualTypeOf<Set<number>>();
                 expect(result.value).toEqual(dataAsSet);
             } else {
                 expect(result.ok).toBeTruthy();
@@ -46,7 +46,7 @@ describe('min', () => {
                 const result = schema.safeParse(dataAsSet);
                 if (dataAsSet.size >= bound) {
                     if (result.ok) {
-                        expectTypeOf(result.value).toEqualTypeOf<Set<number>>;
+                        expectTypeOf(result.value).toEqualTypeOf<Set<number>>();
                         expect(result.value).toBe(dataAsSet);
                     } else {
                         expect(result.ok).toBeTruthy();
@@ -98,7 +98,7 @@ describe('max', () => {
                 const result = schema.safeParse(dataAsSet);
                 if (dataAsSet.size <= bound) {
                     if (result.ok) {
-                        expectTypeOf(result.value).toEqualTypeOf<Set<number>>;
+                        expectTypeOf(result.value).toEqualTypeOf<Set<number>>();
                         expect(result.value).toBe(dataAsSet);
                     } else {
                         expect(result.ok).toBeTruthy();
@@ -149,7 +149,7 @@ describe('size', () => {
                 const schema = p.set(p.number()).size(dataAsSet.size);
                 const result = schema.safeParse(dataAsSet);
                 if (result.ok) {
-                    expectTypeOf(result.value).toEqualTypeOf<Set<number>>;
+                    expectTypeOf(result.value).toEqualTypeOf<Set<number>>();
                     expect(result.value).toBe(dataAsSet);
                 } else {
                     expect(result.ok).toBeTruthy();
@@ -292,7 +292,7 @@ it('accepts optional values', () => {
 
             const result = schema.safeParse(dataAsSet);
             if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<Set<number> | undefined>;
+                expectTypeOf(result.value).toEqualTypeOf<Set<number> | undefined>();
                 expect(result.value).toEqual(dataAsSet);
             } else {
                 expect(result.ok).toBeTruthy();
@@ -310,7 +310,7 @@ it('accepts nullable values', () => {
 
             const result = schema.safeParse(dataAsSet);
             if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<Set<number> | null>;
+                expectTypeOf(result.value).toEqualTypeOf<Set<number> | null>();
                 expect(result.value).toEqual(dataAsSet);
             } else {
                 expect(result.ok).toBeTruthy();

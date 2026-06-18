@@ -13,7 +13,7 @@ it('accepts valid types', () => {
 
             const result = schema.safeParse(dataAsMap);
             if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<Map<number, string>>;
+                expectTypeOf(result.value).toEqualTypeOf<Map<number, string>>();
                 expect(result.value).toEqual(dataAsMap);
             } else {
                 expect(result.ok).toBeTruthy();
@@ -49,7 +49,7 @@ describe('min', () => {
                     const result = schema.safeParse(dataAsMap);
                     if (dataAsMap.size >= bound) {
                         if (result.ok) {
-                            expectTypeOf(result.value).toEqualTypeOf<Map<number, string>>;
+                            expectTypeOf(result.value).toEqualTypeOf<Map<number, string>>();
                             expect(result.value).toBe(dataAsMap);
                         } else {
                             expect(result.ok).toBeTruthy();
@@ -105,7 +105,7 @@ describe('max', () => {
                     const result = schema.safeParse(dataAsMap);
                     if (dataAsMap.size <= bound) {
                         if (result.ok) {
-                            expectTypeOf(result.value).toEqualTypeOf<Map<number, string>>;
+                            expectTypeOf(result.value).toEqualTypeOf<Map<number, string>>();
                             expect(result.value).toBe(dataAsMap);
                         } else {
                             expect(result.ok).toBeTruthy();
@@ -162,7 +162,7 @@ describe('size', () => {
                 const schema = p.map(p.number(), p.string()).size(dataAsMap.size);
                 const result = schema.safeParse(dataAsMap);
                 if (result.ok) {
-                    expectTypeOf(result.value).toEqualTypeOf<Map<number, string>>;
+                    expectTypeOf(result.value).toEqualTypeOf<Map<number, string>>();
                     expect(result.value).toBe(dataAsMap);
                 } else {
                     expect(result.ok).toBeTruthy();
@@ -359,7 +359,7 @@ it('accepts optional values', () => {
 
                 const result = schema.safeParse(dataAsMap);
                 if (result.ok) {
-                    expectTypeOf(result.value).toEqualTypeOf<Map<number, string> | undefined>;
+                    expectTypeOf(result.value).toEqualTypeOf<Map<number, string> | undefined>();
                     expect(result.value).toEqual(dataAsMap);
                 } else {
                     expect(result.ok).toBeTruthy();
@@ -378,7 +378,7 @@ it('accepts nullable values', () => {
 
             const result = schema.safeParse(dataAsMap);
             if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<Map<number, string> | null>;
+                expectTypeOf(result.value).toEqualTypeOf<Map<number, string> | null>();
                 expect(result.value).toEqual(dataAsMap);
             } else {
                 expect(result.ok).toBeTruthy();

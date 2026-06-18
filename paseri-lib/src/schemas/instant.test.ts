@@ -16,7 +16,7 @@ it('accepts valid types', () => {
         fc.property(instantArb, (data) => {
             const result = schema.safeParse(data);
             if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<Temporal.Instant>;
+                expectTypeOf(result.value).toEqualTypeOf<Temporal.Instant>();
                 expect(result.value).toBe(data);
             } else {
                 expect(result.ok).toBeTruthy();
@@ -49,7 +49,7 @@ describe('min', () => {
                 const result = p.instant().min(bound).safeParse(value);
                 if (Temporal.Instant.compare(value, bound) >= 0) {
                     if (result.ok) {
-                        expectTypeOf(result.value).toEqualTypeOf<Temporal.Instant>;
+                        expectTypeOf(result.value).toEqualTypeOf<Temporal.Instant>();
                         expect(result.value).toBe(value);
                     } else {
                         expect(result.ok).toBeTruthy();
@@ -86,7 +86,7 @@ describe('max', () => {
                 const result = p.instant().max(bound).safeParse(value);
                 if (Temporal.Instant.compare(value, bound) <= 0) {
                     if (result.ok) {
-                        expectTypeOf(result.value).toEqualTypeOf<Temporal.Instant>;
+                        expectTypeOf(result.value).toEqualTypeOf<Temporal.Instant>();
                         expect(result.value).toBe(value);
                     } else {
                         expect(result.ok).toBeTruthy();
@@ -119,7 +119,7 @@ it('accepts optional values', () => {
         fc.property(fc.option(instantArb, { nil: undefined }), (data) => {
             const result = schema.safeParse(data);
             if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<Temporal.Instant | undefined>;
+                expectTypeOf(result.value).toEqualTypeOf<Temporal.Instant | undefined>();
                 expect(result.value).toEqual(data);
             } else {
                 expect(result.ok).toBeTruthy();
@@ -135,7 +135,7 @@ it('accepts nullable values', () => {
         fc.property(fc.option(instantArb, { nil: null }), (data) => {
             const result = schema.safeParse(data);
             if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<Temporal.Instant | null>;
+                expectTypeOf(result.value).toEqualTypeOf<Temporal.Instant | null>();
                 expect(result.value).toEqual(data);
             } else {
                 expect(result.ok).toBeTruthy();

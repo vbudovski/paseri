@@ -8,7 +8,7 @@ it('accepts null', () => {
     const schema = p.null();
     const result = schema.safeParse(null);
     if (result.ok) {
-        expectTypeOf(result.value).toEqualTypeOf<null>;
+        expectTypeOf(result.value).toEqualTypeOf<null>();
         expect(result.value).toBe(null);
     } else {
         expect(result.ok).toBeTruthy();
@@ -40,7 +40,7 @@ it('accepts optional values', () => {
         fc.property(fc.option(fc.constant(null), { nil: undefined }), (data) => {
             const result = schema.safeParse(data);
             if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<null | undefined>;
+                expectTypeOf(result.value).toEqualTypeOf<null | undefined>();
                 expect(result.value).toEqual(data);
             } else {
                 expect(result.ok).toBeTruthy();
@@ -56,7 +56,7 @@ it('accepts nullable values', () => {
         fc.property(fc.option(fc.constant(null), { nil: null }), (data) => {
             const result = schema.safeParse(data);
             if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<null>;
+                expectTypeOf(result.value).toEqualTypeOf<null>();
                 expect(result.value).toEqual(data);
             } else {
                 expect(result.ok).toBeTruthy();

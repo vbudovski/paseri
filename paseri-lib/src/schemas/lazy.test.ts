@@ -29,7 +29,7 @@ it('accepts valid types', () => {
         fc.property(tree, (data) => {
             const result = schema.safeParse(data);
             if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<T>;
+                expectTypeOf(result.value).toEqualTypeOf<T>();
                 expect(result.value).toBe(data);
             } else {
                 expect(result.ok).toBeTruthy();

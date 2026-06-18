@@ -11,7 +11,7 @@ it('accepts valid types', () => {
         fc.property(fc.float({ noNaN: true }), (data) => {
             const result = schema.safeParse(data);
             if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<number>;
+                expectTypeOf(result.value).toEqualTypeOf<number>();
                 expect(result.value).toBe(data);
             } else {
                 expect(result.ok).toBeTruthy();
@@ -90,7 +90,7 @@ for (const check of boundChecks) {
                         const result = schema.safeParse(value);
                         if (check.accepts(value, bound)) {
                             if (result.ok) {
-                                expectTypeOf(result.value).toEqualTypeOf<number>;
+                                expectTypeOf(result.value).toEqualTypeOf<number>();
                                 expect(result.value).toBe(value);
                             } else {
                                 expect(result.ok).toBeTruthy();
@@ -127,7 +127,7 @@ describe('int', () => {
             fc.property(fc.integer(), (data) => {
                 const result = schema.safeParse(data);
                 if (result.ok) {
-                    expectTypeOf(result.value).toEqualTypeOf<number>;
+                    expectTypeOf(result.value).toEqualTypeOf<number>();
                     expect(result.value).toBe(data);
                 } else {
                     expect(result.ok).toBeTruthy();
@@ -168,7 +168,7 @@ describe('finite', () => {
             fc.property(fc.float({ noNaN: true, noDefaultInfinity: true }), (data) => {
                 const result = schema.safeParse(data);
                 if (result.ok) {
-                    expectTypeOf(result.value).toEqualTypeOf<number>;
+                    expectTypeOf(result.value).toEqualTypeOf<number>();
                     expect(result.value).toBe(data);
                 } else {
                     expect(result.ok).toBeTruthy();
@@ -212,7 +212,7 @@ describe('safe', () => {
             fc.property(fc.maxSafeInteger(), (data) => {
                 const result = schema.safeParse(data);
                 if (result.ok) {
-                    expectTypeOf(result.value).toEqualTypeOf<number>;
+                    expectTypeOf(result.value).toEqualTypeOf<number>();
                     expect(result.value).toBe(data);
                 } else {
                     expect(result.ok).toBeTruthy();
@@ -255,7 +255,7 @@ it('accepts optional values', () => {
         fc.property(fc.option(fc.float({ noNaN: true }), { nil: undefined }), (data) => {
             const result = schema.safeParse(data);
             if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<number | undefined>;
+                expectTypeOf(result.value).toEqualTypeOf<number | undefined>();
                 expect(result.value).toEqual(data);
             } else {
                 expect(result.ok).toBeTruthy();
@@ -271,7 +271,7 @@ it('accepts nullable values', () => {
         fc.property(fc.option(fc.float({ noNaN: true }), { nil: null }), (data) => {
             const result = schema.safeParse(data);
             if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<number | null>;
+                expectTypeOf(result.value).toEqualTypeOf<number | null>();
                 expect(result.value).toEqual(data);
             } else {
                 expect(result.ok).toBeTruthy();

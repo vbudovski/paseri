@@ -12,7 +12,7 @@ it('accepts valid types', () => {
         fc.property(fc.record({ foo: fc.string(), 1: fc.float({ noNaN: true }) }), (data) => {
             const result = schema.safeParse(data);
             if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<{ foo: string; 1: number }>;
+                expectTypeOf(result.value).toEqualTypeOf<{ foo: string; 1: number }>();
                 expect(result.value).toEqual(data);
             } else {
                 expect(result.ok).toBeTruthy();
@@ -84,7 +84,7 @@ it('rejects invalid types', () => {
 it('exposes the shape', () => {
     const shape = { foo: p.string(), bar: p.number(), baz: p.literal(123n) };
     const schema = p.object(shape);
-    expectTypeOf(schema.shape).toEqualTypeOf<typeof shape>;
+    expectTypeOf(schema.shape).toEqualTypeOf<typeof shape>();
 });
 
 it('rejects a plain-looking object whose own constructor is undefined', () => {
@@ -165,7 +165,7 @@ describe('strip', () => {
                 (data) => {
                     const result = schema.safeParse(data);
                     if (result.ok) {
-                        expectTypeOf(result.value).toEqualTypeOf<{ foo: string; bar: { baz: number } }>;
+                        expectTypeOf(result.value).toEqualTypeOf<{ foo: string; bar: { baz: number } }>();
                         const expectedResult = { foo: data.foo, bar: { baz: data.bar.baz } };
                         expect(result.value).toEqual(expectedResult);
                     } else {
@@ -429,7 +429,7 @@ describe('passthrough', () => {
                 (data) => {
                     const result = schema.safeParse(data);
                     if (result.ok) {
-                        expectTypeOf(result.value).toEqualTypeOf<{ foo: string; bar: { baz: number } }>;
+                        expectTypeOf(result.value).toEqualTypeOf<{ foo: string; bar: { baz: number } }>();
                         expect(result.value).toEqual(data);
                     } else {
                         expect(result.ok).toBeTruthy();
@@ -656,8 +656,8 @@ it('accepts optional values', () => {
                 const result = schema.safeParse(data);
                 if (result.ok) {
                     expectTypeOf(result.value).toEqualTypeOf<
-                        { foo: string; bar?: { baz: number }; bif?: number } | undefined
-                    >;
+                        { foo: string; bar?: { baz: number } | undefined; bif?: number | undefined } | undefined
+                    >();
                     expect(result.value).toEqual(data);
                 } else {
                     expect(result.ok).toBeTruthy();
@@ -691,7 +691,7 @@ it('accepts nullable values', () => {
             (data) => {
                 const result = schema.safeParse(data);
                 if (result.ok) {
-                    expectTypeOf(result.value).toEqualTypeOf<{ foo: string; bar: { baz: number } | null } | null>;
+                    expectTypeOf(result.value).toEqualTypeOf<{ foo: string; bar: { baz: number } | null } | null>();
                     expect(result.value).toEqual(data);
                 } else {
                     expect(result.ok).toBeTruthy();
@@ -711,7 +711,7 @@ describe('merge', () => {
             fc.property(fc.record({ foo: fc.float({ noNaN: true }), bar: fc.string() }), (data) => {
                 const result = schemaMerged.safeParse(data);
                 if (result.ok) {
-                    expectTypeOf(result.value).toEqualTypeOf<{ foo: number; bar: string }>;
+                    expectTypeOf(result.value).toEqualTypeOf<{ foo: number; bar: string }>();
                     expect(result.value).toEqual(data);
                 } else {
                     expect(result.ok).toBeTruthy();
@@ -729,7 +729,7 @@ describe('merge', () => {
             fc.property(fc.record({ foo: fc.string() }), (data) => {
                 const result = schemaMerged.safeParse(data);
                 if (result.ok) {
-                    expectTypeOf(result.value).toEqualTypeOf<{ foo: string }>;
+                    expectTypeOf(result.value).toEqualTypeOf<{ foo: string }>();
                     expect(result.value).toEqual(data);
                 } else {
                     expect(result.ok).toBeTruthy();
@@ -781,7 +781,7 @@ describe('pick', () => {
         const data = { foo: 'hello' };
         const result = schemaPicked.safeParse(data);
         if (result.ok) {
-            expectTypeOf(result.value).toEqualTypeOf<{ foo: string }>;
+            expectTypeOf(result.value).toEqualTypeOf<{ foo: string }>();
             expect(result.value).toEqual(data);
         } else {
             expect(result.ok).toBeTruthy();
@@ -803,7 +803,7 @@ describe('omit', () => {
         const data = { bar: 123 };
         const result = schemaOmitted.safeParse(data);
         if (result.ok) {
-            expectTypeOf(result.value).toEqualTypeOf<{ bar: number }>;
+            expectTypeOf(result.value).toEqualTypeOf<{ bar: number }>();
             expect(result.value).toEqual(data);
         } else {
             expect(result.ok).toBeTruthy();
@@ -822,7 +822,7 @@ describe('partial', () => {
         const schema = p.object({ foo: p.string(), bar: p.number() }).partial();
         const result = schema.safeParse({});
         if (result.ok) {
-            expectTypeOf(result.value).toEqualTypeOf<{ foo?: string | undefined; bar?: number | undefined }>;
+            expectTypeOf(result.value).toEqualTypeOf<{ foo?: string | undefined; bar?: number | undefined }>();
             expect(result.value).toEqual({});
         } else {
             expect(result.ok).toBeTruthy();
@@ -833,7 +833,7 @@ describe('partial', () => {
         const schema = p.object({ foo: p.string(), bar: p.number() }).partial('foo');
         const result = schema.safeParse({ bar: 1 });
         if (result.ok) {
-            expectTypeOf(result.value).toEqualTypeOf<{ foo?: string | undefined; bar: number }>;
+            expectTypeOf(result.value).toEqualTypeOf<{ foo?: string | undefined; bar: number }>();
             expect(result.value).toEqual({ bar: 1 });
         } else {
             expect(result.ok).toBeTruthy();
@@ -882,7 +882,7 @@ describe('required', () => {
         const schema = p.object({ foo: p.string().optional(), bar: p.number().optional() }).required();
         const result = schema.safeParse({ foo: 'hi', bar: 1 });
         if (result.ok) {
-            expectTypeOf(result.value).toEqualTypeOf<{ foo: string; bar: number }>;
+            expectTypeOf(result.value).toEqualTypeOf<{ foo: string; bar: number }>();
             expect(result.value).toEqual({ foo: 'hi', bar: 1 });
         } else {
             expect(result.ok).toBeTruthy();
@@ -903,7 +903,7 @@ describe('required', () => {
         const schema = p.object({ foo: p.string().optional(), bar: p.number().optional() }).required('foo');
         const result = schema.safeParse({ foo: 'hi' });
         if (result.ok) {
-            expectTypeOf(result.value).toEqualTypeOf<{ foo: string; bar?: number | undefined }>;
+            expectTypeOf(result.value).toEqualTypeOf<{ foo: string; bar?: number | undefined }>();
             expect(result.value).toEqual({ foo: 'hi' });
         } else {
             expect(result.ok).toBeTruthy();

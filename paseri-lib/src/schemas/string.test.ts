@@ -59,7 +59,7 @@ it('accepts valid types', () => {
         fc.property(fc.string(), (data) => {
             const result = schema.safeParse(data);
             if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<string>;
+                expectTypeOf(result.value).toEqualTypeOf<string>();
                 expect(result.value).toBe(data);
             } else {
                 expect(result.ok).toBeTruthy();
@@ -118,7 +118,7 @@ for (const check of lengthBoundChecks) {
                     const result = schema.safeParse(data);
                     if (check.accepts(data.length, bound)) {
                         if (result.ok) {
-                            expectTypeOf(result.value).toEqualTypeOf<string>;
+                            expectTypeOf(result.value).toEqualTypeOf<string>();
                             expect(result.value).toBe(data);
                         } else {
                             expect(result.ok).toBeTruthy();
@@ -157,7 +157,7 @@ describe('length', () => {
                 const schema = p.string().length(data.length);
                 const result = schema.safeParse(data);
                 if (result.ok) {
-                    expectTypeOf(result.value).toEqualTypeOf<string>;
+                    expectTypeOf(result.value).toEqualTypeOf<string>();
                     expect(result.value).toBe(data);
                 } else {
                     expect(result.ok).toBeTruthy();
@@ -219,7 +219,7 @@ describe('email', () => {
             fc.property(fc.emailAddress(), (data) => {
                 const result = schema.safeParse(data);
                 if (result.ok) {
-                    expectTypeOf(result.value).toEqualTypeOf<string>;
+                    expectTypeOf(result.value).toEqualTypeOf<string>();
                     expect(result.value).toBe(data);
                 } else {
                     expect(result.ok).toBeTruthy();
@@ -289,7 +289,7 @@ describe('emoji', () => {
                 (data) => {
                     const result = schema.safeParse(data);
                     if (result.ok) {
-                        expectTypeOf(result.value).toEqualTypeOf<string>;
+                        expectTypeOf(result.value).toEqualTypeOf<string>();
                         expect(result.value).toBe(data);
                     } else {
                         expect(result.ok).toBeTruthy();
@@ -346,7 +346,7 @@ describe('uuid', () => {
             fc.property(fc.uuid(), (data) => {
                 const result = schema.safeParse(data);
                 if (result.ok) {
-                    expectTypeOf(result.value).toEqualTypeOf<string>;
+                    expectTypeOf(result.value).toEqualTypeOf<string>();
                     expect(result.value).toBe(data);
                 } else {
                     expect(result.ok).toBeTruthy();
@@ -404,7 +404,7 @@ describe('nanoid', () => {
             fc.property(fc.stringMatching(regex), (data) => {
                 const result = schema.safeParse(data);
                 if (result.ok) {
-                    expectTypeOf(result.value).toEqualTypeOf<string>;
+                    expectTypeOf(result.value).toEqualTypeOf<string>();
                     expect(result.value).toBe(data);
                 } else {
                     expect(result.ok).toBeTruthy();
@@ -493,7 +493,7 @@ for (const check of substringChecks) {
                     const data = check.build(needle, prefix, suffix);
                     const result = schema.safeParse(data);
                     if (result.ok) {
-                        expectTypeOf(result.value).toEqualTypeOf<string>;
+                        expectTypeOf(result.value).toEqualTypeOf<string>();
                         expect(result.value).toBe(data);
                     } else {
                         expect(result.ok).toBeTruthy();
@@ -537,7 +537,7 @@ describe('date (string)', () => {
                 (data) => {
                     const result = schema.safeParse(data);
                     if (result.ok) {
-                        expectTypeOf(result.value).toEqualTypeOf<string>;
+                        expectTypeOf(result.value).toEqualTypeOf<string>();
                         expect(result.value).toBe(data);
                     } else {
                         expect(result.ok).toBeTruthy();
@@ -602,7 +602,7 @@ describe('time', () => {
                     const schema = p.string().time(options);
                     const result = schema.safeParse(data);
                     if (result.ok) {
-                        expectTypeOf(result.value).toEqualTypeOf<string>;
+                        expectTypeOf(result.value).toEqualTypeOf<string>();
                         expect(result.value).toBe(data);
                     } else {
                         expect(result.ok).toBeTruthy();
@@ -689,7 +689,7 @@ describe('datetime', () => {
                     const schema = p.string().datetime(options);
                     const result = schema.safeParse(data);
                     if (result.ok) {
-                        expectTypeOf(result.value).toEqualTypeOf<string>;
+                        expectTypeOf(result.value).toEqualTypeOf<string>();
                         expect(result.value).toBe(data);
                     } else {
                         expect(result.ok).toBeTruthy();
@@ -764,7 +764,7 @@ describe('ip', () => {
             fc.property(fc.oneof(fc.ipV4(), fc.ipV6()), (data) => {
                 const result = schema.safeParse(data);
                 if (result.ok) {
-                    expectTypeOf(result.value).toEqualTypeOf<string>;
+                    expectTypeOf(result.value).toEqualTypeOf<string>();
                     expect(result.value).toBe(data);
                 } else {
                     expect(result.ok).toBeTruthy();
@@ -830,7 +830,7 @@ describe('cidr', () => {
                 (data) => {
                     const result = schema.safeParse(data);
                     if (result.ok) {
-                        expectTypeOf(result.value).toEqualTypeOf<string>;
+                        expectTypeOf(result.value).toEqualTypeOf<string>();
                         expect(result.value).toBe(data);
                     } else {
                         expect(result.ok).toBeTruthy();
@@ -892,7 +892,7 @@ describe('regex', () => {
             fc.property(fc.string({ minLength: 1, unit: fc.constantFrom('a') }), (data) => {
                 const result = schema.safeParse(data);
                 if (result.ok) {
-                    expectTypeOf(result.value).toEqualTypeOf<string>;
+                    expectTypeOf(result.value).toEqualTypeOf<string>();
                     expect(result.value).toBe(data);
                 } else {
                     expect(result.ok).toBeTruthy();
@@ -966,7 +966,7 @@ it('accepts optional values', () => {
         fc.property(fc.option(fc.string(), { nil: undefined }), (data) => {
             const result = schema.safeParse(data);
             if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<string | undefined>;
+                expectTypeOf(result.value).toEqualTypeOf<string | undefined>();
                 expect(result.value).toEqual(data);
             } else {
                 expect(result.ok).toBeTruthy();
@@ -982,7 +982,7 @@ it('accepts nullable values', () => {
         fc.property(fc.option(fc.string(), { nil: null }), (data) => {
             const result = schema.safeParse(data);
             if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<string | null>;
+                expectTypeOf(result.value).toEqualTypeOf<string | null>();
                 expect(result.value).toEqual(data);
             } else {
                 expect(result.ok).toBeTruthy();
