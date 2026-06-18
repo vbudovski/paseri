@@ -32,18 +32,19 @@ type InferObject<SchemaType> = Merge<InferObjectOptional<SchemaType>, InferObjec
 /**
  * [Infer](https://paseri.dev/reference/schema/common/#infer) the type from a schema.
  */
-type Infer<SchemaType> = Simplify<
+// `Simplify` wraps only the array/object branches (flattening the tuple map and the key `Merge`). Don't hoist it over
+// the whole union: `Simplify<unknown>` is `{}`, which would make `Infer<p.unknown()>` disagree with `safeParse().value`.
+type Infer<SchemaType> =
     SchemaType extends Readonly<Array<AnySchemaType>>
-        ? InferArray<SchemaType>
+        ? Simplify<InferArray<SchemaType>>
         : SchemaType extends Readonly<Record<PropertyKey, AnySchemaType>>
-          ? InferObject<SchemaType>
+          ? Simplify<InferObject<SchemaType>>
           : SchemaType extends Set<Schema<infer OutputType>>
             ? Set<OutputType>
             : SchemaType extends Map<Schema<infer OutputKeyType>, Schema<infer OutputValueType>>
               ? Map<OutputKeyType, OutputValueType>
               : SchemaType extends Schema<infer OutputType>
                 ? OutputType
-                : never
->;
+                : never;
 
 export type { Infer };
