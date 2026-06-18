@@ -11,7 +11,7 @@ it('accepts valid types', () => {
         fc.property(fc.date({ noInvalidDate: true }), (data) => {
             const result = schema.safeParse(data);
             if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<Date>;
+                expectTypeOf(result.value).toEqualTypeOf<Date>();
                 expect(result.value).toBe(data);
             } else {
                 expect(result.ok).toBeTruthy();
@@ -53,7 +53,7 @@ describe('min', () => {
                 const result = p.date().min(bound).safeParse(value);
                 if (value.getTime() >= bound.getTime()) {
                     if (result.ok) {
-                        expectTypeOf(result.value).toEqualTypeOf<Date>;
+                        expectTypeOf(result.value).toEqualTypeOf<Date>();
                         expect(result.value).toBe(value);
                     } else {
                         expect(result.ok).toBeTruthy();
@@ -106,7 +106,7 @@ describe('max', () => {
                 const result = p.date().max(bound).safeParse(value);
                 if (value.getTime() <= bound.getTime()) {
                     if (result.ok) {
-                        expectTypeOf(result.value).toEqualTypeOf<Date>;
+                        expectTypeOf(result.value).toEqualTypeOf<Date>();
                         expect(result.value).toBe(value);
                     } else {
                         expect(result.ok).toBeTruthy();
@@ -157,7 +157,7 @@ it('accepts optional values', () => {
         fc.property(fc.option(fc.date({ noInvalidDate: true }), { nil: undefined }), (data) => {
             const result = schema.safeParse(data);
             if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<Date | undefined>;
+                expectTypeOf(result.value).toEqualTypeOf<Date | undefined>();
                 expect(result.value).toEqual(data);
             } else {
                 expect(result.ok).toBeTruthy();
@@ -173,7 +173,7 @@ it('accepts nullable values', () => {
         fc.property(fc.option(fc.date({ noInvalidDate: true }), { nil: null }), (data) => {
             const result = schema.safeParse(data);
             if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<Date | null>;
+                expectTypeOf(result.value).toEqualTypeOf<Date | null>();
                 expect(result.value).toEqual(data);
             } else {
                 expect(result.ok).toBeTruthy();

@@ -18,7 +18,7 @@ it('accepts valid types', () => {
         fc.property(plainMonthDayArb, (data) => {
             const result = schema.safeParse(data);
             if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<Temporal.PlainMonthDay>;
+                expectTypeOf(result.value).toEqualTypeOf<Temporal.PlainMonthDay>();
                 expect(result.value).toBe(data);
             } else {
                 expect(result.ok).toBeTruthy();
@@ -49,7 +49,7 @@ it('accepts optional values', () => {
         fc.property(fc.option(plainMonthDayArb, { nil: undefined }), (data) => {
             const result = schema.safeParse(data);
             if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<Temporal.PlainMonthDay | undefined>;
+                expectTypeOf(result.value).toEqualTypeOf<Temporal.PlainMonthDay | undefined>();
                 expect(result.value).toEqual(data);
             } else {
                 expect(result.ok).toBeTruthy();
@@ -65,7 +65,7 @@ it('accepts nullable values', () => {
         fc.property(fc.option(plainMonthDayArb, { nil: null }), (data) => {
             const result = schema.safeParse(data);
             if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<Temporal.PlainMonthDay | null>;
+                expectTypeOf(result.value).toEqualTypeOf<Temporal.PlainMonthDay | null>();
                 expect(result.value).toEqual(data);
             } else {
                 expect(result.ok).toBeTruthy();

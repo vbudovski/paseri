@@ -19,7 +19,7 @@ it('accepts valid types', () => {
         fc.property(durationArb, (data) => {
             const result = schema.safeParse(data);
             if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<Temporal.Duration>;
+                expectTypeOf(result.value).toEqualTypeOf<Temporal.Duration>();
                 expect(result.value).toBe(data);
             } else {
                 expect(result.ok).toBeTruthy();
@@ -50,7 +50,7 @@ it('accepts optional values', () => {
         fc.property(fc.option(durationArb, { nil: undefined }), (data) => {
             const result = schema.safeParse(data);
             if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<Temporal.Duration | undefined>;
+                expectTypeOf(result.value).toEqualTypeOf<Temporal.Duration | undefined>();
                 expect(result.value).toEqual(data);
             } else {
                 expect(result.ok).toBeTruthy();
@@ -66,7 +66,7 @@ it('accepts nullable values', () => {
         fc.property(fc.option(durationArb, { nil: null }), (data) => {
             const result = schema.safeParse(data);
             if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<Temporal.Duration | null>;
+                expectTypeOf(result.value).toEqualTypeOf<Temporal.Duration | null>();
                 expect(result.value).toEqual(data);
             } else {
                 expect(result.ok).toBeTruthy();

@@ -8,7 +8,7 @@ it('accepts a string value in the set', () => {
     const schema = p.enum('red', 'green', 'blue');
     const result = schema.safeParse('red');
     if (result.ok) {
-        expectTypeOf(result.value).toEqualTypeOf<'red' | 'green' | 'blue'>;
+        expectTypeOf(result.value).toEqualTypeOf<'red' | 'green' | 'blue'>();
         expect(result.value).toBe('red');
     } else {
         expect(result.ok).toBeTruthy();
@@ -19,7 +19,7 @@ it('accepts a number value in the set', () => {
     const schema = p.enum(1, 2, 3);
     const result = schema.safeParse(2);
     if (result.ok) {
-        expectTypeOf(result.value).toEqualTypeOf<1 | 2 | 3>;
+        expectTypeOf(result.value).toEqualTypeOf<1 | 2 | 3>();
         expect(result.value).toBe(2);
     } else {
         expect(result.ok).toBeTruthy();
@@ -30,7 +30,7 @@ it('accepts a negative number value in the set', () => {
     const schema = p.enum(-1, -2, -3);
     const result = schema.safeParse(-2);
     if (result.ok) {
-        expectTypeOf(result.value).toEqualTypeOf<-1 | -2 | -3>;
+        expectTypeOf(result.value).toEqualTypeOf<-1 | -2 | -3>();
         expect(result.value).toBe(-2);
     } else {
         expect(result.ok).toBeTruthy();
@@ -41,7 +41,7 @@ it('accepts a bigint value in the set', () => {
     const schema = p.enum(1n, 2n, 3n);
     const result = schema.safeParse(2n);
     if (result.ok) {
-        expectTypeOf(result.value).toEqualTypeOf<1n | 2n | 3n>;
+        expectTypeOf(result.value).toEqualTypeOf<1n | 2n | 3n>();
         expect(result.value).toBe(2n);
     } else {
         expect(result.ok).toBeTruthy();
@@ -52,7 +52,7 @@ it('accepts a boolean value in the set', () => {
     const schema = p.enum(true, false);
     const result = schema.safeParse(true);
     if (result.ok) {
-        expectTypeOf(result.value).toEqualTypeOf<true | false>;
+        expectTypeOf(result.value).toEqualTypeOf<true | false>();
         expect(result.value).toBe(true);
     } else {
         expect(result.ok).toBeTruthy();
@@ -103,7 +103,7 @@ describe('extract', () => {
         const schema = p.enum('red', 'green', 'blue').extract('red', 'green');
         const result = schema.safeParse('red');
         if (result.ok) {
-            expectTypeOf(result.value).toEqualTypeOf<'red' | 'green'>;
+            expectTypeOf(result.value).toEqualTypeOf<'red' | 'green'>();
             expect(result.value).toBe('red');
         } else {
             expect(result.ok).toBeTruthy();
@@ -142,7 +142,7 @@ describe('exclude', () => {
         const schema = p.enum('red', 'green', 'blue').exclude('red');
         const result = schema.safeParse('green');
         if (result.ok) {
-            expectTypeOf(result.value).toEqualTypeOf<'green' | 'blue'>;
+            expectTypeOf(result.value).toEqualTypeOf<'green' | 'blue'>();
             expect(result.value).toBe('green');
         } else {
             expect(result.ok).toBeTruthy();

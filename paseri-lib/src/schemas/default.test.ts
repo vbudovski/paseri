@@ -8,7 +8,7 @@ it('substitutes default for undefined input', () => {
     const schema = p.number().optional().default(123);
     const result = schema.safeParse(undefined);
     if (result.ok) {
-        expectTypeOf(result.value).toEqualTypeOf<number>;
+        expectTypeOf(result.value).toEqualTypeOf<number>();
         expect(result.value).toBe(123);
     } else {
         expect(result.ok).toBeTruthy();
@@ -42,7 +42,7 @@ it('passes non-undefined input through to the base schema', () => {
         fc.property(fc.integer(), (data) => {
             const result = schema.safeParse(data);
             if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<number>;
+                expectTypeOf(result.value).toEqualTypeOf<number>();
                 expect(result.value).toBe(data);
             } else {
                 expect(result.ok).toBeTruthy();

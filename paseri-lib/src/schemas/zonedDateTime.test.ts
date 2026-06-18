@@ -23,7 +23,7 @@ it('accepts valid types', () => {
         fc.property(zonedDateTimeArb, (data) => {
             const result = schema.safeParse(data);
             if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<Temporal.ZonedDateTime>;
+                expectTypeOf(result.value).toEqualTypeOf<Temporal.ZonedDateTime>();
                 expect(result.value).toBe(data);
             } else {
                 expect(result.ok).toBeTruthy();
@@ -56,7 +56,7 @@ describe('min', () => {
                 const result = p.zonedDateTime().min(bound).safeParse(value);
                 if (Temporal.ZonedDateTime.compare(value, bound) >= 0) {
                     if (result.ok) {
-                        expectTypeOf(result.value).toEqualTypeOf<Temporal.ZonedDateTime>;
+                        expectTypeOf(result.value).toEqualTypeOf<Temporal.ZonedDateTime>();
                         expect(result.value).toBe(value);
                     } else {
                         expect(result.ok).toBeTruthy();
@@ -99,7 +99,7 @@ describe('max', () => {
                 const result = p.zonedDateTime().max(bound).safeParse(value);
                 if (Temporal.ZonedDateTime.compare(value, bound) <= 0) {
                     if (result.ok) {
-                        expectTypeOf(result.value).toEqualTypeOf<Temporal.ZonedDateTime>;
+                        expectTypeOf(result.value).toEqualTypeOf<Temporal.ZonedDateTime>();
                         expect(result.value).toBe(value);
                     } else {
                         expect(result.ok).toBeTruthy();
@@ -136,7 +136,7 @@ it('accepts optional values', () => {
         fc.property(fc.option(zonedDateTimeArb, { nil: undefined }), (data) => {
             const result = schema.safeParse(data);
             if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<Temporal.ZonedDateTime | undefined>;
+                expectTypeOf(result.value).toEqualTypeOf<Temporal.ZonedDateTime | undefined>();
                 expect(result.value).toEqual(data);
             } else {
                 expect(result.ok).toBeTruthy();
@@ -152,7 +152,7 @@ it('accepts nullable values', () => {
         fc.property(fc.option(zonedDateTimeArb, { nil: null }), (data) => {
             const result = schema.safeParse(data);
             if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<Temporal.ZonedDateTime | null>;
+                expectTypeOf(result.value).toEqualTypeOf<Temporal.ZonedDateTime | null>();
                 expect(result.value).toEqual(data);
             } else {
                 expect(result.ok).toBeTruthy();

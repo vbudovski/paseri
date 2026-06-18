@@ -11,7 +11,7 @@ it('accepts valid types', () => {
         fc.property(fc.bigInt(), (data) => {
             const result = schema.safeParse(data);
             if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<bigint>;
+                expectTypeOf(result.value).toEqualTypeOf<bigint>();
                 expect(result.value).toBe(data);
             } else {
                 expect(result.ok).toBeTruthy();
@@ -82,7 +82,7 @@ for (const check of boundChecks) {
                     const result = schema.safeParse(value);
                     if (check.accepts(value, bound)) {
                         if (result.ok) {
-                            expectTypeOf(result.value).toEqualTypeOf<bigint>;
+                            expectTypeOf(result.value).toEqualTypeOf<bigint>();
                             expect(result.value).toBe(value);
                         } else {
                             expect(result.ok).toBeTruthy();
@@ -113,7 +113,7 @@ it('accepts optional values', () => {
         fc.property(fc.option(fc.bigInt(), { nil: undefined }), (data) => {
             const result = schema.safeParse(data);
             if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<bigint | undefined>;
+                expectTypeOf(result.value).toEqualTypeOf<bigint | undefined>();
                 expect(result.value).toEqual(data);
             } else {
                 expect(result.ok).toBeTruthy();
@@ -129,7 +129,7 @@ it('accepts nullable values', () => {
         fc.property(fc.option(fc.bigInt(), { nil: null }), (data) => {
             const result = schema.safeParse(data);
             if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<bigint | null>;
+                expectTypeOf(result.value).toEqualTypeOf<bigint | null>();
                 expect(result.value).toEqual(data);
             } else {
                 expect(result.ok).toBeTruthy();

@@ -24,7 +24,7 @@ it('accepts valid types', () => {
         fc.property(plainTimeArb, (data) => {
             const result = schema.safeParse(data);
             if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<Temporal.PlainTime>;
+                expectTypeOf(result.value).toEqualTypeOf<Temporal.PlainTime>();
                 expect(result.value).toBe(data);
             } else {
                 expect(result.ok).toBeTruthy();
@@ -57,7 +57,7 @@ describe('min', () => {
                 const result = p.plainTime().min(bound).safeParse(value);
                 if (Temporal.PlainTime.compare(value, bound) >= 0) {
                     if (result.ok) {
-                        expectTypeOf(result.value).toEqualTypeOf<Temporal.PlainTime>;
+                        expectTypeOf(result.value).toEqualTypeOf<Temporal.PlainTime>();
                         expect(result.value).toBe(value);
                     } else {
                         expect(result.ok).toBeTruthy();
@@ -94,7 +94,7 @@ describe('max', () => {
                 const result = p.plainTime().max(bound).safeParse(value);
                 if (Temporal.PlainTime.compare(value, bound) <= 0) {
                     if (result.ok) {
-                        expectTypeOf(result.value).toEqualTypeOf<Temporal.PlainTime>;
+                        expectTypeOf(result.value).toEqualTypeOf<Temporal.PlainTime>();
                         expect(result.value).toBe(value);
                     } else {
                         expect(result.ok).toBeTruthy();
@@ -127,7 +127,7 @@ it('accepts optional values', () => {
         fc.property(fc.option(plainTimeArb, { nil: undefined }), (data) => {
             const result = schema.safeParse(data);
             if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<Temporal.PlainTime | undefined>;
+                expectTypeOf(result.value).toEqualTypeOf<Temporal.PlainTime | undefined>();
                 expect(result.value).toEqual(data);
             } else {
                 expect(result.ok).toBeTruthy();
@@ -143,7 +143,7 @@ it('accepts nullable values', () => {
         fc.property(fc.option(plainTimeArb, { nil: null }), (data) => {
             const result = schema.safeParse(data);
             if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<Temporal.PlainTime | null>;
+                expectTypeOf(result.value).toEqualTypeOf<Temporal.PlainTime | null>();
                 expect(result.value).toEqual(data);
             } else {
                 expect(result.ok).toBeTruthy();

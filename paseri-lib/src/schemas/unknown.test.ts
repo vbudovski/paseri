@@ -11,7 +11,7 @@ it('accepts all values', () => {
         fc.property(fc.anything(), (data) => {
             const result = schema.safeParse(data);
             if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<unknown>;
+                expectTypeOf(result.value).toEqualTypeOf<unknown>();
                 expect(result.value).toEqual(data);
             } else {
                 expect(result.ok).toBeTruthy();

@@ -11,7 +11,7 @@ it('accepts valid types', () => {
         fc.property(fc.tuple(fc.float({ noNaN: true }), fc.string(), fc.constant(123n)), (data) => {
             const result = schema.safeParse(data);
             if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<[number, string, 123n]>;
+                expectTypeOf(result.value).toEqualTypeOf<[number, string, 123n]>();
                 expect(result.value).toBe(data);
             } else {
                 expect(result.ok).toBeTruthy();
@@ -142,7 +142,7 @@ it('accepts optional values', () => {
             (data) => {
                 const result = schema.safeParse(data);
                 if (result.ok) {
-                    expectTypeOf(result.value).toEqualTypeOf<[number, string, 123n] | undefined>;
+                    expectTypeOf(result.value).toEqualTypeOf<[number, string, 123n] | undefined>();
                     expect(result.value).toEqual(data);
                 } else {
                     expect(result.ok).toBeTruthy();
@@ -161,7 +161,7 @@ it('accepts nullable values', () => {
             (data) => {
                 const result = schema.safeParse(data);
                 if (result.ok) {
-                    expectTypeOf(result.value).toEqualTypeOf<[number, string, 123n] | null>;
+                    expectTypeOf(result.value).toEqualTypeOf<[number, string, 123n] | null>();
                     expect(result.value).toEqual(data);
                 } else {
                     expect(result.ok).toBeTruthy();

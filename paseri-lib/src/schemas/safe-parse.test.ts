@@ -7,7 +7,7 @@ it('returns ok result on success', () => {
     const schema = p.string();
     const result = schema.safeParse('foo');
     if (result.ok) {
-        expectTypeOf(result.value).toEqualTypeOf<string>;
+        expectTypeOf(result.value).toEqualTypeOf<string>();
         expect(result.value).toBe('foo');
     } else {
         expect(result.ok).toBeTruthy();
