@@ -11,7 +11,7 @@
     "@std/expect": "jsr:@std/expect@^1.0.19",
     "@std/testing": "jsr:@std/testing@^1.0.19",
     "fast-check": "npm:fast-check@^4.8.0",
-    "vite": "npm:vite@^7"
+    "vite": "npm:vite@^8.0.16"
   },
   "test": {
     "permissions": {
