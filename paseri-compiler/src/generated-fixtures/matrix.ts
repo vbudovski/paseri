@@ -50,6 +50,14 @@ const MATRIX: readonly MatrixEntry[] = [
     { name: 'ObjectStrict', schema: p.object({ foo: p.string() }).strict() },
     { name: 'ObjectPassthrough', schema: p.object({ foo: p.string() }).passthrough() },
     { name: 'ObjectNested', schema: p.object({ inner: p.object({ baz: p.number() }) }) },
+    {
+        name: 'ObjectStripNested',
+        schema: p.object({ inner: p.object({ baz: p.number() }).strip() }).strip(),
+    },
+    {
+        name: 'ObjectStripDefault',
+        schema: p.object({ host: p.string(), port: p.number().optional().default(123) }).strip(),
+    },
     { name: 'ArrayString', schema: p.array(p.string()) },
     { name: 'ArrayObject', schema: p.array(p.object({ id: p.number() })) },
     { name: 'Record', schema: p.record(p.number()) },

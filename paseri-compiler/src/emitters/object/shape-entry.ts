@@ -39,7 +39,14 @@ import { emitType } from '../../emit-type.ts';
 import { successPayload } from '../../issues.ts';
 import { freshIdentifier, registerDefault, type State } from '../../state.ts';
 import { findDiscriminator } from '../union/discriminator.ts';
-import { isFieldOptional, PROTOTYPE_NAMES, SHAPE_ENTRY_ELIGIBLE_KINDS, type StrictLevel } from './common.ts';
+import {
+    type FieldIR,
+    isFieldOptional,
+    isReconstructableStripObject,
+    PROTOTYPE_NAMES,
+    SHAPE_ENTRY_ELIGIBLE_KINDS,
+    type StrictLevel,
+} from './common.ts';
 import { containsReachableDefault, shapeMatchesUndefined, tryShape, withShapeAttempt } from './shape.ts';
 
 /** Whether a discriminant value can be used as a `switch` case label (strict-equality matchable as a literal). */
@@ -303,12 +310,28 @@ function tryEmitDefaultObjectEntry(
             equals(protoCall(), nullExpression),
         ),
     );
-    if (ir.mode === 'strict' || ir.mode === 'strip') {
+    const outputType = emitType(ir);
+    // Strip + default fold: emit the output as a static-key literal — unknown keys dropped by construction (no count
+    // loop, no slow-path bail) and absent defaults filled inline, in one allocation. Reached only for the lean
+    // default-entry shape, so every value is read straight from the validated input.
+    if (ir.mode === 'strip') {
+        const defaultIds = new Map(defaults.map((entry) => [entry.key, entry.id]));
+        const props: Record<string, ts.Expression> = {};
+        for (const [fieldName] of fields) {
+            const accessor = recordAccess(valueExpression, stringLiteral(fieldName));
+            const defaultId = defaultIds.get(fieldName);
+            props[fieldName] =
+                defaultId === undefined
+                    ? accessor
+                    : ternary(equals(accessor, undefinedExpression), defaultId, accessor);
+        }
+        return [ifStatement(shape, [returnStatement(successPayload(objectLiteral(props), outputType))]), slowCall];
+    }
+    if (ir.mode === 'strict') {
         strictLevels.push({ valueExpression, requiredCount, optionalFieldNames });
     }
     // On success: if any default field is absent, clone the value and fill in the absent defaults; otherwise the
     // value is already complete, so return it untouched (no allocation on the all-present happy path).
-    const outputType = emitType(ir);
     const outIdentifier = freshIdentifier(state, 'out');
     let anyAbsent: ts.Expression = equals(defaults[0].accessor, undefinedExpression);
     for (let index = 1; index < defaults.length; index++) {
@@ -340,12 +363,33 @@ function tryEmitDefaultObjectEntry(
     return [ifStatement(shape, successStatements), slowCall];
 }
 
-type OutputField = { readonly name: string; readonly local: ts.Identifier; readonly optional: boolean };
+type OutputField = {
+    readonly name: string;
+    readonly local: ts.Identifier;
+    readonly optional: boolean;
+    readonly ir: FieldIR;
+};
 
 /**
- * Strip-mode success: build the output from the validated field locals instead of scanning for extras and
- * returning the original. Required keys go into a static-key object literal (V8 canonical fast map); optionals
- * are written only when present (`"k" in value`) so an absent one isn't materialised as `k: undefined`.
+ * The output value for one validated field. A reconstructable strip object is rebuilt as a static-key literal of its
+ * fields (recursively), dropping unknown keys by construction — the count loop `tryShape` suppressed for it. Anything
+ * else is kept by reference. Descends exactly the objects `tryShape` suppressed, keeping the two in lockstep.
+ */
+function reconstructStripValue(ir: FieldIR, access: ts.Expression): ts.Expression {
+    if (ir.kind !== 'object' || !isReconstructableStripObject(ir)) {
+        return access;
+    }
+    const props: Record<string, ts.Expression> = {};
+    for (const [name, sub] of Object.entries(ir.fields)) {
+        props[name] = reconstructStripValue(sub, recordAccess(access, stringLiteral(name)));
+    }
+    return objectLiteral(props);
+}
+
+/**
+ * Strip-mode success: build the output from validated field locals rather than returning the original. Required keys
+ * form a static-key literal; optionals are written only when present (`"k" in value`). Nested strip objects are
+ * rebuilt via {@linkcode reconstructStripValue}.
  */
 function emitStripSuccess(
     outputFields: readonly OutputField[],
@@ -359,7 +403,7 @@ function emitStripSuccess(
         if (field.optional) {
             optionalFields.push(field);
         } else {
-            requiredProps[field.name] = field.local;
+            requiredProps[field.name] = reconstructStripValue(field.ir, field.local);
         }
     }
     if (optionalFields.length === 0) {
@@ -370,7 +414,7 @@ function emitStripSuccess(
     for (const field of optionalFields) {
         statements.push(
             ifStatement(binary(stringLiteral(field.name), ts.SyntaxKind.InKeyword, recordCast(valueExpression)), [
-                assignOwnProperty(outIdentifier, field.name, field.local),
+                assignOwnProperty(outIdentifier, field.name, reconstructStripValue(field.ir, field.local)),
             ]),
         );
     }
@@ -404,6 +448,9 @@ function tryEmitObjectShapeEntryBody(
     const optionalFieldNames: string[] = [];
     let requiredCount = 0;
     const outputFields: OutputField[] = [];
+    // Only a strip entry rebuilds its output, so only it can reconstruct a nested strip field (and suppress its count
+    // loop); strict/passthrough entries return the input by reference.
+    const reconstructStrip = ir.mode === 'strip';
     for (const [fieldName, fieldIR] of fields) {
         const optional = isFieldOptional(fieldIR);
         if (!optional && shapeMatchesUndefined(fieldIR)) {
@@ -417,6 +464,7 @@ function tryEmitObjectShapeEntryBody(
             );
         }
         const fieldLocal = freshIdentifier(state, 'field');
+        state.reconstructingStrip = reconstructStrip;
         const fieldShape = tryShape(fieldIR, fieldLocal, strictLevels, state);
         if (fieldShape === undefined) {
             return undefined;
@@ -425,7 +473,7 @@ function tryEmitObjectShapeEntryBody(
             constStatement(fieldLocal, undefined, recordAccess(valueExpression, stringLiteral(fieldName))),
             ifStatement(not(fieldShape), [slowCall]),
         );
-        outputFields.push({ name: fieldName, local: fieldLocal, optional });
+        outputFields.push({ name: fieldName, local: fieldLocal, optional, ir: fieldIR });
         if (optional) {
             optionalFieldNames.push(fieldName);
         } else {
@@ -490,6 +538,9 @@ function tryEmitShapeEntryBody(
             return statementForm;
         }
     }
+    // A bailed strip statement-form may leave `reconstructingStrip` set; clear it so the generic attempt shapes with
+    // reconstruction off, like every other entry path.
+    state.reconstructingStrip = false;
     const generic = withShapeAttempt(state, () => {
         const strictLevels: StrictLevel[] = [];
         const shape = tryShape(ir, valueExpression, strictLevels, state);

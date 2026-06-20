@@ -150,6 +150,13 @@ interface State {
      */
     refShapeUses: number;
     /**
+     * Whether the object about to be shaped sits where the strip entry rebuilds its value from validated fields. When
+     * set, a reconstructable strip object suppresses its extras count loop (the rebuild drops unknown keys anyway).
+     * `tryShape` clears it on entry and the `object` arm re-sets it only for fields it reconstructs, so it never leaks
+     * into by-reference (container/strict) subtrees.
+     */
+    reconstructingStrip: boolean;
+    /**
      * Identifiers the generated module already binds — runtime helpers, the internal import, the entry/slow functions,
      * and named (lazy) graph entries. A refine/chain callback whose resolved free identifier would clash with one of
      * these is rejected (`ResolutionError`) rather than emitted, since a clash is otherwise a duplicate-binding
@@ -180,6 +187,7 @@ function makeState(trustedBareSpecifiers: ReadonlySet<string> = new Set()): Stat
         refShapeCache: new Map(),
         refShapeSession: undefined,
         refShapeUses: 0,
+        reconstructingStrip: false,
         reservedIdentifiers: new Set(),
     };
 }

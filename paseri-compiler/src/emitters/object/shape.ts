@@ -41,7 +41,7 @@ import { ResolutionError } from '../../resolver.ts';
 import { freshIdentifier, hoistEnum, hoistRegex, type State } from '../../state.ts';
 import { getOrCreateCallback } from '../refine/index.ts';
 import { regexTestExpression } from '../string.ts';
-import { isFieldOptional, PROTOTYPE_NAMES, type StrictLevel } from './common.ts';
+import { isFieldOptional, isReconstructableStripObject, PROTOTYPE_NAMES, type StrictLevel } from './common.ts';
 
 const { factory } = ts;
 
@@ -472,6 +472,10 @@ function tryShape(
     strictLevels: StrictLevel[],
     state: State,
 ): ts.Expression | undefined {
+    // Reconstruction context is for this one node; capture and clear so it can't leak into nested positions. The
+    // `object` arm re-sets it only for fields it reconstructs.
+    const reconstructing = state.reconstructingStrip;
+    state.reconstructingStrip = false;
     switch (ir.kind) {
         case 'string': {
             let result: ts.Expression = equals(typeofExpression(valueExpression), stringLiteral('string'));
@@ -957,12 +961,16 @@ function tryShape(
                     return undefined;
                 }
             }
+            // A reconstructed strip object reconstructs its strip fields too (suppressing their loops in turn). A
+            // strict/passthrough object is kept by reference, so its fields are not — `thisReconstructed` is false.
+            const thisReconstructed = reconstructing && isReconstructableStripObject(ir);
             // `isPlainObject` (always spliced for object schemas) gates the shape, then each field's inline check.
             // Call the spliced predicate so it stays in lockstep with paseri-lib (the constructor / Array.isArray
             // cases are easy to miss when re-inlined).
             let result: ts.Expression = call(identifier('isPlainObject'), [valueExpression]);
             for (const [fieldName, fieldIR] of fields) {
                 const fieldExpression = recordAccess(valueExpression, stringLiteral(fieldName));
+                state.reconstructingStrip = thisReconstructed;
                 const fieldShape = tryShape(fieldIR, fieldExpression, strictLevels, state);
                 if (fieldShape === undefined) {
                     return undefined;
@@ -979,7 +987,9 @@ function tryShape(
                 }
                 result = binary(result, ts.SyntaxKind.AmpersandAmpersandToken, fieldShape);
             }
-            if (ir.mode === 'strict' || ir.mode === 'strip') {
+            // A reconstructed strip object needs no count loop (the rebuild drops unknown keys). Strict objects and
+            // non-reconstructed strip objects still push a level for the caller's extras pass.
+            if (ir.mode === 'strict' || (ir.mode === 'strip' && !thisReconstructed)) {
                 const optionalFieldNames: string[] = [];
                 let requiredCount = 0;
                 for (const [fieldName, fieldIR] of fields) {
