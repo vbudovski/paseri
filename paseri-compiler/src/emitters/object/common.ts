@@ -33,6 +33,15 @@ function safeIdentifier(name: string): string {
 }
 
 /**
+ * Whether a strip object's output can be rebuilt as a static-key literal of its validated fields. Excludes optionals
+ * (an absent one can't be a literal property), so the literal mirrors the schema's keys exactly and drops unknown
+ * ones. Shared so `tryShape`'s count-loop suppression and the reconstruction walk agree on which objects are rebuilt.
+ */
+function isReconstructableStripObject(ir: FieldIR): boolean {
+    return ir.kind === 'object' && ir.mode === 'strip' && !Object.values(ir.fields).some(isFieldOptional);
+}
+
+/**
  * Field names that conflict with Object.prototype if accessed via the `in`
  * operator or dot/bracket lookup. When any schema field shares one, the fast
  * path bails and the dispatch loop's `for..in` is used instead.
@@ -88,6 +97,7 @@ export {
     containsDefault,
     type FieldIR,
     isFieldOptional,
+    isReconstructableStripObject,
     type ObjectIR,
     PROTOTYPE_NAMES,
     SHAPE_ENTRY_ELIGIBLE_KINDS,
