@@ -28,7 +28,16 @@ function formatDate(value: Date): string {
     return `${year}-${month}-${date}`;
 }
 
-function formatTime(value: Date, precision?: number): string {
+function formatTimezone(timezone: number, offset?: boolean, local?: boolean): string {
+    const timezoneString =
+        timezone === 0
+            ? 'Z'
+            : `${Math.sign(timezone) >= 0 ? '+' : '-'}${String(Math.floor(Math.abs(timezone) / 60)).padStart(2, '0')}:${String(Math.abs(timezone) % 60).padStart(2, '0')}`;
+
+    return local ? '' : offset ? timezoneString : 'Z';
+}
+
+function formatTime(value: Date, timezone: number, precision?: number, offset?: boolean, local?: boolean): string {
     const hour = String(value.getHours()).padStart(2, '0');
     const minute = String(value.getMinutes()).padStart(2, '0');
     const second = String(value.getSeconds()).padStart(2, '0');
@@ -40,16 +49,11 @@ function formatTime(value: Date, precision?: number): string {
               ? ''
               : `.${fraction.toFixed(precision).slice(2).padEnd(precision, '0')}`;
 
-    return `${hour}:${minute}:${second}${fractionString}`;
+    return `${hour}:${minute}:${second}${fractionString}${formatTimezone(timezone, offset, local)}`;
 }
 
 function formatDatetime(value: Date, timezone: number, precision?: number, offset?: boolean, local?: boolean): string {
-    const timezoneString =
-        timezone === 0
-            ? 'Z'
-            : `${Math.sign(timezone) >= 0 ? '+' : '-'}${String(Math.floor(Math.abs(timezone) / 60)).padStart(2, '0')}:${String(Math.abs(timezone) % 60).padStart(2, '0')}`;
-
-    return `${formatDate(value)}T${formatTime(value, precision)}${local ? '' : offset ? timezoneString : 'Z'}`;
+    return `${formatDate(value)}T${formatTime(value, timezone, precision, offset, local)}`;
 }
 
 it('accepts valid types', () => {
@@ -591,12 +595,21 @@ describe('time', () => {
         fc.assert(
             fc.property(
                 fc.date({ min: new Date(0, 0, 1), max: new Date(9999, 11, 31), noInvalidDate: true }),
+                fc.integer({ min: -1000, max: 1000 }),
                 fc.option(fc.integer({ min: 0, max: 8 }), { nil: undefined }),
-                (date, precision) => {
-                    const data = formatTime(date, precision);
-                    const options: { precision?: number } = {};
+                fc.boolean(),
+                fc.boolean(),
+                (date, timezone, precision, offset, local) => {
+                    const data = formatTime(date, timezone, precision, offset, local);
+                    const options: { precision?: number; offset?: boolean; local?: boolean } = {};
                     if (precision !== undefined) {
                         options.precision = precision;
+                    }
+                    if (offset !== undefined) {
+                        options.offset = offset;
+                    }
+                    if (local !== undefined) {
+                        options.local = local;
                     }
 
                     const schema = p.string().time(options);
@@ -640,17 +653,22 @@ describe('time', () => {
 
     it('is safe from ReDoS', () => {
         fc.assert(
-            fc.property(fc.option(fc.integer({ min: 0, max: 8 }), { nil: undefined }), (precision) => {
-                const regex = timeRegex(precision);
-                check(regex.source, regex.flags.replace('v', 'u')).then((diagnostics) => {
-                    if (diagnostics.status === 'vulnerable') {
-                        console.log(`Vulnerable pattern: ${diagnostics.attack.pattern}`);
-                    } else if (diagnostics.status === 'unknown') {
-                        console.log(`Error: ${diagnostics.error.kind}.`);
-                    }
-                    expect(diagnostics.status).toBe('safe');
-                });
-            }),
+            fc.property(
+                fc.option(fc.integer({ min: 0, max: 8 }), { nil: undefined }),
+                fc.boolean(),
+                fc.boolean(),
+                (precision, offset, local) => {
+                    const regex = timeRegex(precision, offset, local);
+                    check(regex.source, regex.flags.replace('v', 'u')).then((diagnostics) => {
+                        if (diagnostics.status === 'vulnerable') {
+                            console.log(`Vulnerable pattern: ${diagnostics.attack.pattern}`);
+                        } else if (diagnostics.status === 'unknown') {
+                            console.log(`Error: ${diagnostics.error.kind}.`);
+                        }
+                        expect(diagnostics.status).toBe('safe');
+                    });
+                },
+            ),
             { ignoreEqualValues: true },
         );
     });

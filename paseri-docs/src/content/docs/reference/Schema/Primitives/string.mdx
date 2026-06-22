@@ -120,10 +120,13 @@ p.string().date();
 
 ### `time`
 
-A valid [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) time string `hh:mm:ss[.s+]`.
+A valid [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) time string `hh:mm:ss[.s+]`, with an optional `Z` suffix.
 
 ```typescript
 p.string().time();
+// 01:02:03 ✅
+// 01:02:03Z ✅
+// 01:02:03+02:30 ❌
 ```
 
 You can require a fixed precision by setting the `precision` option.
@@ -132,6 +135,23 @@ You can require a fixed precision by setting the `precision` option.
 p.string().time({ precision: 3 });
 // 01:02:03.123 ✅
 // 01:02:03.1234 ❌
+```
+
+Non-UTC offsets are accepted by setting the `offset` option.
+
+```typescript
+p.string().time({ offset: true });
+// 01:02:03 ✅
+// 01:02:03Z ✅
+// 01:02:03+02:30 ✅
+```
+
+A timezone designator can be required by setting the `local` option to `false`.
+
+```typescript
+p.string().time({ local: false });
+// 01:02:03Z ✅
+// 01:02:03 ❌
 ```
 
 ### `datetime`
