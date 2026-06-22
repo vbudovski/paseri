@@ -1,5 +1,12 @@
 # @paseri/paseri
 
+## 1.7.0
+
+### Minor Changes
+
+- b3c02ae: Add `offset` and `local` options to `string().time()`, matching `string().datetime()`. `local` defaults to `true`, so `time()` accepts bare `hh:mm:ss` or a trailing `Z`; `offset: true` also accepts `±hh:mm`, and `local: false` requires a timezone designator.
+- d8476d9: Add `string().url()`, validating URLs with `URL.canParse` (the WHATWG parser), so it accepts any valid URL of any scheme.
+
 ## 1.6.0
 
 ### Minor Changes
