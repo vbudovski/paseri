@@ -6,6 +6,7 @@ import {
     breakStatement,
     call,
     equals,
+    identifier,
     ifStatement,
     labeled,
     not,
@@ -94,6 +95,17 @@ function checkExpression(
                 call(property(valueExpression, 'endsWith'), [stringLiteral(check.value)]),
                 leafExpression('does_not_end_with'),
             ];
+        case 'url': {
+            // Two-stage: `fastAccept.test(value) || URL.canParse(value)`. The hoisted pre-filter regex (source/flags
+            // carried in the IR from the runtime's `urlRegex`) handles the common case; `URL.canParse` is authoritative.
+            const regex = hoistRegex(state, check.source, check.flags);
+            const condition = binary(
+                regexTestExpression(regex, valueExpression, check.flags),
+                ts.SyntaxKind.BarBarToken,
+                call(property(identifier('URL'), 'canParse'), [valueExpression]),
+            );
+            return [condition, leafExpression('invalid_url')];
+        }
         default: {
             // Hoist the RegExp to module scope (compiled once at load), deduplicated by source+flags so the
             // fast-path and return-sink arms of one field — and identical regexes across fields — share one instance.

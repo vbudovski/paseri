@@ -9,6 +9,7 @@ const TAG_REGEX = 2;
 const TAG_INCLUDES = 3;
 const TAG_STARTS_WITH = 4;
 const TAG_ENDS_WITH = 5;
+const TAG_URL = 6;
 
 const REGEX_NAME_BY_CODE: Record<string, StringCheck['name']> = {
     [issueCodes.INVALID_EMAIL]: 'email',
@@ -35,6 +36,10 @@ function toCheck(check: RawCheck): StringCheck {
             return { name: 'startsWith', value: check.param as string };
         case TAG_ENDS_WITH:
             return { name: 'endsWith', value: check.param as string };
+        case TAG_URL: {
+            const regex = check.param as RegExp;
+            return { name: 'url', source: regex.source, flags: regex.flags };
+        }
         case TAG_REGEX: {
             const regex = check.param as RegExp;
             const name = REGEX_NAME_BY_CODE[check.issue.code];

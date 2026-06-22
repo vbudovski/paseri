@@ -9,6 +9,7 @@ import {
     ipRegex,
     nanoidRegex,
     timeRegex,
+    urlRegex,
     uuidRegex,
 } from './regex.gen.ts';
 import { Schema } from './schema.ts';
@@ -19,10 +20,11 @@ const TAG_REGEX = 2;
 const TAG_INCLUDES = 3;
 const TAG_STARTS_WITH = 4;
 const TAG_ENDS_WITH = 5;
+const TAG_URL = 6;
 
 type StringCheck =
     | { tag: typeof TAG_MIN | typeof TAG_MAX; param: number; issue: TreeNode }
-    | { tag: typeof TAG_REGEX; param: RegExp; issue: TreeNode }
+    | { tag: typeof TAG_REGEX | typeof TAG_URL; param: RegExp; issue: TreeNode }
     | { tag: typeof TAG_INCLUDES | typeof TAG_STARTS_WITH | typeof TAG_ENDS_WITH; param: string; issue: TreeNode };
 
 class StringSchema extends Schema<string> {
@@ -44,6 +46,7 @@ class StringSchema extends Schema<string> {
         INVALID_DATE_TIME_STRING: { type: 'leaf', code: issueCodes.INVALID_DATE_TIME_STRING },
         INVALID_IP_ADDRESS: { type: 'leaf', code: issueCodes.INVALID_IP_ADDRESS },
         INVALID_IP_ADDRESS_RANGE: { type: 'leaf', code: issueCodes.INVALID_IP_ADDRESS_RANGE },
+        INVALID_URL: { type: 'leaf', code: issueCodes.INVALID_URL },
         DOES_NOT_MATCH_REGEX: { type: 'leaf', code: issueCodes.DOES_NOT_MATCH_REGEX },
     } as const satisfies Record<string, LeafNode>;
 
@@ -91,6 +94,12 @@ class StringSchema extends Schema<string> {
                         break;
                     case TAG_ENDS_WITH:
                         if (!value.endsWith(check.param)) {
+                            return check.issue;
+                        }
+                        break;
+                    case TAG_URL:
+                        check.param.lastIndex = 0;
+                        if (!check.param.test(value) && !URL.canParse(value)) {
                             return check.issue;
                         }
                         break;
@@ -244,6 +253,15 @@ class StringSchema extends Schema<string> {
 
         return cloned;
     }
+    url(): StringSchema {
+        const regex = urlRegex();
+
+        const cloned = this._clone();
+        cloned._checks = cloned._checks || [];
+        cloned._checks.push({ tag: TAG_URL, param: regex, issue: this.issues.INVALID_URL });
+
+        return cloned;
+    }
     regex(regex: RegExp): StringSchema {
         const cloned = this._clone();
         cloned._checks = cloned._checks || [];
@@ -271,5 +289,6 @@ export {
     StringSchema,
     string,
     timeRegex,
+    urlRegex,
     uuidRegex,
 };

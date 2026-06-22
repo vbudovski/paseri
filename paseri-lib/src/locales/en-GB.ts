@@ -21,6 +21,7 @@ const en_GB = {
     invalid_date_time_string: () => 'Invalid datetime string.',
     invalid_ip_address: () => 'Invalid IP address.',
     invalid_ip_address_range: () => 'Invalid IP address range.',
+    invalid_url: () => 'Invalid URL.',
     does_not_match_regex: () => 'Does not match regex.',
     too_small: () => 'Too small.',
     too_large: () => 'Too large.',
