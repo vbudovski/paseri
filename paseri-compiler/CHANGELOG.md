@@ -1,5 +1,11 @@
 # @paseri/compiler
 
+## 0.6.0
+
+### Minor Changes
+
+- d8476d9: Add `string().url()`, validating URLs with `URL.canParse` (the WHATWG parser), so it accepts any valid URL of any scheme.
+
 ## 0.5.1
 
 ### Patch Changes
