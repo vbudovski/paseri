@@ -505,6 +505,16 @@ function tryShape(
                     case 'endsWith':
                         clause = call(property(valueExpression, 'endsWith'), [stringLiteral(check.value)]);
                         break;
+                    case 'url': {
+                        // Two-stage `fastAccept.test(value) || URL.canParse(value)`, matching the return-sink arm.
+                        const regexIdentifier = hoistRegex(state, check.source, check.flags);
+                        clause = binary(
+                            regexTestExpression(regexIdentifier, valueExpression, check.flags),
+                            ts.SyntaxKind.BarBarToken,
+                            call(property(identifier('URL'), 'canParse'), [valueExpression]),
+                        );
+                        break;
+                    }
                     default: {
                         // Regex-based check (uses check.source / check.flags). RegExp hoisted to module scope
                         // (deduplicated by source+flags via `hoistRegex`) to avoid per-parse allocation.

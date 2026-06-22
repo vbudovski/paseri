@@ -14,6 +14,7 @@ import {
     ipRegex,
     nanoidRegex,
     timeRegex,
+    urlRegex,
     uuidRegex,
 } from './string.ts';
 
@@ -269,6 +270,108 @@ describe('email', () => {
     it('is immutable', () => {
         const original = p.string();
         const modified = original.email();
+        expect(modified).not.toEqual(original);
+        const branched = modified.min(1);
+        expect(branched).not.toEqual(modified);
+    });
+});
+
+describe('url', () => {
+    // Mixes well-formed URLs, arbitrary junk, and scheme/host/port/path combinations (including
+    // out-of-range ports and non-http schemes) to exercise both the fast-accept path and the
+    // `URL.canParse` fall-through.
+    const urlLike = fc.oneof(
+        fc.webUrl({ withQueryParameters: true, withFragments: true }),
+        fc.string(),
+        fc
+            .tuple(
+                fc.constantFrom(
+                    'http://',
+                    'https://',
+                    'ftp://',
+                    'ws://',
+                    'wss://',
+                    'mailto:',
+                    'tel:',
+                    'urn:',
+                    'custom:',
+                    'file:///',
+                    'ht!tp://',
+                ),
+                fc.domain(),
+                fc.option(fc.integer({ min: 0, max: 99999 }), { nil: undefined }),
+                fc.option(fc.webPath(), { nil: undefined }),
+            )
+            .map(
+                ([scheme, host, port, path]) => `${scheme}${host}${port !== undefined ? `:${port}` : ''}${path ?? ''}`,
+            ),
+    );
+
+    it('agrees with URL.canParse on every input', () => {
+        const schema = p.string().url();
+
+        // Oracle is the WHATWG parser (`URL.canParse`), the canonical semantics `url()` promises.
+        // This pins the fast-accept pre-filter's soundness: it must never flip the verdict.
+        fc.assert(
+            fc.property(urlLike, (data) => {
+                expect(schema.safeParse(data).ok).toBe(URL.canParse(data));
+            }),
+            { numRuns: 1000 },
+        );
+    });
+
+    it('accepts valid values', () => {
+        const schema = p.string().url();
+
+        fc.assert(
+            fc.property(fc.webUrl({ withQueryParameters: true, withFragments: true }), (data) => {
+                const result = schema.safeParse(data);
+                if (result.ok) {
+                    expectTypeOf(result.value).toEqualTypeOf<string>();
+                    expect(result.value).toBe(data);
+                } else {
+                    expect(result.ok).toBeTruthy();
+                }
+            }),
+        );
+    });
+
+    it('rejects invalid values', () => {
+        const schema = p.string().url();
+
+        fc.assert(
+            fc.property(
+                fc.string().filter((value) => !URL.canParse(value)),
+                (data) => {
+                    const result = schema.safeParse(data);
+                    if (!result.ok) {
+                        expect(result.messages()).toEqual([{ path: [], message: 'invalid_url' }]);
+                    } else {
+                        expect(result.ok).toBeFalsy();
+                    }
+                },
+            ),
+        );
+    });
+
+    it('is safe from ReDoS', async () => {
+        const regex = urlRegex();
+        // TODO: recheck doesn't support the v flag yet (https://github.com/makenowjust-labs/recheck/issues/1359).
+        //  Remove this workaround when it does.
+        // Strip v-mode-specific escapes that are invalid in u-mode.
+        const source = regex.source.replace(/\\([&!#%,:;<=>@`~])/g, '$1');
+        const diagnostics = await check(source, regex.flags.replace('v', 'u'));
+        if (diagnostics.status === 'vulnerable') {
+            console.log(`Vulnerable pattern: ${diagnostics.attack.pattern}`);
+        } else if (diagnostics.status === 'unknown') {
+            console.log(`Error: ${diagnostics.error.kind}.`);
+        }
+        expect(diagnostics.status).toBe('safe');
+    });
+
+    it('is immutable', () => {
+        const original = p.string();
+        const modified = original.url();
         expect(modified).not.toEqual(original);
         const branched = modified.min(1);
         expect(branched).not.toEqual(modified);

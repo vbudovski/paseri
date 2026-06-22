@@ -99,7 +99,7 @@ type StringCheck =
     | { name: 'min' | 'max'; value: number }
     | { name: 'includes' | 'startsWith' | 'endsWith'; value: string }
     | {
-          name: 'regex' | 'email' | 'emoji' | 'uuid' | 'nanoid' | 'date' | 'time' | 'datetime' | 'ip' | 'cidr';
+          name: 'regex' | 'email' | 'emoji' | 'uuid' | 'nanoid' | 'date' | 'time' | 'datetime' | 'ip' | 'cidr' | 'url';
           source: string;
           flags: string;
       };

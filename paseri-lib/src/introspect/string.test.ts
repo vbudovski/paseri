@@ -9,6 +9,7 @@ import {
     ipRegex,
     nanoidRegex,
     timeRegex,
+    urlRegex,
     uuidRegex,
 } from '../schemas/regex.gen.ts';
 import { string } from '../schemas/string.ts';
@@ -59,6 +60,14 @@ describe('string', () => {
         expect(string().email().toIR().entry).toEqual({
             kind: 'string',
             checks: [{ name: 'email', source: regex.source, flags: regex.flags }],
+        });
+    });
+
+    it('emits url as a named regex check', () => {
+        const regex = urlRegex();
+        expect(string().url().toIR().entry).toEqual({
+            kind: 'string',
+            checks: [{ name: 'url', source: regex.source, flags: regex.flags }],
         });
     });
 

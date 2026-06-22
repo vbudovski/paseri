@@ -25,6 +25,29 @@ const uuidRegex = (): RegExp => regex('i')`
     )
 `;
 const nanoidRegex = (): RegExp => /^[a-z\d_-]{21}$/i;
+// Conservative fast-accept pre-filter for `string().url()`: matches only strings the WHATWG URL parser
+// (https://url.spec.whatwg.org/) is guaranteed to accept, short-circuiting the `URL.canParse` fall-through.
+// Two branches, mirroring the spec's parser:
+//   - authority-url: the special schemes (except file, whose host rules differ) require a host, share one
+//     authority grammar, and cap the port at 65535. The host is a conservative subset of the allowed domain
+//     code points, written as a possessive class (no backtracking) bounded by the `:` `/` `?` `#` that follow.
+//   - opaque-url: a non-special scheme with no `//` takes the spec's opaque-path state, which accepts any
+//     content. Special schemes are excluded (they always parse an authority, e.g. `http:foo bar` is rejected).
+// Anything not matched (file:, IPv6 literals, userinfo, IDN hosts, non-special schemes with an authority)
+// falls through to `URL.canParse`. Soundness — never accepting a string canParse rejects — and ReDoS-safety
+// are both pinned by property tests.
+const urlRegex = (): RegExp => regex('i')`
+    ^ (\g<authority-url> | \g<opaque-url>) $
+
+    (?(DEFINE)
+        (?<authority-url> (https? | ftp | wss?) :// \g<host> (: \g<port>)? \g<tail>)
+        (?<opaque-url> (?!\g<special>) [a-z] [a-z\d+.\-]*+ : (?!//) .*)
+        (?<special> (https? | ftp | wss? | file) :)
+        (?<host> [a-z\d._\-]++)
+        (?<port> 6553[0-5] | 655[0-2]\d | 65[0-4]\d\d | 6[0-4]\d{3} | [1-5]\d{4} | \d{1,4})
+        (?<tail> ([\/?#] .*)?)
+    )
+`;
 const dateRegex = (): RegExp => regex`
     ^ \g<date> $
 
@@ -120,4 +143,15 @@ const ipCidrRegex = (version?: 4 | 6): RegExp => regex('i')`
     )
 `;
 
-export { dateRegex, datetimeRegex, emailRegex, emojiRegex, ipCidrRegex, ipRegex, nanoidRegex, timeRegex, uuidRegex };
+export {
+    dateRegex,
+    datetimeRegex,
+    emailRegex,
+    emojiRegex,
+    ipCidrRegex,
+    ipRegex,
+    nanoidRegex,
+    timeRegex,
+    urlRegex,
+    uuidRegex,
+};
