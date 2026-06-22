@@ -200,12 +200,12 @@ class StringSchema extends Schema<string> {
 
         return cloned;
     }
-    time(options: { precision?: number } = {}): StringSchema {
+    time(options: { precision?: number; offset?: boolean; local?: boolean } = {}): StringSchema {
         if (options.precision !== undefined && (!Number.isInteger(options.precision) || options.precision < 0)) {
             throw new Error('Precision must be a non-negative integer.');
         }
 
-        const regex = timeRegex(options.precision);
+        const regex = timeRegex(options.precision, options.offset, options.local);
 
         const cloned = this._clone();
         cloned._checks = cloned._checks || [];

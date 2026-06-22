@@ -36,15 +36,17 @@ const dateRegex = (): RegExp => regex`
         (?<february> 02-(0[1-9] | 1\d | 2[0-8]))
     )
 `;
-const timeRegex = (precision?: number): RegExp => regex`
+const timeRegex = (precision?: number, offset?: boolean, local: boolean = true): RegExp => regex`
     ^ \g<time> $
 
     (?(DEFINE)
-        (?<time> \g<hours> : \g<minutes> : \g<seconds> \g<fractional-seconds>)
+        (?<time> \g<hours> : \g<minutes> : \g<seconds> \g<fractional-seconds> \g<timezone>)
         (?<hours> ([01]\d | 2[0-3]))
         (?<minutes> [0-5]\d)
         (?<seconds> [0-5]\d)
         (?<fractional-seconds> ${precision === undefined ? pattern`(\.\d+)?` : precision === 0 ? pattern`` : pattern`\.\d{${String(precision)}}`})
+        (?<timezone> ${offset && local ? pattern`(\g<offset> | Z?)` : offset ? pattern`(\g<offset> | Z)` : local ? pattern`Z?` : pattern`Z`})
+        (?<offset> [+\-][0-5]\d:[0-5]\d)
     )
 `;
 const datetimeRegex = (precision?: number, offset?: boolean, local?: boolean): RegExp => regex`
