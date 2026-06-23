@@ -4,16 +4,22 @@ import {
     binary,
     block,
     call,
+    castTo,
     constStatement,
+    equals,
     identifier,
     ifStatement,
     newExpression,
     not,
     numericLiteral,
+    objectLiteral,
     property,
     returnStatement,
     stringLiteral,
     typeReference,
+    typeUnion,
+    undefinedExpression,
+    undefinedType,
     unknownType,
 } from './builders.ts';
 import { computeNamedCanModify } from './can-modify.ts';
@@ -51,7 +57,7 @@ import { emitUndefined } from './emitters/undefined.ts';
 import { emitUnion } from './emitters/union/index.ts';
 import { emitUnknown } from './emitters/unknown.ts';
 import { emitZonedDateTime } from './emitters/zonedDateTime.ts';
-import { emitSuccessRouting, failurePayload, leafExpression } from './issues.ts';
+import { emitSuccessRouting, failurePayload, leafExpression, successPayload } from './issues.ts';
 import { ResolutionError } from './resolver.ts';
 import { RUNTIME_SOURCE } from './runtime.gen.ts';
 import { makeState, type Sink, type State } from './state.ts';
@@ -63,8 +69,9 @@ const { factory } = ts;
  */
 interface ToSourceOptions {
     /**
-     * Base name for the generated validators. The compiled module exports `safeParse${name}` and a throwing
-     * `parse${name}` — e.g. `name: 'Greeting'` yields `safeParseGreeting` and `parseGreeting`.
+     * Name of the exported object. The compiled module exports a single `const ${name}` mirroring the runtime
+     * schema's surface (`.safeParse`, `.parse`, `['~standard']`), so it is a drop-in for a runtime schema of the
+     * same name — `name: 'Greeting'` exports a `Greeting` usable as `Greeting.safeParse(...)` or `someLib(Greeting)`.
      */
     readonly name: string;
     /**
@@ -185,14 +192,20 @@ function analyzeNeeds(graph: IRGraph): Set<string> {
 /**
  * Builds the generated module's import of the result/message contract from the internal subpath. `addIssue` is
  * included only when a container accumulates issues; the rest are always imported (unused imports are harmless —
- * `noUnusedLocals` is off — and every non-trivial schema uses them). `PaseriError` is always imported because the
- * throwing `parse${Name}` entry is always emitted.
+ * `noUnusedLocals` is off — and every non-trivial schema uses them).
  */
 function internalImportStatement(needs: ReadonlySet<string>): string {
     const values = needs.has('addIssue')
-        ? ['addIssue', 'issueCodes', 'ParseErrorResult', 'PaseriError']
-        : ['issueCodes', 'ParseErrorResult', 'PaseriError'];
-    const types = ['type CustomIssueCode', 'type ParseResult', 'type TreeNode'];
+        ? ['addIssue', 'isParseSuccess', 'issueCodes', 'ParseErrorResult', 'PaseriError']
+        : ['isParseSuccess', 'issueCodes', 'ParseErrorResult', 'PaseriError'];
+    const types = [
+        'type CustomIssueCode',
+        'type InternalParseResult',
+        'type ParseResult',
+        'type StandardSchemaV1',
+        'type Translations',
+        'type TreeNode',
+    ];
     return `import { ${[...values, ...types].join(', ')} } from '@paseri/paseri/internal';`;
 }
 
@@ -358,25 +371,26 @@ function buildEntryParameters(needsDepth: boolean, state: State): EntryParameter
 
 function buildEntryFunction(
     name: string,
-    isExported: boolean,
     parameters: readonly ts.ParameterDeclaration[],
     bodyStatements: readonly ts.Statement[],
     outputType: ts.TypeNode,
 ): ts.FunctionDeclaration {
+    // Always internal — the only export is the `${name}` object (`export { _schema as ${name} }`).
     return factory.createFunctionDeclaration(
-        isExported ? [factory.createToken(ts.SyntaxKind.ExportKeyword)] : undefined,
+        undefined,
         undefined,
         name,
         undefined,
         parameters,
-        typeReference('ParseResult', [outputType]),
+        typeReference('InternalParseResult', [outputType]),
         block(bodyStatements),
     );
 }
 
 /**
- * Emits the throwing `parse${Name}` entry: a thin wrapper that delegates to `safeParse${Name}`, returning the bare
- * value on success and throwing `PaseriError` on failure, mirroring paseri-lib's runtime `parse`.
+ * Emits the internal throwing `parse${Name}` wrapper: delegates to `safeParse${Name}`, returning the bare value on
+ * success and throwing `PaseriError` on failure (mirroring paseri-lib's runtime `parse`). Aliased onto `${Name}` as
+ * its `parse` method.
  */
 function buildThrowingWrapper(
     parseName: string,
@@ -419,7 +433,7 @@ function buildThrowingWrapper(
         ),
     ];
     return factory.createFunctionDeclaration(
-        [factory.createToken(ts.SyntaxKind.ExportKeyword)],
+        undefined,
         undefined,
         parseName,
         undefined,
@@ -427,6 +441,179 @@ function buildThrowingWrapper(
         outputType,
         block(statements),
     );
+}
+
+/**
+ * Emits the `safeParse${Name}` wrapper: calls the shared `_validate${Name}` and resolves its `InternalParseResult`
+ * to a `ParseResult` (mirroring paseri-lib's runtime `safeParse`) — `undefined` → success with the untouched input,
+ * a success box passes through, a raw `TreeNode` becomes a `ParseErrorResult`. Aliased onto `${Name}` as its
+ * `safeParse` method.
+ */
+function buildSafeParseWrapper(
+    safeParseName: string,
+    validateName: string,
+    needsDepth: boolean,
+    outputType: ts.TypeNode,
+): ts.FunctionDeclaration {
+    const valueParameter = identifier('value');
+    const parameters: ts.ParameterDeclaration[] = [
+        factory.createParameterDeclaration(undefined, undefined, valueParameter, undefined, unknownType),
+    ];
+    const validateArguments: ts.Expression[] = [valueParameter];
+    if (needsDepth) {
+        const optionsParameter = identifier('options');
+        const optionsType = factory.createTypeLiteralNode([
+            factory.createPropertySignature(
+                undefined,
+                'maxDepth',
+                factory.createToken(ts.SyntaxKind.QuestionToken),
+                numberType,
+            ),
+        ]);
+        parameters.push(
+            factory.createParameterDeclaration(
+                undefined,
+                undefined,
+                optionsParameter,
+                factory.createToken(ts.SyntaxKind.QuestionToken),
+                optionsType,
+            ),
+        );
+        validateArguments.push(optionsParameter);
+    }
+    const resultIdentifier = identifier('result');
+    const statements: ts.Statement[] = [
+        constStatement(resultIdentifier, undefined, call(identifier(validateName), validateArguments)),
+        ifStatement(equals(resultIdentifier, undefinedExpression), [
+            returnStatement(successPayload(valueParameter, outputType)),
+        ]),
+        ifStatement(call(identifier('isParseSuccess'), [resultIdentifier]), [returnStatement(resultIdentifier)]),
+        returnStatement(failurePayload(resultIdentifier)),
+    ];
+    return factory.createFunctionDeclaration(
+        undefined,
+        undefined,
+        safeParseName,
+        undefined,
+        parameters,
+        typeReference('ParseResult', [outputType]),
+        block(statements),
+    );
+}
+
+/**
+ * Emits the module's sole export: the `${name}` object. `safeParse`/`parse` alias the internal wrapper functions;
+ * `~standard` adapts `safeParse${name}` to the Standard Schema spec (delegate to safeParse, map `messages(locale)`
+ * → `issues`), mirroring paseri-lib's `Schema['~standard']` (see `schemas/schema.ts`). The `typeof` intersection
+ * gives the value an explicit type for `isolatedDeclarations`; the `validate` params are typed contextually by it.
+ *
+ * Bound internally as `_schema` and surfaced via `export { _schema as ${name} }` rather than `export const
+ * ${name}`: an export alias creates no module-scope binding, so a schema named after a global the validator body
+ * uses (`Set`, `Map`, `Date`, …) can't shadow it and break the body.
+ */
+function buildStandardSchemaObject(
+    name: string,
+    safeParseName: string,
+    parseName: string,
+    outputType: ts.TypeNode,
+): ts.Statement[] {
+    const valueParameter = identifier('value');
+    const optionsParameter = identifier('options');
+    const resultIdentifier = identifier('result');
+
+    const resultStatement = constStatement(
+        resultIdentifier,
+        undefined,
+        call(identifier(safeParseName), [valueParameter]),
+    );
+    const okReturn = ifStatement(property(resultIdentifier, 'ok'), [
+        returnStatement(objectLiteral({ value: property(resultIdentifier, 'value') })),
+    ]);
+    // options?.libraryOptions?.locale as Translations | undefined
+    const localeAccess = factory.createPropertyAccessChain(
+        factory.createPropertyAccessChain(
+            optionsParameter,
+            factory.createToken(ts.SyntaxKind.QuestionDotToken),
+            'libraryOptions',
+        ),
+        factory.createToken(ts.SyntaxKind.QuestionDotToken),
+        'locale',
+    );
+    const localeCast = castTo(localeAccess, typeUnion([typeReference('Translations'), undefinedType]));
+    const issuesReturn = returnStatement(
+        objectLiteral({ issues: call(property(resultIdentifier, 'messages'), [localeCast]) }),
+    );
+
+    const validateMethod = factory.createMethodDeclaration(
+        undefined,
+        undefined,
+        'validate',
+        undefined,
+        undefined,
+        [
+            factory.createParameterDeclaration(undefined, undefined, valueParameter, undefined, undefined),
+            factory.createParameterDeclaration(
+                undefined,
+                undefined,
+                optionsParameter,
+                factory.createToken(ts.SyntaxKind.QuestionToken),
+                undefined,
+            ),
+        ],
+        undefined,
+        block([resultStatement, okReturn, issuesReturn]),
+    );
+
+    const standardProps = factory.createObjectLiteralExpression(
+        [
+            factory.createPropertyAssignment('version', numericLiteral(1)),
+            factory.createPropertyAssignment('vendor', stringLiteral('paseri')),
+            validateMethod,
+        ],
+        true,
+    );
+
+    const objectExpression = factory.createObjectLiteralExpression(
+        [
+            factory.createPropertyAssignment(stringLiteral('~standard'), standardProps),
+            factory.createPropertyAssignment('safeParse', identifier(safeParseName)),
+            factory.createPropertyAssignment('parse', identifier(parseName)),
+        ],
+        true,
+    );
+
+    const annotation = factory.createIntersectionTypeNode([
+        typeReference('StandardSchemaV1', [unknownType, outputType]),
+        factory.createTypeLiteralNode([
+            factory.createPropertySignature(
+                undefined,
+                'safeParse',
+                undefined,
+                factory.createTypeQueryNode(identifier(safeParseName)),
+            ),
+            factory.createPropertySignature(
+                undefined,
+                'parse',
+                undefined,
+                factory.createTypeQueryNode(identifier(parseName)),
+            ),
+        ]),
+    ]);
+
+    const localName = '_schema';
+    const objectDeclaration = factory.createVariableStatement(
+        undefined,
+        factory.createVariableDeclarationList(
+            [factory.createVariableDeclaration(identifier(localName), undefined, annotation, objectExpression)],
+            ts.NodeFlags.Const,
+        ),
+    );
+    const exportDeclaration = factory.createExportDeclaration(
+        undefined,
+        false,
+        factory.createNamedExports([factory.createExportSpecifier(false, localName, name)]),
+    );
+    return [objectDeclaration, exportDeclaration];
 }
 
 /**
@@ -438,14 +625,8 @@ function endsWithReturn(statements: readonly ts.Statement[]): boolean {
     return last !== undefined && ts.isReturnStatement(last);
 }
 
-/** Assembles a top-level `(value [, options]) => ParseResult<Infer>` function from an IR, with optional export. */
-function buildValidatorFunction(
-    name: string,
-    isExported: boolean,
-    ir: IR,
-    needsDepth: boolean,
-    state: State,
-): ts.FunctionDeclaration {
+/** Assembles a top-level `(value [, options]) => InternalParseResult<Infer>` validator from an IR. */
+function buildValidatorFunction(name: string, ir: IR, needsDepth: boolean, state: State): ts.FunctionDeclaration {
     const entry = buildEntryParameters(needsDepth, state);
     const sink: Sink = { kind: 'return', valueExpression: entry.valueParameter, outputType: emitType(ir) };
     const body = emitValidation(ir, entry.valueParameter, sink, state);
@@ -454,18 +635,17 @@ function buildValidatorFunction(
     if (trailingSuccess !== undefined && !endsWithReturn(body)) {
         statements.push(trailingSuccess);
     }
-    return buildEntryFunction(name, isExported, entry.parameters, statements, emitType(ir));
+    return buildEntryFunction(name, entry.parameters, statements, emitType(ir));
 }
 
 /**
- * Tries to emit a split pair (tiny exported entry + private slow function)
- * for object-typed entries whose structure can be expressed as a pure boolean
- * shape check. Keeps the slow function cold on the happy path. Returns
- * undefined when the IR isn't shape-checkable; caller falls back to a single
- * emitted function.
+ * Tries to emit a split pair (tiny shape-check entry + cold `_slow` validator) for object-typed entries whose
+ * structure can be expressed as a pure boolean shape check. Both are internal validators returning
+ * `InternalParseResult`. Returns undefined when the IR isn't shape-checkable; the caller falls back to a single
+ * emitted validator.
  */
 function tryEmitSplitFunctions(
-    exportedName: string,
+    validateName: string,
     slowName: string,
     ir: IR,
     needsDepth: boolean,
@@ -485,12 +665,11 @@ function tryEmitSplitFunctions(
     }
     // Build the slow function only once the split is confirmed — emitting it before the shape-entry check would leak
     // its hoisted constants (e.g. regexes) into the module even when we bail back to a single emitted function.
-    const slowFunction = buildValidatorFunction(slowName, false, ir, needsDepth, state);
+    const slowFunction = buildValidatorFunction(slowName, ir, needsDepth, state);
     // The setup statements matter on the fast path too: recursive shape helpers read `maxDepth`, and an invalid
     // `maxDepth` must throw even when the shape check would otherwise accept the value outright.
     const entryFunction = buildEntryFunction(
-        exportedName,
-        true,
+        validateName,
         entry.parameters,
         [...entry.setupStatements, ...shapeEntryBody],
         emitType(ir),
@@ -500,8 +679,8 @@ function tryEmitSplitFunctions(
 
 /**
  * Emits a recursive-ref entry point with depth threading. The generated function has the signature
- * `(value, depth, maxDepth) => Result<unknown>` and short-circuits with a `too_deep` failure before recursing further
- * when `depth >= maxDepth`.
+ * `(value, depth, maxDepth) => InternalParseResult<unknown>` and short-circuits with a raw `too_deep` `TreeNode`
+ * before recursing further when `depth >= maxDepth`.
  */
 function emitNamedFunction(name: string, ir: IR, state: State): ts.FunctionDeclaration {
     const valueParameter = identifier('value');
@@ -516,7 +695,7 @@ function emitNamedFunction(name: string, ir: IR, state: State): ts.FunctionDecla
     const trailingSuccess = emitSuccessRouting(sink);
 
     const tooDeepCheck = ifStatement(binary(depthParameter, ts.SyntaxKind.GreaterThanEqualsToken, maxDepthParameter), [
-        returnStatement(failurePayload(leafExpression('too_deep'))),
+        returnStatement(leafExpression('too_deep')),
     ]);
     const statements: ts.Statement[] = [tooDeepCheck, ...body];
     if (trailingSuccess !== undefined && !endsWithReturn(body)) {
@@ -525,7 +704,6 @@ function emitNamedFunction(name: string, ir: IR, state: State): ts.FunctionDecla
 
     return buildEntryFunction(
         name,
-        false,
         [
             factory.createParameterDeclaration(undefined, undefined, valueParameter, undefined, unknownType),
             factory.createParameterDeclaration(undefined, undefined, depthParameter, undefined, numberType),
@@ -537,10 +715,10 @@ function emitNamedFunction(name: string, ir: IR, state: State): ts.FunctionDecla
 }
 
 /**
- * Compiles an IR graph into a TypeScript module that exports a `safeParse${options.name}` validator
- * matching paseri-lib's runtime `safeParse` shape, plus a throwing `parse${options.name}` counterpart.
- * The returned source is a complete file — runtime helpers, defaults, predicate hoists, and named-ref
- * functions all inlined — ready to write to disk or evaluate in place.
+ * Compiles an IR graph into a TypeScript module that exports a single `const ${options.name}` object mirroring
+ * paseri-lib's runtime schema surface (`.safeParse`, `.parse`, and the Standard Schema `['~standard']`), so it is a
+ * drop-in for a runtime schema of the same name. The returned source is a complete, self-contained file (all
+ * helpers inlined) — ready to write to disk or evaluate in place.
  *
  * @example
  * ```ts
@@ -550,7 +728,8 @@ function emitNamedFunction(name: string, ir: IR, state: State): ts.FunctionDecla
  *
  * const schema = p.object({ hello: p.string() });
  * const source = toSource(schema.toIR(), { name: 'Greeting' });
- * // `source` exports `safeParseGreeting` / `parseGreeting`.
+ * // `source` exports `Greeting`, a drop-in for `schema`: `Greeting.safeParse(input)`,
+ * // `Greeting.parse(input)`, or handed to any Standard Schema consumer.
  * ```
  */
 function toSource(graph: IRGraph, options: ToSourceOptions): string {
@@ -560,21 +739,30 @@ function toSource(graph: IRGraph, options: ToSourceOptions): string {
     state.cyclicNames = new Set(graph.cycles);
     // Any named entry (cyclic or not) means lazy boundaries exist, so the maxDepth option/validation applies.
     const needsDepth = Object.keys(graph.named).length > 0;
-    const exportedName = `safeParse${options.name}`;
-    const throwingName = `parse${options.name}`;
+    // `_validate${Name}` (+ `_slow${Name}`) is the shared validator returning an `InternalParseResult`; the thin
+    // `safeParse${Name}` / `parse${Name}` wrappers resolve it to a `ParseResult` / value, and the `_schema` object
+    // aliases them.
+    const validateName = `_validate${options.name}`;
     const slowName = `_slow${options.name}`;
+    const safeParseName = `safeParse${options.name}`;
+    const throwingName = `parse${options.name}`;
     // Names the generated module binds; the resolver rejects a refine/chain callback that captures a colliding free
     // identifier rather than emitting it (see `reservedIdentifiers` on State). The runtime-contract import and helpers
-    // are fixed; the entry/slow functions and named (lazy) entries derive from this graph.
+    // are fixed; the validator/wrapper functions and named (lazy) entries derive from this graph.
     state.reservedIdentifiers = new Set<string>([
         'addIssue',
         'issueCodes',
         'ParseErrorResult',
+        'isParseSuccess',
         'isPlainObject',
         'deepFreeze',
         'structuredClone',
         'PaseriError',
-        exportedName,
+        // `_schema` is the internal binding for the exported `${name}` object (surfaced via `export … as`; see
+        // buildStandardSchemaObject) — reserve it.
+        '_schema',
+        validateName,
+        safeParseName,
         throwingName,
         slowName,
         ...Object.keys(graph.named),
@@ -588,11 +776,15 @@ function toSource(graph: IRGraph, options: ToSourceOptions): string {
         }
         namedFunctions.push(emitNamedFunction(name, ir, state));
     }
-    const splitFunctions = tryEmitSplitFunctions(exportedName, slowName, graph.entry, needsDepth, state);
+    const splitFunctions = tryEmitSplitFunctions(validateName, slowName, graph.entry, needsDepth, state);
     const entryFunctions: ts.Statement[] = splitFunctions ?? [
-        buildValidatorFunction(exportedName, true, graph.entry, needsDepth, state),
+        buildValidatorFunction(validateName, graph.entry, needsDepth, state),
     ];
-    entryFunctions.push(buildThrowingWrapper(throwingName, exportedName, needsDepth, emitType(graph.entry)));
+    // Thin wrappers over the shared validator (see above); the `${name}` object aliases them, and `~standard`
+    // adapts safeParse to the spec.
+    entryFunctions.push(buildSafeParseWrapper(safeParseName, validateName, needsDepth, emitType(graph.entry)));
+    entryFunctions.push(buildThrowingWrapper(throwingName, safeParseName, needsDepth, emitType(graph.entry)));
+    entryFunctions.push(...buildStandardSchemaObject(options.name, safeParseName, throwingName, emitType(graph.entry)));
 
     const needs = analyzeNeeds(graph);
     const runtimeStatements = selectRuntimeStatements(needs);

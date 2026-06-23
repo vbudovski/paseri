@@ -20,6 +20,7 @@ import {
     returnStatement,
     stringLiteral,
     trueLiteral,
+    undefinedExpression,
 } from './builders.ts';
 import type { Sink } from './state.ts';
 
@@ -59,22 +60,29 @@ function successPayload(valueExpression: ts.Expression, outputType: ts.TypeNode)
 }
 
 /**
- * Routes a failing issue through the active sink: returns from the enclosing
- * function on a return-sink, accumulates into the issue variable on an
- * accumulate-sink.
+ * Routes a failing issue through the active sink. On a return-sink the enclosing function returns the raw `TreeNode`
+ * directly — the shared validators return `InternalParseResult` (`undefined` | `{ ok, value }` | `TreeNode`), and the
+ * thin `safeParse`/`parse` wrappers turn a returned `TreeNode` into a `ParseErrorResult` / thrown `PaseriError`. On an
+ * accumulate-sink it appends to the shared issue variable.
  */
 function emitFailureRouting(issueExpression: ts.Expression, sink: Sink): ts.Statement {
     if (sink.kind === 'return') {
-        return returnStatement(failurePayload(issueExpression));
+        return returnStatement(issueExpression);
     }
     const wrapped =
         sink.keyExpression !== undefined ? nestExpression(sink.keyExpression, issueExpression) : issueExpression;
     return assign(sink.issueIdentifier, call(identifier('addIssue'), [sink.issueIdentifier, wrapped]));
 }
 
+/**
+ * Routes a passthrough success (value unchanged) through the active sink. On a return-sink the function returns
+ * `undefined` — the `InternalParseResult` sentinel meaning "valid, value untouched", which the wrappers resolve to the
+ * original input. (Transforms that produce a NEW value return `successPayload(...)` explicitly instead.) On an
+ * accumulate-sink there's nothing to do.
+ */
 function emitSuccessRouting(sink: Sink): ts.Statement | undefined {
     if (sink.kind === 'return') {
-        return returnStatement(successPayload(sink.valueExpression, sink.outputType));
+        return returnStatement(undefinedExpression);
     }
     return undefined;
 }

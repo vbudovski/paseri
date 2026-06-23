@@ -7,8 +7,9 @@
  * @module
  */
 
+export type { StandardSchemaV1 } from '@standard-schema/spec';
 export type { CustomIssueCode, Message, TreeNode } from '../issue.ts';
 export { addIssue, issueCodes } from '../issue.ts';
 export type { Translations } from '../message.ts';
-export type { ParseResult } from '../result.ts';
-export { ParseErrorResult, PaseriError } from '../result.ts';
+export type { InternalParseResult, ParseResult } from '../result.ts';
+export { isParseSuccess, ParseErrorResult, PaseriError } from '../result.ts';

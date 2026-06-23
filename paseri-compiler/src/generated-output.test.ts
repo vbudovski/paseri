@@ -159,13 +159,12 @@ it('emits an enum-style Set.has membership test for an all-literal union, conver
     expect(source.includes('_success')).toBe(false);
 });
 
-it('emits exactly one success return per validator function', () => {
-    // The trailing success return is skipped when the emitted body already ends in a return — the duplicate was
-    // unreachable and repeated the full inline output type.
+it('boxes success once — in the safeParse wrapper, not the shared validator (undefined sentinel)', () => {
+    // The shared `_validate`/`_slow` return `undefined` on passthrough success (the InternalParseResult sentinel);
+    // only the thin `safeParse` wrapper builds the `{ ok, value }` box. A non-transform schema therefore boxes once.
     const source = toSource(p.object({ hello: p.string() }).toIR(), { name: 'Single' });
-    const successReturns = source.match(/return \{ ok: true as const/g) ?? [];
-    // One in the slow function and one in the shape entry's success path.
-    expect(successReturns.length).toBe(2);
+    const successBoxes = source.match(/return \{ ok: true as const/g) ?? [];
+    expect(successBoxes.length).toBe(1);
 });
 
 it('throws on an invalid maxDepth, matching the runtime', () => {

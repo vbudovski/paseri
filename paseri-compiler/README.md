@@ -48,15 +48,17 @@ const source = toSource(schema.toIR(), { name: 'Greeting' });
 // Write `source` to a file (e.g. `greeting.ts`) as part of your build.
 ```
 
-The generated module exports `safeParseGreeting` &mdash; a drop-in for the runtime schema that returns the same
-`ParseResult`, compiled ahead of time for faster parsing:
+The generated module exports a single object named after the schema (here `Greeting`) that mirrors the runtime
+schema's surface, so it is a drop-in replacement: swap the import and nothing else changes.
+
+`Greeting.safeParse` returns the same `ParseResult` as the runtime schema, compiled ahead of time for faster parsing:
 
 ```typescript ignore
 import { en } from '@paseri/paseri/locales';
-import { safeParseGreeting } from './greeting.ts';
+import { Greeting } from './greeting.ts';
 
 const data = { hello: 'world' };
-const result = safeParseGreeting(data);
+const result = Greeting.safeParse(data);
 if (result.ok) {
     console.log(`Hello ${result.value.hello}!`);
 } else {
@@ -65,14 +67,22 @@ if (result.ok) {
 }
 ```
 
-It also exports a throwing `parseGreeting` &mdash; the counterpart of the runtime schema's `parse`, returning the
-validated value directly or throwing a `PaseriError`:
+`Greeting.parse` is the throwing counterpart, returning the validated value directly or throwing a `PaseriError`:
 
 ```typescript ignore
-import { parseGreeting } from './greeting.ts';
+import { Greeting } from './greeting.ts';
 
-const greeting = parseGreeting({ hello: 'world' });
+const greeting = Greeting.parse({ hello: 'world' });
 console.log(`Hello ${greeting.hello}!`);
+```
+
+`Greeting` is also a [Standard Schema](https://standardschema.dev), so it can be handed directly to any compatible
+library (tRPC, TanStack Form, Drizzle, &hellip;):
+
+```typescript ignore
+import { Greeting } from './greeting.ts';
+
+someStandardSchemaConsumer(Greeting);
 ```
 
 ---

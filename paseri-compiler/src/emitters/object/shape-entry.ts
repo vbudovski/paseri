@@ -135,7 +135,6 @@ function tryEmitUnionShapeEntryBody(
     slowCall: ts.Statement,
     state: State,
 ): ts.Statement[] | undefined {
-    const outputType = emitType(ir);
     const discriminator = findDiscriminator(ir);
     if (discriminator?.cases.every((entry) => isSwitchSafe(entry.value))) {
         // One transactional attempt for the whole switch: if any member turns out unshapeable, every plan's hoisted
@@ -150,7 +149,7 @@ function tryEmitUnionShapeEntryBody(
                 }
                 plans.push({ shape: memberShape, strictLevels: memberStrictLevels });
             }
-            const successReturn = returnStatement(successPayload(valueExpression, outputType));
+            const successReturn = returnStatement(undefinedExpression);
             const clauses: ts.CaseOrDefaultClause[] = plans.map((plan, index) =>
                 caseClause(literalExpression(discriminator.cases[index].value as string | number | bigint | boolean), [
                     ifStatement(
@@ -202,7 +201,7 @@ function tryEmitUnionShapeEntryBody(
     if (!sawCutoff && prefixPlans.every((plan) => plan.strictLevels.length === 0)) {
         return undefined;
     }
-    const successReturn = returnStatement(successPayload(valueExpression, outputType));
+    const successReturn = returnStatement(undefinedExpression);
     const memberBlocks: ts.Statement[] = [];
     for (const plan of prefixPlans) {
         const successStatements = buildSuccessWithExtrasCheck(plan.strictLevels, successReturn, slowCall, state);
@@ -355,10 +354,7 @@ function tryEmitDefaultObjectEntry(
         );
     }
     applyStatements.push(returnStatement(successPayload(outIdentifier, outputType)));
-    const successReturn = block([
-        ifStatement(anyAbsent, applyStatements),
-        returnStatement(successPayload(valueExpression, outputType)),
-    ]);
+    const successReturn = block([ifStatement(anyAbsent, applyStatements), returnStatement(undefinedExpression)]);
     const successStatements = buildSuccessWithExtrasCheck(strictLevels, successReturn, slowCall, state);
     return [ifStatement(shape, successStatements), slowCall];
 }
@@ -490,7 +486,7 @@ function tryEmitObjectShapeEntryBody(
         if (ir.mode === 'strict') {
             strictLevels.push({ valueExpression, requiredCount, optionalFieldNames });
         }
-        successReturn = returnStatement(successPayload(valueExpression, outputType));
+        successReturn = returnStatement(undefinedExpression);
     }
     return [...statements, ...buildSuccessWithExtrasCheck(strictLevels, successReturn, slowCall, state)];
 }
@@ -552,8 +548,7 @@ function tryEmitShapeEntryBody(
     if (generic === undefined) {
         return undefined;
     }
-    const outputType = emitType(ir);
-    const successReturn = returnStatement(successPayload(valueExpression, outputType));
+    const successReturn = returnStatement(undefinedExpression);
     const successStatements = buildSuccessWithExtrasCheck(generic.strictLevels, successReturn, slowCall, state);
     return [ifStatement(generic.shape, successStatements), slowCall];
 }
