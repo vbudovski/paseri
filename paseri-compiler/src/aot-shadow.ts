@@ -69,9 +69,23 @@ function graphContainsUnsupported(graph: IRGraph): boolean {
 
 type ThrowingValidator = (value: unknown, options?: { maxDepth?: number }) => unknown;
 
+// The generated module's exported `${name}` object surface, used by `compileStandardSync` to parity-check the
+// emitted Standard Schema adapter and the `safeParse`/`parse` methods against the runtime schema.
+interface CompiledStandard {
+    readonly '~standard': {
+        validate(
+            value: unknown,
+            options?: { libraryOptions?: { locale?: unknown } },
+        ): { value?: unknown; issues?: unknown };
+    };
+    readonly safeParse: CompiledValidator;
+    readonly parse: ThrowingValidator;
+}
+
 interface CompiledModule {
     readonly safeParse: CompiledValidator;
     readonly parse: ThrowingValidator;
+    readonly standard: CompiledStandard;
 }
 
 // Two-level cache: `compiledCache` short-circuits repeat parses of the same schema object; `compiledByKey` pools
@@ -134,6 +148,12 @@ function stripModuleSyntax(source: string, sourceFile: ts.SourceFile): string {
     const ranges: { start: number; end: number }[] = [];
     for (const statement of sourceFile.statements) {
         if (ts.isImportDeclaration(statement)) {
+            ranges.push({ start: statement.getStart(sourceFile), end: statement.end });
+            continue;
+        }
+        // `export { _schema as Name }` is a statement, not an export *modifier*, so drop the whole thing —
+        // the eval reads the validators by their internal names, not via the module export.
+        if (ts.isExportDeclaration(statement)) {
             ranges.push({ start: statement.getStart(sourceFile), end: statement.end });
             continue;
         }
@@ -216,7 +236,7 @@ function compileFromGraph(graph: IRGraph): CompiledModule | null {
     // instead of `undefined`, a divergence from both the runtime and the real AOT output.
     const factory = new Function(
         ...argNames,
-        `'use strict';\n${transpiled}\nreturn { safeParse: safeParseShadow, parse: parseShadow };`,
+        `'use strict';\n${transpiled}\nreturn { safeParse: safeParseShadow, parse: parseShadow, standard: _schema };`,
     );
     return factory(...argValues) as CompiledModule;
 }
@@ -256,6 +276,12 @@ function compileSync(schema: Schema<unknown>): CompiledValidator | null {
 /** The generated throwing `parse` entry, or `null` when the schema can't AOT-compile. */
 function compileThrowingSync(schema: Schema<unknown>): ThrowingValidator | null {
     return compileModule(schema)?.parse ?? null;
+}
+
+/** The generated `${name}` Standard Schema object (with its `safeParse`/`parse` methods), or `null` when the schema
+ * can't AOT-compile. For the Standard Schema parity test, not the prototype patch. */
+function compileStandardSync(schema: Schema<unknown>): CompiledStandard | null {
+    return compileModule(schema)?.standard ?? null;
 }
 
 function deepEqual(a: unknown, b: unknown): boolean {
@@ -430,4 +456,4 @@ Schema.prototype.safeParse = function (value: unknown, options?: { maxDepth?: nu
 
 // Exposed for tests that must invoke the AOT validator directly — e.g. asserting it throws on an invalid maxDepth,
 // which the patched safeParse above can't show because the runtime call throws first.
-export { type CompiledValidator, compileSync, compileThrowingSync };
+export { type CompiledStandard, type CompiledValidator, compileStandardSync, compileSync, compileThrowingSync };

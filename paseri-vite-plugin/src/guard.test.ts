@@ -11,6 +11,13 @@ describe('checkSchemaImportUsage', () => {
         expect(() => checkSchemaImportUsage(code, 'app.js')).not.toThrow();
     });
 
+    it("allows ['~standard'] access (the compiled stand-in is a Standard Schema)", () => {
+        const code = `import { User } from './user.schema.ts';
+            export const v = User['~standard'].validate(x);
+            const { '~standard': s } = User;`;
+        expect(() => checkSchemaImportUsage(code, 'app.js')).not.toThrow();
+    });
+
     it('throws on a derivation method like .optional()', () => {
         const code = `import { User } from './user.schema.ts'; export const o = User.optional();`;
         expect(() => checkSchemaImportUsage(code, 'app.js')).toThrow('User.optional');

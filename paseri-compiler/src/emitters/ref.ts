@@ -4,16 +4,18 @@ import {
     assign,
     binary,
     call,
+    castTo,
     constStatement,
     identifier,
     ifStatement,
     incrementDepth,
     isZeroDepth,
-    not,
     notEquals,
     property,
     returnStatement,
     trueLiteral,
+    typeReference,
+    undefinedExpression,
 } from '../builders.ts';
 import { emitFailureRouting, leafExpression } from '../issues.ts';
 import { freshIdentifier, type Sink, type State } from '../state.ts';
@@ -68,23 +70,34 @@ function emitRef(ir: RefIR, valueExpression: ts.Expression, sink: Sink, state: S
         return [returnStatement(callExpression)];
     }
 
+    // The named function returns an `InternalParseResult`: `undefined` (passthrough success), a `{ ok, value }` box
+    // (transformed success), or a raw `TreeNode` (failure). Route each into the accumulate sink.
     const refResult = freshIdentifier(state, 'refResult');
-    const statements: ts.Statement[] = [
-        constStatement(refResult, undefined, callExpression),
-        ifStatement(not(property(refResult, 'ok')), [emitFailureRouting(property(refResult, 'issue'), sink)]),
-    ];
+    const statements: ts.Statement[] = [constStatement(refResult, undefined, callExpression)];
 
     if (sink.outputSlot !== undefined) {
         const slot = sink.outputSlot;
         statements.push(
-            ifStatement(
-                binary(
-                    property(refResult, 'ok'),
-                    ts.SyntaxKind.AmpersandAmpersandToken,
-                    notEquals(property(refResult, 'value'), valueExpression),
+            ifStatement(notEquals(refResult, undefinedExpression), [
+                ifStatement(
+                    call(identifier('isParseSuccess'), [refResult]),
+                    [
+                        ifStatement(notEquals(property(refResult, 'value'), valueExpression), [
+                            assign(slot.target, property(refResult, 'value')),
+                            assign(slot.isModified, trueLiteral),
+                        ]),
+                    ],
+                    [emitFailureRouting(refResult, sink)],
                 ),
-                [assign(slot.target, property(refResult, 'value')), assign(slot.isModified, trueLiteral)],
-            ),
+            ]),
+        );
+    } else {
+        // The target can't modify the value, so a non-`undefined` result is always a failure `TreeNode` — but the
+        // function's static type is the full `InternalParseResult`, so cast to narrow off the (unreachable) success box.
+        statements.push(
+            ifStatement(notEquals(refResult, undefinedExpression), [
+                emitFailureRouting(castTo(refResult, typeReference('TreeNode')), sink),
+            ]),
         );
     }
 

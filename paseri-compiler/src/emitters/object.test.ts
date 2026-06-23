@@ -20,11 +20,9 @@ describe('emitObject', () => {
 
     it('builds strip output inline in the entry (always-copy: no top-level extras scan)', () => {
         const source = toSource(object({ id: string(), age: number() }).strip().toIR(), { name: 'Test' });
-        // Entry only: slow `_slowTest` is hoisted before it, `parseTest` follows.
-        const entry = source.slice(
-            source.indexOf('export function safeParseTest'),
-            source.indexOf('export function parseTest'),
-        );
+        // The shared validator `_validateTest` only (slow `_slowTest` is hoisted before it; the `safeParseTest`
+        // wrapper follows). The strip reconstruction lives in the validator's shape entry.
+        const entry = source.slice(source.indexOf('function _validateTest'), source.indexOf('function safeParseTest'));
         // Builds a fresh object from the locals (not the original), with no top-level extras count loop.
         expect(entry).toContain('value: { id: _field');
         expect(entry).not.toContain('for (const');

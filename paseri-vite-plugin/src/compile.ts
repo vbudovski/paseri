@@ -49,20 +49,15 @@ function collectSchemaExports(moduleNamespace: Readonly<Record<string, unknown>>
     return exports;
 }
 
-// One generated module per schema: the `toSource` output plus a typed parse-only
-// stand-in keeping the export name callers already import. The explicit `typeof`-based
-// annotation is required under isolatedDeclarations / JSR no-slow-types.
+// One generated module per schema. `toSource` already exports a single `${name}` object — a drop-in for the
+// runtime schema with `safeParse`/`parse` methods and a Standard Schema `~standard` — so the plugin re-exports
+// its output verbatim (no wrapper: hand-building `export const ${name}` here would now duplicate that export).
 function compileSchema(name: string, schema: SchemaLike, options: CompileOptions = {}): string {
     const sourceOptions =
         options.trustedBareSpecifiers !== undefined
             ? { name, trustedBareSpecifiers: options.trustedBareSpecifiers }
             : { name };
-    const generated = toSource(schema.toIR(), sourceOptions);
-    return (
-        `${generated}\n` +
-        `export const ${name}: { safeParse: typeof safeParse${name}; parse: typeof parse${name} } = ` +
-        `{ safeParse: safeParse${name}, parse: parse${name} };\n`
-    );
+    return toSource(schema.toIR(), sourceOptions);
 }
 
 // The replacement for the `.schema.ts` module itself: re-export each schema's

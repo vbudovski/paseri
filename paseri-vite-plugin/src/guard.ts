@@ -1,15 +1,15 @@
-// Static guard: a `.schema.ts` export becomes a parse-only stand-in after AOT
-// compilation (`{ safeParse, parse }`). In dev/editor it's the full schema, so using
-// it as anything else (e.g. `User.optional()`) works in dev but breaks at build. This
-// flags such use-sites in app code at build time with a clear error. It is a single-module
-// heuristic — direct member access and destructuring on schema bindings — not full
-// dataflow, so it catches the common mistakes, not values routed through other variables.
+// Static guard: a `.schema.ts` export becomes a compiled stand-in after AOT compilation — a single object
+// with `safeParse` / `parse` methods and a Standard Schema `~standard` (the same surface the runtime schema
+// exposes for those members). In dev/editor it's the full schema, so using it as anything else (e.g.
+// `User.optional()`) works in dev but breaks at build. This flags such use-sites in app code at build time
+// with a clear error. It is a single-module heuristic — direct member access and destructuring on schema
+// bindings — not full dataflow, so it catches the common mistakes, not values routed through other variables.
 import { parseAst } from 'vite';
 import { SCHEMA_SUFFIX } from './constants.ts';
 
-const ALLOWED_MEMBERS: ReadonlySet<string> = new Set(['safeParse', 'parse']);
+const ALLOWED_MEMBERS: ReadonlySet<string> = new Set(['safeParse', 'parse', '~standard']);
 const DERIVATION_ADVICE =
-    `After AOT compilation that export only has .safeParse/.parse — move schema derivation ` +
+    `After AOT compilation that export only has .safeParse / .parse / ['~standard'] — move schema derivation ` +
     `(.optional(), .array(), etc.) into a ${SCHEMA_SUFFIX} file.`;
 
 interface AstNode {
@@ -56,13 +56,14 @@ function literalStringValue(value: unknown): string | undefined {
     return undefined;
 }
 
-// The statically-known accessed key for `.foo` or `["foo"]`; undefined for a dynamic
-// computed key (`[expr]`) whose value can't be known here.
+// The statically-known accessed key for `.foo`, `["foo"]`, or a `{ "foo": x }` pattern key; undefined for a
+// dynamic computed key (`[expr]`) whose value can't be known here. A non-computed key may be an identifier
+// (`{ safeParse }`) or a string literal (`{ "~standard": s }`), so try both.
 function staticKey(computed: unknown, keyNode: unknown): string | undefined {
     if (computed === true) {
         return literalStringValue(keyNode);
     }
-    return identifierName(keyNode);
+    return identifierName(keyNode) ?? literalStringValue(keyNode);
 }
 
 // Collect local names bound to a `.schema.ts` import, split by import kind. `named` holds
@@ -132,12 +133,12 @@ function forbiddenDestructureError(id: string, reference: string, key: string): 
 function dynamicAccessError(id: string, usage: string): Error {
     return new Error(
         `paseri: ${id} uses "${usage}" on a ${SCHEMA_SUFFIX} import, which can't be statically verified ` +
-            `against the parse-only surface (.safeParse/.parse) left after AOT compilation. Access the ` +
-            `schema only via .safeParse/.parse, or move derivation into a ${SCHEMA_SUFFIX} file.`,
+            `against the surface (.safeParse / .parse / ['~standard']) left after AOT compilation. Access the ` +
+            `schema only via .safeParse / .parse / ['~standard'], or move derivation into a ${SCHEMA_SUFFIX} file.`,
     );
 }
 
-// Flags `<schema>.member` / `<schema>["member"]` where member isn't safeParse/parse.
+// Flags `<schema>.member` / `<schema>["member"]` where member isn't safeParse/parse/~standard.
 function checkMemberExpression(node: AstNode, bindings: SchemaBindings, id: string): void {
     const reference = schemaReference(node.object, bindings);
     if (reference === undefined) {
@@ -160,7 +161,7 @@ function checkMemberExpression(node: AstNode, bindings: SchemaBindings, id: stri
     throw forbiddenMemberError(id, `${reference}.${propertyName}`);
 }
 
-// Flags `const { optional } = <schema>` (any key beyond safeParse/parse).
+// Flags `const { optional } = <schema>` (any key beyond safeParse/parse/~standard).
 function checkDestructuring(node: AstNode, bindings: SchemaBindings, id: string): void {
     const reference = schemaReference(node.init, bindings);
     if (reference === undefined) {
@@ -172,7 +173,7 @@ function checkDestructuring(node: AstNode, bindings: SchemaBindings, id: string)
     }
     for (const property of pattern.properties) {
         // A RestElement (`...rest`) captures only the remaining members, which on the
-        // stand-in are at most safeParse/parse — nothing to flag.
+        // stand-in are at most safeParse/parse/~standard — nothing to flag.
         if (!isNode(property) || property.type !== 'Property') {
             continue;
         }
