@@ -2,7 +2,13 @@
 
 import { isParseSuccess, issueCodes, ParseErrorResult, PaseriError, type CustomIssueCode, type InternalParseResult, type ParseResult, type StandardSchemaV1, type Translations, type TreeNode } from '@paseri/paseri/internal';
 
-function _validateDate(value: unknown): InternalParseResult<Date> {
+function _validateDate(value: unknown, options?: {
+    maxDepth?: number;
+}): InternalParseResult<Date> {
+    const maxDepth: number = options?.maxDepth ?? 1000;
+    if (!(Number.isInteger(maxDepth)) || maxDepth < 1) {
+        throw new Error("maxDepth must be a positive integer.");
+    }
     {
         if (!(value instanceof Date)) {
             return { type: "leaf", code: issueCodes.INVALID_TYPE, expected: "Date" };
@@ -15,8 +21,10 @@ function _validateDate(value: unknown): InternalParseResult<Date> {
     return undefined;
 }
 
-function safeParseDate(value: unknown): ParseResult<Date> {
-    const result = _validateDate(value);
+function safeParseDate(value: unknown, options?: {
+    maxDepth?: number;
+}): ParseResult<Date> {
+    const result = _validateDate(value, options);
     if (result === undefined) {
         return { ok: true as const, value: value as Date };
     }
@@ -26,8 +34,10 @@ function safeParseDate(value: unknown): ParseResult<Date> {
     return new ParseErrorResult(result);
 }
 
-function parseDate(value: unknown): Date {
-    const result = safeParseDate(value);
+function parseDate(value: unknown, options?: {
+    maxDepth?: number;
+}): Date {
+    const result = safeParseDate(value, options);
     if (result.ok) {
         return result.value;
     }

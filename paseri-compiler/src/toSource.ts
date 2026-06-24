@@ -292,79 +292,81 @@ const numberType = factory.createKeywordTypeNode(ts.SyntaxKind.NumberKeyword);
 
 interface EntryParameters {
     readonly valueParameter: ts.Identifier;
-    readonly optionsParameter: ts.Identifier | undefined;
+    readonly optionsParameter: ts.Identifier;
     readonly setupStatements: ts.Statement[];
     readonly parameters: ts.ParameterDeclaration[];
 }
 
 /**
- * Builds the `(value [, options])` parameter list for an entry function. When `needsDepth`, also appends the optional
- * `options` parameter, emits the `maxDepth` setup statement, and — as a side effect — points `state.currentDepth` and
- * `state.maxDepthIdentifier` at the new scope so nested `ref` emits thread depth correctly.
+ * Builds the optional `options?: { maxDepth?: number }` parameter shared by the validator and its `safeParse` /
+ * `parse` wrappers, so every generated entry point exposes an identical signature.
  */
-function buildEntryParameters(needsDepth: boolean, state: State): EntryParameters {
+function buildOptionsParameter(optionsParameter: ts.Identifier): ts.ParameterDeclaration {
+    const optionsType = factory.createTypeLiteralNode([
+        factory.createPropertySignature(
+            undefined,
+            'maxDepth',
+            factory.createToken(ts.SyntaxKind.QuestionToken),
+            numberType,
+        ),
+    ]);
+    return factory.createParameterDeclaration(
+        undefined,
+        undefined,
+        optionsParameter,
+        factory.createToken(ts.SyntaxKind.QuestionToken),
+        optionsType,
+    );
+}
+
+/**
+ * Builds the `(value, options?)` parameter list and `maxDepth` setup for an entry function, and — as a side effect —
+ * points `state.currentDepth` / `state.maxDepthIdentifier` at the new scope so nested `ref` emits thread depth
+ * correctly. Always emitted: a non-recursive schema never reads `maxDepth` for depth (the identifiers just go unread
+ * without refs) but must still validate it, which the guard below does.
+ */
+function buildEntryParameters(state: State): EntryParameters {
     const valueParameter = identifier('value');
+    const optionsParameter = identifier('options');
     const parameters: ts.ParameterDeclaration[] = [
         factory.createParameterDeclaration(undefined, undefined, valueParameter, undefined, unknownType),
+        buildOptionsParameter(optionsParameter),
     ];
-    const setupStatements: ts.Statement[] = [];
-    let optionsParameter: ts.Identifier | undefined;
 
-    if (needsDepth) {
-        optionsParameter = identifier('options');
-        const optionsType = factory.createTypeLiteralNode([
-            factory.createPropertySignature(
-                undefined,
-                'maxDepth',
-                factory.createToken(ts.SyntaxKind.QuestionToken),
-                numberType,
+    const maxDepthIdentifier = identifier('maxDepth');
+    const optionsMaxDepth = factory.createPropertyAccessChain(
+        optionsParameter,
+        factory.createToken(ts.SyntaxKind.QuestionDotToken),
+        'maxDepth',
+    );
+    const maxDepthExpression = factory.createBinaryExpression(
+        optionsMaxDepth,
+        ts.SyntaxKind.QuestionQuestionToken,
+        numericLiteral(DEFAULT_MAX_DEPTH),
+    );
+    const setupStatements: ts.Statement[] = [constStatement(maxDepthIdentifier, numberType, maxDepthExpression)];
+    // Mirror the runtime's safeParse/parse guard so a standalone generated validator rejects an invalid maxDepth
+    // identically (rather than silently accepting NaN/Infinity/0/1.5 — NaN would otherwise disable the depth cap
+    // and let cyclic/deep input recurse unbounded).
+    setupStatements.push(
+        ifStatement(
+            binary(
+                not(call(property(identifier('Number'), 'isInteger'), [maxDepthIdentifier])),
+                ts.SyntaxKind.BarBarToken,
+                binary(maxDepthIdentifier, ts.SyntaxKind.LessThanToken, numericLiteral(1)),
             ),
-        ]);
-        parameters.push(
-            factory.createParameterDeclaration(
-                undefined,
-                undefined,
-                optionsParameter,
-                factory.createToken(ts.SyntaxKind.QuestionToken),
-                optionsType,
-            ),
-        );
-
-        const maxDepthIdentifier = identifier('maxDepth');
-        const optionsMaxDepth = factory.createPropertyAccessChain(
-            optionsParameter,
-            factory.createToken(ts.SyntaxKind.QuestionDotToken),
-            'maxDepth',
-        );
-        const maxDepthExpression = factory.createBinaryExpression(
-            optionsMaxDepth,
-            ts.SyntaxKind.QuestionQuestionToken,
-            numericLiteral(DEFAULT_MAX_DEPTH),
-        );
-        setupStatements.push(constStatement(maxDepthIdentifier, numberType, maxDepthExpression));
-        // Mirror the runtime's safeParse/parse guard so a standalone generated validator rejects an invalid maxDepth
-        // identically (rather than silently accepting NaN/Infinity/0/1.5 — NaN would otherwise disable the depth cap
-        // and let cyclic/deep input recurse unbounded).
-        setupStatements.push(
-            ifStatement(
-                binary(
-                    not(call(property(identifier('Number'), 'isInteger'), [maxDepthIdentifier])),
-                    ts.SyntaxKind.BarBarToken,
-                    binary(maxDepthIdentifier, ts.SyntaxKind.LessThanToken, numericLiteral(1)),
+            [
+                factory.createThrowStatement(
+                    newExpression(identifier('Error'), undefined, [
+                        stringLiteral('maxDepth must be a positive integer.'),
+                    ]),
                 ),
-                [
-                    factory.createThrowStatement(
-                        newExpression(identifier('Error'), undefined, [
-                            stringLiteral('maxDepth must be a positive integer.'),
-                        ]),
-                    ),
-                ],
-            ),
-        );
+            ],
+        ),
+    );
 
-        state.currentDepth = numericLiteral(0);
-        state.maxDepthIdentifier = maxDepthIdentifier;
-    }
+    state.currentDepth = numericLiteral(0);
+    state.maxDepthIdentifier = maxDepthIdentifier;
 
     return { valueParameter, optionsParameter, setupStatements, parameters };
 }
@@ -395,35 +397,15 @@ function buildEntryFunction(
 function buildThrowingWrapper(
     parseName: string,
     safeParseName: string,
-    needsDepth: boolean,
     outputType: ts.TypeNode,
 ): ts.FunctionDeclaration {
     const valueParameter = identifier('value');
+    const optionsParameter = identifier('options');
     const parameters: ts.ParameterDeclaration[] = [
         factory.createParameterDeclaration(undefined, undefined, valueParameter, undefined, unknownType),
+        buildOptionsParameter(optionsParameter),
     ];
-    const safeParseArguments: ts.Expression[] = [valueParameter];
-    if (needsDepth) {
-        const optionsParameter = identifier('options');
-        const optionsType = factory.createTypeLiteralNode([
-            factory.createPropertySignature(
-                undefined,
-                'maxDepth',
-                factory.createToken(ts.SyntaxKind.QuestionToken),
-                numberType,
-            ),
-        ]);
-        parameters.push(
-            factory.createParameterDeclaration(
-                undefined,
-                undefined,
-                optionsParameter,
-                factory.createToken(ts.SyntaxKind.QuestionToken),
-                optionsType,
-            ),
-        );
-        safeParseArguments.push(optionsParameter);
-    }
+    const safeParseArguments: ts.Expression[] = [valueParameter, optionsParameter];
     const resultIdentifier = identifier('result');
     const statements: ts.Statement[] = [
         constStatement(resultIdentifier, undefined, call(identifier(safeParseName), safeParseArguments)),
@@ -452,35 +434,15 @@ function buildThrowingWrapper(
 function buildSafeParseWrapper(
     safeParseName: string,
     validateName: string,
-    needsDepth: boolean,
     outputType: ts.TypeNode,
 ): ts.FunctionDeclaration {
     const valueParameter = identifier('value');
+    const optionsParameter = identifier('options');
     const parameters: ts.ParameterDeclaration[] = [
         factory.createParameterDeclaration(undefined, undefined, valueParameter, undefined, unknownType),
+        buildOptionsParameter(optionsParameter),
     ];
-    const validateArguments: ts.Expression[] = [valueParameter];
-    if (needsDepth) {
-        const optionsParameter = identifier('options');
-        const optionsType = factory.createTypeLiteralNode([
-            factory.createPropertySignature(
-                undefined,
-                'maxDepth',
-                factory.createToken(ts.SyntaxKind.QuestionToken),
-                numberType,
-            ),
-        ]);
-        parameters.push(
-            factory.createParameterDeclaration(
-                undefined,
-                undefined,
-                optionsParameter,
-                factory.createToken(ts.SyntaxKind.QuestionToken),
-                optionsType,
-            ),
-        );
-        validateArguments.push(optionsParameter);
-    }
+    const validateArguments: ts.Expression[] = [valueParameter, optionsParameter];
     const resultIdentifier = identifier('result');
     const statements: ts.Statement[] = [
         constStatement(resultIdentifier, undefined, call(identifier(validateName), validateArguments)),
@@ -626,8 +588,8 @@ function endsWithReturn(statements: readonly ts.Statement[]): boolean {
 }
 
 /** Assembles a top-level `(value [, options]) => InternalParseResult<Infer>` validator from an IR. */
-function buildValidatorFunction(name: string, ir: IR, needsDepth: boolean, state: State): ts.FunctionDeclaration {
-    const entry = buildEntryParameters(needsDepth, state);
+function buildValidatorFunction(name: string, ir: IR, state: State): ts.FunctionDeclaration {
+    const entry = buildEntryParameters(state);
     const sink: Sink = { kind: 'return', valueExpression: entry.valueParameter, outputType: emitType(ir) };
     const body = emitValidation(ir, entry.valueParameter, sink, state);
     const trailingSuccess = emitSuccessRouting(sink);
@@ -648,14 +610,10 @@ function tryEmitSplitFunctions(
     validateName: string,
     slowName: string,
     ir: IR,
-    needsDepth: boolean,
     state: State,
 ): ts.FunctionDeclaration[] | undefined {
-    const entry = buildEntryParameters(needsDepth, state);
-    const slowCallArguments: ts.Expression[] = [entry.valueParameter];
-    if (entry.optionsParameter !== undefined) {
-        slowCallArguments.push(entry.optionsParameter);
-    }
+    const entry = buildEntryParameters(state);
+    const slowCallArguments: ts.Expression[] = [entry.valueParameter, entry.optionsParameter];
     const slowCall = factory.createReturnStatement(
         factory.createCallExpression(identifier(slowName), undefined, slowCallArguments),
     );
@@ -665,7 +623,7 @@ function tryEmitSplitFunctions(
     }
     // Build the slow function only once the split is confirmed — emitting it before the shape-entry check would leak
     // its hoisted constants (e.g. regexes) into the module even when we bail back to a single emitted function.
-    const slowFunction = buildValidatorFunction(slowName, ir, needsDepth, state);
+    const slowFunction = buildValidatorFunction(slowName, ir, state);
     // The setup statements matter on the fast path too: recursive shape helpers read `maxDepth`, and an invalid
     // `maxDepth` must throw even when the shape check would otherwise accept the value outright.
     const entryFunction = buildEntryFunction(
@@ -737,8 +695,6 @@ function toSource(graph: IRGraph, options: ToSourceOptions): string {
     state.namedCanModify = computeNamedCanModify(graph);
     state.namedIRs = graph.named;
     state.cyclicNames = new Set(graph.cycles);
-    // Any named entry (cyclic or not) means lazy boundaries exist, so the maxDepth option/validation applies.
-    const needsDepth = Object.keys(graph.named).length > 0;
     // `_validate${Name}` (+ `_slow${Name}`) is the shared validator returning an `InternalParseResult`; the thin
     // `safeParse${Name}` / `parse${Name}` wrappers resolve it to a `ParseResult` / value, and the `_schema` object
     // aliases them.
@@ -776,14 +732,12 @@ function toSource(graph: IRGraph, options: ToSourceOptions): string {
         }
         namedFunctions.push(emitNamedFunction(name, ir, state));
     }
-    const splitFunctions = tryEmitSplitFunctions(validateName, slowName, graph.entry, needsDepth, state);
-    const entryFunctions: ts.Statement[] = splitFunctions ?? [
-        buildValidatorFunction(validateName, graph.entry, needsDepth, state),
-    ];
+    const splitFunctions = tryEmitSplitFunctions(validateName, slowName, graph.entry, state);
+    const entryFunctions: ts.Statement[] = splitFunctions ?? [buildValidatorFunction(validateName, graph.entry, state)];
     // Thin wrappers over the shared validator (see above); the `${name}` object aliases them, and `~standard`
     // adapts safeParse to the spec.
-    entryFunctions.push(buildSafeParseWrapper(safeParseName, validateName, needsDepth, emitType(graph.entry)));
-    entryFunctions.push(buildThrowingWrapper(throwingName, safeParseName, needsDepth, emitType(graph.entry)));
+    entryFunctions.push(buildSafeParseWrapper(safeParseName, validateName, emitType(graph.entry)));
+    entryFunctions.push(buildThrowingWrapper(throwingName, safeParseName, emitType(graph.entry)));
     entryFunctions.push(...buildStandardSchemaObject(options.name, safeParseName, throwingName, emitType(graph.entry)));
 
     const needs = analyzeNeeds(graph);

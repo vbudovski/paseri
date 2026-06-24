@@ -64,11 +64,17 @@ function _objectIssues17(_val9: unknown): TreeNode | undefined {
     return _issue10;
 }
 
-function _slowObjectNested(value: unknown): InternalParseResult<{
+function _slowObjectNested(value: unknown, options?: {
+    maxDepth?: number;
+}): InternalParseResult<{
     "inner": {
         "baz": number;
     };
 }> {
+    const maxDepth: number = options?.maxDepth ?? 1000;
+    if (!(Number.isInteger(maxDepth)) || maxDepth < 1) {
+        throw new Error("maxDepth must be a positive integer.");
+    }
     if (!(isPlainObject(value))) {
         return { type: "leaf", code: issueCodes.INVALID_TYPE, expected: "object" };
     }
@@ -102,41 +108,49 @@ function _slowObjectNested(value: unknown): InternalParseResult<{
     return undefined;
 }
 
-function _validateObjectNested(value: unknown): InternalParseResult<{
+function _validateObjectNested(value: unknown, options?: {
+    maxDepth?: number;
+}): InternalParseResult<{
     "inner": {
         "baz": number;
     };
 }> {
+    const maxDepth: number = options?.maxDepth ?? 1000;
+    if (!(Number.isInteger(maxDepth)) || maxDepth < 1) {
+        throw new Error("maxDepth must be a positive integer.");
+    }
     if (!(isPlainObject(value))) {
-        return _slowObjectNested(value);
+        return _slowObjectNested(value, options);
     }
     const _field1 = (value as Record<PropertyKey, unknown>)["inner"];
     if (!(isPlainObject(_field1) && (typeof (_field1 as Record<PropertyKey, unknown>)["baz"] === "number" && !(Number.isNaN((_field1 as Record<PropertyKey, unknown>)["baz"]))))) {
-        return _slowObjectNested(value);
+        return _slowObjectNested(value, options);
     }
     let _count2 = 0;
     for (const _k3 in _field1) {
         _count2++;
     }
     if (_count2 > 1) {
-        return _slowObjectNested(value);
+        return _slowObjectNested(value, options);
     }
     let _count4 = 0;
     for (const _k5 in value) {
         _count4++;
     }
     if (_count4 > 1) {
-        return _slowObjectNested(value);
+        return _slowObjectNested(value, options);
     }
     return undefined;
 }
 
-function safeParseObjectNested(value: unknown): ParseResult<{
+function safeParseObjectNested(value: unknown, options?: {
+    maxDepth?: number;
+}): ParseResult<{
     "inner": {
         "baz": number;
     };
 }> {
-    const result = _validateObjectNested(value);
+    const result = _validateObjectNested(value, options);
     if (result === undefined) {
         return { ok: true as const, value: value as {
                 "inner": {
@@ -150,12 +164,14 @@ function safeParseObjectNested(value: unknown): ParseResult<{
     return new ParseErrorResult(result);
 }
 
-function parseObjectNested(value: unknown): {
+function parseObjectNested(value: unknown, options?: {
+    maxDepth?: number;
+}): {
     "inner": {
         "baz": number;
     };
 } {
-    const result = safeParseObjectNested(value);
+    const result = safeParseObjectNested(value, options);
     if (result.ok) {
         return result.value;
     }

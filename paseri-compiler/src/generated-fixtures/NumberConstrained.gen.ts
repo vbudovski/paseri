@@ -2,7 +2,13 @@
 
 import { isParseSuccess, issueCodes, ParseErrorResult, PaseriError, type CustomIssueCode, type InternalParseResult, type ParseResult, type StandardSchemaV1, type Translations, type TreeNode } from '@paseri/paseri/internal';
 
-function _validateNumberConstrained(value: unknown): InternalParseResult<number> {
+function _validateNumberConstrained(value: unknown, options?: {
+    maxDepth?: number;
+}): InternalParseResult<number> {
+    const maxDepth: number = options?.maxDepth ?? 1000;
+    if (!(Number.isInteger(maxDepth)) || maxDepth < 1) {
+        throw new Error("maxDepth must be a positive integer.");
+    }
     {
         if (!(typeof value === "number" && !(Number.isNaN(value)))) {
             return { type: "leaf", code: issueCodes.INVALID_TYPE, expected: "number" };
@@ -17,8 +23,10 @@ function _validateNumberConstrained(value: unknown): InternalParseResult<number>
     return undefined;
 }
 
-function safeParseNumberConstrained(value: unknown): ParseResult<number> {
-    const result = _validateNumberConstrained(value);
+function safeParseNumberConstrained(value: unknown, options?: {
+    maxDepth?: number;
+}): ParseResult<number> {
+    const result = _validateNumberConstrained(value, options);
     if (result === undefined) {
         return { ok: true as const, value: value as number };
     }
@@ -28,8 +36,10 @@ function safeParseNumberConstrained(value: unknown): ParseResult<number> {
     return new ParseErrorResult(result);
 }
 
-function parseNumberConstrained(value: unknown): number {
-    const result = safeParseNumberConstrained(value);
+function parseNumberConstrained(value: unknown, options?: {
+    maxDepth?: number;
+}): number {
+    const result = safeParseNumberConstrained(value, options);
     if (result.ok) {
         return result.value;
     }

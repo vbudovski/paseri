@@ -2,15 +2,23 @@
 
 import { isParseSuccess, issueCodes, ParseErrorResult, PaseriError, type CustomIssueCode, type InternalParseResult, type ParseResult, type StandardSchemaV1, type Translations, type TreeNode } from '@paseri/paseri/internal';
 
-function _validateNull(value: unknown): InternalParseResult<null> {
+function _validateNull(value: unknown, options?: {
+    maxDepth?: number;
+}): InternalParseResult<null> {
+    const maxDepth: number = options?.maxDepth ?? 1000;
+    if (!(Number.isInteger(maxDepth)) || maxDepth < 1) {
+        throw new Error("maxDepth must be a positive integer.");
+    }
     if (!(value === null)) {
         return { type: "leaf", code: issueCodes.INVALID_VALUE, expected: "null" };
     }
     return undefined;
 }
 
-function safeParseNull(value: unknown): ParseResult<null> {
-    const result = _validateNull(value);
+function safeParseNull(value: unknown, options?: {
+    maxDepth?: number;
+}): ParseResult<null> {
+    const result = _validateNull(value, options);
     if (result === undefined) {
         return { ok: true as const, value: value as null };
     }
@@ -20,8 +28,10 @@ function safeParseNull(value: unknown): ParseResult<null> {
     return new ParseErrorResult(result);
 }
 
-function parseNull(value: unknown): null {
-    const result = safeParseNull(value);
+function parseNull(value: unknown, options?: {
+    maxDepth?: number;
+}): null {
+    const result = safeParseNull(value, options);
     if (result.ok) {
         return result.value;
     }

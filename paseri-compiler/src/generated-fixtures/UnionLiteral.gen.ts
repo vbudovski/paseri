@@ -4,22 +4,36 @@ import { addIssue, isParseSuccess, issueCodes, ParseErrorResult, PaseriError, ty
 
 const _enum1 = new Set<unknown>(["a", "b", "c"]);
 
-function _slowUnionLiteral(value: unknown): InternalParseResult<"a" | "b" | "c"> {
+function _slowUnionLiteral(value: unknown, options?: {
+    maxDepth?: number;
+}): InternalParseResult<"a" | "b" | "c"> {
+    const maxDepth: number = options?.maxDepth ?? 1000;
+    if (!(Number.isInteger(maxDepth)) || maxDepth < 1) {
+        throw new Error("maxDepth must be a positive integer.");
+    }
     if (!(_enum1.has(value))) {
         return { type: "leaf", code: issueCodes.INVALID_ENUM_VALUE, expected: ["'a'", "'b'", "'c'"] };
     }
     return undefined;
 }
 
-function _validateUnionLiteral(value: unknown): InternalParseResult<"a" | "b" | "c"> {
+function _validateUnionLiteral(value: unknown, options?: {
+    maxDepth?: number;
+}): InternalParseResult<"a" | "b" | "c"> {
+    const maxDepth: number = options?.maxDepth ?? 1000;
+    if (!(Number.isInteger(maxDepth)) || maxDepth < 1) {
+        throw new Error("maxDepth must be a positive integer.");
+    }
     if (value === "a" || value === "b" || value === "c") {
         return undefined;
     }
-    return _slowUnionLiteral(value);
+    return _slowUnionLiteral(value, options);
 }
 
-function safeParseUnionLiteral(value: unknown): ParseResult<"a" | "b" | "c"> {
-    const result = _validateUnionLiteral(value);
+function safeParseUnionLiteral(value: unknown, options?: {
+    maxDepth?: number;
+}): ParseResult<"a" | "b" | "c"> {
+    const result = _validateUnionLiteral(value, options);
     if (result === undefined) {
         return { ok: true as const, value: value as "a" | "b" | "c" };
     }
@@ -29,8 +43,10 @@ function safeParseUnionLiteral(value: unknown): ParseResult<"a" | "b" | "c"> {
     return new ParseErrorResult(result);
 }
 
-function parseUnionLiteral(value: unknown): "a" | "b" | "c" {
-    const result = safeParseUnionLiteral(value);
+function parseUnionLiteral(value: unknown, options?: {
+    maxDepth?: number;
+}): "a" | "b" | "c" {
+    const result = safeParseUnionLiteral(value, options);
     if (result.ok) {
         return result.value;
     }

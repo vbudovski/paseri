@@ -26,9 +26,15 @@ function isPlainObject(value: unknown): value is Record<PropertyKey, unknown> {
     return Object.getPrototypeOf(value) === Object.prototype || Object.getPrototypeOf(value) === null;
 }
 
-function _slowObjectSimple(value: unknown): InternalParseResult<{
+function _slowObjectSimple(value: unknown, options?: {
+    maxDepth?: number;
+}): InternalParseResult<{
     "foo": string;
 }> {
+    const maxDepth: number = options?.maxDepth ?? 1000;
+    if (!(Number.isInteger(maxDepth)) || maxDepth < 1) {
+        throw new Error("maxDepth must be a positive integer.");
+    }
     if (!(isPlainObject(value))) {
         return { type: "leaf", code: issueCodes.INVALID_TYPE, expected: "object" };
     }
@@ -63,30 +69,38 @@ function _slowObjectSimple(value: unknown): InternalParseResult<{
     return undefined;
 }
 
-function _validateObjectSimple(value: unknown): InternalParseResult<{
+function _validateObjectSimple(value: unknown, options?: {
+    maxDepth?: number;
+}): InternalParseResult<{
     "foo": string;
 }> {
+    const maxDepth: number = options?.maxDepth ?? 1000;
+    if (!(Number.isInteger(maxDepth)) || maxDepth < 1) {
+        throw new Error("maxDepth must be a positive integer.");
+    }
     if (!(isPlainObject(value))) {
-        return _slowObjectSimple(value);
+        return _slowObjectSimple(value, options);
     }
     const _field1 = (value as Record<PropertyKey, unknown>)["foo"];
     if (!(typeof _field1 === "string")) {
-        return _slowObjectSimple(value);
+        return _slowObjectSimple(value, options);
     }
     let _count2 = 0;
     for (const _k3 in value) {
         _count2++;
     }
     if (_count2 > 1) {
-        return _slowObjectSimple(value);
+        return _slowObjectSimple(value, options);
     }
     return undefined;
 }
 
-function safeParseObjectSimple(value: unknown): ParseResult<{
+function safeParseObjectSimple(value: unknown, options?: {
+    maxDepth?: number;
+}): ParseResult<{
     "foo": string;
 }> {
-    const result = _validateObjectSimple(value);
+    const result = _validateObjectSimple(value, options);
     if (result === undefined) {
         return { ok: true as const, value: value as {
                 "foo": string;
@@ -98,10 +112,12 @@ function safeParseObjectSimple(value: unknown): ParseResult<{
     return new ParseErrorResult(result);
 }
 
-function parseObjectSimple(value: unknown): {
+function parseObjectSimple(value: unknown, options?: {
+    maxDepth?: number;
+}): {
     "foo": string;
 } {
-    const result = safeParseObjectSimple(value);
+    const result = safeParseObjectSimple(value, options);
     if (result.ok) {
         return result.value;
     }

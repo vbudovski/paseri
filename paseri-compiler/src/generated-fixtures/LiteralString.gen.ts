@@ -2,15 +2,23 @@
 
 import { isParseSuccess, issueCodes, ParseErrorResult, PaseriError, type CustomIssueCode, type InternalParseResult, type ParseResult, type StandardSchemaV1, type Translations, type TreeNode } from '@paseri/paseri/internal';
 
-function _validateLiteralString(value: unknown): InternalParseResult<"x"> {
+function _validateLiteralString(value: unknown, options?: {
+    maxDepth?: number;
+}): InternalParseResult<"x"> {
+    const maxDepth: number = options?.maxDepth ?? 1000;
+    if (!(Number.isInteger(maxDepth)) || maxDepth < 1) {
+        throw new Error("maxDepth must be a positive integer.");
+    }
     if (!(value === "x")) {
         return { type: "leaf", code: issueCodes.INVALID_VALUE, expected: "'x'" };
     }
     return undefined;
 }
 
-function safeParseLiteralString(value: unknown): ParseResult<"x"> {
-    const result = _validateLiteralString(value);
+function safeParseLiteralString(value: unknown, options?: {
+    maxDepth?: number;
+}): ParseResult<"x"> {
+    const result = _validateLiteralString(value, options);
     if (result === undefined) {
         return { ok: true as const, value: value as "x" };
     }
@@ -20,8 +28,10 @@ function safeParseLiteralString(value: unknown): ParseResult<"x"> {
     return new ParseErrorResult(result);
 }
 
-function parseLiteralString(value: unknown): "x" {
-    const result = safeParseLiteralString(value);
+function parseLiteralString(value: unknown, options?: {
+    maxDepth?: number;
+}): "x" {
+    const result = safeParseLiteralString(value, options);
     if (result.ok) {
         return result.value;
     }

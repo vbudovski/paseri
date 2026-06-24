@@ -2,7 +2,13 @@
 
 import { isParseSuccess, issueCodes, ParseErrorResult, PaseriError, type CustomIssueCode, type InternalParseResult, type ParseResult, type StandardSchemaV1, type Translations, type TreeNode } from '@paseri/paseri/internal';
 
-function _validateStringPlain(value: unknown): InternalParseResult<string> {
+function _validateStringPlain(value: unknown, options?: {
+    maxDepth?: number;
+}): InternalParseResult<string> {
+    const maxDepth: number = options?.maxDepth ?? 1000;
+    if (!(Number.isInteger(maxDepth)) || maxDepth < 1) {
+        throw new Error("maxDepth must be a positive integer.");
+    }
     {
         if (!(typeof value === "string")) {
             return { type: "leaf", code: issueCodes.INVALID_TYPE, expected: "string" };
@@ -11,8 +17,10 @@ function _validateStringPlain(value: unknown): InternalParseResult<string> {
     return undefined;
 }
 
-function safeParseStringPlain(value: unknown): ParseResult<string> {
-    const result = _validateStringPlain(value);
+function safeParseStringPlain(value: unknown, options?: {
+    maxDepth?: number;
+}): ParseResult<string> {
+    const result = _validateStringPlain(value, options);
     if (result === undefined) {
         return { ok: true as const, value: value as string };
     }
@@ -22,8 +30,10 @@ function safeParseStringPlain(value: unknown): ParseResult<string> {
     return new ParseErrorResult(result);
 }
 
-function parseStringPlain(value: unknown): string {
-    const result = safeParseStringPlain(value);
+function parseStringPlain(value: unknown, options?: {
+    maxDepth?: number;
+}): string {
+    const result = safeParseStringPlain(value, options);
     if (result.ok) {
         return result.value;
     }

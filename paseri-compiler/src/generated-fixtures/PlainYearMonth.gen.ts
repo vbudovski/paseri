@@ -2,7 +2,13 @@
 
 import { isParseSuccess, issueCodes, ParseErrorResult, PaseriError, type CustomIssueCode, type InternalParseResult, type ParseResult, type StandardSchemaV1, type Translations, type TreeNode } from '@paseri/paseri/internal';
 
-function _validatePlainYearMonth(value: unknown): InternalParseResult<Temporal.PlainYearMonth> {
+function _validatePlainYearMonth(value: unknown, options?: {
+    maxDepth?: number;
+}): InternalParseResult<Temporal.PlainYearMonth> {
+    const maxDepth: number = options?.maxDepth ?? 1000;
+    if (!(Number.isInteger(maxDepth)) || maxDepth < 1) {
+        throw new Error("maxDepth must be a positive integer.");
+    }
     {
         if (!(value instanceof Temporal.PlainYearMonth)) {
             return { type: "leaf", code: issueCodes.INVALID_TYPE, expected: "Temporal.PlainYearMonth" };
@@ -11,8 +17,10 @@ function _validatePlainYearMonth(value: unknown): InternalParseResult<Temporal.P
     return undefined;
 }
 
-function safeParsePlainYearMonth(value: unknown): ParseResult<Temporal.PlainYearMonth> {
-    const result = _validatePlainYearMonth(value);
+function safeParsePlainYearMonth(value: unknown, options?: {
+    maxDepth?: number;
+}): ParseResult<Temporal.PlainYearMonth> {
+    const result = _validatePlainYearMonth(value, options);
     if (result === undefined) {
         return { ok: true as const, value: value as Temporal.PlainYearMonth };
     }
@@ -22,8 +30,10 @@ function safeParsePlainYearMonth(value: unknown): ParseResult<Temporal.PlainYear
     return new ParseErrorResult(result);
 }
 
-function parsePlainYearMonth(value: unknown): Temporal.PlainYearMonth {
-    const result = safeParsePlainYearMonth(value);
+function parsePlainYearMonth(value: unknown, options?: {
+    maxDepth?: number;
+}): Temporal.PlainYearMonth {
+    const result = safeParsePlainYearMonth(value, options);
     if (result.ok) {
         return result.value;
     }

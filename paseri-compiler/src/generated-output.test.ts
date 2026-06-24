@@ -182,6 +182,20 @@ it('throws on an invalid maxDepth, matching the runtime', () => {
     expect(result.ok).toBe(true);
 });
 
+it('throws on an invalid maxDepth for a non-recursive schema too, matching the runtime', () => {
+    // A non-recursive schema never reads maxDepth for depth, but the runtime safeParse/parse still validates the
+    // option, so the generated surface must reject it identically rather than silently accepting it.
+    const validator = compileSync(p.string() as p.Schema<unknown>);
+    expect(validator).not.toBe(null);
+    if (validator === null) {
+        return;
+    }
+    for (const bad of [0, -1, 1.5, Number.NaN, Number.POSITIVE_INFINITY]) {
+        expect(() => validator('x', { maxDepth: bad })).toThrow('maxDepth must be a positive integer.');
+    }
+    expect(validator('x', { maxDepth: 5 }).ok).toBe(true);
+});
+
 it('emits a throwing `parse` entry mirroring the runtime: bare value on success, PaseriError on failure', () => {
     const schema = p.object({ hello: p.string() });
     const parse = compileThrowingSync(schema as p.Schema<unknown>);

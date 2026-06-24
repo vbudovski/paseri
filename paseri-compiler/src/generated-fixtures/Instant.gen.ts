@@ -2,7 +2,13 @@
 
 import { isParseSuccess, issueCodes, ParseErrorResult, PaseriError, type CustomIssueCode, type InternalParseResult, type ParseResult, type StandardSchemaV1, type Translations, type TreeNode } from '@paseri/paseri/internal';
 
-function _validateInstant(value: unknown): InternalParseResult<Temporal.Instant> {
+function _validateInstant(value: unknown, options?: {
+    maxDepth?: number;
+}): InternalParseResult<Temporal.Instant> {
+    const maxDepth: number = options?.maxDepth ?? 1000;
+    if (!(Number.isInteger(maxDepth)) || maxDepth < 1) {
+        throw new Error("maxDepth must be a positive integer.");
+    }
     {
         if (!(value instanceof Temporal.Instant)) {
             return { type: "leaf", code: issueCodes.INVALID_TYPE, expected: "Temporal.Instant" };
@@ -11,8 +17,10 @@ function _validateInstant(value: unknown): InternalParseResult<Temporal.Instant>
     return undefined;
 }
 
-function safeParseInstant(value: unknown): ParseResult<Temporal.Instant> {
-    const result = _validateInstant(value);
+function safeParseInstant(value: unknown, options?: {
+    maxDepth?: number;
+}): ParseResult<Temporal.Instant> {
+    const result = _validateInstant(value, options);
     if (result === undefined) {
         return { ok: true as const, value: value as Temporal.Instant };
     }
@@ -22,8 +30,10 @@ function safeParseInstant(value: unknown): ParseResult<Temporal.Instant> {
     return new ParseErrorResult(result);
 }
 
-function parseInstant(value: unknown): Temporal.Instant {
-    const result = safeParseInstant(value);
+function parseInstant(value: unknown, options?: {
+    maxDepth?: number;
+}): Temporal.Instant {
+    const result = safeParseInstant(value, options);
     if (result.ok) {
         return result.value;
     }

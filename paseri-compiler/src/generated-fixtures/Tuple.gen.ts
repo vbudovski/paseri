@@ -2,11 +2,17 @@
 
 import { addIssue, isParseSuccess, issueCodes, ParseErrorResult, PaseriError, type CustomIssueCode, type InternalParseResult, type ParseResult, type StandardSchemaV1, type Translations, type TreeNode } from '@paseri/paseri/internal';
 
-function _slowTuple(value: unknown): InternalParseResult<[
+function _slowTuple(value: unknown, options?: {
+    maxDepth?: number;
+}): InternalParseResult<[
     string,
     number,
     123n
 ]> {
+    const maxDepth: number = options?.maxDepth ?? 1000;
+    if (!(Number.isInteger(maxDepth)) || maxDepth < 1) {
+        throw new Error("maxDepth must be a positive integer.");
+    }
     {
         if (!(Array.isArray(value))) {
             return { type: "leaf", code: issueCodes.INVALID_TYPE, expected: "array" };
@@ -46,23 +52,31 @@ function _slowTuple(value: unknown): InternalParseResult<[
     return undefined;
 }
 
-function _validateTuple(value: unknown): InternalParseResult<[
+function _validateTuple(value: unknown, options?: {
+    maxDepth?: number;
+}): InternalParseResult<[
     string,
     number,
     123n
 ]> {
+    const maxDepth: number = options?.maxDepth ?? 1000;
+    if (!(Number.isInteger(maxDepth)) || maxDepth < 1) {
+        throw new Error("maxDepth must be a positive integer.");
+    }
     if (Array.isArray(value) && value.length === 3 && typeof value[0] === "string" && (typeof value[1] === "number" && !(Number.isNaN(value[1]))) && value[2] === 123n) {
         return undefined;
     }
-    return _slowTuple(value);
+    return _slowTuple(value, options);
 }
 
-function safeParseTuple(value: unknown): ParseResult<[
+function safeParseTuple(value: unknown, options?: {
+    maxDepth?: number;
+}): ParseResult<[
     string,
     number,
     123n
 ]> {
-    const result = _validateTuple(value);
+    const result = _validateTuple(value, options);
     if (result === undefined) {
         return { ok: true as const, value: value as [
                 string,
@@ -76,12 +90,14 @@ function safeParseTuple(value: unknown): ParseResult<[
     return new ParseErrorResult(result);
 }
 
-function parseTuple(value: unknown): [
+function parseTuple(value: unknown, options?: {
+    maxDepth?: number;
+}): [
     string,
     number,
     123n
 ] {
-    const result = safeParseTuple(value);
+    const result = safeParseTuple(value, options);
     if (result.ok) {
         return result.value;
     }

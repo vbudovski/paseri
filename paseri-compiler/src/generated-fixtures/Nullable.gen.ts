@@ -2,7 +2,13 @@
 
 import { isParseSuccess, issueCodes, ParseErrorResult, PaseriError, type CustomIssueCode, type InternalParseResult, type ParseResult, type StandardSchemaV1, type Translations, type TreeNode } from '@paseri/paseri/internal';
 
-function _validateNullable(value: unknown): InternalParseResult<number | null> {
+function _validateNullable(value: unknown, options?: {
+    maxDepth?: number;
+}): InternalParseResult<number | null> {
+    const maxDepth: number = options?.maxDepth ?? 1000;
+    if (!(Number.isInteger(maxDepth)) || maxDepth < 1) {
+        throw new Error("maxDepth must be a positive integer.");
+    }
     if (value !== null) {
         {
             if (!(typeof value === "number" && !(Number.isNaN(value)))) {
@@ -16,8 +22,10 @@ function _validateNullable(value: unknown): InternalParseResult<number | null> {
     return undefined;
 }
 
-function safeParseNullable(value: unknown): ParseResult<number | null> {
-    const result = _validateNullable(value);
+function safeParseNullable(value: unknown, options?: {
+    maxDepth?: number;
+}): ParseResult<number | null> {
+    const result = _validateNullable(value, options);
     if (result === undefined) {
         return { ok: true as const, value: value as number | null };
     }
@@ -27,8 +35,10 @@ function safeParseNullable(value: unknown): ParseResult<number | null> {
     return new ParseErrorResult(result);
 }
 
-function parseNullable(value: unknown): number | null {
-    const result = safeParseNullable(value);
+function parseNullable(value: unknown, options?: {
+    maxDepth?: number;
+}): number | null {
+    const result = safeParseNullable(value, options);
     if (result.ok) {
         return result.value;
     }

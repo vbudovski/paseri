@@ -2,15 +2,23 @@
 
 import { isParseSuccess, issueCodes, ParseErrorResult, PaseriError, type CustomIssueCode, type InternalParseResult, type ParseResult, type StandardSchemaV1, type Translations, type TreeNode } from '@paseri/paseri/internal';
 
-function _validateSymbol(value: unknown): InternalParseResult<symbol> {
+function _validateSymbol(value: unknown, options?: {
+    maxDepth?: number;
+}): InternalParseResult<symbol> {
+    const maxDepth: number = options?.maxDepth ?? 1000;
+    if (!(Number.isInteger(maxDepth)) || maxDepth < 1) {
+        throw new Error("maxDepth must be a positive integer.");
+    }
     if (!(typeof value === "symbol")) {
         return { type: "leaf", code: issueCodes.INVALID_TYPE, expected: "Symbol" };
     }
     return undefined;
 }
 
-function safeParseSymbol(value: unknown): ParseResult<symbol> {
-    const result = _validateSymbol(value);
+function safeParseSymbol(value: unknown, options?: {
+    maxDepth?: number;
+}): ParseResult<symbol> {
+    const result = _validateSymbol(value, options);
     if (result === undefined) {
         return { ok: true as const, value: value as symbol };
     }
@@ -20,8 +28,10 @@ function safeParseSymbol(value: unknown): ParseResult<symbol> {
     return new ParseErrorResult(result);
 }
 
-function parseSymbol(value: unknown): symbol {
-    const result = safeParseSymbol(value);
+function parseSymbol(value: unknown, options?: {
+    maxDepth?: number;
+}): symbol {
+    const result = safeParseSymbol(value, options);
     if (result.ok) {
         return result.value;
     }

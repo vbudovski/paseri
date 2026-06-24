@@ -2,15 +2,23 @@
 
 import { isParseSuccess, issueCodes, ParseErrorResult, PaseriError, type CustomIssueCode, type InternalParseResult, type ParseResult, type StandardSchemaV1, type Translations, type TreeNode } from '@paseri/paseri/internal';
 
-function _validateBoolean(value: unknown): InternalParseResult<boolean> {
+function _validateBoolean(value: unknown, options?: {
+    maxDepth?: number;
+}): InternalParseResult<boolean> {
+    const maxDepth: number = options?.maxDepth ?? 1000;
+    if (!(Number.isInteger(maxDepth)) || maxDepth < 1) {
+        throw new Error("maxDepth must be a positive integer.");
+    }
     if (!(typeof value === "boolean")) {
         return { type: "leaf", code: issueCodes.INVALID_TYPE, expected: "boolean" };
     }
     return undefined;
 }
 
-function safeParseBoolean(value: unknown): ParseResult<boolean> {
-    const result = _validateBoolean(value);
+function safeParseBoolean(value: unknown, options?: {
+    maxDepth?: number;
+}): ParseResult<boolean> {
+    const result = _validateBoolean(value, options);
     if (result === undefined) {
         return { ok: true as const, value: value as boolean };
     }
@@ -20,8 +28,10 @@ function safeParseBoolean(value: unknown): ParseResult<boolean> {
     return new ParseErrorResult(result);
 }
 
-function parseBoolean(value: unknown): boolean {
-    const result = safeParseBoolean(value);
+function parseBoolean(value: unknown, options?: {
+    maxDepth?: number;
+}): boolean {
+    const result = safeParseBoolean(value, options);
     if (result.ok) {
         return result.value;
     }
