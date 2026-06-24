@@ -1,7 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/denoland/deno/main/cli/schemas/config-file.v1.json",
   "imports": {
-    "@biomejs/biome": "npm:@biomejs/biome@^2.4.16",
+    "@biomejs/biome": "npm:@biomejs/biome@^2.5.0",
     "@changesets/cli": "npm:@changesets/cli@^2.31.0",
     "@commitlint/cli": "npm:@commitlint/cli@^21.0.2",
     "@commitlint/config-conventional": "npm:@commitlint/config-conventional@^21.0.2",
