@@ -11,9 +11,79 @@ import { Badge, Tabs, TabItem } from '@astrojs/starlight/components';
 
 <p><Badge text="Beta" variant="caution" size="large" /></p>
 
-The `@paseri/compiler` package compiles a Paseri schema ahead of time into a TypeScript module containing the parser, for faster validation.
+Paseri schemas can be compiled ahead of time into a TypeScript module containing the parser, for faster validation.
 
-## Installation
+There are two ways to do this:
+
+- **Via the [Vite plugin](#vite-plugin)**, which compiles `*.schema.ts` files automatically as part of your build. This is the simplest option if you already use Vite.
+- **[Manually](#manual-compilation)**, by calling `toSource` and writing the generated module yourself. Use this if you don't build with Vite, or want full control over when and how schemas are compiled.
+
+## Vite plugin
+
+If you build with Vite, [`@paseri/vite-plugin`](https://jsr.io/@paseri/vite-plugin) compiles your schemas automatically, swapping the runtime parser for the ahead-of-time version in production builds. Requires Vite 7+.
+
+<Tabs syncKey="packageManager">
+    <TabItem label="Deno" icon="deno">
+        ```shell
+        deno add jsr:@paseri/paseri jsr:@paseri/vite-plugin
+        ```
+    </TabItem>
+    <TabItem label="Bun" icon="bun">
+        ```shell
+        bunx jsr add @paseri/paseri @paseri/vite-plugin
+        ```
+    </TabItem>
+    <TabItem label="pnpm" icon="pnpm">
+        ```shell
+        pnpm add jsr:@paseri/paseri jsr:@paseri/vite-plugin
+        ```
+    </TabItem>
+    <TabItem label="yarn" icon="seti:yarn">
+        ```shell
+        yarn add jsr:@paseri/paseri jsr:@paseri/vite-plugin
+        ```
+    </TabItem>
+    <TabItem label="npm" icon="seti:npm">
+        ```shell
+        npx jsr add @paseri/paseri @paseri/vite-plugin
+        ```
+    </TabItem>
+</Tabs>
+
+Register the plugin in your Vite config:
+
+```typescript
+// vite.config.ts
+import { paseri } from '@paseri/vite-plugin';
+
+export default {
+    plugins: [paseri()],
+};
+```
+
+Write your schemas in `*.schema.ts` files:
+
+```typescript
+// greeting.schema.ts
+import * as p from '@paseri/paseri';
+
+export const Greeting = p.object({
+    hello: p.string(),
+});
+```
+
+Then import and use them as normal:
+
+```typescript
+// app.ts
+import { Greeting } from './greeting.schema.ts';
+
+const result = Greeting.safeParse({ hello: 'world' });
+```
+
+## Manual compilation
+
+### Installation
 
 The `@paseri/compiler` package is a companion to Paseri; install both.
 
@@ -45,11 +115,12 @@ The `@paseri/compiler` package is a companion to Paseri; install both.
     </TabItem>
 </Tabs>
 
-## Compiling a schema
+### Compiling a schema
 
 Import `@paseri/paseri/introspect`, then pass `schema.toIR()` to `toSource`, which returns the module source as a string:
 
 ```typescript
+// build.ts
 import * as p from '@paseri/paseri';
 import '@paseri/paseri/introspect';
 import { toSource } from '@paseri/compiler';
@@ -62,40 +133,13 @@ const source = toSource(schema.toIR(), { name: 'Greeting' });
 // Write `source` to a file (e.g. `greeting.ts`) as part of your build.
 ```
 
-## Using the generated module
+### Using the generated module
 
-The generated module exports a single object named after the schema &mdash; here `Greeting` &mdash; that mirrors the runtime schema's surface, so it is a **drop-in replacement**: swap the import and nothing else changes.
-
-`Greeting.safeParse` returns the same `ParseResult` as the runtime schema:
+The generated module exports a single object named after the schema (here, `Greeting`) that mirrors the runtime schema's [parsing interface](/reference/schema/common/), so it is a **drop-in replacement** for validation.
 
 ```typescript
-import { en } from '@paseri/paseri/locales';
+// app.ts
 import { Greeting } from './greeting.ts';
 
-const data = { hello: 'world' };
-const result = Greeting.safeParse(data);
-if (result.ok) {
-    console.log(`Hello ${result.value.hello}!`);
-} else {
-    const messages = result.messages(en);
-    throw new Error(`Parsing failed: ${messages}`);
-}
-```
-
-`Greeting.parse` is the throwing counterpart, returning the value or throwing a `PaseriError`:
-
-```typescript
-import { Greeting } from './greeting.ts';
-
-const greeting = Greeting.parse({ hello: 'world' });
-console.log(`Hello ${greeting.hello}!`);
-```
-
-`Greeting` is also a [Standard Schema](https://standardschema.dev), so it can be handed directly to any compatible library (tRPC, TanStack Form, Drizzle, &hellip;):
-
-```typescript
-import { Greeting } from './greeting.ts';
-
-// `Greeting['~standard'].validate(data)` is available; most libraries just take `Greeting`.
-someStandardSchemaConsumer(Greeting);
+const result = Greeting.safeParse({ hello: 'world' });
 ```
