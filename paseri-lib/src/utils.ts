@@ -46,6 +46,31 @@ function primitiveToString(value: Primitive): string {
     return String(value);
 }
 
+/**
+ * True when adding the order bound `value` would contradict an existing opposite bound in `checks` (matched by
+ * `oppositeTag`). `compare` orders two bound params like `Temporal.PlainDate.compare`; `side` is `1` for a new lower
+ * bound (contradiction if it sits above an upper bound) and `-1` for a new upper bound (below a lower bound). Equal
+ * bounds (`min === max`) stay valid — only a strict overshoot counts.
+ */
+function boundsContradict<ParamType>(
+    checks: ReadonlyArray<{ tag: number; param: ParamType }> | undefined,
+    oppositeTag: number,
+    value: ParamType,
+    compare: (left: ParamType, right: ParamType) => number,
+    side: 1 | -1,
+): boolean {
+    if (checks === undefined) {
+        return false;
+    }
+    for (const check of checks) {
+        if (check.tag === oppositeTag && Math.sign(compare(value, check.param)) === side) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 function deepFreeze<ValueType>(value: ValueType): ValueType {
     if (value === null || typeof value !== 'object' || Object.isFrozen(value)) {
         return value;
@@ -58,4 +83,4 @@ function deepFreeze<ValueType>(value: ValueType): ValueType {
     return value;
 }
 
-export { deepFreeze, defineProtoProperty, isPlainObject, primitiveToString };
+export { boundsContradict, deepFreeze, defineProtoProperty, isPlainObject, primitiveToString };

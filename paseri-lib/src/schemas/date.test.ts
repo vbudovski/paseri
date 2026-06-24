@@ -164,6 +164,20 @@ describe('max', () => {
     });
 });
 
+describe('contradictory bounds', () => {
+    const lower = new Date(2020, 0, 1);
+    const upper = new Date(2019, 0, 1);
+
+    it('throws when the minimum exceeds the maximum', () => {
+        expect(() => p.date().min(lower).max(upper)).toThrow('Minimum must not exceed maximum.');
+        expect(() => p.date().max(upper).min(lower)).toThrow('Minimum must not exceed maximum.');
+    });
+
+    it('allows equal minimum and maximum', () => {
+        expect(() => p.date().min(lower).max(lower)).not.toThrow();
+    });
+});
+
 it('accepts optional values', () => {
     const schema = p.date().optional();
 

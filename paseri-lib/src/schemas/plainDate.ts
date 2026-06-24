@@ -1,5 +1,6 @@
 import { issueCodes, type LeafNode, type TreeNode } from '../issue.ts';
 import type { InternalParseResult } from '../result.ts';
+import { boundsContradict } from '../utils.ts';
 import { Schema } from './schema.ts';
 
 const TAG_MIN = 0;
@@ -85,6 +86,10 @@ class PlainDateSchema extends Schema<Temporal.PlainDate> {
         return undefined;
     }
     min(value: Temporal.PlainDate): PlainDateSchema {
+        if (boundsContradict(this._checks, TAG_MAX, value, Temporal.PlainDate.compare, 1)) {
+            throw new Error('Minimum must not exceed maximum.');
+        }
+
         const cloned = this._clone();
         cloned._checks = cloned._checks || [];
         const boundIsIso = value.calendarId === 'iso8601';
@@ -101,6 +106,10 @@ class PlainDateSchema extends Schema<Temporal.PlainDate> {
         return cloned;
     }
     max(value: Temporal.PlainDate): PlainDateSchema {
+        if (boundsContradict(this._checks, TAG_MIN, value, Temporal.PlainDate.compare, -1)) {
+            throw new Error('Minimum must not exceed maximum.');
+        }
+
         const cloned = this._clone();
         cloned._checks = cloned._checks || [];
         const boundIsIso = value.calendarId === 'iso8601';

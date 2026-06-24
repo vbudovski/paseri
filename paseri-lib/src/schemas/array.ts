@@ -80,6 +80,9 @@ class ArraySchema<ElementSchemaType extends AnySchemaType> extends Schema<Infer<
         if (!Number.isInteger(length) || length < 0) {
             throw new Error('Length must be a non-negative integer.');
         }
+        if (length > this._maxLength) {
+            throw new Error('Minimum length must not exceed maximum length.');
+        }
 
         const cloned = this._clone();
         cloned._minLength = length;
@@ -89,6 +92,9 @@ class ArraySchema<ElementSchemaType extends AnySchemaType> extends Schema<Infer<
     max(length: number): ArraySchema<ElementSchemaType> {
         if (!Number.isInteger(length) || length < 0) {
             throw new Error('Length must be a non-negative integer.');
+        }
+        if (length < this._minLength) {
+            throw new Error('Minimum length must not exceed maximum length.');
         }
 
         const cloned = this._clone();

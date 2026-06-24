@@ -106,6 +106,19 @@ for (const check of boundChecks) {
     });
 }
 
+describe('contradictory bounds', () => {
+    it('throws when the lower bound exceeds the upper bound', () => {
+        expect(() => p.bigint().gte(5n).lte(3n)).toThrow('Lower bound must not exceed upper bound.');
+        expect(() => p.bigint().lte(3n).gte(5n)).toThrow('Lower bound must not exceed upper bound.');
+        expect(() => p.bigint().gt(5n).lt(5n)).toThrow('Lower bound must not exceed upper bound.');
+        expect(() => p.bigint().gte(5n).lt(5n)).toThrow('Lower bound must not exceed upper bound.');
+    });
+
+    it('allows a single satisfiable value', () => {
+        expect(() => p.bigint().gte(5n).lte(5n)).not.toThrow();
+    });
+});
+
 it('accepts optional values', () => {
     const schema = p.bigint().optional();
 

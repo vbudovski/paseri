@@ -1,5 +1,6 @@
 import { issueCodes, type LeafNode, type TreeNode } from '../issue.ts';
 import type { InternalParseResult } from '../result.ts';
+import { boundsContradict } from '../utils.ts';
 import { Schema } from './schema.ts';
 
 const TAG_MIN = 0;
@@ -57,6 +58,10 @@ class InstantSchema extends Schema<Temporal.Instant> {
         return undefined;
     }
     min(value: Temporal.Instant): InstantSchema {
+        if (boundsContradict(this._checks, TAG_MAX, value, Temporal.Instant.compare, 1)) {
+            throw new Error('Minimum must not exceed maximum.');
+        }
+
         const cloned = this._clone();
         cloned._checks = cloned._checks || [];
         cloned._checks.push({
@@ -69,6 +74,10 @@ class InstantSchema extends Schema<Temporal.Instant> {
         return cloned;
     }
     max(value: Temporal.Instant): InstantSchema {
+        if (boundsContradict(this._checks, TAG_MIN, value, Temporal.Instant.compare, -1)) {
+            throw new Error('Minimum must not exceed maximum.');
+        }
+
         const cloned = this._clone();
         cloned._checks = cloned._checks || [];
         cloned._checks.push({
