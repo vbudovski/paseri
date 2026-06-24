@@ -1,5 +1,12 @@
 # @paseri/compiler
 
+## 0.7.1
+
+### Patch Changes
+
+- be87b16: Fix the compiled date validator reporting a bound leaf (`too_dated` / `too_recent`) alongside `invalid_date` for a `min`/`max`-constrained date nested in a container. The invalid-date guard now short-circuits the bound checks, matching the runtime.
+- 0593d48: `safeParse` / `parse` on a compiled schema now reject an invalid `maxDepth` (e.g. `0` or `NaN`) by throwing `maxDepth must be a positive integer.`, matching the runtime. Some generated validators previously accepted it silently.
+
 ## 0.7.0
 
 ### Minor Changes
