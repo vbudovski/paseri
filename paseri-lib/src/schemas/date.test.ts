@@ -46,6 +46,20 @@ it('rejects invalid dates', () => {
     }
 });
 
+it('short-circuits the bound check on an invalid date inside a container', () => {
+    // An invalid date fails before the min/max bounds run, so it reports only `invalid_date` — never a bound leaf
+    // stacked on top. Nesting in an object exercises the accumulating error path (distinct from the bare-date case
+    // above, which short-circuits trivially by returning).
+    const schema = p.object({ d: p.date().min(new Date(2020, 0, 1)) });
+
+    const result = schema.safeParse({ d: new Date(Number.NaN) });
+    if (!result.ok) {
+        expect(result.messages()).toEqual([{ path: ['d'], message: 'invalid_date' }]);
+    } else {
+        expect(result.ok).toBeFalsy();
+    }
+});
+
 describe('min', () => {
     it('accepts at-or-after the bound, rejects before it as too_dated', () => {
         fc.assert(
