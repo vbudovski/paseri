@@ -129,6 +129,20 @@ describe('max', () => {
     });
 });
 
+describe('contradictory bounds', () => {
+    const lower = Temporal.ZonedDateTime.from('2020-01-01T00:00:00Z[UTC]');
+    const upper = Temporal.ZonedDateTime.from('2019-01-01T00:00:00Z[UTC]');
+
+    it('throws when the minimum exceeds the maximum', () => {
+        expect(() => p.zonedDateTime().min(lower).max(upper)).toThrow('Minimum must not exceed maximum.');
+        expect(() => p.zonedDateTime().max(upper).min(lower)).toThrow('Minimum must not exceed maximum.');
+    });
+
+    it('allows equal minimum and maximum', () => {
+        expect(() => p.zonedDateTime().min(lower).max(lower)).not.toThrow();
+    });
+});
+
 it('accepts optional values', () => {
     const schema = p.zonedDateTime().optional();
 

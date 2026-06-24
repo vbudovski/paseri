@@ -113,6 +113,9 @@ class StringSchema extends Schema<string> {
         if (!Number.isInteger(length) || length < 0) {
             throw new Error('Length must be a non-negative integer.');
         }
+        if (length > this._effectiveMaxLength()) {
+            throw new Error('Minimum length must not exceed maximum length.');
+        }
 
         const cloned = this._clone();
         cloned._checks = cloned._checks || [];
@@ -124,12 +127,40 @@ class StringSchema extends Schema<string> {
         if (!Number.isInteger(length) || length < 0) {
             throw new Error('Length must be a non-negative integer.');
         }
+        if (length < this._effectiveMinLength()) {
+            throw new Error('Minimum length must not exceed maximum length.');
+        }
 
         const cloned = this._clone();
         cloned._checks = cloned._checks || [];
         cloned._checks.push({ tag: TAG_MAX, param: length, issue: this.issues.TOO_LONG });
 
         return cloned;
+    }
+    // Binding length bounds across any repeated min/max calls: the largest minimum and the smallest maximum.
+    private _effectiveMinLength(): number {
+        let min = 0;
+        if (this._checks !== undefined) {
+            for (const check of this._checks) {
+                if (check.tag === TAG_MIN && check.param > min) {
+                    min = check.param;
+                }
+            }
+        }
+
+        return min;
+    }
+    private _effectiveMaxLength(): number {
+        let max = Number.POSITIVE_INFINITY;
+        if (this._checks !== undefined) {
+            for (const check of this._checks) {
+                if (check.tag === TAG_MAX && check.param < max) {
+                    max = check.param;
+                }
+            }
+        }
+
+        return max;
     }
     length(length: number): StringSchema {
         if (!Number.isInteger(length) || length < 0) {

@@ -140,6 +140,17 @@ describe('max', () => {
     });
 });
 
+describe('contradictory bounds', () => {
+    it('throws when the minimum length exceeds the maximum length', () => {
+        expect(() => p.array(p.string()).min(5).max(3)).toThrow('Minimum length must not exceed maximum length.');
+        expect(() => p.array(p.string()).max(3).min(5)).toThrow('Minimum length must not exceed maximum length.');
+    });
+
+    it('allows equal minimum and maximum lengths', () => {
+        expect(() => p.array(p.string()).min(3).max(3)).not.toThrow();
+    });
+});
+
 describe('length', () => {
     it('accepts an array whose length equals the bound', () => {
         fc.assert(

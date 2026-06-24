@@ -154,6 +154,17 @@ describe('max', () => {
     });
 });
 
+describe('contradictory bounds', () => {
+    it('throws when the minimum size exceeds the maximum size', () => {
+        expect(() => p.map(p.string(), p.number()).min(5).max(3)).toThrow('Minimum size must not exceed maximum size.');
+        expect(() => p.map(p.string(), p.number()).max(3).min(5)).toThrow('Minimum size must not exceed maximum size.');
+    });
+
+    it('allows equal minimum and maximum sizes', () => {
+        expect(() => p.map(p.string(), p.number()).min(3).max(3)).not.toThrow();
+    });
+});
+
 describe('size', () => {
     it('accepts a map whose size equals the bound', () => {
         fc.assert(

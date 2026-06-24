@@ -141,6 +141,17 @@ describe('max', () => {
     });
 });
 
+describe('contradictory bounds', () => {
+    it('throws when the minimum size exceeds the maximum size', () => {
+        expect(() => p.set(p.string()).min(5).max(3)).toThrow('Minimum size must not exceed maximum size.');
+        expect(() => p.set(p.string()).max(3).min(5)).toThrow('Minimum size must not exceed maximum size.');
+    });
+
+    it('allows equal minimum and maximum sizes', () => {
+        expect(() => p.set(p.string()).min(3).max(3)).not.toThrow();
+    });
+});
+
 describe('size', () => {
     it('accepts a set whose size equals the bound', () => {
         fc.assert(

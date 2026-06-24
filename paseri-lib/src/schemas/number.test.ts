@@ -119,6 +119,23 @@ for (const check of boundChecks) {
     });
 }
 
+describe('contradictory bounds', () => {
+    it('throws when the lower bound exceeds the upper bound', () => {
+        expect(() => p.number().gte(5).lte(3)).toThrow('Lower bound must not exceed upper bound.');
+        expect(() => p.number().lte(3).gte(5)).toThrow('Lower bound must not exceed upper bound.');
+        expect(() => p.number().gt(5).lt(5)).toThrow('Lower bound must not exceed upper bound.');
+        expect(() => p.number().gte(5).lt(5)).toThrow('Lower bound must not exceed upper bound.');
+    });
+
+    it('allows a single satisfiable value', () => {
+        expect(() => p.number().gte(5).lte(5)).not.toThrow();
+    });
+
+    it('allows an integer-gap range that is empty only over the reals', () => {
+        expect(() => p.number().gt(5).lt(6).int()).not.toThrow();
+    });
+});
+
 describe('int', () => {
     it('accepts valid values', () => {
         const schema = p.number().int();

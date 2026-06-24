@@ -1,5 +1,6 @@
 import { issueCodes, type LeafNode, type TreeNode } from '../issue.ts';
 import type { InternalParseResult } from '../result.ts';
+import { boundsContradict } from '../utils.ts';
 import { Schema } from './schema.ts';
 
 const TAG_MIN = 0;
@@ -82,6 +83,10 @@ class PlainTimeSchema extends Schema<Temporal.PlainTime> {
         return undefined;
     }
     min(value: Temporal.PlainTime): PlainTimeSchema {
+        if (boundsContradict(this._checks, TAG_MAX, value, Temporal.PlainTime.compare, 1)) {
+            throw new Error('Minimum must not exceed maximum.');
+        }
+
         const cloned = this._clone();
         cloned._checks = cloned._checks || [];
         cloned._checks.push({
@@ -99,6 +104,10 @@ class PlainTimeSchema extends Schema<Temporal.PlainTime> {
         return cloned;
     }
     max(value: Temporal.PlainTime): PlainTimeSchema {
+        if (boundsContradict(this._checks, TAG_MIN, value, Temporal.PlainTime.compare, -1)) {
+            throw new Error('Minimum must not exceed maximum.');
+        }
+
         const cloned = this._clone();
         cloned._checks = cloned._checks || [];
         cloned._checks.push({

@@ -94,6 +94,9 @@ class SetSchema<ElementSchemaType extends AnySchemaType> extends Schema<Infer<Se
         if (!Number.isInteger(size) || size < 0) {
             throw new Error('Size must be a non-negative integer.');
         }
+        if (size > this._maxSize) {
+            throw new Error('Minimum size must not exceed maximum size.');
+        }
 
         const cloned = this._clone();
         cloned._minSize = size;
@@ -103,6 +106,9 @@ class SetSchema<ElementSchemaType extends AnySchemaType> extends Schema<Infer<Se
     max(size: number): SetSchema<ElementSchemaType> {
         if (!Number.isInteger(size) || size < 0) {
             throw new Error('Size must be a non-negative integer.');
+        }
+        if (size < this._minSize) {
+            throw new Error('Minimum size must not exceed maximum size.');
         }
 
         const cloned = this._clone();

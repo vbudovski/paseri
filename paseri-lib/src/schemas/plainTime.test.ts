@@ -120,6 +120,20 @@ describe('max', () => {
     });
 });
 
+describe('contradictory bounds', () => {
+    const lower = Temporal.PlainTime.from('10:00:00');
+    const upper = Temporal.PlainTime.from('08:00:00');
+
+    it('throws when the minimum exceeds the maximum', () => {
+        expect(() => p.plainTime().min(lower).max(upper)).toThrow('Minimum must not exceed maximum.');
+        expect(() => p.plainTime().max(upper).min(lower)).toThrow('Minimum must not exceed maximum.');
+    });
+
+    it('allows equal minimum and maximum', () => {
+        expect(() => p.plainTime().min(lower).max(lower)).not.toThrow();
+    });
+});
+
 it('accepts optional values', () => {
     const schema = p.plainTime().optional();
 

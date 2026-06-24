@@ -1,5 +1,6 @@
 import { issueCodes, type LeafNode, type TreeNode } from '../issue.ts';
 import type { InternalParseResult } from '../result.ts';
+import { boundsContradict } from '../utils.ts';
 import { Schema } from './schema.ts';
 
 const TAG_MIN = 0;
@@ -62,6 +63,10 @@ class DateSchema extends Schema<Date> {
             throw new Error('Invalid Date is not a valid boundary value.');
         }
 
+        if (boundsContradict(this._checks, TAG_MAX, value, (left, right) => left.getTime() - right.getTime(), 1)) {
+            throw new Error('Minimum must not exceed maximum.');
+        }
+
         const cloned = this._clone();
         cloned._checks = cloned._checks || [];
         cloned._checks.push({ tag: TAG_MIN, param: new Date(value.getTime()), issue: this.issues.TOO_DATED });
@@ -71,6 +76,10 @@ class DateSchema extends Schema<Date> {
     max(value: Date): DateSchema {
         if (Number.isNaN(value.getTime())) {
             throw new Error('Invalid Date is not a valid boundary value.');
+        }
+
+        if (boundsContradict(this._checks, TAG_MIN, value, (left, right) => left.getTime() - right.getTime(), -1)) {
+            throw new Error('Minimum must not exceed maximum.');
         }
 
         const cloned = this._clone();
