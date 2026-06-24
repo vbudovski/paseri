@@ -11,7 +11,13 @@ function _shapeSet5(_set4: Set<unknown>): boolean {
     return true;
 }
 
-function _slowSet(value: unknown): InternalParseResult<Set<string>> {
+function _slowSet(value: unknown, options?: {
+    maxDepth?: number;
+}): InternalParseResult<Set<string>> {
+    const maxDepth: number = options?.maxDepth ?? 1000;
+    if (!(Number.isInteger(maxDepth)) || maxDepth < 1) {
+        throw new Error("maxDepth must be a positive integer.");
+    }
     {
         if (!(value instanceof Set)) {
             return { type: "leaf", code: issueCodes.INVALID_TYPE, expected: "Set" };
@@ -34,15 +40,23 @@ function _slowSet(value: unknown): InternalParseResult<Set<string>> {
     return undefined;
 }
 
-function _validateSet(value: unknown): InternalParseResult<Set<string>> {
+function _validateSet(value: unknown, options?: {
+    maxDepth?: number;
+}): InternalParseResult<Set<string>> {
+    const maxDepth: number = options?.maxDepth ?? 1000;
+    if (!(Number.isInteger(maxDepth)) || maxDepth < 1) {
+        throw new Error("maxDepth must be a positive integer.");
+    }
     if (value instanceof Set && _shapeSet5(value)) {
         return undefined;
     }
-    return _slowSet(value);
+    return _slowSet(value, options);
 }
 
-function safeParseSet(value: unknown): ParseResult<Set<string>> {
-    const result = _validateSet(value);
+function safeParseSet(value: unknown, options?: {
+    maxDepth?: number;
+}): ParseResult<Set<string>> {
+    const result = _validateSet(value, options);
     if (result === undefined) {
         return { ok: true as const, value: value as Set<string> };
     }
@@ -52,8 +66,10 @@ function safeParseSet(value: unknown): ParseResult<Set<string>> {
     return new ParseErrorResult(result);
 }
 
-function parseSet(value: unknown): Set<string> {
-    const result = safeParseSet(value);
+function parseSet(value: unknown, options?: {
+    maxDepth?: number;
+}): Set<string> {
+    const result = safeParseSet(value, options);
     if (result.ok) {
         return result.value;
     }

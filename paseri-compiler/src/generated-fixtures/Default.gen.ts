@@ -15,7 +15,13 @@ function deepFreeze<T>(value: T): T {
 
 const _default0 = deepFreeze(structuredClone("x"));
 
-function _validateDefault(value: unknown): InternalParseResult<Exclude<string, undefined>> {
+function _validateDefault(value: unknown, options?: {
+    maxDepth?: number;
+}): InternalParseResult<Exclude<string, undefined>> {
+    const maxDepth: number = options?.maxDepth ?? 1000;
+    if (!(Number.isInteger(maxDepth)) || maxDepth < 1) {
+        throw new Error("maxDepth must be a positive integer.");
+    }
     if (value === undefined) {
         return { ok: true as const, value: _default0 as Exclude<string, undefined> };
     }
@@ -27,8 +33,10 @@ function _validateDefault(value: unknown): InternalParseResult<Exclude<string, u
     return undefined;
 }
 
-function safeParseDefault(value: unknown): ParseResult<Exclude<string, undefined>> {
-    const result = _validateDefault(value);
+function safeParseDefault(value: unknown, options?: {
+    maxDepth?: number;
+}): ParseResult<Exclude<string, undefined>> {
+    const result = _validateDefault(value, options);
     if (result === undefined) {
         return { ok: true as const, value: value as Exclude<string, undefined> };
     }
@@ -38,8 +46,10 @@ function safeParseDefault(value: unknown): ParseResult<Exclude<string, undefined
     return new ParseErrorResult(result);
 }
 
-function parseDefault(value: unknown): Exclude<string, undefined> {
-    const result = safeParseDefault(value);
+function parseDefault(value: unknown, options?: {
+    maxDepth?: number;
+}): Exclude<string, undefined> {
+    const result = safeParseDefault(value, options);
     if (result.ok) {
         return result.value;
     }

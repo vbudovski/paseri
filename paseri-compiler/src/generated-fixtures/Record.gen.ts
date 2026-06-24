@@ -36,7 +36,13 @@ function _shapeRecord6(_obj4: Record<string, unknown>): boolean {
     return true;
 }
 
-function _slowRecord(value: unknown): InternalParseResult<Record<PropertyKey, number>> {
+function _slowRecord(value: unknown, options?: {
+    maxDepth?: number;
+}): InternalParseResult<Record<PropertyKey, number>> {
+    const maxDepth: number = options?.maxDepth ?? 1000;
+    if (!(Number.isInteger(maxDepth)) || maxDepth < 1) {
+        throw new Error("maxDepth must be a positive integer.");
+    }
     {
         if (!(isPlainObject(value))) {
             return { type: "leaf", code: issueCodes.INVALID_TYPE, expected: "Record" };
@@ -58,15 +64,23 @@ function _slowRecord(value: unknown): InternalParseResult<Record<PropertyKey, nu
     return undefined;
 }
 
-function _validateRecord(value: unknown): InternalParseResult<Record<PropertyKey, number>> {
+function _validateRecord(value: unknown, options?: {
+    maxDepth?: number;
+}): InternalParseResult<Record<PropertyKey, number>> {
+    const maxDepth: number = options?.maxDepth ?? 1000;
+    if (!(Number.isInteger(maxDepth)) || maxDepth < 1) {
+        throw new Error("maxDepth must be a positive integer.");
+    }
     if (isPlainObject(value) && _shapeRecord6(value)) {
         return undefined;
     }
-    return _slowRecord(value);
+    return _slowRecord(value, options);
 }
 
-function safeParseRecord(value: unknown): ParseResult<Record<PropertyKey, number>> {
-    const result = _validateRecord(value);
+function safeParseRecord(value: unknown, options?: {
+    maxDepth?: number;
+}): ParseResult<Record<PropertyKey, number>> {
+    const result = _validateRecord(value, options);
     if (result === undefined) {
         return { ok: true as const, value: value as Record<PropertyKey, number> };
     }
@@ -76,8 +90,10 @@ function safeParseRecord(value: unknown): ParseResult<Record<PropertyKey, number
     return new ParseErrorResult(result);
 }
 
-function parseRecord(value: unknown): Record<PropertyKey, number> {
-    const result = safeParseRecord(value);
+function parseRecord(value: unknown, options?: {
+    maxDepth?: number;
+}): Record<PropertyKey, number> {
+    const result = safeParseRecord(value, options);
     if (result.ok) {
         return result.value;
     }

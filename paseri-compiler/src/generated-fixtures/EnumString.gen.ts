@@ -4,15 +4,23 @@ import { isParseSuccess, issueCodes, ParseErrorResult, PaseriError, type CustomI
 
 const _enum1 = new Set<unknown>(["a", "b", "c"]);
 
-function _validateEnumString(value: unknown): InternalParseResult<"a" | "b" | "c"> {
+function _validateEnumString(value: unknown, options?: {
+    maxDepth?: number;
+}): InternalParseResult<"a" | "b" | "c"> {
+    const maxDepth: number = options?.maxDepth ?? 1000;
+    if (!(Number.isInteger(maxDepth)) || maxDepth < 1) {
+        throw new Error("maxDepth must be a positive integer.");
+    }
     if (!(_enum1.has(value))) {
         return { type: "leaf", code: issueCodes.INVALID_ENUM_VALUE, expected: ["'a'", "'b'", "'c'"] };
     }
     return undefined;
 }
 
-function safeParseEnumString(value: unknown): ParseResult<"a" | "b" | "c"> {
-    const result = _validateEnumString(value);
+function safeParseEnumString(value: unknown, options?: {
+    maxDepth?: number;
+}): ParseResult<"a" | "b" | "c"> {
+    const result = _validateEnumString(value, options);
     if (result === undefined) {
         return { ok: true as const, value: value as "a" | "b" | "c" };
     }
@@ -22,8 +30,10 @@ function safeParseEnumString(value: unknown): ParseResult<"a" | "b" | "c"> {
     return new ParseErrorResult(result);
 }
 
-function parseEnumString(value: unknown): "a" | "b" | "c" {
-    const result = safeParseEnumString(value);
+function parseEnumString(value: unknown, options?: {
+    maxDepth?: number;
+}): "a" | "b" | "c" {
+    const result = safeParseEnumString(value, options);
     if (result.ok) {
         return result.value;
     }

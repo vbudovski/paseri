@@ -2,15 +2,23 @@
 
 import { isParseSuccess, issueCodes, ParseErrorResult, PaseriError, type CustomIssueCode, type InternalParseResult, type ParseResult, type StandardSchemaV1, type Translations, type TreeNode } from '@paseri/paseri/internal';
 
-function _validateNever(value: unknown): InternalParseResult<never> {
+function _validateNever(value: unknown, options?: {
+    maxDepth?: number;
+}): InternalParseResult<never> {
+    const maxDepth: number = options?.maxDepth ?? 1000;
+    if (!(Number.isInteger(maxDepth)) || maxDepth < 1) {
+        throw new Error("maxDepth must be a positive integer.");
+    }
     if (!(false)) {
         return { type: "leaf", code: issueCodes.INVALID_TYPE, expected: "never" };
     }
     return undefined;
 }
 
-function safeParseNever(value: unknown): ParseResult<never> {
-    const result = _validateNever(value);
+function safeParseNever(value: unknown, options?: {
+    maxDepth?: number;
+}): ParseResult<never> {
+    const result = _validateNever(value, options);
     if (result === undefined) {
         return { ok: true as const, value: value as never };
     }
@@ -20,8 +28,10 @@ function safeParseNever(value: unknown): ParseResult<never> {
     return new ParseErrorResult(result);
 }
 
-function parseNever(value: unknown): never {
-    const result = safeParseNever(value);
+function parseNever(value: unknown, options?: {
+    maxDepth?: number;
+}): never {
+    const result = safeParseNever(value, options);
     if (result.ok) {
         return result.value;
     }

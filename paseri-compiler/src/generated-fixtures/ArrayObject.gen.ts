@@ -82,9 +82,15 @@ function _objectIssues22(_val14: unknown): TreeNode | undefined {
     return _issue15;
 }
 
-function _slowArrayObject(value: unknown): InternalParseResult<{
+function _slowArrayObject(value: unknown, options?: {
+    maxDepth?: number;
+}): InternalParseResult<{
     "id": number;
 }[]> {
+    const maxDepth: number = options?.maxDepth ?? 1000;
+    if (!(Number.isInteger(maxDepth)) || maxDepth < 1) {
+        throw new Error("maxDepth must be a positive integer.");
+    }
     {
         if (!(Array.isArray(value))) {
             return { type: "leaf", code: issueCodes.INVALID_TYPE, expected: "array" };
@@ -105,19 +111,27 @@ function _slowArrayObject(value: unknown): InternalParseResult<{
     return undefined;
 }
 
-function _validateArrayObject(value: unknown): InternalParseResult<{
+function _validateArrayObject(value: unknown, options?: {
+    maxDepth?: number;
+}): InternalParseResult<{
     "id": number;
 }[]> {
+    const maxDepth: number = options?.maxDepth ?? 1000;
+    if (!(Number.isInteger(maxDepth)) || maxDepth < 1) {
+        throw new Error("maxDepth must be a positive integer.");
+    }
     if (Array.isArray(value) && _shapeArray10(value)) {
         return undefined;
     }
-    return _slowArrayObject(value);
+    return _slowArrayObject(value, options);
 }
 
-function safeParseArrayObject(value: unknown): ParseResult<{
+function safeParseArrayObject(value: unknown, options?: {
+    maxDepth?: number;
+}): ParseResult<{
     "id": number;
 }[]> {
-    const result = _validateArrayObject(value);
+    const result = _validateArrayObject(value, options);
     if (result === undefined) {
         return { ok: true as const, value: value as {
                 "id": number;
@@ -129,10 +143,12 @@ function safeParseArrayObject(value: unknown): ParseResult<{
     return new ParseErrorResult(result);
 }
 
-function parseArrayObject(value: unknown): {
+function parseArrayObject(value: unknown, options?: {
+    maxDepth?: number;
+}): {
     "id": number;
 }[] {
-    const result = safeParseArrayObject(value);
+    const result = safeParseArrayObject(value, options);
     if (result.ok) {
         return result.value;
     }

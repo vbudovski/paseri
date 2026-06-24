@@ -7,7 +7,13 @@ const _chain1: (value: string) => ParseResult<number> = (value) => ({
     value: Number(value)
 });
 
-function _validateChain(value: unknown): InternalParseResult<number> {
+function _validateChain(value: unknown, options?: {
+    maxDepth?: number;
+}): InternalParseResult<number> {
+    const maxDepth: number = options?.maxDepth ?? 1000;
+    if (!(Number.isInteger(maxDepth)) || maxDepth < 1) {
+        throw new Error("maxDepth must be a positive integer.");
+    }
     let _chainIssue2: TreeNode | undefined;
     let _chainFromValue4: unknown = value;
     if (!(typeof _chainFromValue4 === "string")) {
@@ -41,8 +47,10 @@ function _validateChain(value: unknown): InternalParseResult<number> {
     return undefined;
 }
 
-function safeParseChain(value: unknown): ParseResult<number> {
-    const result = _validateChain(value);
+function safeParseChain(value: unknown, options?: {
+    maxDepth?: number;
+}): ParseResult<number> {
+    const result = _validateChain(value, options);
     if (result === undefined) {
         return { ok: true as const, value: value as number };
     }
@@ -52,8 +60,10 @@ function safeParseChain(value: unknown): ParseResult<number> {
     return new ParseErrorResult(result);
 }
 
-function parseChain(value: unknown): number {
-    const result = safeParseChain(value);
+function parseChain(value: unknown, options?: {
+    maxDepth?: number;
+}): number {
+    const result = safeParseChain(value, options);
     if (result.ok) {
         return result.value;
     }

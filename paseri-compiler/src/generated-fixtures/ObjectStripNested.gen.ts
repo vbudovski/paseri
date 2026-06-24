@@ -26,11 +26,17 @@ function isPlainObject(value: unknown): value is Record<PropertyKey, unknown> {
     return Object.getPrototypeOf(value) === Object.prototype || Object.getPrototypeOf(value) === null;
 }
 
-function _slowObjectStripNested(value: unknown): InternalParseResult<{
+function _slowObjectStripNested(value: unknown, options?: {
+    maxDepth?: number;
+}): InternalParseResult<{
     "inner": {
         "baz": number;
     };
 }> {
+    const maxDepth: number = options?.maxDepth ?? 1000;
+    if (!(Number.isInteger(maxDepth)) || maxDepth < 1) {
+        throw new Error("maxDepth must be a positive integer.");
+    }
     if (!(isPlainObject(value))) {
         return { type: "leaf", code: issueCodes.INVALID_TYPE, expected: "object" };
     }
@@ -207,17 +213,23 @@ function _slowObjectStripNested(value: unknown): InternalParseResult<{
     return undefined;
 }
 
-function _validateObjectStripNested(value: unknown): InternalParseResult<{
+function _validateObjectStripNested(value: unknown, options?: {
+    maxDepth?: number;
+}): InternalParseResult<{
     "inner": {
         "baz": number;
     };
 }> {
+    const maxDepth: number = options?.maxDepth ?? 1000;
+    if (!(Number.isInteger(maxDepth)) || maxDepth < 1) {
+        throw new Error("maxDepth must be a positive integer.");
+    }
     if (!(isPlainObject(value))) {
-        return _slowObjectStripNested(value);
+        return _slowObjectStripNested(value, options);
     }
     const _field1 = (value as Record<PropertyKey, unknown>)["inner"];
     if (!(isPlainObject(_field1) && (typeof (_field1 as Record<PropertyKey, unknown>)["baz"] === "number" && !(Number.isNaN((_field1 as Record<PropertyKey, unknown>)["baz"]))))) {
-        return _slowObjectStripNested(value);
+        return _slowObjectStripNested(value, options);
     }
     return { ok: true as const, value: { inner: { baz: (_field1 as Record<PropertyKey, unknown>)["baz"] } } as {
             "inner": {
@@ -226,12 +238,14 @@ function _validateObjectStripNested(value: unknown): InternalParseResult<{
         } };
 }
 
-function safeParseObjectStripNested(value: unknown): ParseResult<{
+function safeParseObjectStripNested(value: unknown, options?: {
+    maxDepth?: number;
+}): ParseResult<{
     "inner": {
         "baz": number;
     };
 }> {
-    const result = _validateObjectStripNested(value);
+    const result = _validateObjectStripNested(value, options);
     if (result === undefined) {
         return { ok: true as const, value: value as {
                 "inner": {
@@ -245,12 +259,14 @@ function safeParseObjectStripNested(value: unknown): ParseResult<{
     return new ParseErrorResult(result);
 }
 
-function parseObjectStripNested(value: unknown): {
+function parseObjectStripNested(value: unknown, options?: {
+    maxDepth?: number;
+}): {
     "inner": {
         "baz": number;
     };
 } {
-    const result = safeParseObjectStripNested(value);
+    const result = safeParseObjectStripNested(value, options);
     if (result.ok) {
         return result.value;
     }

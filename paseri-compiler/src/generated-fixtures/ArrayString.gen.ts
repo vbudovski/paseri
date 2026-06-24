@@ -12,7 +12,13 @@ function _shapeArray6(_arr4: unknown[]): boolean {
     return true;
 }
 
-function _slowArrayString(value: unknown): InternalParseResult<string[]> {
+function _slowArrayString(value: unknown, options?: {
+    maxDepth?: number;
+}): InternalParseResult<string[]> {
+    const maxDepth: number = options?.maxDepth ?? 1000;
+    if (!(Number.isInteger(maxDepth)) || maxDepth < 1) {
+        throw new Error("maxDepth must be a positive integer.");
+    }
     {
         if (!(Array.isArray(value))) {
             return { type: "leaf", code: issueCodes.INVALID_TYPE, expected: "array" };
@@ -34,15 +40,23 @@ function _slowArrayString(value: unknown): InternalParseResult<string[]> {
     return undefined;
 }
 
-function _validateArrayString(value: unknown): InternalParseResult<string[]> {
+function _validateArrayString(value: unknown, options?: {
+    maxDepth?: number;
+}): InternalParseResult<string[]> {
+    const maxDepth: number = options?.maxDepth ?? 1000;
+    if (!(Number.isInteger(maxDepth)) || maxDepth < 1) {
+        throw new Error("maxDepth must be a positive integer.");
+    }
     if (Array.isArray(value) && _shapeArray6(value)) {
         return undefined;
     }
-    return _slowArrayString(value);
+    return _slowArrayString(value, options);
 }
 
-function safeParseArrayString(value: unknown): ParseResult<string[]> {
-    const result = _validateArrayString(value);
+function safeParseArrayString(value: unknown, options?: {
+    maxDepth?: number;
+}): ParseResult<string[]> {
+    const result = _validateArrayString(value, options);
     if (result === undefined) {
         return { ok: true as const, value: value as string[] };
     }
@@ -52,8 +66,10 @@ function safeParseArrayString(value: unknown): ParseResult<string[]> {
     return new ParseErrorResult(result);
 }
 
-function parseArrayString(value: unknown): string[] {
-    const result = safeParseArrayString(value);
+function parseArrayString(value: unknown, options?: {
+    maxDepth?: number;
+}): string[] {
+    const result = safeParseArrayString(value, options);
     if (result.ok) {
         return result.value;
     }

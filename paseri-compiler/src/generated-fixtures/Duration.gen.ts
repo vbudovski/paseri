@@ -2,15 +2,23 @@
 
 import { isParseSuccess, issueCodes, ParseErrorResult, PaseriError, type CustomIssueCode, type InternalParseResult, type ParseResult, type StandardSchemaV1, type Translations, type TreeNode } from '@paseri/paseri/internal';
 
-function _validateDuration(value: unknown): InternalParseResult<Temporal.Duration> {
+function _validateDuration(value: unknown, options?: {
+    maxDepth?: number;
+}): InternalParseResult<Temporal.Duration> {
+    const maxDepth: number = options?.maxDepth ?? 1000;
+    if (!(Number.isInteger(maxDepth)) || maxDepth < 1) {
+        throw new Error("maxDepth must be a positive integer.");
+    }
     if (!(value instanceof Temporal.Duration)) {
         return { type: "leaf", code: issueCodes.INVALID_TYPE, expected: "Temporal.Duration" };
     }
     return undefined;
 }
 
-function safeParseDuration(value: unknown): ParseResult<Temporal.Duration> {
-    const result = _validateDuration(value);
+function safeParseDuration(value: unknown, options?: {
+    maxDepth?: number;
+}): ParseResult<Temporal.Duration> {
+    const result = _validateDuration(value, options);
     if (result === undefined) {
         return { ok: true as const, value: value as Temporal.Duration };
     }
@@ -20,8 +28,10 @@ function safeParseDuration(value: unknown): ParseResult<Temporal.Duration> {
     return new ParseErrorResult(result);
 }
 
-function parseDuration(value: unknown): Temporal.Duration {
-    const result = safeParseDuration(value);
+function parseDuration(value: unknown, options?: {
+    maxDepth?: number;
+}): Temporal.Duration {
+    const result = safeParseDuration(value, options);
     if (result.ok) {
         return result.value;
     }

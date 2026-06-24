@@ -4,7 +4,13 @@ import { isParseSuccess, issueCodes, ParseErrorResult, PaseriError, type CustomI
 
 const _bound2 = Temporal.PlainDate.from("2020-01-01");
 
-function _validatePlainDate(value: unknown): InternalParseResult<Temporal.PlainDate> {
+function _validatePlainDate(value: unknown, options?: {
+    maxDepth?: number;
+}): InternalParseResult<Temporal.PlainDate> {
+    const maxDepth: number = options?.maxDepth ?? 1000;
+    if (!(Number.isInteger(maxDepth)) || maxDepth < 1) {
+        throw new Error("maxDepth must be a positive integer.");
+    }
     {
         if (!(value instanceof Temporal.PlainDate)) {
             return { type: "leaf", code: issueCodes.INVALID_TYPE, expected: "Temporal.PlainDate" };
@@ -20,8 +26,10 @@ function _validatePlainDate(value: unknown): InternalParseResult<Temporal.PlainD
     return undefined;
 }
 
-function safeParsePlainDate(value: unknown): ParseResult<Temporal.PlainDate> {
-    const result = _validatePlainDate(value);
+function safeParsePlainDate(value: unknown, options?: {
+    maxDepth?: number;
+}): ParseResult<Temporal.PlainDate> {
+    const result = _validatePlainDate(value, options);
     if (result === undefined) {
         return { ok: true as const, value: value as Temporal.PlainDate };
     }
@@ -31,8 +39,10 @@ function safeParsePlainDate(value: unknown): ParseResult<Temporal.PlainDate> {
     return new ParseErrorResult(result);
 }
 
-function parsePlainDate(value: unknown): Temporal.PlainDate {
-    const result = safeParsePlainDate(value);
+function parsePlainDate(value: unknown, options?: {
+    maxDepth?: number;
+}): Temporal.PlainDate {
+    const result = safeParsePlainDate(value, options);
     if (result.ok) {
         return result.value;
     }

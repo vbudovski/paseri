@@ -4,7 +4,13 @@ import { addIssue, isParseSuccess, issueCodes, ParseErrorResult, PaseriError, ty
 
 const _refine1: (value: number) => boolean = (value) => value > 0;
 
-function _validateRefine(value: unknown): InternalParseResult<number> {
+function _validateRefine(value: unknown, options?: {
+    maxDepth?: number;
+}): InternalParseResult<number> {
+    const maxDepth: number = options?.maxDepth ?? 1000;
+    if (!(Number.isInteger(maxDepth)) || maxDepth < 1) {
+        throw new Error("maxDepth must be a positive integer.");
+    }
     let _refineIssue2: TreeNode | undefined;
     let _refineValue3: unknown = value;
     let _refineModified4 = false;
@@ -27,8 +33,10 @@ function _validateRefine(value: unknown): InternalParseResult<number> {
     return undefined;
 }
 
-function safeParseRefine(value: unknown): ParseResult<number> {
-    const result = _validateRefine(value);
+function safeParseRefine(value: unknown, options?: {
+    maxDepth?: number;
+}): ParseResult<number> {
+    const result = _validateRefine(value, options);
     if (result === undefined) {
         return { ok: true as const, value: value as number };
     }
@@ -38,8 +46,10 @@ function safeParseRefine(value: unknown): ParseResult<number> {
     return new ParseErrorResult(result);
 }
 
-function parseRefine(value: unknown): number {
-    const result = safeParseRefine(value);
+function parseRefine(value: unknown, options?: {
+    maxDepth?: number;
+}): number {
+    const result = safeParseRefine(value, options);
     if (result.ok) {
         return result.value;
     }

@@ -29,7 +29,13 @@ function _shapeMap7(_m5: Map<unknown, unknown>): boolean {
 
 const _default0 = deepFreeze(structuredClone(0));
 
-function _slowMapDefaultValue(value: unknown): InternalParseResult<Map<string, Exclude<number, undefined>>> {
+function _slowMapDefaultValue(value: unknown, options?: {
+    maxDepth?: number;
+}): InternalParseResult<Map<string, Exclude<number, undefined>>> {
+    const maxDepth: number = options?.maxDepth ?? 1000;
+    if (!(Number.isInteger(maxDepth)) || maxDepth < 1) {
+        throw new Error("maxDepth must be a positive integer.");
+    }
     {
         if (!(value instanceof Map)) {
             return { type: "leaf", code: issueCodes.INVALID_TYPE, expected: "Map" };
@@ -102,15 +108,23 @@ function _slowMapDefaultValue(value: unknown): InternalParseResult<Map<string, E
     return undefined;
 }
 
-function _validateMapDefaultValue(value: unknown): InternalParseResult<Map<string, Exclude<number, undefined>>> {
+function _validateMapDefaultValue(value: unknown, options?: {
+    maxDepth?: number;
+}): InternalParseResult<Map<string, Exclude<number, undefined>>> {
+    const maxDepth: number = options?.maxDepth ?? 1000;
+    if (!(Number.isInteger(maxDepth)) || maxDepth < 1) {
+        throw new Error("maxDepth must be a positive integer.");
+    }
     if (value instanceof Map && _shapeMap7(value)) {
         return undefined;
     }
-    return _slowMapDefaultValue(value);
+    return _slowMapDefaultValue(value, options);
 }
 
-function safeParseMapDefaultValue(value: unknown): ParseResult<Map<string, Exclude<number, undefined>>> {
-    const result = _validateMapDefaultValue(value);
+function safeParseMapDefaultValue(value: unknown, options?: {
+    maxDepth?: number;
+}): ParseResult<Map<string, Exclude<number, undefined>>> {
+    const result = _validateMapDefaultValue(value, options);
     if (result === undefined) {
         return { ok: true as const, value: value as Map<string, Exclude<number, undefined>> };
     }
@@ -120,8 +134,10 @@ function safeParseMapDefaultValue(value: unknown): ParseResult<Map<string, Exclu
     return new ParseErrorResult(result);
 }
 
-function parseMapDefaultValue(value: unknown): Map<string, Exclude<number, undefined>> {
-    const result = safeParseMapDefaultValue(value);
+function parseMapDefaultValue(value: unknown, options?: {
+    maxDepth?: number;
+}): Map<string, Exclude<number, undefined>> {
+    const result = safeParseMapDefaultValue(value, options);
     if (result.ok) {
         return result.value;
     }

@@ -39,10 +39,16 @@ function deepFreeze<T>(value: T): T {
 
 const _default0 = deepFreeze(structuredClone(0));
 
-function _slowObjectDefault(value: unknown): InternalParseResult<{
+function _slowObjectDefault(value: unknown, options?: {
+    maxDepth?: number;
+}): InternalParseResult<{
     "foo": string;
     "count": Exclude<number, undefined>;
 }> {
+    const maxDepth: number = options?.maxDepth ?? 1000;
+    if (!(Number.isInteger(maxDepth)) || maxDepth < 1) {
+        throw new Error("maxDepth must be a positive integer.");
+    }
     if (!(isPlainObject(value))) {
         return { type: "leaf", code: issueCodes.INVALID_TYPE, expected: "object" };
     }
@@ -157,17 +163,23 @@ function _slowObjectDefault(value: unknown): InternalParseResult<{
     return undefined;
 }
 
-function _validateObjectDefault(value: unknown): InternalParseResult<{
+function _validateObjectDefault(value: unknown, options?: {
+    maxDepth?: number;
+}): InternalParseResult<{
     "foo": string;
     "count": Exclude<number, undefined>;
 }> {
+    const maxDepth: number = options?.maxDepth ?? 1000;
+    if (!(Number.isInteger(maxDepth)) || maxDepth < 1) {
+        throw new Error("maxDepth must be a positive integer.");
+    }
     if (typeof value === "object" && value !== null && typeof (value as Record<PropertyKey, unknown>)["foo"] === "string" && ((value as Record<PropertyKey, unknown>)["count"] === undefined || typeof (value as Record<PropertyKey, unknown>)["count"] === "number" && !(Number.isNaN((value as Record<PropertyKey, unknown>)["count"]))) && (Object.getPrototypeOf(value) === Object.prototype || Object.getPrototypeOf(value) === null)) {
         let _count2 = 0;
         for (const _k3 in value) {
             _count2++;
         }
         if (_count2 > 1 + ((value as Record<PropertyKey, unknown>)["count"] !== undefined ? 1 : 0)) {
-            return _slowObjectDefault(value);
+            return _slowObjectDefault(value, options);
         }
         {
             if ((value as Record<PropertyKey, unknown>)["count"] === undefined) {
@@ -183,14 +195,16 @@ function _validateObjectDefault(value: unknown): InternalParseResult<{
             return undefined;
         }
     }
-    return _slowObjectDefault(value);
+    return _slowObjectDefault(value, options);
 }
 
-function safeParseObjectDefault(value: unknown): ParseResult<{
+function safeParseObjectDefault(value: unknown, options?: {
+    maxDepth?: number;
+}): ParseResult<{
     "foo": string;
     "count": Exclude<number, undefined>;
 }> {
-    const result = _validateObjectDefault(value);
+    const result = _validateObjectDefault(value, options);
     if (result === undefined) {
         return { ok: true as const, value: value as {
                 "foo": string;
@@ -203,11 +217,13 @@ function safeParseObjectDefault(value: unknown): ParseResult<{
     return new ParseErrorResult(result);
 }
 
-function parseObjectDefault(value: unknown): {
+function parseObjectDefault(value: unknown, options?: {
+    maxDepth?: number;
+}): {
     "foo": string;
     "count": Exclude<number, undefined>;
 } {
-    const result = safeParseObjectDefault(value);
+    const result = safeParseObjectDefault(value, options);
     if (result.ok) {
         return result.value;
     }

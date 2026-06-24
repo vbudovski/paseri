@@ -2,15 +2,23 @@
 
 import { isParseSuccess, issueCodes, ParseErrorResult, PaseriError, type CustomIssueCode, type InternalParseResult, type ParseResult, type StandardSchemaV1, type Translations, type TreeNode } from '@paseri/paseri/internal';
 
-function _validatePlainMonthDay(value: unknown): InternalParseResult<Temporal.PlainMonthDay> {
+function _validatePlainMonthDay(value: unknown, options?: {
+    maxDepth?: number;
+}): InternalParseResult<Temporal.PlainMonthDay> {
+    const maxDepth: number = options?.maxDepth ?? 1000;
+    if (!(Number.isInteger(maxDepth)) || maxDepth < 1) {
+        throw new Error("maxDepth must be a positive integer.");
+    }
     if (!(value instanceof Temporal.PlainMonthDay)) {
         return { type: "leaf", code: issueCodes.INVALID_TYPE, expected: "Temporal.PlainMonthDay" };
     }
     return undefined;
 }
 
-function safeParsePlainMonthDay(value: unknown): ParseResult<Temporal.PlainMonthDay> {
-    const result = _validatePlainMonthDay(value);
+function safeParsePlainMonthDay(value: unknown, options?: {
+    maxDepth?: number;
+}): ParseResult<Temporal.PlainMonthDay> {
+    const result = _validatePlainMonthDay(value, options);
     if (result === undefined) {
         return { ok: true as const, value: value as Temporal.PlainMonthDay };
     }
@@ -20,8 +28,10 @@ function safeParsePlainMonthDay(value: unknown): ParseResult<Temporal.PlainMonth
     return new ParseErrorResult(result);
 }
 
-function parsePlainMonthDay(value: unknown): Temporal.PlainMonthDay {
-    const result = safeParsePlainMonthDay(value);
+function parsePlainMonthDay(value: unknown, options?: {
+    maxDepth?: number;
+}): Temporal.PlainMonthDay {
+    const result = safeParsePlainMonthDay(value, options);
     if (result.ok) {
         return result.value;
     }

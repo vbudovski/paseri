@@ -2,7 +2,13 @@
 
 import { isParseSuccess, issueCodes, ParseErrorResult, PaseriError, type CustomIssueCode, type InternalParseResult, type ParseResult, type StandardSchemaV1, type Translations, type TreeNode } from '@paseri/paseri/internal';
 
-function _validateZonedDateTime(value: unknown): InternalParseResult<Temporal.ZonedDateTime> {
+function _validateZonedDateTime(value: unknown, options?: {
+    maxDepth?: number;
+}): InternalParseResult<Temporal.ZonedDateTime> {
+    const maxDepth: number = options?.maxDepth ?? 1000;
+    if (!(Number.isInteger(maxDepth)) || maxDepth < 1) {
+        throw new Error("maxDepth must be a positive integer.");
+    }
     {
         if (!(value instanceof Temporal.ZonedDateTime)) {
             return { type: "leaf", code: issueCodes.INVALID_TYPE, expected: "Temporal.ZonedDateTime" };
@@ -11,8 +17,10 @@ function _validateZonedDateTime(value: unknown): InternalParseResult<Temporal.Zo
     return undefined;
 }
 
-function safeParseZonedDateTime(value: unknown): ParseResult<Temporal.ZonedDateTime> {
-    const result = _validateZonedDateTime(value);
+function safeParseZonedDateTime(value: unknown, options?: {
+    maxDepth?: number;
+}): ParseResult<Temporal.ZonedDateTime> {
+    const result = _validateZonedDateTime(value, options);
     if (result === undefined) {
         return { ok: true as const, value: value as Temporal.ZonedDateTime };
     }
@@ -22,8 +30,10 @@ function safeParseZonedDateTime(value: unknown): ParseResult<Temporal.ZonedDateT
     return new ParseErrorResult(result);
 }
 
-function parseZonedDateTime(value: unknown): Temporal.ZonedDateTime {
-    const result = safeParseZonedDateTime(value);
+function parseZonedDateTime(value: unknown, options?: {
+    maxDepth?: number;
+}): Temporal.ZonedDateTime {
+    const result = safeParseZonedDateTime(value, options);
     if (result.ok) {
         return result.value;
     }

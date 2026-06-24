@@ -26,9 +26,15 @@ function isPlainObject(value: unknown): value is Record<PropertyKey, unknown> {
     return Object.getPrototypeOf(value) === Object.prototype || Object.getPrototypeOf(value) === null;
 }
 
-function _slowObjectPassthrough(value: unknown): InternalParseResult<{
+function _slowObjectPassthrough(value: unknown, options?: {
+    maxDepth?: number;
+}): InternalParseResult<{
     "foo": string;
 }> {
+    const maxDepth: number = options?.maxDepth ?? 1000;
+    if (!(Number.isInteger(maxDepth)) || maxDepth < 1) {
+        throw new Error("maxDepth must be a positive integer.");
+    }
     if (!(isPlainObject(value))) {
         return { type: "leaf", code: issueCodes.INVALID_TYPE, expected: "object" };
     }
@@ -52,23 +58,31 @@ function _slowObjectPassthrough(value: unknown): InternalParseResult<{
     return undefined;
 }
 
-function _validateObjectPassthrough(value: unknown): InternalParseResult<{
+function _validateObjectPassthrough(value: unknown, options?: {
+    maxDepth?: number;
+}): InternalParseResult<{
     "foo": string;
 }> {
+    const maxDepth: number = options?.maxDepth ?? 1000;
+    if (!(Number.isInteger(maxDepth)) || maxDepth < 1) {
+        throw new Error("maxDepth must be a positive integer.");
+    }
     if (!(isPlainObject(value))) {
-        return _slowObjectPassthrough(value);
+        return _slowObjectPassthrough(value, options);
     }
     const _field1 = (value as Record<PropertyKey, unknown>)["foo"];
     if (!(typeof _field1 === "string")) {
-        return _slowObjectPassthrough(value);
+        return _slowObjectPassthrough(value, options);
     }
     return undefined;
 }
 
-function safeParseObjectPassthrough(value: unknown): ParseResult<{
+function safeParseObjectPassthrough(value: unknown, options?: {
+    maxDepth?: number;
+}): ParseResult<{
     "foo": string;
 }> {
-    const result = _validateObjectPassthrough(value);
+    const result = _validateObjectPassthrough(value, options);
     if (result === undefined) {
         return { ok: true as const, value: value as {
                 "foo": string;
@@ -80,10 +94,12 @@ function safeParseObjectPassthrough(value: unknown): ParseResult<{
     return new ParseErrorResult(result);
 }
 
-function parseObjectPassthrough(value: unknown): {
+function parseObjectPassthrough(value: unknown, options?: {
+    maxDepth?: number;
+}): {
     "foo": string;
 } {
-    const result = safeParseObjectPassthrough(value);
+    const result = safeParseObjectPassthrough(value, options);
     if (result.ok) {
         return result.value;
     }

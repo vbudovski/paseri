@@ -4,7 +4,13 @@ import { isParseSuccess, issueCodes, ParseErrorResult, PaseriError, type CustomI
 
 const _regex1 = new RegExp("^[a-z]+$", "");
 
-function _validateStringConstrained(value: unknown): InternalParseResult<string> {
+function _validateStringConstrained(value: unknown, options?: {
+    maxDepth?: number;
+}): InternalParseResult<string> {
+    const maxDepth: number = options?.maxDepth ?? 1000;
+    if (!(Number.isInteger(maxDepth)) || maxDepth < 1) {
+        throw new Error("maxDepth must be a positive integer.");
+    }
     {
         if (!(typeof value === "string")) {
             return { type: "leaf", code: issueCodes.INVALID_TYPE, expected: "string" };
@@ -22,8 +28,10 @@ function _validateStringConstrained(value: unknown): InternalParseResult<string>
     return undefined;
 }
 
-function safeParseStringConstrained(value: unknown): ParseResult<string> {
-    const result = _validateStringConstrained(value);
+function safeParseStringConstrained(value: unknown, options?: {
+    maxDepth?: number;
+}): ParseResult<string> {
+    const result = _validateStringConstrained(value, options);
     if (result === undefined) {
         return { ok: true as const, value: value as string };
     }
@@ -33,8 +41,10 @@ function safeParseStringConstrained(value: unknown): ParseResult<string> {
     return new ParseErrorResult(result);
 }
 
-function parseStringConstrained(value: unknown): string {
-    const result = safeParseStringConstrained(value);
+function parseStringConstrained(value: unknown, options?: {
+    maxDepth?: number;
+}): string {
+    const result = safeParseStringConstrained(value, options);
     if (result.ok) {
         return result.value;
     }

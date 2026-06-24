@@ -2,15 +2,23 @@
 
 import { isParseSuccess, issueCodes, ParseErrorResult, PaseriError, type CustomIssueCode, type InternalParseResult, type ParseResult, type StandardSchemaV1, type Translations, type TreeNode } from '@paseri/paseri/internal';
 
-function _validateLiteralBigint(value: unknown): InternalParseResult<5n> {
+function _validateLiteralBigint(value: unknown, options?: {
+    maxDepth?: number;
+}): InternalParseResult<5n> {
+    const maxDepth: number = options?.maxDepth ?? 1000;
+    if (!(Number.isInteger(maxDepth)) || maxDepth < 1) {
+        throw new Error("maxDepth must be a positive integer.");
+    }
     if (!(value === 5n)) {
         return { type: "leaf", code: issueCodes.INVALID_VALUE, expected: "5n" };
     }
     return undefined;
 }
 
-function safeParseLiteralBigint(value: unknown): ParseResult<5n> {
-    const result = _validateLiteralBigint(value);
+function safeParseLiteralBigint(value: unknown, options?: {
+    maxDepth?: number;
+}): ParseResult<5n> {
+    const result = _validateLiteralBigint(value, options);
     if (result === undefined) {
         return { ok: true as const, value: value as 5n };
     }
@@ -20,8 +28,10 @@ function safeParseLiteralBigint(value: unknown): ParseResult<5n> {
     return new ParseErrorResult(result);
 }
 
-function parseLiteralBigint(value: unknown): 5n {
-    const result = safeParseLiteralBigint(value);
+function parseLiteralBigint(value: unknown, options?: {
+    maxDepth?: number;
+}): 5n {
+    const result = safeParseLiteralBigint(value, options);
     if (result.ok) {
         return result.value;
     }

@@ -2,7 +2,13 @@
 
 import { isParseSuccess, issueCodes, ParseErrorResult, PaseriError, type CustomIssueCode, type InternalParseResult, type ParseResult, type StandardSchemaV1, type Translations, type TreeNode } from '@paseri/paseri/internal';
 
-function _validatePlainDateTime(value: unknown): InternalParseResult<Temporal.PlainDateTime> {
+function _validatePlainDateTime(value: unknown, options?: {
+    maxDepth?: number;
+}): InternalParseResult<Temporal.PlainDateTime> {
+    const maxDepth: number = options?.maxDepth ?? 1000;
+    if (!(Number.isInteger(maxDepth)) || maxDepth < 1) {
+        throw new Error("maxDepth must be a positive integer.");
+    }
     {
         if (!(value instanceof Temporal.PlainDateTime)) {
             return { type: "leaf", code: issueCodes.INVALID_TYPE, expected: "Temporal.PlainDateTime" };
@@ -11,8 +17,10 @@ function _validatePlainDateTime(value: unknown): InternalParseResult<Temporal.Pl
     return undefined;
 }
 
-function safeParsePlainDateTime(value: unknown): ParseResult<Temporal.PlainDateTime> {
-    const result = _validatePlainDateTime(value);
+function safeParsePlainDateTime(value: unknown, options?: {
+    maxDepth?: number;
+}): ParseResult<Temporal.PlainDateTime> {
+    const result = _validatePlainDateTime(value, options);
     if (result === undefined) {
         return { ok: true as const, value: value as Temporal.PlainDateTime };
     }
@@ -22,8 +30,10 @@ function safeParsePlainDateTime(value: unknown): ParseResult<Temporal.PlainDateT
     return new ParseErrorResult(result);
 }
 
-function parsePlainDateTime(value: unknown): Temporal.PlainDateTime {
-    const result = safeParsePlainDateTime(value);
+function parsePlainDateTime(value: unknown, options?: {
+    maxDepth?: number;
+}): Temporal.PlainDateTime {
+    const result = safeParsePlainDateTime(value, options);
     if (result.ok) {
         return result.value;
     }

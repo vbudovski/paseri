@@ -26,9 +26,15 @@ function isPlainObject(value: unknown): value is Record<PropertyKey, unknown> {
     return Object.getPrototypeOf(value) === Object.prototype || Object.getPrototypeOf(value) === null;
 }
 
-function _slowObjectOptional(value: unknown): InternalParseResult<{
+function _slowObjectOptional(value: unknown, options?: {
+    maxDepth?: number;
+}): InternalParseResult<{
     "foo"?: string | undefined;
 }> {
+    const maxDepth: number = options?.maxDepth ?? 1000;
+    if (!(Number.isInteger(maxDepth)) || maxDepth < 1) {
+        throw new Error("maxDepth must be a positive integer.");
+    }
     if (!(isPlainObject(value))) {
         return { type: "leaf", code: issueCodes.INVALID_TYPE, expected: "object" };
     }
@@ -55,30 +61,38 @@ function _slowObjectOptional(value: unknown): InternalParseResult<{
     return undefined;
 }
 
-function _validateObjectOptional(value: unknown): InternalParseResult<{
+function _validateObjectOptional(value: unknown, options?: {
+    maxDepth?: number;
+}): InternalParseResult<{
     "foo"?: string | undefined;
 }> {
+    const maxDepth: number = options?.maxDepth ?? 1000;
+    if (!(Number.isInteger(maxDepth)) || maxDepth < 1) {
+        throw new Error("maxDepth must be a positive integer.");
+    }
     if (!(isPlainObject(value))) {
-        return _slowObjectOptional(value);
+        return _slowObjectOptional(value, options);
     }
     const _field1 = (value as Record<PropertyKey, unknown>)["foo"];
     if (!(_field1 === undefined || typeof _field1 === "string")) {
-        return _slowObjectOptional(value);
+        return _slowObjectOptional(value, options);
     }
     let _count2 = 0;
     for (const _k3 in value) {
         _count2++;
     }
     if (_count2 > 0 + ((value as Record<PropertyKey, unknown>)["foo"] !== undefined ? 1 : 0)) {
-        return _slowObjectOptional(value);
+        return _slowObjectOptional(value, options);
     }
     return undefined;
 }
 
-function safeParseObjectOptional(value: unknown): ParseResult<{
+function safeParseObjectOptional(value: unknown, options?: {
+    maxDepth?: number;
+}): ParseResult<{
     "foo"?: string | undefined;
 }> {
-    const result = _validateObjectOptional(value);
+    const result = _validateObjectOptional(value, options);
     if (result === undefined) {
         return { ok: true as const, value: value as {
                 "foo"?: string | undefined;
@@ -90,10 +104,12 @@ function safeParseObjectOptional(value: unknown): ParseResult<{
     return new ParseErrorResult(result);
 }
 
-function parseObjectOptional(value: unknown): {
+function parseObjectOptional(value: unknown, options?: {
+    maxDepth?: number;
+}): {
     "foo"?: string | undefined;
 } {
-    const result = safeParseObjectOptional(value);
+    const result = safeParseObjectOptional(value, options);
     if (result.ok) {
         return result.value;
     }

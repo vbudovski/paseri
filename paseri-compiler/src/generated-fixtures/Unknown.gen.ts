@@ -2,12 +2,20 @@
 
 import { isParseSuccess, issueCodes, ParseErrorResult, PaseriError, type CustomIssueCode, type InternalParseResult, type ParseResult, type StandardSchemaV1, type Translations, type TreeNode } from '@paseri/paseri/internal';
 
-function _validateUnknown(value: unknown): InternalParseResult<unknown> {
+function _validateUnknown(value: unknown, options?: {
+    maxDepth?: number;
+}): InternalParseResult<unknown> {
+    const maxDepth: number = options?.maxDepth ?? 1000;
+    if (!(Number.isInteger(maxDepth)) || maxDepth < 1) {
+        throw new Error("maxDepth must be a positive integer.");
+    }
     return undefined;
 }
 
-function safeParseUnknown(value: unknown): ParseResult<unknown> {
-    const result = _validateUnknown(value);
+function safeParseUnknown(value: unknown, options?: {
+    maxDepth?: number;
+}): ParseResult<unknown> {
+    const result = _validateUnknown(value, options);
     if (result === undefined) {
         return { ok: true as const, value: value as unknown };
     }
@@ -17,8 +25,10 @@ function safeParseUnknown(value: unknown): ParseResult<unknown> {
     return new ParseErrorResult(result);
 }
 
-function parseUnknown(value: unknown): unknown {
-    const result = safeParseUnknown(value);
+function parseUnknown(value: unknown, options?: {
+    maxDepth?: number;
+}): unknown {
+    const result = safeParseUnknown(value, options);
     if (result.ok) {
         return result.value;
     }

@@ -2,7 +2,13 @@
 
 import { addIssue, isParseSuccess, issueCodes, ParseErrorResult, PaseriError, type CustomIssueCode, type InternalParseResult, type ParseResult, type StandardSchemaV1, type Translations, type TreeNode } from '@paseri/paseri/internal';
 
-function _slowUnionMixed(value: unknown): InternalParseResult<string | number> {
+function _slowUnionMixed(value: unknown, options?: {
+    maxDepth?: number;
+}): InternalParseResult<string | number> {
+    const maxDepth: number = options?.maxDepth ?? 1000;
+    if (!(Number.isInteger(maxDepth)) || maxDepth < 1) {
+        throw new Error("maxDepth must be a positive integer.");
+    }
     if (typeof value === "string" || typeof value === "number" && !(Number.isNaN(value))) {
         return undefined;
     }
@@ -51,15 +57,23 @@ function _slowUnionMixed(value: unknown): InternalParseResult<string | number> {
     return undefined;
 }
 
-function _validateUnionMixed(value: unknown): InternalParseResult<string | number> {
+function _validateUnionMixed(value: unknown, options?: {
+    maxDepth?: number;
+}): InternalParseResult<string | number> {
+    const maxDepth: number = options?.maxDepth ?? 1000;
+    if (!(Number.isInteger(maxDepth)) || maxDepth < 1) {
+        throw new Error("maxDepth must be a positive integer.");
+    }
     if (typeof value === "string" || typeof value === "number" && !(Number.isNaN(value))) {
         return undefined;
     }
-    return _slowUnionMixed(value);
+    return _slowUnionMixed(value, options);
 }
 
-function safeParseUnionMixed(value: unknown): ParseResult<string | number> {
-    const result = _validateUnionMixed(value);
+function safeParseUnionMixed(value: unknown, options?: {
+    maxDepth?: number;
+}): ParseResult<string | number> {
+    const result = _validateUnionMixed(value, options);
     if (result === undefined) {
         return { ok: true as const, value: value as string | number };
     }
@@ -69,8 +83,10 @@ function safeParseUnionMixed(value: unknown): ParseResult<string | number> {
     return new ParseErrorResult(result);
 }
 
-function parseUnionMixed(value: unknown): string | number {
-    const result = safeParseUnionMixed(value);
+function parseUnionMixed(value: unknown, options?: {
+    maxDepth?: number;
+}): string | number {
+    const result = safeParseUnionMixed(value, options);
     if (result.ok) {
         return result.value;
     }

@@ -24,7 +24,13 @@ function _shapeSet5(_set4: Set<unknown>): boolean {
 
 const _default0 = deepFreeze(structuredClone("x"));
 
-function _slowSetDefault(value: unknown): InternalParseResult<Set<Exclude<string, undefined>>> {
+function _slowSetDefault(value: unknown, options?: {
+    maxDepth?: number;
+}): InternalParseResult<Set<Exclude<string, undefined>>> {
+    const maxDepth: number = options?.maxDepth ?? 1000;
+    if (!(Number.isInteger(maxDepth)) || maxDepth < 1) {
+        throw new Error("maxDepth must be a positive integer.");
+    }
     {
         if (!(value instanceof Set)) {
             return { type: "leaf", code: issueCodes.INVALID_TYPE, expected: "Set" };
@@ -91,15 +97,23 @@ function _slowSetDefault(value: unknown): InternalParseResult<Set<Exclude<string
     return undefined;
 }
 
-function _validateSetDefault(value: unknown): InternalParseResult<Set<Exclude<string, undefined>>> {
+function _validateSetDefault(value: unknown, options?: {
+    maxDepth?: number;
+}): InternalParseResult<Set<Exclude<string, undefined>>> {
+    const maxDepth: number = options?.maxDepth ?? 1000;
+    if (!(Number.isInteger(maxDepth)) || maxDepth < 1) {
+        throw new Error("maxDepth must be a positive integer.");
+    }
     if (value instanceof Set && _shapeSet5(value)) {
         return undefined;
     }
-    return _slowSetDefault(value);
+    return _slowSetDefault(value, options);
 }
 
-function safeParseSetDefault(value: unknown): ParseResult<Set<Exclude<string, undefined>>> {
-    const result = _validateSetDefault(value);
+function safeParseSetDefault(value: unknown, options?: {
+    maxDepth?: number;
+}): ParseResult<Set<Exclude<string, undefined>>> {
+    const result = _validateSetDefault(value, options);
     if (result === undefined) {
         return { ok: true as const, value: value as Set<Exclude<string, undefined>> };
     }
@@ -109,8 +123,10 @@ function safeParseSetDefault(value: unknown): ParseResult<Set<Exclude<string, un
     return new ParseErrorResult(result);
 }
 
-function parseSetDefault(value: unknown): Set<Exclude<string, undefined>> {
-    const result = safeParseSetDefault(value);
+function parseSetDefault(value: unknown, options?: {
+    maxDepth?: number;
+}): Set<Exclude<string, undefined>> {
+    const result = safeParseSetDefault(value, options);
     if (result.ok) {
         return result.value;
     }
