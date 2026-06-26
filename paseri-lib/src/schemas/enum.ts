@@ -48,7 +48,7 @@ class EnumSchema<const T extends readonly LiteralType[]> extends Schema<T[number
     }
     exclude<const U extends readonly T[number][]>(...values: U): EnumSchema<readonly Exclude<T[number], U[number]>[]> {
         const excluded = new Set<T[number]>(values);
-        const remaining = this._values.filter((v) => !excluded.has(v)) as unknown as readonly Exclude<
+        const remaining = this._values.filter((value) => !excluded.has(value)) as unknown as readonly Exclude<
             T[number],
             U[number]
         >[];

@@ -150,10 +150,10 @@ async function main(): Promise<void> {
 
 try {
     await main();
-} catch (err) {
-    if (err instanceof UserError) {
-        console.error(err.message);
+} catch (error) {
+    if (error instanceof UserError) {
+        console.error(error.message);
         Deno.exit(1);
     }
-    throw err;
+    throw error;
 }

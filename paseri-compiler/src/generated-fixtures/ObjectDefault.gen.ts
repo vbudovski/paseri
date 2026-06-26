@@ -20,7 +20,7 @@ function isPlainObject(value: unknown): value is Record<PropertyKey, unknown> {
     if (value.constructor === undefined) {
         return Object.getPrototypeOf(value) === null;
     }
-    if (value.constructor !== Object && !Object.hasOwn(value, "constructor")) {
+    if (!Object.hasOwn(value, "constructor")) {
         return false;
     }
     return Object.getPrototypeOf(value) === Object.prototype || Object.getPrototypeOf(value) === null;
@@ -43,7 +43,7 @@ function _slowObjectDefault(value: unknown, options?: {
     maxDepth?: number;
 }): InternalParseResult<{
     "foo": string;
-    "count": Exclude<number, undefined>;
+    "count": number;
 }> {
     const maxDepth: number = options?.maxDepth ?? 1000;
     if (!(Number.isInteger(maxDepth)) || maxDepth < 1) {
@@ -154,7 +154,7 @@ function _slowObjectDefault(value: unknown, options?: {
     if (_hasModification6) {
         return { ok: true as const, value: _modified5 as {
                 "foo": string;
-                "count": Exclude<number, undefined>;
+                "count": number;
             } };
     }
     else {
@@ -167,7 +167,7 @@ function _validateObjectDefault(value: unknown, options?: {
     maxDepth?: number;
 }): InternalParseResult<{
     "foo": string;
-    "count": Exclude<number, undefined>;
+    "count": number;
 }> {
     const maxDepth: number = options?.maxDepth ?? 1000;
     if (!(Number.isInteger(maxDepth)) || maxDepth < 1) {
@@ -189,7 +189,7 @@ function _validateObjectDefault(value: unknown, options?: {
                 }
                 return { ok: true as const, value: _out1 as {
                         "foo": string;
-                        "count": Exclude<number, undefined>;
+                        "count": number;
                     } };
             }
             return undefined;
@@ -202,13 +202,13 @@ function safeParseObjectDefault(value: unknown, options?: {
     maxDepth?: number;
 }): ParseResult<{
     "foo": string;
-    "count": Exclude<number, undefined>;
+    "count": number;
 }> {
     const result = _validateObjectDefault(value, options);
     if (result === undefined) {
         return { ok: true as const, value: value as {
                 "foo": string;
-                "count": Exclude<number, undefined>;
+                "count": number;
             } };
     }
     if (isParseSuccess(result)) {
@@ -221,7 +221,7 @@ function parseObjectDefault(value: unknown, options?: {
     maxDepth?: number;
 }): {
     "foo": string;
-    "count": Exclude<number, undefined>;
+    "count": number;
 } {
     const result = safeParseObjectDefault(value, options);
     if (result.ok) {
@@ -232,7 +232,7 @@ function parseObjectDefault(value: unknown, options?: {
 
 const _schema: StandardSchemaV1<unknown, {
     "foo": string;
-    "count": Exclude<number, undefined>;
+    "count": number;
 }> & {
     safeParse: typeof safeParseObjectDefault;
     parse: typeof parseObjectDefault;

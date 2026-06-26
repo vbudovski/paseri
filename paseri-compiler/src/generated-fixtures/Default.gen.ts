@@ -17,13 +17,13 @@ const _default0 = deepFreeze(structuredClone("x"));
 
 function _validateDefault(value: unknown, options?: {
     maxDepth?: number;
-}): InternalParseResult<Exclude<string, undefined>> {
+}): InternalParseResult<string> {
     const maxDepth: number = options?.maxDepth ?? 1000;
     if (!(Number.isInteger(maxDepth)) || maxDepth < 1) {
         throw new Error("maxDepth must be a positive integer.");
     }
     if (value === undefined) {
-        return { ok: true as const, value: _default0 as Exclude<string, undefined> };
+        return { ok: true as const, value: _default0 as string };
     }
     {
         if (!(typeof value === "string")) {
@@ -35,10 +35,10 @@ function _validateDefault(value: unknown, options?: {
 
 function safeParseDefault(value: unknown, options?: {
     maxDepth?: number;
-}): ParseResult<Exclude<string, undefined>> {
+}): ParseResult<string> {
     const result = _validateDefault(value, options);
     if (result === undefined) {
-        return { ok: true as const, value: value as Exclude<string, undefined> };
+        return { ok: true as const, value: value as string };
     }
     if (isParseSuccess(result)) {
         return result;
@@ -48,7 +48,7 @@ function safeParseDefault(value: unknown, options?: {
 
 function parseDefault(value: unknown, options?: {
     maxDepth?: number;
-}): Exclude<string, undefined> {
+}): string {
     const result = safeParseDefault(value, options);
     if (result.ok) {
         return result.value;
@@ -56,7 +56,7 @@ function parseDefault(value: unknown, options?: {
     throw new PaseriError(result.issue);
 }
 
-const _schema: StandardSchemaV1<unknown, Exclude<string, undefined>> & {
+const _schema: StandardSchemaV1<unknown, string> & {
     safeParse: typeof safeParseDefault;
     parse: typeof parseDefault;
 } = {

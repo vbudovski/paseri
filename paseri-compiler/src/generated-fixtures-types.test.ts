@@ -11,6 +11,7 @@ import type { Boolean as BooleanSchema } from './generated-fixtures/Boolean.gen.
 import type { Chain } from './generated-fixtures/Chain.gen.ts';
 import type { Date as DateSchema } from './generated-fixtures/Date.gen.ts';
 import type { Default } from './generated-fixtures/Default.gen.ts';
+import type { DefaultUnionUndefined } from './generated-fixtures/DefaultUnionUndefined.gen.ts';
 import type { Duration } from './generated-fixtures/Duration.gen.ts';
 import type { EnumNumber } from './generated-fixtures/EnumNumber.gen.ts';
 import type { EnumString } from './generated-fixtures/EnumString.gen.ts';
@@ -100,6 +101,7 @@ const schemas = {
     Optional: p.string().optional(),
     Nullable: p.number().nullable(),
     Default: p.string().optional().default('x'),
+    DefaultUnionUndefined: p.union(p.string(), p.undefined()).optional().default('x'),
     Refine: p.number().refine((value) => value > 0, { code: 'positive' }),
     Chain: p.string().chain(p.number(), (value) => ({ ok: true, value: Number(value) })),
     LazyRecursive: recursive,
@@ -156,6 +158,7 @@ type Generated = {
     Optional: SuccessValue<ReturnType<(typeof Optional)['safeParse']>>;
     Nullable: SuccessValue<ReturnType<(typeof Nullable)['safeParse']>>;
     Default: SuccessValue<ReturnType<(typeof Default)['safeParse']>>;
+    DefaultUnionUndefined: SuccessValue<ReturnType<(typeof DefaultUnionUndefined)['safeParse']>>;
     Refine: SuccessValue<ReturnType<(typeof Refine)['safeParse']>>;
     Chain: SuccessValue<ReturnType<(typeof Chain)['safeParse']>>;
     LazyRecursive: SuccessValue<ReturnType<(typeof LazyRecursive)['safeParse']>>;
@@ -227,6 +230,7 @@ describe('generated fixtures — result.value type', () => {
         expectTypeOf<Generated['Optional']>().toEqualTypeOf<Inferred['Optional']>();
         expectTypeOf<Generated['Nullable']>().toEqualTypeOf<Inferred['Nullable']>();
         expectTypeOf<Generated['Default']>().toEqualTypeOf<Inferred['Default']>();
+        expectTypeOf<Generated['DefaultUnionUndefined']>().toEqualTypeOf<Inferred['DefaultUnionUndefined']>();
         expectTypeOf<Generated['Refine']>().toEqualTypeOf<Inferred['Refine']>();
         expectTypeOf<Generated['Chain']>().toEqualTypeOf<Inferred['Chain']>();
         expectTypeOf<Generated['LazyRecursive']>().toEqualTypeOf<Inferred['LazyRecursive']>();

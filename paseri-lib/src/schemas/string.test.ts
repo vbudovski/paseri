@@ -164,6 +164,28 @@ describe('contradictory bounds', () => {
     it('allows equal minimum and maximum lengths', () => {
         expect(() => p.string().min(3).max(3)).not.toThrow();
     });
+
+    it('throws when a fixed length contradicts an existing bound', () => {
+        fc.assert(
+            fc.property(fc.nat({ max: 50 }), fc.nat({ max: 50 }), (bound, length) => {
+                // A fixed `length` clashes with an existing minimum exactly when it falls below it, and with an
+                // existing maximum exactly when it rises above it — the same comparisons min()/max() guard on.
+                const minThenLength = () => p.string().min(bound).length(length);
+                if (length < bound) {
+                    expect(minThenLength).toThrow('Minimum length must not exceed maximum length.');
+                } else {
+                    expect(minThenLength).not.toThrow();
+                }
+
+                const maxThenLength = () => p.string().max(bound).length(length);
+                if (length > bound) {
+                    expect(maxThenLength).toThrow('Minimum length must not exceed maximum length.');
+                } else {
+                    expect(maxThenLength).not.toThrow();
+                }
+            }),
+        );
+    });
 });
 
 describe('length', () => {

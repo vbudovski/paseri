@@ -276,6 +276,7 @@ describe('strip', () => {
         // Annex B environments, so the original child (junk included) survived in the output.
         const schema = p.object({ ['__proto__']: p.object({ a: p.number() }).strip(), other: p.string() });
         const data = Object.create(null);
+        // biome-ignore lint/complexity/useLiteralKeys lint/suspicious/noProto: __proto__ is the key under test; see the block comment above. biomejs/biome#10769
         data['__proto__'] = { a: 1, junk: 2 };
         data.other = 'x';
 
@@ -292,6 +293,7 @@ describe('strip', () => {
         const schema = p.object({ name: p.string() }).strip();
         const data = Object.create(null);
         data.name = 'alice';
+        // biome-ignore lint/suspicious/noProto: __proto__ is the key under test; see the block comment above. biomejs/biome#10769
         data.__proto__ = { isAdmin: true };
 
         const result = schema.safeParse(data);
@@ -307,6 +309,7 @@ describe('strip', () => {
         const schema = p.object({ child: p.object({ foo: p.string() }).strip() }).strip();
         const data = Object.create(null);
         data.child = { foo: 'bar', extra: 'baz' };
+        // biome-ignore lint/suspicious/noProto: __proto__ is the key under test; see the block comment above. biomejs/biome#10769
         data.__proto__ = { isAdmin: true };
 
         const result = schema.safeParse(data);

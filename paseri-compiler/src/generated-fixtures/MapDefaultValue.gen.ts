@@ -31,7 +31,7 @@ const _default0 = deepFreeze(structuredClone(0));
 
 function _slowMapDefaultValue(value: unknown, options?: {
     maxDepth?: number;
-}): InternalParseResult<Map<string, Exclude<number, undefined>>> {
+}): InternalParseResult<Map<string, number>> {
     const maxDepth: number = options?.maxDepth ?? 1000;
     if (!(Number.isInteger(maxDepth)) || maxDepth < 1) {
         throw new Error("maxDepth must be a positive integer.");
@@ -101,7 +101,7 @@ function _slowMapDefaultValue(value: unknown, options?: {
             }
         }
         if (_newMap9 !== undefined) {
-            return { ok: true as const, value: _newMap9 as Map<string, Exclude<number, undefined>> };
+            return { ok: true as const, value: _newMap9 as Map<string, number> };
         }
         return undefined;
     }
@@ -110,7 +110,7 @@ function _slowMapDefaultValue(value: unknown, options?: {
 
 function _validateMapDefaultValue(value: unknown, options?: {
     maxDepth?: number;
-}): InternalParseResult<Map<string, Exclude<number, undefined>>> {
+}): InternalParseResult<Map<string, number>> {
     const maxDepth: number = options?.maxDepth ?? 1000;
     if (!(Number.isInteger(maxDepth)) || maxDepth < 1) {
         throw new Error("maxDepth must be a positive integer.");
@@ -123,10 +123,10 @@ function _validateMapDefaultValue(value: unknown, options?: {
 
 function safeParseMapDefaultValue(value: unknown, options?: {
     maxDepth?: number;
-}): ParseResult<Map<string, Exclude<number, undefined>>> {
+}): ParseResult<Map<string, number>> {
     const result = _validateMapDefaultValue(value, options);
     if (result === undefined) {
-        return { ok: true as const, value: value as Map<string, Exclude<number, undefined>> };
+        return { ok: true as const, value: value as Map<string, number> };
     }
     if (isParseSuccess(result)) {
         return result;
@@ -136,7 +136,7 @@ function safeParseMapDefaultValue(value: unknown, options?: {
 
 function parseMapDefaultValue(value: unknown, options?: {
     maxDepth?: number;
-}): Map<string, Exclude<number, undefined>> {
+}): Map<string, number> {
     const result = safeParseMapDefaultValue(value, options);
     if (result.ok) {
         return result.value;
@@ -144,7 +144,7 @@ function parseMapDefaultValue(value: unknown, options?: {
     throw new PaseriError(result.issue);
 }
 
-const _schema: StandardSchemaV1<unknown, Map<string, Exclude<number, undefined>>> & {
+const _schema: StandardSchemaV1<unknown, Map<string, number>> & {
     safeParse: typeof safeParseMapDefaultValue;
     parse: typeof parseMapDefaultValue;
 } = {

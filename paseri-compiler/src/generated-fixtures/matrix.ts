@@ -69,6 +69,12 @@ const MATRIX: readonly MatrixEntry[] = [
     { name: 'Optional', schema: p.string().optional() },
     { name: 'Nullable', schema: p.number().nullable() },
     { name: 'Default', schema: p.string().optional().default('x') },
+    // The default's inner still admits `undefined` (a union with `p.undefined()`), so the output type must keep it —
+    // exercises that the `default` type emit mirrors Infer instead of unconditionally excluding `undefined`.
+    {
+        name: 'DefaultUnionUndefined',
+        schema: p.union(p.string(), p.undefined()).optional().default('x'),
+    },
     { name: 'Refine', schema: p.number().refine((value) => value > 0, { code: 'positive' }) },
     { name: 'Chain', schema: p.string().chain(p.number(), (value) => ({ ok: true, value: Number(value) })) },
     { name: 'LazyRecursive', schema: recursive },

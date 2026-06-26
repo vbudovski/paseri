@@ -3,20 +3,20 @@
 // version, and exports — the same set of fields JSR requires, so this
 // iteration matches `deno publish`'s effective set exactly.
 
-export interface PublishableMember {
+interface PublishableMember {
     readonly dir: string;
     readonly name: string;
     readonly version: string;
     readonly denoJsonUrl: URL;
     readonly changelogUrl: URL;
-    readonly pkgJsonUrl: URL;
+    readonly packageJsonUrl: URL;
 }
 
-export async function readJson<T>(path: URL): Promise<T> {
+async function readJson<T>(path: URL): Promise<T> {
     return JSON.parse(await Deno.readTextFile(path)) as T;
 }
 
-export async function listPublishableMembers(rootUrl: URL): Promise<PublishableMember[]> {
+async function listPublishableMembers(rootUrl: URL): Promise<PublishableMember[]> {
     const rootDeno = await readJson<{ workspace?: string[] }>(new URL('deno.json', rootUrl));
     if (!Array.isArray(rootDeno.workspace)) {
         throw new Error('Root deno.json must declare a `workspace` array.');
@@ -48,7 +48,7 @@ export async function listPublishableMembers(rootUrl: URL): Promise<PublishableM
             version,
             denoJsonUrl,
             changelogUrl: new URL('CHANGELOG.md', dirUrl),
-            pkgJsonUrl: new URL('package.json', dirUrl),
+            packageJsonUrl: new URL('package.json', dirUrl),
         });
     }
     return members;
@@ -57,7 +57,7 @@ export async function listPublishableMembers(rootUrl: URL): Promise<PublishableM
 // Returns the body of the most recent `## ` section of a member's CHANGELOG.md
 // — the entry just written by `changeset version`. Throws if no section is
 // found (which means the changeset bump did not produce one).
-export async function readLatestChangelogEntry(member: PublishableMember): Promise<string> {
+async function readLatestChangelogEntry(member: PublishableMember): Promise<string> {
     const text = await Deno.readTextFile(member.changelogUrl);
     const lines = text.split('\n');
     const start = lines.findIndex((line) => line.startsWith('## '));
@@ -68,3 +68,6 @@ export async function readLatestChangelogEntry(member: PublishableMember): Promi
     const end = rest.findIndex((line) => line.startsWith('## '));
     return (end === -1 ? rest : rest.slice(0, end)).join('\n').trim();
 }
+
+export type { PublishableMember };
+export { listPublishableMembers, readJson, readLatestChangelogEntry };

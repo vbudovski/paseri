@@ -243,7 +243,8 @@ function tryEmitDefaultObjectEntry(
         }
     }
     const strictLevels: StrictLevel[] = [];
-    const defaults: { readonly key: string; readonly accessor: ts.Expression; readonly id: ts.Identifier }[] = [];
+    const defaults: { readonly key: string; readonly accessor: ts.Expression; readonly identifier: ts.Identifier }[] =
+        [];
     const optionalFieldNames: string[] = [];
     let requiredCount = 0;
     let shape: ts.Expression = binary(
@@ -269,7 +270,7 @@ function tryEmitDefaultObjectEntry(
                 ts.SyntaxKind.AmpersandAmpersandToken,
                 binary(equals(accessor, undefinedExpression), ts.SyntaxKind.BarBarToken, innerShape),
             );
-            defaults.push({ key: fieldName, accessor, id: registerDefault(state, fieldIR.value) });
+            defaults.push({ key: fieldName, accessor, identifier: registerDefault(state, fieldIR.value) });
             optionalFieldNames.push(fieldName);
         } else {
             if (modifies(fieldIR, state)) {
@@ -314,15 +315,15 @@ function tryEmitDefaultObjectEntry(
     // loop, no slow-path bail) and absent defaults filled inline, in one allocation. Reached only for the lean
     // default-entry shape, so every value is read straight from the validated input.
     if (ir.mode === 'strip') {
-        const defaultIds = new Map(defaults.map((entry) => [entry.key, entry.id]));
+        const defaultIdentifiers = new Map(defaults.map((entry) => [entry.key, entry.identifier]));
         const props: Record<string, ts.Expression> = {};
         for (const [fieldName] of fields) {
             const accessor = recordAccess(valueExpression, stringLiteral(fieldName));
-            const defaultId = defaultIds.get(fieldName);
+            const defaultIdentifier = defaultIdentifiers.get(fieldName);
             props[fieldName] =
-                defaultId === undefined
+                defaultIdentifier === undefined
                     ? accessor
-                    : ternary(equals(accessor, undefinedExpression), defaultId, accessor);
+                    : ternary(equals(accessor, undefinedExpression), defaultIdentifier, accessor);
         }
         return [ifStatement(shape, [returnStatement(successPayload(objectLiteral(props), outputType))]), slowCall];
     }
@@ -349,7 +350,7 @@ function tryEmitDefaultObjectEntry(
     for (const entry of defaults) {
         applyStatements.push(
             ifStatement(equals(entry.accessor, undefinedExpression), [
-                assign(elementAccess(outIdentifier, stringLiteral(entry.key)), entry.id),
+                assign(elementAccess(outIdentifier, stringLiteral(entry.key)), entry.identifier),
             ]),
         );
     }
