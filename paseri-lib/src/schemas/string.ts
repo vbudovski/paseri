@@ -166,6 +166,11 @@ class StringSchema extends Schema<string> {
         if (!Number.isInteger(length) || length < 0) {
             throw new Error('Length must be a non-negative integer.');
         }
+        // A fixed length pins both bounds, so it contradicts any existing bound that excludes it — guard the same
+        // way min()/max() do, rather than silently stacking checks that reject every input.
+        if (length < this._effectiveMinLength() || length > this._effectiveMaxLength()) {
+            throw new Error('Minimum length must not exceed maximum length.');
+        }
 
         const cloned = this._clone();
         cloned._checks = cloned._checks || [];
