@@ -37,6 +37,7 @@ import './Tuple.gen.ts';
 import './Optional.gen.ts';
 import './Nullable.gen.ts';
 import './Default.gen.ts';
+import './DefaultUnionUndefined.gen.ts';
 import './Refine.gen.ts';
 import './Chain.gen.ts';
 import './LazyRecursive.gen.ts';

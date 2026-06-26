@@ -43,7 +43,7 @@ function _slowObjectStripDefault(value: unknown, options?: {
     maxDepth?: number;
 }): InternalParseResult<{
     "host": string;
-    "port": Exclude<number, undefined>;
+    "port": number;
 }> {
     const maxDepth: number = options?.maxDepth ?? 1000;
     if (!(Number.isInteger(maxDepth)) || maxDepth < 1) {
@@ -173,13 +173,13 @@ function _slowObjectStripDefault(value: unknown, options?: {
         }
         return { ok: true as const, value: _sanitized11 as {
                 "host": string;
-                "port": Exclude<number, undefined>;
+                "port": number;
             } };
     }
     if (_hasModification3) {
         return { ok: true as const, value: { ...value as Record<PropertyKey, unknown>, ..._modified2 } as {
                 "host": string;
-                "port": Exclude<number, undefined>;
+                "port": number;
             } };
     }
     else {
@@ -192,7 +192,7 @@ function _validateObjectStripDefault(value: unknown, options?: {
     maxDepth?: number;
 }): InternalParseResult<{
     "host": string;
-    "port": Exclude<number, undefined>;
+    "port": number;
 }> {
     const maxDepth: number = options?.maxDepth ?? 1000;
     if (!(Number.isInteger(maxDepth)) || maxDepth < 1) {
@@ -201,7 +201,7 @@ function _validateObjectStripDefault(value: unknown, options?: {
     if (typeof value === "object" && value !== null && typeof (value as Record<PropertyKey, unknown>)["host"] === "string" && ((value as Record<PropertyKey, unknown>)["port"] === undefined || typeof (value as Record<PropertyKey, unknown>)["port"] === "number" && !(Number.isNaN((value as Record<PropertyKey, unknown>)["port"]))) && (Object.getPrototypeOf(value) === Object.prototype || Object.getPrototypeOf(value) === null)) {
         return { ok: true as const, value: { host: (value as Record<PropertyKey, unknown>)["host"], port: (value as Record<PropertyKey, unknown>)["port"] === undefined ? _default0 : (value as Record<PropertyKey, unknown>)["port"] } as {
                 "host": string;
-                "port": Exclude<number, undefined>;
+                "port": number;
             } };
     }
     return _slowObjectStripDefault(value, options);
@@ -211,13 +211,13 @@ function safeParseObjectStripDefault(value: unknown, options?: {
     maxDepth?: number;
 }): ParseResult<{
     "host": string;
-    "port": Exclude<number, undefined>;
+    "port": number;
 }> {
     const result = _validateObjectStripDefault(value, options);
     if (result === undefined) {
         return { ok: true as const, value: value as {
                 "host": string;
-                "port": Exclude<number, undefined>;
+                "port": number;
             } };
     }
     if (isParseSuccess(result)) {
@@ -230,7 +230,7 @@ function parseObjectStripDefault(value: unknown, options?: {
     maxDepth?: number;
 }): {
     "host": string;
-    "port": Exclude<number, undefined>;
+    "port": number;
 } {
     const result = safeParseObjectStripDefault(value, options);
     if (result.ok) {
@@ -241,7 +241,7 @@ function parseObjectStripDefault(value: unknown, options?: {
 
 const _schema: StandardSchemaV1<unknown, {
     "host": string;
-    "port": Exclude<number, undefined>;
+    "port": number;
 }> & {
     safeParse: typeof safeParseObjectStripDefault;
     parse: typeof parseObjectStripDefault;

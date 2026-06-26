@@ -113,8 +113,11 @@ function emitType(ir: IR): ts.TypeNode {
                 factory.createLiteralTypeNode(factory.createNull()),
             ]);
         case 'default':
-            // A default always produces a value, so the output excludes `undefined`.
-            return factory.createTypeReferenceNode('Exclude', [emitType(ir.inner), undefinedTypeNode]);
+            // Mirror the runtime `DefaultSchema<OutputType>`, whose `Infer` is exactly the inner output type. The
+            // inner is already the optional-unwrapped schema (`.default()` lives on `OptionalSchema` and wraps its
+            // inner), so the common case is a bare value; an inner that still admits `undefined` (e.g. a union with
+            // `p.undefined()`) keeps it, where an unconditional `Exclude<…, undefined>` would diverge from `Infer`.
+            return emitType(ir.inner);
         case 'date':
             return factory.createTypeReferenceNode('Date');
         case 'duration':

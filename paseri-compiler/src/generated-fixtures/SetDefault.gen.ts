@@ -26,7 +26,7 @@ const _default0 = deepFreeze(structuredClone("x"));
 
 function _slowSetDefault(value: unknown, options?: {
     maxDepth?: number;
-}): InternalParseResult<Set<Exclude<string, undefined>>> {
+}): InternalParseResult<Set<string>> {
     const maxDepth: number = options?.maxDepth ?? 1000;
     if (!(Number.isInteger(maxDepth)) || maxDepth < 1) {
         throw new Error("maxDepth must be a positive integer.");
@@ -90,7 +90,7 @@ function _slowSetDefault(value: unknown, options?: {
             }
         }
         if (_newSet7 !== undefined) {
-            return { ok: true as const, value: _newSet7 as Set<Exclude<string, undefined>> };
+            return { ok: true as const, value: _newSet7 as Set<string> };
         }
         return undefined;
     }
@@ -99,7 +99,7 @@ function _slowSetDefault(value: unknown, options?: {
 
 function _validateSetDefault(value: unknown, options?: {
     maxDepth?: number;
-}): InternalParseResult<Set<Exclude<string, undefined>>> {
+}): InternalParseResult<Set<string>> {
     const maxDepth: number = options?.maxDepth ?? 1000;
     if (!(Number.isInteger(maxDepth)) || maxDepth < 1) {
         throw new Error("maxDepth must be a positive integer.");
@@ -112,10 +112,10 @@ function _validateSetDefault(value: unknown, options?: {
 
 function safeParseSetDefault(value: unknown, options?: {
     maxDepth?: number;
-}): ParseResult<Set<Exclude<string, undefined>>> {
+}): ParseResult<Set<string>> {
     const result = _validateSetDefault(value, options);
     if (result === undefined) {
-        return { ok: true as const, value: value as Set<Exclude<string, undefined>> };
+        return { ok: true as const, value: value as Set<string> };
     }
     if (isParseSuccess(result)) {
         return result;
@@ -125,7 +125,7 @@ function safeParseSetDefault(value: unknown, options?: {
 
 function parseSetDefault(value: unknown, options?: {
     maxDepth?: number;
-}): Set<Exclude<string, undefined>> {
+}): Set<string> {
     const result = safeParseSetDefault(value, options);
     if (result.ok) {
         return result.value;
@@ -133,7 +133,7 @@ function parseSetDefault(value: unknown, options?: {
     throw new PaseriError(result.issue);
 }
 
-const _schema: StandardSchemaV1<unknown, Set<Exclude<string, undefined>>> & {
+const _schema: StandardSchemaV1<unknown, Set<string>> & {
     safeParse: typeof safeParseSetDefault;
     parse: typeof parseSetDefault;
 } = {
