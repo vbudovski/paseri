@@ -80,6 +80,7 @@ it('returns new value when a __proto__ entry is modified', () => {
     // Annex B environments (Node/browsers, Deno with --unstable-unsafe-proto) and was lost.
     const schema = p.record(p.object({ foo: p.string() }).strip());
     const data = Object.create(null);
+    // biome-ignore lint/complexity/useLiteralKeys lint/suspicious/noProto: __proto__ is the key under test; see the block comment above. biomejs/biome#10769
     data['__proto__'] = { foo: 'bar', extra: 'baz' };
     data.other = { foo: 'qux' };
 
