@@ -17,7 +17,7 @@ function isPlainObject(value: unknown): value is Record<PropertyKey, unknown> {
         return Object.getPrototypeOf(value) === null;
     }
 
-    if (value.constructor !== Object && !Object.hasOwn(value, 'constructor')) {
+    if (!Object.hasOwn(value, 'constructor')) {
         return false;
     }
 
