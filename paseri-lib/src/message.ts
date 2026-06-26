@@ -26,13 +26,13 @@ function messageList(node: TreeNode, locale: Translations | undefined): readonly
                 if (locale === undefined) {
                     text = currentNode.code;
                 } else {
-                    const fn = locale[currentNode.code] as ((placeholders: object) => string) | undefined;
-                    if (fn === undefined) {
+                    const formatter = locale[currentNode.code] as ((placeholders: object) => string) | undefined;
+                    if (formatter === undefined) {
                         missingCodes.add(currentNode.code);
                         break;
                     }
                     const { code, type, ...placeholders } = currentNode;
-                    text = fn(placeholders);
+                    text = formatter(placeholders);
                 }
 
                 messages.push({ path: currentPath, message: text });

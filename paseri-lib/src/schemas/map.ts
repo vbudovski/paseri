@@ -91,7 +91,9 @@ class MapSchema<
                     newMap = new Map<unknown, unknown>();
                     let j = 0;
                     for (const [prevKey, prevValue] of value) {
-                        if (j >= i) break;
+                        if (j >= i) {
+                            break;
+                        }
                         newMap.set(prevKey, prevValue);
                         j++;
                     }

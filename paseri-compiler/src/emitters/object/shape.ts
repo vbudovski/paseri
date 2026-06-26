@@ -574,25 +574,25 @@ function tryShape(
         case 'bigint': {
             let result: ts.Expression = equals(typeofExpression(valueExpression), stringLiteral('bigint'));
             for (const check of ir.checks) {
-                let op: ts.BinaryOperator;
+                let operator: ts.BinaryOperator;
                 switch (check.name) {
                     case 'gt':
-                        op = ts.SyntaxKind.GreaterThanToken;
+                        operator = ts.SyntaxKind.GreaterThanToken;
                         break;
                     case 'gte':
-                        op = ts.SyntaxKind.GreaterThanEqualsToken;
+                        operator = ts.SyntaxKind.GreaterThanEqualsToken;
                         break;
                     case 'lt':
-                        op = ts.SyntaxKind.LessThanToken;
+                        operator = ts.SyntaxKind.LessThanToken;
                         break;
                     case 'lte':
-                        op = ts.SyntaxKind.LessThanEqualsToken;
+                        operator = ts.SyntaxKind.LessThanEqualsToken;
                         break;
                 }
                 result = binary(
                     result,
                     ts.SyntaxKind.AmpersandAmpersandToken,
-                    binary(valueExpression, op, literalExpression(check.value)),
+                    binary(valueExpression, operator, literalExpression(check.value)),
                 );
             }
             return result;
@@ -811,12 +811,12 @@ function tryShape(
             );
             let result: ts.Expression = instanceOf(valueExpression, identifier('Set'));
             for (const check of ir.checks) {
-                const op =
+                const operator =
                     check.name === 'min' ? ts.SyntaxKind.GreaterThanEqualsToken : ts.SyntaxKind.LessThanEqualsToken;
                 result = binary(
                     result,
                     ts.SyntaxKind.AmpersandAmpersandToken,
-                    binary(property(valueExpression, 'size'), op, numericLiteral(check.value)),
+                    binary(property(valueExpression, 'size'), operator, numericLiteral(check.value)),
                 );
             }
             result = binary(
@@ -869,12 +869,12 @@ function tryShape(
             );
             let result: ts.Expression = instanceOf(valueExpression, identifier('Map'));
             for (const check of ir.checks) {
-                const op =
+                const operator =
                     check.name === 'min' ? ts.SyntaxKind.GreaterThanEqualsToken : ts.SyntaxKind.LessThanEqualsToken;
                 result = binary(
                     result,
                     ts.SyntaxKind.AmpersandAmpersandToken,
-                    binary(property(valueExpression, 'size'), op, numericLiteral(check.value)),
+                    binary(property(valueExpression, 'size'), operator, numericLiteral(check.value)),
                 );
             }
             result = binary(
@@ -921,12 +921,12 @@ function tryShape(
             );
             let result: ts.Expression = call(property(identifier('Array'), 'isArray'), [valueExpression]);
             for (const check of ir.checks) {
-                const op =
+                const operator =
                     check.name === 'min' ? ts.SyntaxKind.GreaterThanEqualsToken : ts.SyntaxKind.LessThanEqualsToken;
                 result = binary(
                     result,
                     ts.SyntaxKind.AmpersandAmpersandToken,
-                    binary(property(valueExpression, 'length'), op, numericLiteral(check.value)),
+                    binary(property(valueExpression, 'length'), operator, numericLiteral(check.value)),
                 );
             }
             result = binary(

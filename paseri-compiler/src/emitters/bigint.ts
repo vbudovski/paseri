@@ -19,16 +19,16 @@ type BigIntIR = Extract<IR, { kind: 'bigint' }>;
 type BigIntCheck = BigIntIR['checks'][number];
 
 function checkExpression(check: BigIntCheck, valueExpression: ts.Expression): [ts.Expression, ts.Expression] {
-    const v = bigintLiteral(check.value);
+    const bound = bigintLiteral(check.value);
     switch (check.name) {
         case 'gte':
-            return [binary(valueExpression, ts.SyntaxKind.GreaterThanEqualsToken, v), leafExpression('too_small')];
+            return [binary(valueExpression, ts.SyntaxKind.GreaterThanEqualsToken, bound), leafExpression('too_small')];
         case 'gt':
-            return [binary(valueExpression, ts.SyntaxKind.GreaterThanToken, v), leafExpression('too_small')];
+            return [binary(valueExpression, ts.SyntaxKind.GreaterThanToken, bound), leafExpression('too_small')];
         case 'lte':
-            return [binary(valueExpression, ts.SyntaxKind.LessThanEqualsToken, v), leafExpression('too_large')];
+            return [binary(valueExpression, ts.SyntaxKind.LessThanEqualsToken, bound), leafExpression('too_large')];
         case 'lt':
-            return [binary(valueExpression, ts.SyntaxKind.LessThanToken, v), leafExpression('too_large')];
+            return [binary(valueExpression, ts.SyntaxKind.LessThanToken, bound), leafExpression('too_large')];
     }
 }
 

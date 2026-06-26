@@ -22,7 +22,7 @@ it('emits parameterised Set/Map type annotations so generated modules type-check
 it('record-casts the fast-path default-fill clone so generated modules type-check', () => {
     // The fast path clones the value to fill in absent defaults: `const _out = { ...value }`. Spreading the
     // `object`-narrowed value infers type `{}`, so the fill assignment `_out["count"] = ...` is an implicit-any
-    // index error (TS7053) in the standalone module. The slow path already record-casts its clone; the fast path
+    // index error (TS7053) in the generated module. The slow path already record-casts its clone; the fast path
     // must too, so the clone is typed `Record<PropertyKey, unknown>` and indexed assignment is valid.
     const source = toSource(p.object({ hello: p.string(), count: p.number().optional().default(0) }).toIR(), {
         name: 'DefaultFill',
@@ -32,7 +32,7 @@ it('record-casts the fast-path default-fill clone so generated modules type-chec
 
 it('types the hoisted refine predicate const so generated modules type-check', () => {
     // The predicate is hoisted verbatim; without a type annotation on the const, its `(value) =>` param would be an
-    // implicit any (TS7006) in the standalone module. The annotation gives it the inner output type contextually.
+    // implicit any (TS7006) in the generated module. The annotation gives it the inner output type contextually.
     const source = toSource(
         p
             .number()
@@ -46,7 +46,7 @@ it('types the hoisted refine predicate const so generated modules type-check', (
 it('types the refine before-snapshot const so generated modules type-check', () => {
     // Inside a container element loop, the snapshot const participates in the loop back-edge's narrowing of the
     // issue accumulator it compares against (`_refineBeforeN === _issueM`), so its inferred type is circular —
-    // TS7022 in the standalone module. An explicit `TreeNode | undefined` annotation breaks the cycle.
+    // TS7022 in the generated module. An explicit `TreeNode | undefined` annotation breaks the cycle.
     const source = toSource(
         p.object({ tags: p.array(p.string().refine((value) => !value.includes(' '), { code: 'has_space' })) }).toIR(),
         { name: 'ElementRefine' },

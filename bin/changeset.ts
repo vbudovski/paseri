@@ -7,7 +7,7 @@
 import { listPublishableMembers, type PublishableMember, readJson } from './lib/workspace.ts';
 
 const rootUrl = new URL('../', import.meta.url);
-const rootPkgUrl = new URL('package.json', rootUrl);
+const rootPackageUrl = new URL('package.json', rootUrl);
 
 async function writeJson(path: URL, data: unknown): Promise<void> {
     await Deno.writeTextFile(path, `${JSON.stringify(data, null, 2)}\n`);
@@ -17,11 +17,11 @@ async function exists(path: URL): Promise<boolean> {
     try {
         await Deno.lstat(path);
         return true;
-    } catch (err) {
-        if (err instanceof Deno.errors.NotFound) {
+    } catch (error) {
+        if (error instanceof Deno.errors.NotFound) {
             return false;
         }
-        throw err;
+        throw error;
     }
 }
 
@@ -31,14 +31,14 @@ async function pre(): Promise<PublishableMember[]> {
         throw new Error('No publishable workspace members found.');
     }
 
-    await writeJson(rootPkgUrl, {
+    await writeJson(rootPackageUrl, {
         name: 'paseri-root',
         private: true,
         workspaces: members.map((m) => m.dir),
     });
 
     for (const member of members) {
-        await writeJson(member.pkgJsonUrl, {
+        await writeJson(member.packageJsonUrl, {
             name: member.name,
             version: member.version,
         });
@@ -52,22 +52,22 @@ async function pre(): Promise<PublishableMember[]> {
 // formatting quirks survive untouched.
 async function sync(members: PublishableMember[]): Promise<void> {
     for (const member of members) {
-        if (!(await exists(member.pkgJsonUrl))) {
+        if (!(await exists(member.packageJsonUrl))) {
             continue;
         }
-        const pkg = await readJson<{ version: string }>(member.pkgJsonUrl);
+        const packageJson = await readJson<{ version: string }>(member.packageJsonUrl);
         const text = await Deno.readTextFile(member.denoJsonUrl);
         const versionField = /"version"\s*:\s*"([^"]*)"/;
         const match = text.match(versionField);
         if (!match) {
             throw new Error(`Could not find a version field in ${member.dir}/deno.json.`);
         }
-        if (match[1] === pkg.version) {
+        if (match[1] === packageJson.version) {
             continue;
         }
-        const updated = text.replace(versionField, `"version": "${pkg.version}"`);
+        const updated = text.replace(versionField, `"version": "${packageJson.version}"`);
         await Deno.writeTextFile(member.denoJsonUrl, updated);
-        console.log(`Synced version ${pkg.version} → ${member.dir}/deno.json`);
+        console.log(`Synced version ${packageJson.version} → ${member.dir}/deno.json`);
     }
 }
 
@@ -76,7 +76,7 @@ async function sync(members: PublishableMember[]): Promise<void> {
 // workspace member rather than just the publishable ones, in case a shim
 // was somehow written before pre() classified the member.
 function cleanup(): void {
-    const candidates = [rootPkgUrl];
+    const candidates = [rootPackageUrl];
     try {
         const rootDenoText = Deno.readTextFileSync(new URL('deno.json', rootUrl));
         const rootDeno = JSON.parse(rootDenoText) as { workspace?: string[] };
@@ -92,9 +92,9 @@ function cleanup(): void {
     for (const path of candidates) {
         try {
             Deno.removeSync(path);
-        } catch (err) {
-            if (!(err instanceof Deno.errors.NotFound)) {
-                throw err;
+        } catch (error) {
+            if (!(error instanceof Deno.errors.NotFound)) {
+                throw error;
             }
         }
     }

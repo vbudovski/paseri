@@ -59,7 +59,9 @@ class SetSchema<ElementSchemaType extends AnySchemaType> extends Schema<Infer<Se
                     newSet = new Set<unknown>();
                     let j = 0;
                     for (const prev of value) {
-                        if (j >= i) break;
+                        if (j >= i) {
+                            break;
+                        }
                         newSet.add(prev);
                         j++;
                     }

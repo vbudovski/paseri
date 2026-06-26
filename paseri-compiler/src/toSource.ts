@@ -345,7 +345,7 @@ function buildEntryParameters(state: State): EntryParameters {
         numericLiteral(DEFAULT_MAX_DEPTH),
     );
     const setupStatements: ts.Statement[] = [constStatement(maxDepthIdentifier, numberType, maxDepthExpression)];
-    // Mirror the runtime's safeParse/parse guard so a standalone generated validator rejects an invalid maxDepth
+    // Mirror the runtime's safeParse/parse guard so the generated validator rejects an invalid maxDepth
     // identically (rather than silently accepting NaN/Infinity/0/1.5 — NaN would otherwise disable the depth cap
     // and let cyclic/deep input recurse unbounded).
     setupStatements.push(
@@ -675,8 +675,9 @@ function emitNamedFunction(name: string, ir: IR, state: State): ts.FunctionDecla
 /**
  * Compiles an IR graph into a TypeScript module that exports a single `const ${options.name}` object mirroring
  * paseri-lib's runtime schema surface (`.safeParse`, `.parse`, and the Standard Schema `['~standard']`), so it is a
- * drop-in for a runtime schema of the same name. The returned source is a complete, self-contained file (all
- * helpers inlined) — ready to write to disk or evaluate in place.
+ * drop-in for a runtime schema of the same name. The returned source is a complete module: it imports the
+ * result/issue/message contract from `@paseri/paseri/internal` and inlines the rest, ready to write to disk or
+ * evaluate in place.
  *
  * @example
  * ```ts
