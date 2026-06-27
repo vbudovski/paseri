@@ -2739,6 +2739,7 @@
         "@conventional-changelog/git-client",
         "meow"
       ],
+      "deprecated": true,
       "bin": true
     },
     "github-slugger@2.0.0": {
@@ -5280,7 +5281,8 @@
           "jsr:@std/testing@^1.0.19",
           "npm:expect-type@^1.3.0",
           "npm:ts-blank-space@0.9",
-          "npm:typescript@^6.0.3"
+          "npm:typescript@^6.0.3",
+          "npm:zod@^4.4.3"
         ]
       },
       "paseri-docs": {
