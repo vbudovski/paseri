@@ -98,15 +98,23 @@ async function main(): Promise<void> {
 
     for (const member of members) {
         const tag = `${member.name}@${member.version}`;
+        // Transitional: releases before the JSR-name rename were tagged
+        // `${dir}@v${version}` (e.g. paseri-lib@v1.9.1). Treat that as
+        // "already released" so a no-op publish of an unbumped version
+        // doesn't mint a duplicate under the new name. Remove once every
+        // package has bumped past its last legacy-named release.
+        const legacyTag = `${member.dir}@v${member.version}`;
 
-        if (await tagExists(tag)) {
-            console.log(`Tag ${tag} already exists; skipping tag creation.`);
+        if ((await tagExists(tag)) || (await tagExists(legacyTag))) {
+            console.log(`Tag for ${member.name}@${member.version} already exists; skipping tag creation.`);
         } else {
             await createTag(tag);
         }
 
-        if (await releaseExists(tag)) {
-            console.log(`GitHub release ${tag} already exists; skipping release creation.`);
+        if ((await releaseExists(tag)) || (await releaseExists(legacyTag))) {
+            console.log(
+                `GitHub release for ${member.name}@${member.version} already exists; skipping release creation.`,
+            );
             continue;
         }
         const notes = await readLatestChangelogEntry(member);
