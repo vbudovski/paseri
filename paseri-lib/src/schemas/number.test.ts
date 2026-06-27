@@ -121,14 +121,38 @@ for (const check of boundChecks) {
 
 describe('contradictory bounds', () => {
     it('throws when the lower bound exceeds the upper bound', () => {
-        expect(() => p.number().gte(5).lte(3)).toThrow('Lower bound must not exceed upper bound.');
-        expect(() => p.number().lte(3).gte(5)).toThrow('Lower bound must not exceed upper bound.');
-        expect(() => p.number().gt(5).lt(5)).toThrow('Lower bound must not exceed upper bound.');
-        expect(() => p.number().gte(5).lt(5)).toThrow('Lower bound must not exceed upper bound.');
+        // ±Infinity are valid number inputs, so they are valid bounds; an interval whose emptiness hinges on a
+        // ±Infinity bound must throw like any finite empty interval. These cases previously built a silent
+        // reject-all schema, because the effective-bound helpers used ±Infinity as the "no bound" sentinel.
+        const emptyOverReals = [
+            () => p.number().gte(5).lte(3),
+            () => p.number().lte(3).gte(5),
+            () => p.number().gt(5).lt(5),
+            () => p.number().gte(5).lt(5),
+            () => p.number().gte(Number.NEGATIVE_INFINITY).lt(Number.NEGATIVE_INFINITY),
+            () => p.number().gt(Number.NEGATIVE_INFINITY).lt(Number.NEGATIVE_INFINITY),
+            () => p.number().gt(Number.NEGATIVE_INFINITY).lte(Number.NEGATIVE_INFINITY),
+            () => p.number().lte(Number.POSITIVE_INFINITY).gt(Number.POSITIVE_INFINITY),
+            () => p.number().lt(Number.POSITIVE_INFINITY).gt(Number.POSITIVE_INFINITY),
+            () => p.number().lt(Number.POSITIVE_INFINITY).gte(Number.POSITIVE_INFINITY),
+        ];
+        for (const build of emptyOverReals) {
+            expect(build).toThrow('Lower bound must not exceed upper bound.');
+        }
     });
 
     it('allows a single satisfiable value', () => {
         expect(() => p.number().gte(5).lte(5)).not.toThrow();
+
+        // A single-point interval at ±Infinity is satisfiable, not empty — assert it accepts that value, since a
+        // bare `not.toThrow` would also pass for the old silent reject-all schema.
+        const negativeInfinityOnly = p.number().gte(Number.NEGATIVE_INFINITY).lte(Number.NEGATIVE_INFINITY);
+        expect(negativeInfinityOnly.safeParse(Number.NEGATIVE_INFINITY).ok).toBeTruthy();
+        expect(negativeInfinityOnly.safeParse(0).ok).toBeFalsy();
+
+        const positiveInfinityOnly = p.number().lte(Number.POSITIVE_INFINITY).gte(Number.POSITIVE_INFINITY);
+        expect(positiveInfinityOnly.safeParse(Number.POSITIVE_INFINITY).ok).toBeTruthy();
+        expect(positiveInfinityOnly.safeParse(0).ok).toBeFalsy();
     });
 
     it('allows an integer-gap range that is empty only over the reals', () => {

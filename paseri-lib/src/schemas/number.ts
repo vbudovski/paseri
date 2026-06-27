@@ -1,5 +1,6 @@
 import { issueCodes, type LeafNode, type TreeNode } from '../issue.ts';
 import type { InternalParseResult } from '../result.ts';
+import { assertLowerWithinUpper, assertUpperWithinLower, effectiveLowerBound, effectiveUpperBound } from './bounds.ts';
 import { Schema } from './schema.ts';
 
 const TAG_GTE = 0;
@@ -96,7 +97,7 @@ class NumberSchema extends Schema<number> {
         if (Number.isNaN(value)) {
             throw new Error('NaN is not a valid boundary value.');
         }
-        this._assertLowerWithinUpper(value, false);
+        assertLowerWithinUpper(effectiveUpperBound(this._checks, TAG_LTE, TAG_LT), value, false);
 
         const cloned = this._clone();
         cloned._checks = cloned._checks || [];
@@ -108,7 +109,7 @@ class NumberSchema extends Schema<number> {
         if (Number.isNaN(value)) {
             throw new Error('NaN is not a valid boundary value.');
         }
-        this._assertLowerWithinUpper(value, true);
+        assertLowerWithinUpper(effectiveUpperBound(this._checks, TAG_LTE, TAG_LT), value, true);
 
         const cloned = this._clone();
         cloned._checks = cloned._checks || [];
@@ -120,7 +121,7 @@ class NumberSchema extends Schema<number> {
         if (Number.isNaN(value)) {
             throw new Error('NaN is not a valid boundary value.');
         }
-        this._assertUpperWithinLower(value, false);
+        assertUpperWithinLower(effectiveLowerBound(this._checks, TAG_GTE, TAG_GT), value, false);
 
         const cloned = this._clone();
         cloned._checks = cloned._checks || [];
@@ -132,74 +133,13 @@ class NumberSchema extends Schema<number> {
         if (Number.isNaN(value)) {
             throw new Error('NaN is not a valid boundary value.');
         }
-        this._assertUpperWithinLower(value, true);
+        assertUpperWithinLower(effectiveLowerBound(this._checks, TAG_GTE, TAG_GT), value, true);
 
         const cloned = this._clone();
         cloned._checks = cloned._checks || [];
         cloned._checks.push({ tag: TAG_LT, param: value, issue: this.issues.TOO_LARGE });
 
         return cloned;
-    }
-    // Contradictory bounds reject every input, so a lower bound that can't be satisfied alongside the existing upper
-    // bound (or vice versa) is a construction error. "Empty over the reals": `gt(5).lt(5)` and `gte(5).lt(5)` throw;
-    // `gte(5).lte(5)` (the single value 5) is fine. The integer-only gap (`gt(5).lt(6).int()`) is intentionally not
-    // caught — that is a bounds×integrality interaction, not a contradiction over the reals.
-    private _assertLowerWithinUpper(value: number, strict: boolean): void {
-        const upper = this._effectiveUpperBound();
-        if (upper !== undefined && (value > upper.value || (value === upper.value && (strict || upper.strict)))) {
-            throw new Error('Lower bound must not exceed upper bound.');
-        }
-    }
-    private _assertUpperWithinLower(value: number, strict: boolean): void {
-        const lower = this._effectiveLowerBound();
-        if (lower !== undefined && (value < lower.value || (value === lower.value && (strict || lower.strict)))) {
-            throw new Error('Lower bound must not exceed upper bound.');
-        }
-    }
-    // Binding lower bound across repeated gte/gt: the largest, marked strict when a `gt` sits at that value.
-    private _effectiveLowerBound(): { value: number; strict: boolean } | undefined {
-        if (this._checks === undefined) {
-            return undefined;
-        }
-        let value = Number.NEGATIVE_INFINITY;
-        for (const check of this._checks) {
-            if ((check.tag === TAG_GTE || check.tag === TAG_GT) && check.param > value) {
-                value = check.param;
-            }
-        }
-        if (value === Number.NEGATIVE_INFINITY) {
-            return undefined;
-        }
-        let strict = false;
-        for (const check of this._checks) {
-            if (check.tag === TAG_GT && check.param === value) {
-                strict = true;
-            }
-        }
-
-        return { value, strict };
-    }
-    private _effectiveUpperBound(): { value: number; strict: boolean } | undefined {
-        if (this._checks === undefined) {
-            return undefined;
-        }
-        let value = Number.POSITIVE_INFINITY;
-        for (const check of this._checks) {
-            if ((check.tag === TAG_LTE || check.tag === TAG_LT) && check.param < value) {
-                value = check.param;
-            }
-        }
-        if (value === Number.POSITIVE_INFINITY) {
-            return undefined;
-        }
-        let strict = false;
-        for (const check of this._checks) {
-            if (check.tag === TAG_LT && check.param === value) {
-                strict = true;
-            }
-        }
-
-        return { value, strict };
     }
     int(): NumberSchema {
         const cloned = this._clone();
