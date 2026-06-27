@@ -11,8 +11,8 @@ type CompiledValidator = (value: unknown) => CompiledResult;
 async function compile<OutputType>(schema: Schema<OutputType>, name: string): Promise<CompiledValidator> {
     const source = toSource(schema.toIR(), { name });
     const dataUrl = `data:application/typescript,${encodeURIComponent(source)}`;
-    const module = (await import(dataUrl)) as Record<string, CompiledValidator>;
-    return module[`safeParse${name}`];
+    const module = (await import(dataUrl)) as Record<string, { safeParse: CompiledValidator }>;
+    return module[name].safeParse;
 }
 
 export { type CompiledValidator, compile };
