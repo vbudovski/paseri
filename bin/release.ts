@@ -101,13 +101,13 @@ async function buildPrBody(changed: PublishableMember[]): Promise<string> {
     const sections: string[] = [];
     for (const member of changed) {
         const notes = await readLatestChangelogEntry(member);
-        sections.push(`## ${member.dir} ${member.version}\n\n${notes}`);
+        sections.push(`## ${member.name} ${member.version}\n\n${notes}`);
     }
     return sections.join('\n\n');
 }
 
 function buildPrTitle(changed: PublishableMember[]): string {
-    return `Release: ${changed.map((m) => `${m.dir}@${m.version}`).join(', ')}`;
+    return `Release: ${changed.map((m) => `${m.name}@${m.version}`).join(', ')}`;
 }
 
 async function main(): Promise<void> {

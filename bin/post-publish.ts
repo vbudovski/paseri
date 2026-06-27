@@ -97,7 +97,7 @@ async function main(): Promise<void> {
     }
 
     for (const member of members) {
-        const tag = `${member.dir}@v${member.version}`;
+        const tag = `${member.name}@${member.version}`;
 
         if (await tagExists(tag)) {
             console.log(`Tag ${tag} already exists; skipping tag creation.`);
