@@ -33,15 +33,13 @@ jobs:
           git rev-parse --verify "$BASE_SHA^{commit}" >/dev/null
           git rev-parse --verify "$HEAD_SHA^{commit}" >/dev/null
 
-          # Watch each publishable member's src/ (the set `deno publish` ships),
-          # so a new package is gated without editing this workflow.
-          mapfile -t src_dirs < <(deno eval 'const { listPublishableMembers } = await import("./bin/lib/workspace.ts"); for (const m of await listPublishableMembers(new URL("file://" + Deno.cwd() + "/"))) console.log(m.dir + "/src");')
+          # Require a changeset only for changes that ship to consumers: files `deno publish` includes for
+          # their member, honouring each member's publish include/exclude. Tests, test-only helpers, and
+          # generated fixtures are publish-excluded, so touching only those needs no changeset.
+          published_changes=$(git diff --name-only "$BASE_SHA" "$HEAD_SHA" | deno run --allow-read bin/published-changes.ts)
 
-          src_changes=$(git diff --name-only "$BASE_SHA" "$HEAD_SHA" -- "${src_dirs[@]}" \
-            | grep -v '\.test\.ts$' || true)
-
-          if [ -z "$src_changes" ]; then
-            echo "No publishable src changes — changeset not required."
+          if [ -z "$published_changes" ]; then
+            echo "No published changes — changeset not required."
             exit 0
           fi
 
@@ -56,10 +54,10 @@ jobs:
           fi
 
           {
-            echo "::error::This PR modifies a publishable package's src/** but adds no changeset."
+            echo "::error::This PR changes files that ship to consumers but adds no changeset."
             echo "Run 'deno task changeset' locally, commit the generated .changeset/*.md, and push."
             echo ""
-            echo "Touched src files:"
-            echo "$src_changes" | sed 's/^/  /'
+            echo "Touched published files:"
+            echo "$published_changes" | sed 's/^/  /'
           } >&2
           exit 1
