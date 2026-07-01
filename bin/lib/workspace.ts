@@ -1,3 +1,5 @@
+import { globToRegExp } from 'jsr:@std/path@^1.1.5';
+
 // Enumerates the JSR-publishable members of the Deno workspace. A member
 // is considered publishable iff its deno.json declares all of name,
 // version, and exports — the same set of fields JSR requires, so this
@@ -69,5 +71,49 @@ async function readLatestChangelogEntry(member: PublishableMember): Promise<stri
     return (end === -1 ? rest : rest.slice(0, end)).join('\n').trim();
 }
 
+// A publish include/exclude entry is a glob, a single file, or a directory (matching everything under it) —
+// the three shapes `deno publish` accepts.
+function matchesPublishEntry(relativePath: string, entry: string): boolean {
+    if (/[*?[\]{}]/.test(entry)) {
+        return globToRegExp(entry, { globstar: true, extended: true }).test(relativePath);
+    }
+    return relativePath === entry || relativePath.startsWith(`${entry}/`);
+}
+
+// Filters repo-relative changed paths down to those `deno publish` actually ships, applying each member's
+// publish include/exclude. Test files, test-only helpers, and generated fixtures are publish-excluded, so a
+// change touching only those ships nothing and needs no changeset.
+async function publishedChanges(rootUrl: URL, paths: readonly string[]): Promise<string[]> {
+    const members = await listPublishableMembers(rootUrl);
+    const rules = new Map<string, { include: string[]; exclude: string[] }>();
+    for (const member of members) {
+        const { publish } = await readJson<{ publish?: { include?: string[]; exclude?: string[] } }>(
+            member.denoJsonUrl,
+        );
+        rules.set(member.dir, { include: publish?.include ?? [], exclude: publish?.exclude ?? [] });
+    }
+
+    const published: string[] = [];
+    for (const path of paths) {
+        const member = members.find((candidate) => path === candidate.dir || path.startsWith(`${candidate.dir}/`));
+        if (member === undefined) {
+            continue;
+        }
+        const rule = rules.get(member.dir);
+        if (rule === undefined) {
+            continue;
+        }
+        const relativePath = path.slice(member.dir.length + 1);
+        // An empty include means `deno publish` ships everything not excluded.
+        const included =
+            rule.include.length === 0 || rule.include.some((entry) => matchesPublishEntry(relativePath, entry));
+        const excluded = rule.exclude.some((entry) => matchesPublishEntry(relativePath, entry));
+        if (included && !excluded) {
+            published.push(path);
+        }
+    }
+    return published;
+}
+
 export type { PublishableMember };
-export { listPublishableMembers, readJson, readLatestChangelogEntry };
+export { listPublishableMembers, publishedChanges, readJson, readLatestChangelogEntry };
