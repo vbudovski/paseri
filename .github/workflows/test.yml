@@ -49,7 +49,7 @@ jobs:
         run: |
           echo "DENO_DIR=$(deno info | grep DENO_DIR | sed 's/\x1B\[[0-9;]\{1,\}[A-Za-z]//g' | cut -d ':' -f 2 | xargs)" >> $GITHUB_OUTPUT
 
-      - uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
+      - uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         if: ${{ inputs.use_cache }}
         name: Setup Deno cache
         with:
@@ -89,28 +89,28 @@ jobs:
 
       - name: Save main lib coverage metric
         if: github.ref == 'refs/heads/main'
-        uses: actions/cache/save@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
+        uses: actions/cache/save@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: main-coverage-lib.txt
           key: main-metrics-coverage-lib-${{ github.sha }}
 
       - name: Save main compiler coverage metric
         if: github.ref == 'refs/heads/main'
-        uses: actions/cache/save@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
+        uses: actions/cache/save@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: main-coverage-compiler.txt
           key: main-metrics-coverage-compiler-${{ github.sha }}
 
       - name: Save main vite-plugin coverage metric
         if: github.ref == 'refs/heads/main'
-        uses: actions/cache/save@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
+        uses: actions/cache/save@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: main-coverage-vite-plugin.txt
           key: main-metrics-coverage-vite-plugin-${{ github.sha }}
 
       - name: Restore main lib coverage metric
         if: github.event_name == 'pull_request'
-        uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
+        uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: main-coverage-lib.txt
           key: main-metrics-coverage-lib-${{ github.event.pull_request.base.sha }}
@@ -119,7 +119,7 @@ jobs:
 
       - name: Restore main compiler coverage metric
         if: github.event_name == 'pull_request'
-        uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
+        uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: main-coverage-compiler.txt
           key: main-metrics-coverage-compiler-${{ github.event.pull_request.base.sha }}
@@ -128,7 +128,7 @@ jobs:
 
       - name: Restore main vite-plugin coverage metric
         if: github.event_name == 'pull_request'
-        uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
+        uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: main-coverage-vite-plugin.txt
           key: main-metrics-coverage-vite-plugin-${{ github.event.pull_request.base.sha }}
