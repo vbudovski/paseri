@@ -1,5 +1,11 @@
 # @paseri/paseri
 
+## 1.9.3
+
+### Patch Changes
+
+- 0751fbe: `.default()` now accepts Temporal values. Passing one previously threw `DataCloneError: ... could not be cloned.` at schema construction, before any parse. All Temporal types are supported: `Instant`, `PlainDate`, `PlainDateTime`, `PlainMonthDay`, `PlainTime`, `PlainYearMonth`, `ZonedDateTime`, and `Duration`.
+
 ## 1.9.2
 
 ### Patch Changes
