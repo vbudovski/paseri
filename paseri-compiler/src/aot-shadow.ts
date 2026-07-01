@@ -14,8 +14,11 @@ import { toSource } from './toSource.ts';
 // these URLs synchronously. Add new entries here if a new test file imports from a URL the generated parity
 // validator will reproduce.
 const PASERI_LIB_INDEX_URL = new URL('../../paseri-lib/src/index.ts', import.meta.url).href;
+// Fixture that resolver.test.ts references from refine predicates, so its imports are reproduced in generated modules.
+const IMPORT_FIXTURES_URL = new URL('./_import-fixtures.ts', import.meta.url).href;
 const moduleCache = new Map<string, unknown>([
     [PASERI_LIB_INDEX_URL, await import(PASERI_LIB_INDEX_URL)],
+    [IMPORT_FIXTURES_URL, await import(IMPORT_FIXTURES_URL)],
     // Generated validators import the result/message contract from this subpath (keyed by the bare specifier the
     // generated `import` uses, which `bindImports` looks up verbatim).
     ['@paseri/paseri/internal', await import('@paseri/paseri/internal')],

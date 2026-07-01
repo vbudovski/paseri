@@ -2,6 +2,8 @@ import * as p from '@paseri/paseri';
 import { expect } from '@std/expect';
 import { it } from '@std/testing/bdd';
 import './aot-shadow.ts';
+import * as helpers from './_import-fixtures.ts';
+import isPositive, { isNonEmpty as check, isNonEmpty } from './_import-fixtures.ts';
 
 // Helpers live at top level so the resolver finds them when it scans this file as the refine call site. Each exercises
 // a way the resolver can mis-resolve a callback's free identifiers and emit a validator that diverges from the runtime.
@@ -45,6 +47,64 @@ it('does not emit broken code when a captured identifier collides with a reserve
     const result = schema.safeParse(6);
     if (result.ok) {
         expect(result.value).toBe(6);
+    } else {
+        expect(result.ok).toBeTruthy();
+    }
+});
+
+it('resolves a predicate written as a named function rather than an arrow', () => {
+    const schema = p.number().refine(
+        function positivePredicate(value) {
+            return value > 0;
+        },
+        { code: 'positive' },
+    );
+    const result = schema.safeParse(5);
+    if (result.ok) {
+        expect(result.value).toBe(5);
+    } else {
+        expect(result.ok).toBeTruthy();
+    }
+});
+
+// When a predicate references an imported binding, the compiler reproduces the user's import in the generated
+// module. One test per import kind exercises the resolver's `formatImport` branches (parity checks the binding
+// actually resolves to the same helper at runtime and AOT).
+it('reproduces a default import referenced by a predicate', () => {
+    const schema = p.number().refine((value) => isPositive(value), { code: 'positive' });
+    const result = schema.safeParse(5);
+    if (result.ok) {
+        expect(result.value).toBe(5);
+    } else {
+        expect(result.ok).toBeTruthy();
+    }
+});
+
+it('reproduces a named import referenced by a predicate', () => {
+    const schema = p.string().refine((value) => isNonEmpty(value), { code: 'non_empty' });
+    const result = schema.safeParse('a');
+    if (result.ok) {
+        expect(result.value).toBe('a');
+    } else {
+        expect(result.ok).toBeTruthy();
+    }
+});
+
+it('reproduces an aliased named import referenced by a predicate', () => {
+    const schema = p.string().refine((value) => check(value), { code: 'non_empty' });
+    const result = schema.safeParse('a');
+    if (result.ok) {
+        expect(result.value).toBe('a');
+    } else {
+        expect(result.ok).toBeTruthy();
+    }
+});
+
+it('reproduces a namespace import referenced by a predicate', () => {
+    const schema = p.string().refine((value) => helpers.isNonEmpty(value), { code: 'non_empty' });
+    const result = schema.safeParse('a');
+    if (result.ok) {
+        expect(result.value).toBe('a');
     } else {
         expect(result.ok).toBeTruthy();
     }

@@ -951,3 +951,161 @@ describe('required', () => {
         expect(required).not.toBe(original);
     });
 });
+
+// Wrapping a schema as an object field must validate identically to the bare schema: same acceptance, same
+// transformed output, and any issue path simply gains the field key as a prefix. Covers every field kind in a
+// nested position, driven generatively rather than with hand-picked inputs.
+function expectNestingInvariance<OutputType>(schema: p.Schema<OutputType>, arb: fc.Arbitrary<unknown>): void {
+    const nested = p.object({ inner: schema });
+    fc.assert(
+        fc.property(arb, (value) => {
+            const bare = schema.safeParse(value);
+            const wrapped = nested.safeParse({ inner: value });
+            expect(wrapped.ok).toBe(bare.ok);
+            if (bare.ok && wrapped.ok) {
+                expect(wrapped.value).toEqual({ inner: bare.value });
+            } else if (!bare.ok && !wrapped.ok) {
+                const expected = bare.messages().map((issue) => ({
+                    path: ['inner', ...issue.path],
+                    message: issue.message,
+                }));
+                expect(wrapped.messages()).toEqual(expected);
+            }
+        }),
+    );
+}
+
+describe('nested field validation', () => {
+    const cases: { name: string; check: () => void }[] = [
+        {
+            name: 'string with checks',
+            check: () =>
+                expectNestingInvariance(
+                    p.string().min(2).max(8).includes('a').startsWith('x').endsWith('z'),
+                    fc.oneof(fc.string(), fc.constant('xaz')),
+                ),
+        },
+        {
+            name: 'string format',
+            check: () => expectNestingInvariance(p.string().url(), fc.oneof(fc.webUrl(), fc.string())),
+        },
+        {
+            name: 'number with checks',
+            check: () => expectNestingInvariance(p.number().gte(0).lte(100).int(), fc.oneof(fc.integer(), fc.double())),
+        },
+        {
+            name: 'bigint with checks',
+            check: () => expectNestingInvariance(p.bigint().gte(0n).lte(100n), fc.bigInt()),
+        },
+        {
+            name: 'nullable',
+            check: () => expectNestingInvariance(p.number().nullable(), fc.oneof(fc.double(), fc.constant(null))),
+        },
+        {
+            name: 'optional',
+            check: () =>
+                expectNestingInvariance(p.string().min(1).optional(), fc.option(fc.string(), { nil: undefined })),
+        },
+        {
+            name: 'default',
+            check: () =>
+                expectNestingInvariance(p.number().optional().default(5), fc.option(fc.double(), { nil: undefined })),
+        },
+        {
+            name: 'refine',
+            check: () =>
+                expectNestingInvariance(
+                    p.number().refine((value) => value > 0, { code: 'not_positive' }),
+                    fc.double(),
+                ),
+        },
+        {
+            name: 'enum',
+            check: () =>
+                expectNestingInvariance(p.enum('a', 'b'), fc.oneof(fc.constantFrom<string>('a', 'b'), fc.string())),
+        },
+        {
+            name: 'array',
+            check: () => expectNestingInvariance(p.array(p.number()), fc.array(fc.oneof(fc.double(), fc.string()))),
+        },
+        {
+            name: 'record',
+            check: () =>
+                expectNestingInvariance(
+                    p.record(p.number()),
+                    fc.dictionary(fc.string(), fc.oneof(fc.double(), fc.string())),
+                ),
+        },
+        {
+            name: 'set',
+            check: () =>
+                expectNestingInvariance(
+                    p.set(p.number()),
+                    fc.array(fc.double()).map((values) => new Set(values)),
+                ),
+        },
+        {
+            name: 'map',
+            check: () =>
+                expectNestingInvariance(
+                    p.map(p.string(), p.number()),
+                    fc.array(fc.tuple(fc.string(), fc.double())).map((entries) => new Map(entries)),
+                ),
+        },
+        {
+            name: 'tuple',
+            check: () =>
+                expectNestingInvariance(
+                    p.tuple(p.number(), p.string()),
+                    fc.tuple(fc.oneof(fc.double(), fc.string()), fc.string()),
+                ),
+        },
+        {
+            name: 'union',
+            check: () =>
+                expectNestingInvariance(
+                    p.union(p.number(), p.string()),
+                    fc.oneof(fc.double(), fc.string(), fc.boolean()),
+                ),
+        },
+    ];
+    for (const { name, check } of cases) {
+        it(name, check);
+    }
+
+    // Temporal instances aren't fast-check-friendly, so exercise the nested temporal-type checks with fixed values.
+    it('temporal types', () => {
+        const schema = p.object({
+            inner: p.object({
+                date: p.date(),
+                duration: p.duration(),
+                instant: p.instant(),
+                plainDate: p.plainDate(),
+                plainDateTime: p.plainDateTime(),
+                plainMonthDay: p.plainMonthDay(),
+                plainTime: p.plainTime(),
+                plainYearMonth: p.plainYearMonth(),
+                zonedDateTime: p.zonedDateTime(),
+            }),
+        });
+        const inner = {
+            date: new Date('2020-01-01'),
+            duration: Temporal.Duration.from({ hours: 1 }),
+            instant: Temporal.Instant.from('2020-01-01T00:00:00Z'),
+            plainDate: Temporal.PlainDate.from('2020-01-01'),
+            plainDateTime: Temporal.PlainDateTime.from('2020-01-01T00:00:00'),
+            plainMonthDay: Temporal.PlainMonthDay.from('01-01'),
+            plainTime: Temporal.PlainTime.from('00:00:00'),
+            plainYearMonth: Temporal.PlainYearMonth.from('2020-01'),
+            zonedDateTime: Temporal.ZonedDateTime.from('2020-01-01T00:00:00[UTC]'),
+        };
+        expect(schema.safeParse({ inner }).ok).toBe(true);
+
+        const result = schema.safeParse({ inner: { ...inner, plainDate: 'not-a-date' } });
+        if (!result.ok) {
+            expect(result.messages()).toEqual([{ path: ['inner', 'plainDate'], message: 'invalid_type' }]);
+        } else {
+            expect(result.ok).toBeFalsy();
+        }
+    });
+});

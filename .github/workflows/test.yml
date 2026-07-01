@@ -69,8 +69,11 @@ jobs:
           # extra permissions come from paseri-vite-plugin/deno.json via -P. No --doc (not doc-tested)
           # and no --unstable-unsafe-proto (it doesn't exercise __proto__ Annex B semantics).
           deno test -P --parallel --coverage=.cov-vite-plugin paseri-vite-plugin/
+          # --exclude overrides Deno's default test-file exclusion, so restate it and add the generated-fixtures
+          # dir: those modules exist only to be type-checked, never executed, so they don't belong in the metric.
+          # (Executed generated code like regex.gen.ts and runtime.gen.ts is not under that dir and stays counted.)
           extract() {
-            deno coverage "$1" --include="$2" | grep "All files" | sed 's/\x1B\[[0-9;]\{1,\}[A-Za-z]//g' | cut -d '|' -f 3 | xargs
+            deno coverage "$1" --include="$2" --exclude='(test\.(js|mjs|ts|jsx|tsx)$|generated-fixtures/)' | grep "All files" | sed 's/\x1B\[[0-9;]\{1,\}[A-Za-z]//g' | cut -d '|' -f 3 | xargs
           }
           echo "LIB_COVERAGE=$(extract .cov-lib paseri-lib/src/)" >> $GITHUB_OUTPUT
           echo "COMPILER_COVERAGE=$(extract .cov-compiler paseri-compiler/src/)" >> $GITHUB_OUTPUT
