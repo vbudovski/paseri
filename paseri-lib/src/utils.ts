@@ -71,6 +71,30 @@ function boundsContradict<ParamType>(
     return false;
 }
 
+/**
+ * True when `value` needs no protective clone as a `.default()` — it can't be mutated by the caller after
+ * construction, so `DefaultSchema` can hand it back directly. Primitives qualify trivially; Temporal instances
+ * are immutable by design and additionally can't be `structuredClone`d at all, so cloning one would throw.
+ */
+function isImmutableDefault(value: unknown): boolean {
+    if (value === null || typeof value !== 'object') {
+        return true;
+    }
+    if (typeof Temporal === 'undefined') {
+        return false;
+    }
+    return (
+        value instanceof Temporal.Instant ||
+        value instanceof Temporal.PlainDate ||
+        value instanceof Temporal.PlainDateTime ||
+        value instanceof Temporal.PlainMonthDay ||
+        value instanceof Temporal.PlainTime ||
+        value instanceof Temporal.PlainYearMonth ||
+        value instanceof Temporal.ZonedDateTime ||
+        value instanceof Temporal.Duration
+    );
+}
+
 function deepFreeze<ValueType>(value: ValueType): ValueType {
     if (value === null || typeof value !== 'object' || Object.isFrozen(value)) {
         return value;
@@ -83,4 +107,4 @@ function deepFreeze<ValueType>(value: ValueType): ValueType {
     return value;
 }
 
-export { boundsContradict, deepFreeze, defineProtoProperty, isPlainObject, primitiveToString };
+export { boundsContradict, deepFreeze, defineProtoProperty, isImmutableDefault, isPlainObject, primitiveToString };

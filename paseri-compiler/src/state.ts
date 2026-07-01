@@ -273,9 +273,33 @@ function hoistTemporalBound(state: State, temporalKind: string, value: unknown):
 }
 
 /**
- * Hoists a `.default()` value as a module-scope
- * `const _defaultN = deepFreeze(structuredClone(<value>))` and returns the
- * identifier. Repeat calls with the same value (by reference) reuse the declaration.
+ * Mirrors the runtime's `isImmutableDefault`: primitives and Temporal instances can't be mutated after
+ * construction, so their `.default()` needs no protective `structuredClone`/`deepFreeze` — and Temporal
+ * objects can't be `structuredClone`d at all, so wrapping them would throw at module init.
+ */
+function isImmutableDefault(value: unknown): boolean {
+    if (value === null || typeof value !== 'object') {
+        return true;
+    }
+    if (typeof Temporal === 'undefined') {
+        return false;
+    }
+    return (
+        value instanceof Temporal.Instant ||
+        value instanceof Temporal.PlainDate ||
+        value instanceof Temporal.PlainDateTime ||
+        value instanceof Temporal.PlainMonthDay ||
+        value instanceof Temporal.PlainTime ||
+        value instanceof Temporal.PlainYearMonth ||
+        value instanceof Temporal.ZonedDateTime ||
+        value instanceof Temporal.Duration
+    );
+}
+
+/**
+ * Hoists a `.default()` value as a module-scope constant and returns the identifier. Mutable values are
+ * wrapped in `deepFreeze(structuredClone(<value>))`; immutable ones (primitives, Temporal) are emitted
+ * directly. Repeat calls with the same value (by reference) reuse the declaration.
  */
 function registerDefault(state: State, value: unknown): ts.Identifier {
     const existing = state.defaults.get(value);
@@ -285,13 +309,10 @@ function registerDefault(state: State, value: unknown): ts.Identifier {
     const result = identifier(`_default${state.defaults.size}`);
     state.defaults.set(value, result);
     const valueExpression = valueToExpression(value);
-    state.hoistedDeclarations.push(
-        constStatement(
-            result,
-            undefined,
-            call(identifier('deepFreeze'), [call(identifier('structuredClone'), [valueExpression])]),
-        ),
-    );
+    const initializer = isImmutableDefault(value)
+        ? valueExpression
+        : call(identifier('deepFreeze'), [call(identifier('structuredClone'), [valueExpression])]);
+    state.hoistedDeclarations.push(constStatement(result, undefined, initializer));
     return result;
 }
 
@@ -348,6 +369,9 @@ function valueToExpression(value: unknown): ts.Expression {
         if (value instanceof Temporal.ZonedDateTime) {
             return temporalFromExpression('ZonedDateTime', value.toString());
         }
+        if (value instanceof Temporal.Duration) {
+            return temporalFromExpression('Duration', value.toString());
+        }
     }
     if (value instanceof Set) {
         return newExpression(identifier('Set'), undefined, [
@@ -378,6 +402,7 @@ export {
     hoistEnum,
     hoistRegex,
     hoistTemporalBound,
+    isImmutableDefault,
     makeState,
     type OutputSlot,
     type ReturnSink,

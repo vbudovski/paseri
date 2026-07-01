@@ -2,18 +2,7 @@
 
 import { addIssue, isParseSuccess, issueCodes, ParseErrorResult, PaseriError, type CustomIssueCode, type InternalParseResult, type ParseResult, type StandardSchemaV1, type Translations, type TreeNode } from '@paseri/paseri/internal';
 
-function deepFreeze<T>(value: T): T {
-    if (value === null || typeof value !== "object" || Object.isFrozen(value)) {
-        return value;
-    }
-    Object.freeze(value);
-    for (const key of Reflect.ownKeys(value)) {
-        deepFreeze((value as Record<PropertyKey, unknown>)[key]);
-    }
-    return value;
-}
-
-const _default0 = deepFreeze(structuredClone("x"));
+const _default0 = "x";
 
 function _validateDefaultUnionUndefined(value: unknown, options?: {
     maxDepth?: number;

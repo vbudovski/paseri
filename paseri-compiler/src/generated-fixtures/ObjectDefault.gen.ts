@@ -26,18 +26,7 @@ function isPlainObject(value: unknown): value is Record<PropertyKey, unknown> {
     return Object.getPrototypeOf(value) === Object.prototype || Object.getPrototypeOf(value) === null;
 }
 
-function deepFreeze<T>(value: T): T {
-    if (value === null || typeof value !== "object" || Object.isFrozen(value)) {
-        return value;
-    }
-    Object.freeze(value);
-    for (const key of Reflect.ownKeys(value)) {
-        deepFreeze((value as Record<PropertyKey, unknown>)[key]);
-    }
-    return value;
-}
-
-const _default0 = deepFreeze(structuredClone(0));
+const _default0 = 0;
 
 function _slowObjectDefault(value: unknown, options?: {
     maxDepth?: number;

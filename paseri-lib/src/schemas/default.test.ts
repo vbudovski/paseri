@@ -105,7 +105,6 @@ describe('collection defaults', () => {
 
     // A default is cloned and frozen at construction, then handed back for undefined input, so it must round-trip
     // for any value — exercise the range (negative/large bigints, boundary dates), not one hand-picked value.
-    // (Temporal instances can't be `.default()` values: `structuredClone` rejects them at construction.)
     it('returns a bigint default verbatim for undefined input', () => {
         fc.assert(
             fc.property(fc.bigInt(), (value) => {
@@ -131,6 +130,36 @@ describe('collection defaults', () => {
             }),
         );
     });
+});
+
+describe('Temporal defaults', () => {
+    // Temporal instances are immutable and can't be `structuredClone`d, so `DefaultSchema` uses them as-is
+    // rather than cloning. Each type must round-trip unchanged for undefined input.
+    const cases: ReadonlyArray<{ name: string; schema: p.Schema<unknown>; value: unknown }> = [
+        { name: 'instant', schema: p.instant(), value: Temporal.Instant.from('2020-01-01T00:00:00Z') },
+        { name: 'plainDate', schema: p.plainDate(), value: Temporal.PlainDate.from('2020-01-01') },
+        { name: 'plainDateTime', schema: p.plainDateTime(), value: Temporal.PlainDateTime.from('2020-01-01T12:30:00') },
+        { name: 'plainMonthDay', schema: p.plainMonthDay(), value: Temporal.PlainMonthDay.from('01-01') },
+        { name: 'plainTime', schema: p.plainTime(), value: Temporal.PlainTime.from('12:30:00') },
+        { name: 'plainYearMonth', schema: p.plainYearMonth(), value: Temporal.PlainYearMonth.from('2020-01') },
+        {
+            name: 'zonedDateTime',
+            schema: p.zonedDateTime(),
+            value: Temporal.ZonedDateTime.from('2020-01-01T00:00:00+00:00[UTC]'),
+        },
+        { name: 'duration', schema: p.duration(), value: Temporal.Duration.from('P1Y2M3DT4H5M6S') },
+    ];
+
+    for (const { name, schema, value } of cases) {
+        it(`accepts and returns a ${name} default for undefined input`, () => {
+            const result = schema.optional().default(value).safeParse(undefined);
+            if (result.ok) {
+                expect(result.value).toBe(value);
+            } else {
+                expect(result.ok).toBeTruthy();
+            }
+        });
+    }
 });
 
 describe('object key defaults', () => {
