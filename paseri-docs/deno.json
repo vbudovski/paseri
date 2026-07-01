@@ -15,7 +15,7 @@
     "sugar-high": "npm:sugar-high@^1.2.1",
     "rehype-external-links": "npm:rehype-external-links@^3.0.0",
     "rollup-plugin-visualizer": "npm:rollup-plugin-visualizer@^7.0.1",
-    "sharp": "npm:sharp@^0.35.1",
+    "sharp": "npm:sharp@^0.35.2",
     "typescript": "npm:typescript@^6.0.3",
     "zod": "npm:zod@^4.4.3"
   },
