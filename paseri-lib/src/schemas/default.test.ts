@@ -102,6 +102,35 @@ describe('collection defaults', () => {
             expect(result.ok).toBeTruthy();
         }
     });
+
+    // A default is cloned and frozen at construction, then handed back for undefined input, so it must round-trip
+    // for any value — exercise the range (negative/large bigints, boundary dates), not one hand-picked value.
+    // (Temporal instances can't be `.default()` values: `structuredClone` rejects them at construction.)
+    it('returns a bigint default verbatim for undefined input', () => {
+        fc.assert(
+            fc.property(fc.bigInt(), (value) => {
+                const result = p.bigint().optional().default(value).safeParse(undefined);
+                if (result.ok) {
+                    expect(result.value).toBe(value);
+                } else {
+                    expect(result.ok).toBeTruthy();
+                }
+            }),
+        );
+    });
+
+    it('returns a Date default verbatim for undefined input', () => {
+        fc.assert(
+            fc.property(fc.date({ noInvalidDate: true }), (value) => {
+                const result = p.date().optional().default(value).safeParse(undefined);
+                if (result.ok) {
+                    expect(result.value).toEqual(value);
+                } else {
+                    expect(result.ok).toBeTruthy();
+                }
+            }),
+        );
+    });
 });
 
 describe('object key defaults', () => {

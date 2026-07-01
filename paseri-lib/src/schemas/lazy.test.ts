@@ -226,5 +226,10 @@ describe('maxDepth', () => {
         expect(() => schema.safeParse({ children: [] }, { maxDepth: Number.POSITIVE_INFINITY })).toThrow();
         expect(() => schema.safeParse({ children: [] }, { maxDepth: 0 })).toThrow();
         expect(() => schema.safeParse({ children: [] }, { maxDepth: 1 })).not.toThrow();
+
+        // `parse` validates maxDepth through the same guard as `safeParse`.
+        expect(() => schema.parse({ children: [] }, { maxDepth: Number.NaN })).toThrow();
+        expect(() => schema.parse({ children: [] }, { maxDepth: 0 })).toThrow();
+        expect(() => schema.parse({ children: [] }, { maxDepth: 1 })).not.toThrow();
     });
 });

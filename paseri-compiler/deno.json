@@ -30,6 +30,7 @@
     "exclude": [
       "src/**/*.test.ts",
       "src/_test-helpers.ts",
+      "src/_import-fixtures.ts",
       "src/aot-shadow.ts",
       "src/runtime.ts",
       "src/generated-fixtures"
