@@ -58,6 +58,13 @@ const config: ReturnType<typeof defineConfig> = defineConfig({
         ],
     },
     vite: {
+        build: {
+            // Astro 7's rolldown-vite defaults CSS minification to
+            // lightningcss, which rejects charts.css's spec-invalid
+            // `@property` rules (typed `syntax`, no `initial-value`). esbuild
+            // tolerates them, matching the pre-Astro-7 behaviour.
+            cssMinify: 'esbuild',
+        },
         resolve: {
             alias: {
                 '@paseri/paseri/locales': path.resolve(__dirname, '../paseri-lib/src/locales/index.ts'),
