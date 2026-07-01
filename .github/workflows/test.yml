@@ -89,21 +89,21 @@ jobs:
 
       - name: Save main lib coverage metric
         if: github.ref == 'refs/heads/main'
-        uses: actions/cache/save@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: main-coverage-lib.txt
           key: main-metrics-coverage-lib-${{ github.sha }}
 
       - name: Save main compiler coverage metric
         if: github.ref == 'refs/heads/main'
-        uses: actions/cache/save@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: main-coverage-compiler.txt
           key: main-metrics-coverage-compiler-${{ github.sha }}
 
       - name: Save main vite-plugin coverage metric
         if: github.ref == 'refs/heads/main'
-        uses: actions/cache/save@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: main-coverage-vite-plugin.txt
           key: main-metrics-coverage-vite-plugin-${{ github.sha }}
