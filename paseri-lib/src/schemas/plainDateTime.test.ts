@@ -37,6 +37,88 @@ const plainDateTimeArb = fc
     })
     .map(({ calendar, ...parts }) => Temporal.PlainDateTime.from(parts).withCalendar(calendar));
 
+// Both-ISO [bound, value] pairs walking the ISO fast-path comparison ladder: each rung (year through
+// nanosecond) differs above and below, plus an all-fields-equal pair for the tie terminal. Independent random
+// draws never share a field prefix, so these pin every rung directly.
+const ladderExamples: [Temporal.PlainDateTime, Temporal.PlainDateTime][] = [
+    [
+        Temporal.PlainDateTime.from('2020-06-15T12:30:30.500500500'),
+        Temporal.PlainDateTime.from('2019-06-15T12:30:30.500500500'),
+    ],
+    [
+        Temporal.PlainDateTime.from('2020-06-15T12:30:30.500500500'),
+        Temporal.PlainDateTime.from('2021-06-15T12:30:30.500500500'),
+    ],
+    [
+        Temporal.PlainDateTime.from('2020-06-15T12:30:30.500500500'),
+        Temporal.PlainDateTime.from('2020-05-15T12:30:30.500500500'),
+    ],
+    [
+        Temporal.PlainDateTime.from('2020-06-15T12:30:30.500500500'),
+        Temporal.PlainDateTime.from('2020-07-15T12:30:30.500500500'),
+    ],
+    [
+        Temporal.PlainDateTime.from('2020-06-15T12:30:30.500500500'),
+        Temporal.PlainDateTime.from('2020-06-14T12:30:30.500500500'),
+    ],
+    [
+        Temporal.PlainDateTime.from('2020-06-15T12:30:30.500500500'),
+        Temporal.PlainDateTime.from('2020-06-16T12:30:30.500500500'),
+    ],
+    [
+        Temporal.PlainDateTime.from('2020-06-15T12:30:30.500500500'),
+        Temporal.PlainDateTime.from('2020-06-15T11:30:30.500500500'),
+    ],
+    [
+        Temporal.PlainDateTime.from('2020-06-15T12:30:30.500500500'),
+        Temporal.PlainDateTime.from('2020-06-15T13:30:30.500500500'),
+    ],
+    [
+        Temporal.PlainDateTime.from('2020-06-15T12:30:30.500500500'),
+        Temporal.PlainDateTime.from('2020-06-15T12:29:30.500500500'),
+    ],
+    [
+        Temporal.PlainDateTime.from('2020-06-15T12:30:30.500500500'),
+        Temporal.PlainDateTime.from('2020-06-15T12:31:30.500500500'),
+    ],
+    [
+        Temporal.PlainDateTime.from('2020-06-15T12:30:30.500500500'),
+        Temporal.PlainDateTime.from('2020-06-15T12:30:29.500500500'),
+    ],
+    [
+        Temporal.PlainDateTime.from('2020-06-15T12:30:30.500500500'),
+        Temporal.PlainDateTime.from('2020-06-15T12:30:31.500500500'),
+    ],
+    [
+        Temporal.PlainDateTime.from('2020-06-15T12:30:30.500500500'),
+        Temporal.PlainDateTime.from('2020-06-15T12:30:30.499500500'),
+    ],
+    [
+        Temporal.PlainDateTime.from('2020-06-15T12:30:30.500500500'),
+        Temporal.PlainDateTime.from('2020-06-15T12:30:30.501500500'),
+    ],
+    [
+        Temporal.PlainDateTime.from('2020-06-15T12:30:30.500500500'),
+        Temporal.PlainDateTime.from('2020-06-15T12:30:30.500499500'),
+    ],
+    [
+        Temporal.PlainDateTime.from('2020-06-15T12:30:30.500500500'),
+        Temporal.PlainDateTime.from('2020-06-15T12:30:30.500501500'),
+    ],
+    [
+        Temporal.PlainDateTime.from('2020-06-15T12:30:30.500500500'),
+        Temporal.PlainDateTime.from('2020-06-15T12:30:30.500500499'),
+    ],
+    [
+        Temporal.PlainDateTime.from('2020-06-15T12:30:30.500500500'),
+        Temporal.PlainDateTime.from('2020-06-15T12:30:30.500500501'),
+    ],
+    [
+        Temporal.PlainDateTime.from('2020-06-15T12:30:30.500500500'),
+        Temporal.PlainDateTime.from('2020-06-15T12:30:30.500500500'),
+    ],
+];
+
 it('accepts valid types', () => {
     const schema = p.plainDateTime();
 
@@ -98,6 +180,7 @@ describe('min', () => {
                         Temporal.PlainDateTime.from('2020-01-01T00:00:00'),
                         Temporal.PlainDateTime.from('2020-01-01T00:00:00').withCalendar('japanese'),
                     ],
+                    ...ladderExamples,
                 ],
             },
         );
@@ -140,6 +223,7 @@ describe('max', () => {
                         Temporal.PlainDateTime.from('2020-01-01T00:00:00'),
                         Temporal.PlainDateTime.from('2020-01-01T00:00:00').withCalendar('japanese'),
                     ],
+                    ...ladderExamples,
                 ],
             },
         );

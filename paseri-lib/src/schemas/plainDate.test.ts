@@ -31,6 +31,19 @@ const plainDateArb = fc
     })
     .map(({ year, month, day, calendar }) => Temporal.PlainDate.from({ year, month, day }).withCalendar(calendar));
 
+// Both-ISO [bound, value] pairs walking the ISO fast-path comparison ladder: each rung (year, month, day)
+// differs above and below, plus an all-fields-equal pair for the tie terminal. Independent random draws never
+// share a field prefix, so these pin every rung directly.
+const ladderExamples: [Temporal.PlainDate, Temporal.PlainDate][] = [
+    [Temporal.PlainDate.from('2020-06-15'), Temporal.PlainDate.from('2019-06-15')],
+    [Temporal.PlainDate.from('2020-06-15'), Temporal.PlainDate.from('2021-06-15')],
+    [Temporal.PlainDate.from('2020-06-15'), Temporal.PlainDate.from('2020-05-15')],
+    [Temporal.PlainDate.from('2020-06-15'), Temporal.PlainDate.from('2020-07-15')],
+    [Temporal.PlainDate.from('2020-06-15'), Temporal.PlainDate.from('2020-06-14')],
+    [Temporal.PlainDate.from('2020-06-15'), Temporal.PlainDate.from('2020-06-16')],
+    [Temporal.PlainDate.from('2020-06-15'), Temporal.PlainDate.from('2020-06-15')],
+];
+
 it('accepts valid types', () => {
     const schema = p.plainDate();
 
@@ -95,6 +108,7 @@ describe('min', () => {
                         Temporal.PlainDate.from('2020-01-01'),
                         Temporal.PlainDate.from('2020-01-01').withCalendar('japanese'),
                     ],
+                    ...ladderExamples,
                 ],
             },
         );
@@ -135,6 +149,7 @@ describe('max', () => {
                         Temporal.PlainDate.from('2020-01-01'),
                         Temporal.PlainDate.from('2020-01-01').withCalendar('japanese'),
                     ],
+                    ...ladderExamples,
                 ],
             },
         );
