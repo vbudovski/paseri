@@ -3,7 +3,7 @@
   "license": "MIT",
   "imports": {
     "@astrojs/check": "npm:@astrojs/check@^0.9.9",
-    "@astrojs/preact": "npm:@astrojs/preact@^5.1.5",
+    "@astrojs/preact": "npm:@astrojs/preact@^6.0.0",
     "@astrojs/sitemap": "npm:@astrojs/sitemap@^3.7.3",
     "@astrojs/starlight": "npm:@astrojs/starlight@^0.40.0",
     "@preact/signals": "npm:@preact/signals@^2.9.2",
