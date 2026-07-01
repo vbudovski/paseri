@@ -17,6 +17,24 @@ const plainTimeArb = fc
     })
     .map((fields) => Temporal.PlainTime.from(fields));
 
+// [bound, value] pairs equal in every higher field and differing at exactly one rung of the field-compare
+// ladder, above and below. Independent random draws never share a field prefix, so these pin each rung (hour
+// through nanosecond) directly.
+const ladderExamples: [Temporal.PlainTime, Temporal.PlainTime][] = [
+    [Temporal.PlainTime.from('12:30:30.500500500'), Temporal.PlainTime.from('11:30:30.500500500')],
+    [Temporal.PlainTime.from('12:30:30.500500500'), Temporal.PlainTime.from('13:30:30.500500500')],
+    [Temporal.PlainTime.from('12:30:30.500500500'), Temporal.PlainTime.from('12:29:30.500500500')],
+    [Temporal.PlainTime.from('12:30:30.500500500'), Temporal.PlainTime.from('12:31:30.500500500')],
+    [Temporal.PlainTime.from('12:30:30.500500500'), Temporal.PlainTime.from('12:30:29.500500500')],
+    [Temporal.PlainTime.from('12:30:30.500500500'), Temporal.PlainTime.from('12:30:31.500500500')],
+    [Temporal.PlainTime.from('12:30:30.500500500'), Temporal.PlainTime.from('12:30:30.499500500')],
+    [Temporal.PlainTime.from('12:30:30.500500500'), Temporal.PlainTime.from('12:30:30.501500500')],
+    [Temporal.PlainTime.from('12:30:30.500500500'), Temporal.PlainTime.from('12:30:30.500499500')],
+    [Temporal.PlainTime.from('12:30:30.500500500'), Temporal.PlainTime.from('12:30:30.500501500')],
+    [Temporal.PlainTime.from('12:30:30.500500500'), Temporal.PlainTime.from('12:30:30.500500499')],
+    [Temporal.PlainTime.from('12:30:30.500500500'), Temporal.PlainTime.from('12:30:30.500500501')],
+];
+
 it('accepts valid types', () => {
     const schema = p.plainTime();
 
@@ -72,7 +90,7 @@ describe('min', () => {
             }),
             // Seed the exact-boundary case (value equal to the bound): it alone distinguishes an inclusive bound from
             // an exclusive one, and random nanosecond-resolution times never land on it.
-            { examples: [[boundary, Temporal.PlainTime.from('12:00:00')]] },
+            { examples: [[boundary, Temporal.PlainTime.from('12:00:00')], ...ladderExamples] },
         );
     });
 
@@ -107,7 +125,7 @@ describe('max', () => {
                     }
                 }
             }),
-            { examples: [[boundary, Temporal.PlainTime.from('12:00:00')]] },
+            { examples: [[boundary, Temporal.PlainTime.from('12:00:00')], ...ladderExamples] },
         );
     });
 
