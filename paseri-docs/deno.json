@@ -5,7 +5,7 @@
     "@astrojs/check": "npm:@astrojs/check@^0.9.9",
     "@astrojs/preact": "npm:@astrojs/preact@^6.0.0",
     "@astrojs/sitemap": "npm:@astrojs/sitemap@^3.7.3",
-    "@astrojs/starlight": "npm:@astrojs/starlight@^0.40.0",
+    "@astrojs/starlight": "npm:@astrojs/starlight@^0.41.0",
     "@preact/signals": "npm:@preact/signals@^2.9.2",
     "@preact/signals-core": "npm:@preact/signals-core@^1.14.3",
     "astro": "npm:astro@^6.4.7",
@@ -15,7 +15,7 @@
     "sugar-high": "npm:sugar-high@^1.2.1",
     "rehype-external-links": "npm:rehype-external-links@^3.0.0",
     "rollup-plugin-visualizer": "npm:rollup-plugin-visualizer@^7.0.1",
-    "sharp": "npm:sharp@^0.35.1",
+    "sharp": "npm:sharp@^0.35.2",
     "typescript": "npm:typescript@^6.0.3",
     "zod": "npm:zod@^4.4.3"
   },
