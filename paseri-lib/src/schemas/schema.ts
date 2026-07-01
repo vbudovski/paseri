@@ -4,7 +4,7 @@ import type { CustomIssueCode, TreeNode } from '../issue.ts';
 import type { Translations } from '../message.ts';
 import type { InternalParseResult, ParseResult } from '../result.ts';
 import { isParseSuccess, ParseErrorResult, PaseriError } from '../result.ts';
-import { deepFreeze } from '../utils.ts';
+import { deepFreeze, isImmutableDefault } from '../utils.ts';
 
 const DEFAULT_MAX_DEPTH = 1000;
 
@@ -241,8 +241,9 @@ class DefaultSchema<OutputType> extends Schema<OutputType> {
         super();
 
         this._schema = schema;
-        // Clone detaches from the caller's reference, freeze blocks mutation of parsed results.
-        this._default = deepFreeze(structuredClone(value));
+        // Clone detaches from the caller's reference and freeze blocks mutation of parsed results; immutable
+        // defaults (see isImmutableDefault) need neither and are used directly.
+        this._default = isImmutableDefault(value) ? value : deepFreeze(structuredClone(value));
     }
     protected _clone(): DefaultSchema<OutputType> {
         return new DefaultSchema(this._schema, this._default);

@@ -2,32 +2,32 @@
 
 import { isParseSuccess, issueCodes, ParseErrorResult, PaseriError, type CustomIssueCode, type InternalParseResult, type ParseResult, type StandardSchemaV1, type Translations, type TreeNode } from '@paseri/paseri/internal';
 
-const _default0 = "x";
+const _default0 = Temporal.PlainDate.from("2020-01-01");
 
-function _validateDefault(value: unknown, options?: {
+function _validateTemporalDefault(value: unknown, options?: {
     maxDepth?: number;
-}): InternalParseResult<string> {
+}): InternalParseResult<Temporal.PlainDate> {
     const maxDepth: number = options?.maxDepth ?? 1000;
     if (!(Number.isInteger(maxDepth)) || maxDepth < 1) {
         throw new Error("maxDepth must be a positive integer.");
     }
     if (value === undefined) {
-        return { ok: true as const, value: _default0 as string };
+        return { ok: true as const, value: _default0 as Temporal.PlainDate };
     }
     {
-        if (!(typeof value === "string")) {
-            return { type: "leaf", code: issueCodes.INVALID_TYPE, expected: "string" };
+        if (!(value instanceof Temporal.PlainDate)) {
+            return { type: "leaf", code: issueCodes.INVALID_TYPE, expected: "Temporal.PlainDate" };
         }
     }
     return undefined;
 }
 
-function safeParseDefault(value: unknown, options?: {
+function safeParseTemporalDefault(value: unknown, options?: {
     maxDepth?: number;
-}): ParseResult<string> {
-    const result = _validateDefault(value, options);
+}): ParseResult<Temporal.PlainDate> {
+    const result = _validateTemporalDefault(value, options);
     if (result === undefined) {
-        return { ok: true as const, value: value as string };
+        return { ok: true as const, value: value as Temporal.PlainDate };
     }
     if (isParseSuccess(result)) {
         return result;
@@ -35,33 +35,33 @@ function safeParseDefault(value: unknown, options?: {
     return new ParseErrorResult(result);
 }
 
-function parseDefault(value: unknown, options?: {
+function parseTemporalDefault(value: unknown, options?: {
     maxDepth?: number;
-}): string {
-    const result = safeParseDefault(value, options);
+}): Temporal.PlainDate {
+    const result = safeParseTemporalDefault(value, options);
     if (result.ok) {
         return result.value;
     }
     throw new PaseriError(result.issue);
 }
 
-const _schema: StandardSchemaV1<unknown, string> & {
-    safeParse: typeof safeParseDefault;
-    parse: typeof parseDefault;
+const _schema: StandardSchemaV1<unknown, Temporal.PlainDate> & {
+    safeParse: typeof safeParseTemporalDefault;
+    parse: typeof parseTemporalDefault;
 } = {
     "~standard": {
         version: 1,
         vendor: "paseri",
         validate(value, options?) {
-            const result = safeParseDefault(value);
+            const result = safeParseTemporalDefault(value);
             if (result.ok) {
                 return { value: result.value };
             }
             return { issues: result.messages(options?.libraryOptions?.locale as Translations | undefined) };
         }
     },
-    safeParse: safeParseDefault,
-    parse: parseDefault
+    safeParse: safeParseTemporalDefault,
+    parse: parseTemporalDefault
 };
 
-export { _schema as Default };
+export { _schema as TemporalDefault };

@@ -75,6 +75,10 @@ const MATRIX: readonly MatrixEntry[] = [
         name: 'DefaultUnionUndefined',
         schema: p.union(p.string(), p.undefined()).optional().default('x'),
     },
+    // An immutable default (Temporal) is emitted directly; a mutable one (array) keeps the
+    // `deepFreeze(structuredClone(...))` wrapper — the pair type-checks both `registerDefault` emit paths.
+    { name: 'TemporalDefault', schema: p.plainDate().optional().default(temporalBound) },
+    { name: 'MutableDefault', schema: p.array(p.string()).optional().default(['a']) },
     { name: 'Refine', schema: p.number().refine((value) => value > 0, { code: 'positive' }) },
     { name: 'Chain', schema: p.string().chain(p.number(), (value) => ({ ok: true, value: Number(value) })) },
     { name: 'LazyRecursive', schema: recursive },

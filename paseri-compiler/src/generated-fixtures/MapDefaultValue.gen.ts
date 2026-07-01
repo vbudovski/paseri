@@ -2,17 +2,6 @@
 
 import { addIssue, isParseSuccess, issueCodes, ParseErrorResult, PaseriError, type CustomIssueCode, type InternalParseResult, type ParseResult, type StandardSchemaV1, type Translations, type TreeNode } from '@paseri/paseri/internal';
 
-function deepFreeze<T>(value: T): T {
-    if (value === null || typeof value !== "object" || Object.isFrozen(value)) {
-        return value;
-    }
-    Object.freeze(value);
-    for (const key of Reflect.ownKeys(value)) {
-        deepFreeze((value as Record<PropertyKey, unknown>)[key]);
-    }
-    return value;
-}
-
 function _shapeMap7(_m5: Map<unknown, unknown>): boolean {
     for (const _entry6 of _m5) {
         const _mk1 = _entry6[0];
@@ -27,7 +16,7 @@ function _shapeMap7(_m5: Map<unknown, unknown>): boolean {
     return true;
 }
 
-const _default0 = deepFreeze(structuredClone(0));
+const _default0 = 0;
 
 function _slowMapDefaultValue(value: unknown, options?: {
     maxDepth?: number;
