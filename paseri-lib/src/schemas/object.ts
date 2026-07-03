@@ -334,23 +334,29 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
     pick<Keys extends [keyof ShapeType, ...(keyof ShapeType)[]]>(
         ...keys: Keys
     ): ObjectSchema<Pick<ShapeType, TupleToUnion<Keys>>> {
-        return new ObjectSchema(
+        const result = new ObjectSchema(
             Object.fromEntries(
                 Object.entries(this._shape).filter(([key]) => keys.includes(key as keyof ShapeType)),
             ) as Pick<ShapeType, TupleToUnion<Keys>>,
             true,
         );
+        result._mode = this._mode;
+
+        return result;
     }
     omit<Keys extends [keyof ShapeType, ...(keyof ShapeType)[]]>(
         // Ensure at least one key remains in schema.
         ...keys: IsEqual<TupleToUnion<Keys>, keyof ShapeType> extends true ? never : Keys
     ): ObjectSchema<Omit<ShapeType, TupleToUnion<Keys>>> {
-        return new ObjectSchema(
+        const result = new ObjectSchema(
             Object.fromEntries(
                 Object.entries(this._shape).filter(([key]) => !keys.includes(key as keyof ShapeType)),
             ) as Omit<ShapeType, TupleToUnion<Keys>>,
             true,
         );
+        result._mode = this._mode;
+
+        return result;
     }
     partial<Keys extends (keyof ShapeType)[]>(
         ...keys: Keys

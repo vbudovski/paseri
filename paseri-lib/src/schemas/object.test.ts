@@ -802,6 +802,26 @@ describe('pick', () => {
         }
     });
 
+    it('preserves strip mode', () => {
+        const schema = p.object({ foo: p.string(), bar: p.number() }).strip().pick('foo');
+        const result = schema.safeParse({ foo: 'hi', extra: 'gone' });
+        if (result.ok) {
+            expect(result.value).toEqual({ foo: 'hi' });
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
+    });
+
+    it('preserves passthrough mode', () => {
+        const schema = p.object({ foo: p.string(), bar: p.number() }).passthrough().pick('foo');
+        const result = schema.safeParse({ foo: 'hi', extra: 'kept' });
+        if (result.ok) {
+            expect(result.value).toEqual({ foo: 'hi', extra: 'kept' });
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
+    });
+
     it('is immutable', () => {
         const original = p.object({ foo: p.string(), bar: p.number() });
         const picked = original.pick('foo');
@@ -819,6 +839,26 @@ describe('omit', () => {
         if (result.ok) {
             expectTypeOf(result.value).toEqualTypeOf<{ bar: number }>();
             expect(result.value).toEqual(data);
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
+    });
+
+    it('preserves strip mode', () => {
+        const schema = p.object({ foo: p.string(), bar: p.number() }).strip().omit('bar');
+        const result = schema.safeParse({ foo: 'hi', extra: 'gone' });
+        if (result.ok) {
+            expect(result.value).toEqual({ foo: 'hi' });
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
+    });
+
+    it('preserves passthrough mode', () => {
+        const schema = p.object({ foo: p.string(), bar: p.number() }).passthrough().omit('bar');
+        const result = schema.safeParse({ foo: 'hi', extra: 'kept' });
+        if (result.ok) {
+            expect(result.value).toEqual({ foo: 'hi', extra: 'kept' });
         } else {
             expect(result.ok).toBeTruthy();
         }
