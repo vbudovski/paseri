@@ -1,5 +1,12 @@
 import type { Merge, Simplify } from 'type-fest';
-import type { AnySchemaType, NullableSchema, OptionalSchema, RefineSchema, Schema } from './schemas/schema.ts';
+import type {
+    AnySchemaType,
+    DefaultSchema,
+    NullableSchema,
+    OptionalSchema,
+    RefineSchema,
+    Schema,
+} from './schemas/schema.ts';
 
 type InferArray<SchemaType> = {
     [Key in keyof SchemaType]: SchemaType[Key] extends Schema<infer OutputType> ? OutputType : never;
@@ -17,6 +24,16 @@ type IsOptionalField<SchemaType> =
           ? IsOptionalField<InnerSchemaType>
           : SchemaType extends RefineSchema<unknown, infer InnerSchemaType>
             ? IsOptionalField<InnerSchemaType>
+            : false;
+
+// Mirrors the runtime `_hasDefault`: a DefaultSchema, seen through the delegating wrappers nullable and refine.
+type HasDefaultField<SchemaType> =
+    SchemaType extends DefaultSchema<unknown>
+        ? true
+        : SchemaType extends NullableSchema<unknown, infer InnerSchemaType>
+          ? HasDefaultField<InnerSchemaType>
+          : SchemaType extends RefineSchema<unknown, infer InnerSchemaType>
+            ? HasDefaultField<InnerSchemaType>
             : false;
 
 type InferObjectOptional<SchemaType> = {
@@ -49,4 +66,4 @@ type Infer<SchemaType> =
                 ? OutputType
                 : never;
 
-export type { Infer };
+export type { HasDefaultField, Infer, IsOptionalField };

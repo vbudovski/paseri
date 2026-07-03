@@ -178,6 +178,11 @@ class NullableSchema<
     override _hasDefault(): boolean {
         return this._schema._hasDefault();
     }
+    // Strip the optional layer from within, rebuilding nullable around the unwrapped inner so `.required()`
+    // drops optionality but keeps nullable (matches TS `Required`).
+    override _unwrapOptional(): Schema<unknown> {
+        return new NullableSchema(this._schema._unwrapOptional());
+    }
 }
 
 class ChainSchema<FromOutputType, ToOutputType> extends Schema<ToOutputType> {
@@ -305,6 +310,19 @@ class RefineSchema<
     }
     override _hasDefault(): boolean {
         return this._base._hasDefault();
+    }
+    // Strip the optional layer from within, rebuilding refine around the unwrapped base so `.required()`
+    // drops optionality but keeps the refinement (matches TS `Required`). Constructing directly bypasses the
+    // introspect wrapper that records `_callSiteFile`, so carry it over to keep AOT compilation working.
+    override _unwrapOptional(): Schema<unknown> {
+        const unwrapped = new RefineSchema(this._base._unwrapOptional(), this._predicate, {
+            code: this._code,
+            path: [...this._path],
+            ...(this._params !== undefined && { params: this._params }),
+        });
+        unwrapped._callSiteFile = this._callSiteFile;
+
+        return unwrapped;
     }
     _parse(value: unknown, _depth: number, _maxDepth: number): InternalParseResult<OutputType> {
         const baseResult = this._base._parse(value, _depth, _maxDepth);
