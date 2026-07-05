@@ -11,7 +11,7 @@ it('accepts valid types', () => {
         fc.property(fc.object({ values: [fc.float({ noNaN: true })], maxDepth: 0 }), (data) => {
             const result = schema.safeParse(data);
             if (result.ok) {
-                expectTypeOf(result.value).toEqualTypeOf<Record<PropertyKey, number>>();
+                expectTypeOf(result.value).toEqualTypeOf<Record<string, number>>();
                 expect(result.value).toBe(data);
             } else {
                 expect(result.ok).toBeTruthy();
@@ -102,7 +102,7 @@ it('accepts optional values', () => {
             (data) => {
                 const result = schema.safeParse(data);
                 if (result.ok) {
-                    expectTypeOf(result.value).toEqualTypeOf<Record<PropertyKey, number> | undefined>();
+                    expectTypeOf(result.value).toEqualTypeOf<Record<string, number> | undefined>();
                     expect(result.value).toEqual(data);
                 } else {
                     expect(result.ok).toBeTruthy();
@@ -121,7 +121,7 @@ it('accepts nullable values', () => {
             (data) => {
                 const result = schema.safeParse(data);
                 if (result.ok) {
-                    expectTypeOf(result.value).toEqualTypeOf<Record<PropertyKey, number> | null>();
+                    expectTypeOf(result.value).toEqualTypeOf<Record<string, number> | null>();
                     expect(result.value).toEqual(data);
                 } else {
                     expect(result.ok).toBeTruthy();

@@ -38,7 +38,7 @@ function _shapeRecord6(_obj4: Record<string, unknown>): boolean {
 
 function _slowRecord(value: unknown, options?: {
     maxDepth?: number;
-}): InternalParseResult<Record<PropertyKey, number>> {
+}): InternalParseResult<Record<string, number>> {
     const maxDepth: number = options?.maxDepth ?? 1000;
     if (!(Number.isInteger(maxDepth)) || maxDepth < 1) {
         throw new Error("maxDepth must be a positive integer.");
@@ -66,7 +66,7 @@ function _slowRecord(value: unknown, options?: {
 
 function _validateRecord(value: unknown, options?: {
     maxDepth?: number;
-}): InternalParseResult<Record<PropertyKey, number>> {
+}): InternalParseResult<Record<string, number>> {
     const maxDepth: number = options?.maxDepth ?? 1000;
     if (!(Number.isInteger(maxDepth)) || maxDepth < 1) {
         throw new Error("maxDepth must be a positive integer.");
@@ -79,10 +79,10 @@ function _validateRecord(value: unknown, options?: {
 
 function safeParseRecord(value: unknown, options?: {
     maxDepth?: number;
-}): ParseResult<Record<PropertyKey, number>> {
+}): ParseResult<Record<string, number>> {
     const result = _validateRecord(value, options);
     if (result === undefined) {
-        return { ok: true as const, value: value as Record<PropertyKey, number> };
+        return { ok: true as const, value: value as Record<string, number> };
     }
     if (isParseSuccess(result)) {
         return result;
@@ -92,7 +92,7 @@ function safeParseRecord(value: unknown, options?: {
 
 function parseRecord(value: unknown, options?: {
     maxDepth?: number;
-}): Record<PropertyKey, number> {
+}): Record<string, number> {
     const result = safeParseRecord(value, options);
     if (result.ok) {
         return result.value;
@@ -100,7 +100,7 @@ function parseRecord(value: unknown, options?: {
     throw new PaseriError(result.issue);
 }
 
-const _schema: StandardSchemaV1<unknown, Record<PropertyKey, number>> & {
+const _schema: StandardSchemaV1<unknown, Record<string, number>> & {
     safeParse: typeof safeParseRecord;
     parse: typeof parseRecord;
 } = {
