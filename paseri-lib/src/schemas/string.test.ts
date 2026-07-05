@@ -338,6 +338,18 @@ describe('url', () => {
             .map(
                 ([scheme, host, port, path]) => `${scheme}${host}${port !== undefined ? `:${port}` : ''}${path ?? ''}`,
             ),
+        // All-numeric / dotted-numeric hosts: the WHATWG parser treats these as IPv4 candidates and rejects the
+        // invalid ones (overflow, wrong part count, out-of-range octets), so the fast-accept host class must not
+        // match them. Guards against over-acceptance the letter-host `fc.domain()` arm above can't reach.
+        fc
+            .tuple(
+                fc.constantFrom('http://', 'https://', 'ftp://', 'ws://', 'wss://'),
+                fc
+                    .array(fc.integer({ min: 0, max: 9999 }), { minLength: 1, maxLength: 6 })
+                    .map((parts) => parts.join('.')),
+                fc.option(fc.webPath(), { nil: undefined }),
+            )
+            .map(([scheme, host, path]) => `${scheme}${host}${path ?? ''}`),
     );
 
     it('agrees with URL.canParse on every input', () => {
