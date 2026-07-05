@@ -1,9 +1,16 @@
 import type { IsEqual, Merge, NonEmptyObject, TupleToUnion } from 'type-fest';
-import type { Infer } from '../infer.ts';
+import type { HasDefaultField, Infer, IsOptionalField } from '../infer.ts';
 import { addIssue, issueCodes, type LeafNode, type TreeNode } from '../issue.ts';
 import { type InternalParseResult, isParseSuccess } from '../result.ts';
 import { defineProtoProperty, isPlainObject } from '../utils.ts';
-import { type AnySchemaType, DefaultSchema, type OptionalSchema, Schema } from './schema.ts';
+import {
+    type AnySchemaType,
+    DefaultSchema,
+    type NullableSchema,
+    type OptionalSchema,
+    type RefineSchema,
+    Schema,
+} from './schema.ts';
 
 type ValidShapeType<ShapeType> = NonEmptyObject<{
     [Key in keyof ShapeType]: Key extends symbol
@@ -15,14 +22,33 @@ type ValidShapeType<ShapeType> = NonEmptyObject<{
 
 type Mode = 'strip' | 'strict' | 'passthrough';
 
-type WrapOptional<S> = S extends OptionalSchema<unknown> | DefaultSchema<unknown>
-    ? S
-    : S extends Schema<infer T>
-      ? OptionalSchema<T, S>
-      : S;
+// Don't wrap a field partial() leaves untouched: one already optional or already carrying a default (both
+// seen through the delegating wrappers nullable/refine, mirroring the runtime `_isOptional`/`_hasDefault`
+// guard). Wrapping such a field would widen its type to OptionalSchema, whose `.default` is absent at runtime.
+type WrapOptional<S> =
+    IsOptionalField<S> extends true
+        ? S
+        : HasDefaultField<S> extends true
+          ? S
+          : S extends Schema<infer T>
+            ? OptionalSchema<T, S>
+            : S;
 
-// Recover the inner schema's concrete subclass (preserved by `OptionalSchema`), not the abstract base.
-type UnwrapOptional<S> = S extends OptionalSchema<infer _OutputType, infer InnerSchemaType> ? InnerSchemaType : S;
+// Recover the inner schema's concrete subclass (preserved by `OptionalSchema`), stripping the optional layer
+// wherever it sits — including inside the delegating wrappers nullable/refine, which are rebuilt around the
+// unwrapped inner so `.required()` matches TS `Required` (drops optionality, keeps null/refinement).
+type UnwrapOptional<S> =
+    S extends OptionalSchema<infer _OutputType, infer InnerSchemaType>
+        ? InnerSchemaType
+        : S extends NullableSchema<infer _OutputType, infer InnerSchemaType>
+          ? UnwrapOptional<InnerSchemaType> extends Schema<infer InnerOutputType>
+              ? NullableSchema<InnerOutputType, UnwrapOptional<InnerSchemaType>>
+              : S
+          : S extends RefineSchema<infer _OutputType, infer InnerSchemaType>
+            ? UnwrapOptional<InnerSchemaType> extends Schema<infer InnerOutputType>
+                ? RefineSchema<InnerOutputType, UnwrapOptional<InnerSchemaType>>
+                : S
+            : S;
 
 type WrapSomeOptional<ShapeType, Keys extends keyof ShapeType> = {
     [K in keyof ShapeType]: K extends Keys ? WrapOptional<ShapeType[K]> : ShapeType[K];
@@ -367,7 +393,7 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
 
         const newShape: Record<PropertyKey, AnySchemaType> = {};
         for (const [key, field] of Object.entries(this._shape)) {
-            if (matchesKey(key) && !field._isOptional() && !(field instanceof DefaultSchema)) {
+            if (matchesKey(key) && !field._isOptional() && !field._hasDefault()) {
                 newShape[key] = field.optional();
             } else {
                 newShape[key] = field;

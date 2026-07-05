@@ -924,6 +924,40 @@ describe('partial', () => {
         }
     });
 
+    it('leaves a wrapped default field required and defaulted', () => {
+        // partial() exempts any field with a default (via _hasDefault), not only a bare DefaultSchema, so a
+        // refine-wrapped default keeps filling and stays a required key.
+        const schema = p
+            .object({
+                port: p
+                    .number()
+                    .optional()
+                    .default(80)
+                    .refine(() => true, { code: 'ok' }),
+            })
+            .partial();
+
+        const result = schema.safeParse({});
+        if (result.ok) {
+            expectTypeOf(result.value).toEqualTypeOf<{ port: number }>();
+            expect(result.value).toEqual({ port: 80 });
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
+    });
+
+    it('preserves the exact field type of a wrapped default (no phantom optional)', () => {
+        // WrapOptional previously widened the kept field to OptionalSchema, whose `.default` is absent at
+        // runtime — a type lie. partial() keeps the field verbatim, so the shape type must match.
+        const field = p
+            .number()
+            .optional()
+            .default(80)
+            .refine(() => true, { code: 'ok' });
+        const schema = p.object({ port: field }).partial();
+        expectTypeOf(schema.shape.port).toEqualTypeOf<typeof field>();
+    });
+
     it('is immutable', () => {
         const original = p.object({ foo: p.string(), bar: p.number() });
         const partial = original.partial();
@@ -982,6 +1016,60 @@ describe('required', () => {
             expect(result.value).toEqual({ foo: 'hi' });
         } else {
             expect(result.ok).toBeTruthy();
+        }
+    });
+
+    it('requires an optional field nested in nullable, keeping it nullable', () => {
+        // Matches TS `Required`: required() strips the optional layer wherever it sits but leaves nullable
+        // intact, so a missing key is rejected while an explicit null is still accepted.
+        const schema = p.object({ a: p.string().optional().nullable() }).required();
+
+        const missing = schema.safeParse({});
+        if (!missing.ok) {
+            expect(missing.messages()).toEqual([{ path: ['a'], message: 'missing_value' }]);
+        } else {
+            expect(missing.ok).toBeFalsy();
+        }
+
+        const withNull = schema.safeParse({ a: null });
+        if (withNull.ok) {
+            expectTypeOf(withNull.value).toEqualTypeOf<{ a: string | null }>();
+            expect(withNull.value).toEqual({ a: null });
+        } else {
+            expect(withNull.ok).toBeTruthy();
+        }
+    });
+
+    it('requires an optional field nested in refine, keeping the refinement', () => {
+        const schema = p
+            .object({
+                a: p
+                    .string()
+                    .optional()
+                    .refine((value) => value === undefined || value.length > 1, { code: 'too_short' }),
+            })
+            .required();
+
+        const missing = schema.safeParse({});
+        if (!missing.ok) {
+            expect(missing.messages()).toEqual([{ path: ['a'], message: 'missing_value' }]);
+        } else {
+            expect(missing.ok).toBeFalsy();
+        }
+
+        const tooShort = schema.safeParse({ a: 'x' });
+        if (!tooShort.ok) {
+            expect(tooShort.messages()).toEqual([{ path: ['a'], message: 'too_short' }]);
+        } else {
+            expect(tooShort.ok).toBeFalsy();
+        }
+
+        const valid = schema.safeParse({ a: 'xy' });
+        if (valid.ok) {
+            expectTypeOf(valid.value).toEqualTypeOf<{ a: string }>();
+            expect(valid.value).toEqual({ a: 'xy' });
+        } else {
+            expect(valid.ok).toBeTruthy();
         }
     });
 
