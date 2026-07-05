@@ -60,7 +60,7 @@ import { emitZonedDateTime } from './emitters/zonedDateTime.ts';
 import { emitSuccessRouting, failurePayload, leafExpression, successPayload } from './issues.ts';
 import { ResolutionError } from './resolver.ts';
 import { RUNTIME_SOURCE } from './runtime.gen.ts';
-import { isImmutableDefault, makeState, type Sink, type State } from './state.ts';
+import { defaultNeedsFreeze, makeState, type Sink, type State } from './state.ts';
 
 const { factory } = ts;
 
@@ -164,9 +164,9 @@ function analyzeNeeds(graph: IRGraph): Set<string> {
                 walk(node.inner);
                 return;
             case 'default':
-                // Only mutable defaults are wrapped in `deepFreeze(structuredClone(...))` (see registerDefault);
-                // immutable ones (primitives, Temporal) are emitted directly and need no helper.
-                if (!isImmutableDefault(node.value)) {
+                // Object defaults are wrapped in `deepFreeze(...)` (see registerDefault); primitives are emitted
+                // directly and need no helper.
+                if (defaultNeedsFreeze(node.value)) {
                     needs.add('deepFreeze');
                 }
                 walk(node.inner);

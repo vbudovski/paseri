@@ -273,33 +273,19 @@ function hoistTemporalBound(state: State, temporalKind: string, value: unknown):
 }
 
 /**
- * Mirrors the runtime's `isImmutableDefault`: primitives and Temporal instances can't be mutated after
- * construction, so their `.default()` needs no protective `structuredClone`/`deepFreeze` — and Temporal
- * objects can't be `structuredClone`d at all, so wrapping them would throw at module init.
+ * Whether a hoisted `.default()` value is frozen. Every object (plain object, array, Map, Set, Date, Temporal)
+ * is frozen so the shared constant can't be mutated or gain stray properties across parses; primitives are immutable
+ * and emitted directly. Mirrors the runtime, which additionally clones — the emitted literal is already fresh,
+ * so no clone is needed here.
  */
-function isImmutableDefault(value: unknown): boolean {
-    if (value === null || typeof value !== 'object') {
-        return true;
-    }
-    if (typeof Temporal === 'undefined') {
-        return false;
-    }
-    return (
-        value instanceof Temporal.Instant ||
-        value instanceof Temporal.PlainDate ||
-        value instanceof Temporal.PlainDateTime ||
-        value instanceof Temporal.PlainMonthDay ||
-        value instanceof Temporal.PlainTime ||
-        value instanceof Temporal.PlainYearMonth ||
-        value instanceof Temporal.ZonedDateTime ||
-        value instanceof Temporal.Duration
-    );
+function defaultNeedsFreeze(value: unknown): boolean {
+    return value !== null && typeof value === 'object';
 }
 
 /**
- * Hoists a `.default()` value as a module-scope constant and returns the identifier. Mutable values are
- * wrapped in `deepFreeze(structuredClone(<value>))`; immutable ones (primitives, Temporal) are emitted
- * directly. Repeat calls with the same value (by reference) reuse the declaration.
+ * Hoists a `.default()` value as a module-scope constant and returns the identifier. Object values are wrapped
+ * in `deepFreeze(<value>)`; primitives are emitted directly. Repeat calls with the same value (by reference)
+ * reuse the declaration.
  */
 function registerDefault(state: State, value: unknown): ts.Identifier {
     const existing = state.defaults.get(value);
@@ -309,9 +295,7 @@ function registerDefault(state: State, value: unknown): ts.Identifier {
     const result = identifier(`_default${state.defaults.size}`);
     state.defaults.set(value, result);
     const valueExpression = valueToExpression(value);
-    const initializer = isImmutableDefault(value)
-        ? valueExpression
-        : call(identifier('deepFreeze'), [call(identifier('structuredClone'), [valueExpression])]);
+    const initializer = defaultNeedsFreeze(value) ? call(identifier('deepFreeze'), [valueExpression]) : valueExpression;
     state.hoistedDeclarations.push(constStatement(result, undefined, initializer));
     return result;
 }
@@ -397,12 +381,12 @@ function valueToExpression(value: unknown): ts.Expression {
 
 export {
     type AccumulateSink,
+    defaultNeedsFreeze,
     freshIdentifier,
     hoistConstant,
     hoistEnum,
     hoistRegex,
     hoistTemporalBound,
-    isImmutableDefault,
     makeState,
     type OutputSlot,
     type ReturnSink,

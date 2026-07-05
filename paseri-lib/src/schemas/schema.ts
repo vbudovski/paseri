@@ -4,7 +4,7 @@ import type { CustomIssueCode, TreeNode } from '../issue.ts';
 import type { Translations } from '../message.ts';
 import type { InternalParseResult, ParseResult } from '../result.ts';
 import { isParseSuccess, ParseErrorResult, PaseriError } from '../result.ts';
-import { deepFreeze, isImmutableDefault } from '../utils.ts';
+import { deepClone, deepFreeze } from '../utils.ts';
 
 const DEFAULT_MAX_DEPTH = 1000;
 
@@ -246,9 +246,16 @@ class DefaultSchema<OutputType> extends Schema<OutputType> {
         super();
 
         this._schema = schema;
-        // Clone detaches from the caller's reference and freeze blocks mutation of parsed results; immutable
-        // defaults (see isImmutableDefault) need neither and are used directly.
-        this._default = isImmutableDefault(value) ? value : deepFreeze(structuredClone(value));
+        // A default must be a reproducible value the schema can clone to detach from the caller's reference
+        // (and embed as a literal once compiled). A function or symbol is an opaque identity — structuredClone
+        // rejects it and no literal expresses it — so it can be neither; reject it at construction.
+        if (typeof value === 'function' || typeof value === 'symbol') {
+            throw new Error(`A default value cannot be a ${typeof value}.`);
+        }
+        // Clone detaches from the caller's reference (deepClone is Temporal-aware; structuredClone throws on
+        // Temporal) and freeze blocks mutation of parsed results, so a property added to a shared Temporal
+        // instance can't leak across parses.
+        this._default = deepFreeze(deepClone(value));
     }
     protected _clone(): DefaultSchema<OutputType> {
         return new DefaultSchema(this._schema, this._default);
