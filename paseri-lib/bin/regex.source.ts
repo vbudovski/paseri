@@ -31,6 +31,9 @@ const nanoidRegex = (): RegExp => /^[a-z\d_-]{21}$/i;
 //   - authority-url: the special schemes (except file, whose host rules differ) require a host, share one
 //     authority grammar, and cap the port at 65535. The host is a conservative subset of the allowed domain
 //     code points, written as a possessive class (no backtracking) bounded by the `:` `/` `?` `#` that follow.
+//     An all-digits-and-dots host is an IPv4 candidate the WHATWG parser may reject (overflow, out-of-range
+//     octet, wrong part count), so the leading lookahead requires at least one non-digit char and defers such
+//     hosts to `URL.canParse`.
 //   - opaque-url: a non-special scheme with no `//` takes the spec's opaque-path state, which accepts any
 //     content. Special schemes are excluded (they always parse an authority, e.g. `http:foo bar` is rejected).
 // Anything not matched (file:, IPv6 literals, userinfo, IDN hosts, non-special schemes with an authority)
@@ -43,7 +46,7 @@ const urlRegex = (): RegExp => regex('i')`
         (?<authority-url> (https? | ftp | wss?) :// \g<host> (: \g<port>)? \g<tail>)
         (?<opaque-url> (?!\g<special>) [a-z] [a-z\d+.\-]*+ : (?!//) .*)
         (?<special> (https? | ftp | wss? | file) :)
-        (?<host> [a-z\d._\-]++)
+        (?<host> (?=[a-z\d._\-]*?[a-z_\-]) [a-z\d._\-]++)
         (?<port> 6553[0-5] | 655[0-2]\d | 65[0-4]\d\d | 6[0-4]\d{3} | [1-5]\d{4} | \d{1,4})
         (?<tail> ([\/?#] .*)?)
     )

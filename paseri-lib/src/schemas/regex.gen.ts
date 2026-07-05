@@ -13,12 +13,15 @@ const nanoidRegex = (): RegExp => /^[a-z\d_-]{21}$/i;
 //   - authority-url: the special schemes (except file, whose host rules differ) require a host, share one
 //     authority grammar, and cap the port at 65535. The host is a conservative subset of the allowed domain
 //     code points, written as a possessive class (no backtracking) bounded by the `:` `/` `?` `#` that follow.
+//     An all-digits-and-dots host is an IPv4 candidate the WHATWG parser may reject (overflow, out-of-range
+//     octet, wrong part count), so the leading lookahead requires at least one non-digit char and defers such
+//     hosts to `URL.canParse`.
 //   - opaque-url: a non-special scheme with no `//` takes the spec's opaque-path state, which accepts any
 //     content. Special schemes are excluded (they always parse an authority, e.g. `http:foo bar` is rejected).
 // Anything not matched (file:, IPv6 literals, userinfo, IDN hosts, non-special schemes with an authority)
 // falls through to `URL.canParse`. Soundness — never accepting a string canParse rejects — and ReDoS-safety
 // are both pinned by property tests.
-const urlRegex = (): RegExp => /^(?:(?:(?:https?|ftp|wss?):\/\/(?:(?:(?=([a-z\d\._\-]+))\1))(?::(?:6553[0-5]|655[0-2]\d|65[0-4]\d\d|6[0-4]\d{3}|[1-5]\d{4}|\d{1,4}))?(?:(?:[\/\?\#].*)?))|(?:(?!(?:(?:https?|ftp|wss?|file):))[a-z](?:(?=([a-z\d\+\.\-]*))\2):(?!\/\/).*))$/iv;
+const urlRegex = (): RegExp => /^(?:(?:(?:https?|ftp|wss?):\/\/(?:(?=[a-z\d\._\-]*?[a-z_\-])(?:(?=([a-z\d\._\-]+))\1))(?::(?:6553[0-5]|655[0-2]\d|65[0-4]\d\d|6[0-4]\d{3}|[1-5]\d{4}|\d{1,4}))?(?:(?:[\/\?\#].*)?))|(?:(?!(?:(?:https?|ftp|wss?|file):))[a-z](?:(?=([a-z\d\+\.\-]*))\2):(?!\/\/).*))$/iv;
 const dateRegex = (): RegExp => /^(?:(?:(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29)|\d{4}-(?:(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01]))|(?:(?:0[469]|11)-(?:0[1-9]|[12]\d|30))|(?:02-(?:0[1-9]|1\d|2[0-8])))))$/v;
 const timeRegex = (precision?: number, offset?: boolean, local: boolean = true): RegExp => new RegExp(`^(?:(?:(?:[01]\\d|2[0-3])):(?:[0-5]\\d):(?:[0-5]\\d)(?:${((precision === undefined)?("(\\.\\d+)?"):(((precision === 0)?(""):(`\\.\\d{${String(precision)}}`))))})(?:${((offset && local)?("((?:[+\\-][0-5]\\d:[0-5]\\d)|Z?)"):(((offset)?("((?:[+\\-][0-5]\\d:[0-5]\\d)|Z)"):(((local)?("Z?"):("Z"))))))}))$`, "v");
 const datetimeRegex = (precision?: number, offset?: boolean, local?: boolean): RegExp => new RegExp(`^(?:(?:(?:(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29)|\\d{4}-(?:(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01]))|(?:(?:0[469]|11)-(?:0[1-9]|[12]\\d|30))|(?:02-(?:0[1-9]|1\\d|2[0-8])))))T(?:(?:(?:[01]\\d|2[0-3])):(?:[0-5]\\d):(?:[0-5]\\d)(?:${((precision === undefined)?("(\\.\\d+)?"):(((precision === 0)?(""):(`\\.\\d{${String(precision)}}`))))}))(?:${((offset && local)?("((?:[+\\-][0-5]\\d:[0-5]\\d)|Z?)"):(((offset)?("((?:[+\\-][0-5]\\d:[0-5]\\d)|Z)"):(((local)?("Z?"):("Z"))))))}))$`, "v");
