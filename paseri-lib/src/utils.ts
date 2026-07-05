@@ -71,15 +71,7 @@ function boundsContradict<ParamType>(
     return false;
 }
 
-/**
- * True when `value` needs no protective clone as a `.default()` — it can't be mutated by the caller after
- * construction, so `DefaultSchema` can hand it back directly. Primitives qualify trivially; Temporal instances
- * are immutable by design and additionally can't be `structuredClone`d at all, so cloning one would throw.
- */
-function isImmutableDefault(value: unknown): boolean {
-    if (value === null || typeof value !== 'object') {
-        return true;
-    }
+function isTemporalInstance(value: object): boolean {
     if (typeof Temporal === 'undefined') {
         return false;
     }
@@ -95,6 +87,51 @@ function isImmutableDefault(value: unknown): boolean {
     );
 }
 
+/**
+ * Deep-clones a `.default()` value so the stored copy is detached from the caller's reference. Unlike
+ * `structuredClone`, Temporal instances are treated as immutable leaves — they can't be `structuredClone`d and
+ * need no copy — while containers are cloned recursively so a nested Temporal survives. Remaining leaf types
+ * (`Date`, `RegExp`, typed arrays, …) fall back to `structuredClone`.
+ */
+function deepClone<ValueType>(value: ValueType): ValueType {
+    if (value === null || typeof value !== 'object') {
+        return value;
+    }
+    if (isTemporalInstance(value)) {
+        return value;
+    }
+    if (Array.isArray(value)) {
+        return (value as unknown[]).map((item) => deepClone(item)) as ValueType;
+    }
+    if (value instanceof Map) {
+        const cloned = new Map<unknown, unknown>();
+        for (const [key, inner] of value as Map<unknown, unknown>) {
+            cloned.set(deepClone(key), deepClone(inner));
+        }
+        return cloned as ValueType;
+    }
+    if (value instanceof Set) {
+        const cloned = new Set<unknown>();
+        for (const item of value as Set<unknown>) {
+            cloned.add(deepClone(item));
+        }
+        return cloned as ValueType;
+    }
+    if (isPlainObject(value)) {
+        const source = value as Record<PropertyKey, unknown>;
+        const cloned: Record<PropertyKey, unknown> = {};
+        for (const key of Object.keys(source)) {
+            if (key === '__proto__') {
+                defineProtoProperty(cloned, deepClone(source[key]));
+            } else {
+                cloned[key] = deepClone(source[key]);
+            }
+        }
+        return cloned as ValueType;
+    }
+    return structuredClone(value);
+}
+
 function deepFreeze<ValueType>(value: ValueType): ValueType {
     if (value === null || typeof value !== 'object' || Object.isFrozen(value)) {
         return value;
@@ -107,4 +144,4 @@ function deepFreeze<ValueType>(value: ValueType): ValueType {
     return value;
 }
 
-export { boundsContradict, deepFreeze, defineProtoProperty, isImmutableDefault, isPlainObject, primitiveToString };
+export { boundsContradict, deepClone, deepFreeze, defineProtoProperty, isPlainObject, primitiveToString };

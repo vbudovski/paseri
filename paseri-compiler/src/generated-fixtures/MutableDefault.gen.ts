@@ -13,7 +13,7 @@ function deepFreeze<T>(value: T): T {
     return value;
 }
 
-const _default0 = deepFreeze(structuredClone(["a"]));
+const _default0 = deepFreeze(["a"]);
 
 function _validateMutableDefault(value: unknown, options?: {
     maxDepth?: number;

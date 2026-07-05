@@ -133,8 +133,8 @@ describe('collection defaults', () => {
 });
 
 describe('Temporal defaults', () => {
-    // Temporal instances are immutable and can't be `structuredClone`d, so `DefaultSchema` uses them as-is
-    // rather than cloning. Each type must round-trip unchanged for undefined input.
+    // Temporal instances can't be `structuredClone`d, so `DefaultSchema` uses them as-is (frozen, not cloned).
+    // Each type must round-trip as the same reference for undefined input.
     const cases: ReadonlyArray<{ name: string; schema: p.Schema<unknown>; value: unknown }> = [
         { name: 'instant', schema: p.instant(), value: Temporal.Instant.from('2020-01-01T00:00:00Z') },
         { name: 'plainDate', schema: p.plainDate(), value: Temporal.PlainDate.from('2020-01-01') },
@@ -160,6 +160,30 @@ describe('Temporal defaults', () => {
             }
         });
     }
+
+    it('freezes the returned Temporal default so a stray property cannot leak across parses', () => {
+        const schema = p.plainDate().optional().default(Temporal.PlainDate.from('2020-01-01'));
+        const result = schema.safeParse(undefined);
+        if (result.ok) {
+            expect(Object.isFrozen(result.value)).toBe(true);
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
+    });
+
+    it('accepts a Temporal instance nested inside a mutable default', () => {
+        // structuredClone throws on Temporal, so a nested Temporal default used to fail at construction.
+        const schema = p
+            .object({ when: p.plainDate() })
+            .optional()
+            .default({ when: Temporal.PlainDate.from('2020-01-01') });
+        const result = schema.safeParse(undefined);
+        if (result.ok) {
+            expect(result.value.when.toString()).toBe('2020-01-01');
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
+    });
 });
 
 describe('object key defaults', () => {
@@ -383,5 +407,22 @@ describe('mutation safety', () => {
             expect(a.ok).toBeTruthy();
             expect(b.ok).toBeTruthy();
         }
+    });
+});
+
+describe('rejects non-serialisable defaults', () => {
+    // A function or symbol is an opaque identity — structuredClone can't clone it and no literal can embed it —
+    // so it can't be a stored default; construction rejects it.
+    it('throws on a function default', () => {
+        expect(() =>
+            p
+                .unknown()
+                .optional()
+                .default(() => 42),
+        ).toThrow('cannot be a function');
+    });
+
+    it('throws on a symbol default', () => {
+        expect(() => p.unknown().optional().default(Symbol('x'))).toThrow('cannot be a symbol');
     });
 });
