@@ -408,6 +408,49 @@ describe('mutation safety', () => {
             expect(b.ok).toBeTruthy();
         }
     });
+
+    it('makes a Map default immutable so mutation cannot leak across parses', () => {
+        // Object.freeze alone leaves Map mutators (set/delete/clear) working, so the shared default would leak.
+        const schema = p
+            .map(p.string(), p.number())
+            .optional()
+            .default(new Map([['a', 1]]));
+
+        const first = schema.safeParse(undefined);
+        if (first.ok) {
+            expect(Object.isFrozen(first.value)).toBe(true);
+            expect(() => first.value.set('b', 2)).toThrow();
+            const second = schema.safeParse(undefined);
+            if (second.ok) {
+                expect([...second.value]).toEqual([['a', 1]]);
+            } else {
+                expect(second.ok).toBeTruthy();
+            }
+        } else {
+            expect(first.ok).toBeTruthy();
+        }
+    });
+
+    it('makes a Set default immutable so mutation cannot leak across parses', () => {
+        const schema = p
+            .set(p.string())
+            .optional()
+            .default(new Set(['a']));
+
+        const first = schema.safeParse(undefined);
+        if (first.ok) {
+            expect(Object.isFrozen(first.value)).toBe(true);
+            expect(() => first.value.add('b')).toThrow();
+            const second = schema.safeParse(undefined);
+            if (second.ok) {
+                expect([...second.value]).toEqual(['a']);
+            } else {
+                expect(second.ok).toBeTruthy();
+            }
+        } else {
+            expect(first.ok).toBeTruthy();
+        }
+    });
 });
 
 describe('rejects non-serialisable defaults', () => {

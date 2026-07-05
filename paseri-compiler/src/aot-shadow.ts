@@ -179,8 +179,9 @@ function stripModuleSyntax(source: string, sourceFile: ts.SourceFile): string {
  * Structural cache key for a graph. `toSource` is a pure function of the graph, so equal keys mean byte-identical
  * modules that can share one compile — and `JSON.stringify` is far cheaper than deriving the key from `toSource`
  * output. bigint (the only non-JSON value the IR carries) gets a tagged encoding. Returns `null` when the graph
- * holds a value JSON can't represent faithfully (symbol/function/`undefined`) so the caller compiles per instance
- * rather than risk a key collision; such values can't reach the IR today, making the guard forward-compatible only.
+ * holds a value JSON can't represent faithfully (symbol/function/`undefined`, or a `Set`/`Map`/`RegExp` default
+ * that stringifies to `{}` and so collides with any other of its kind) so the caller compiles per instance rather
+ * than risk a key collision.
  */
 function irCacheKey(graph: IRGraph): string | null {
     let faithful = true;
@@ -188,7 +189,14 @@ function irCacheKey(graph: IRGraph): string | null {
         if (typeof value === 'bigint') {
             return `bigint@:${value}`;
         }
-        if (typeof value === 'symbol' || typeof value === 'function' || value === undefined) {
+        if (
+            typeof value === 'symbol' ||
+            typeof value === 'function' ||
+            value === undefined ||
+            value instanceof Set ||
+            value instanceof Map ||
+            value instanceof RegExp
+        ) {
             faithful = false;
         }
         return value;

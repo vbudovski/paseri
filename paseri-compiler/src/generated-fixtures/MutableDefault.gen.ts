@@ -6,6 +6,34 @@ function deepFreeze<T>(value: T): T {
     if (value === null || typeof value !== "object" || Object.isFrozen(value)) {
         return value;
     }
+    // Object.freeze doesn't stop Map/Set mutation through their methods, so shadow the mutators with throwing
+    // own properties before freezing. Entries live in internal slots the ownKeys walk below can't reach, so
+    // freeze them here too. Mirrors paseri-lib's utils.ts deepFreeze exactly — keep them in lockstep.
+    if (value instanceof Map || value instanceof Set) {
+        if (value instanceof Map) {
+            for (const [key, inner] of value) {
+                deepFreeze(key);
+                deepFreeze(inner);
+            }
+        }
+        else {
+            for (const item of value) {
+                deepFreeze(item);
+            }
+        }
+        const reject = (): never => {
+            throw new TypeError("Cannot mutate a frozen default value.");
+        };
+        const mutators = value instanceof Map ? ["set", "delete", "clear"] : ["add", "delete", "clear"];
+        for (const mutator of mutators) {
+            Object.defineProperty(value, mutator, {
+                value: reject,
+                writable: false,
+                enumerable: false,
+                configurable: false,
+            });
+        }
+    }
     Object.freeze(value);
     for (const key of Reflect.ownKeys(value)) {
         deepFreeze((value as Record<PropertyKey, unknown>)[key]);
