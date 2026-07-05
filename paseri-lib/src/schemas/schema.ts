@@ -18,7 +18,7 @@ interface ParseOptions {
  * interface.
  */
 abstract class Schema<OutputType> implements StandardSchemaV1<unknown, OutputType> {
-    get '~standard'(): StandardSchemaV1.Props<OutputType> {
+    get '~standard'(): StandardSchemaV1.Props<unknown, OutputType> {
         // deno-lint-ignore no-this-alias
         const self = this;
 
