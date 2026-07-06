@@ -23,6 +23,13 @@ describe('checkSchemaImportUsage', () => {
         expect(() => checkSchemaImportUsage(code, 'app.js')).toThrow('User.optional');
     });
 
+    it('flags misuse of an extensionless .schema import', () => {
+        // The build resolves and compiles `./user.schema` (no extension) just like `./user.schema.ts`, so the
+        // guard must catch misuse of it too.
+        const code = `import { User } from './user.schema'; export const o = User.optional();`;
+        expect(() => checkSchemaImportUsage(code, 'app.js')).toThrow('User.optional');
+    });
+
     it('tracks aliased named imports', () => {
         const code = `import { User as U } from './user.schema.ts'; export const a = U.array();`;
         expect(() => checkSchemaImportUsage(code, 'app.js')).toThrow('U.array');

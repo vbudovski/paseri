@@ -12,6 +12,15 @@ const DERIVATION_ADVICE =
     `After AOT compilation that export only has .safeParse / .parse / ['~standard'] — move schema derivation ` +
     `(.optional(), .array(), etc.) into a ${SCHEMA_SUFFIX} file.`;
 
+// A `.schema.ts` module can be imported with the extension (`./x.schema.ts`), without it (`./x.schema`), or via
+// the resolved script extension the bundler rewrites to (`./x.schema.js`); the build compiles all of them, so
+// match on the extensionless `.schema` base to catch every form.
+const SCHEMA_BASE = SCHEMA_SUFFIX.replace(/\.ts$/, '');
+function isSchemaSource(specifier: string): boolean {
+    const path = specifier.split('?', 1)[0].replace(/\.(?:[mc]?[jt]sx?)$/, '');
+    return path.endsWith(SCHEMA_BASE);
+}
+
 interface AstNode {
     readonly type: string;
     readonly [key: string]: unknown;
@@ -77,7 +86,7 @@ function collectSchemaBindings(ast: unknown): SchemaBindings {
             return;
         }
         const source = node.source;
-        if (!isNode(source) || typeof source.value !== 'string' || !source.value.endsWith(SCHEMA_SUFFIX)) {
+        if (!isNode(source) || typeof source.value !== 'string' || !isSchemaSource(source.value)) {
             return;
         }
         if (!Array.isArray(node.specifiers)) {
