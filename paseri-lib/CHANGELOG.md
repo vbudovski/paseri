@@ -1,5 +1,17 @@
 # @paseri/paseri
 
+## 1.9.4
+
+### Patch Changes
+
+- c98af4b: `.default()` now handles more value kinds correctly. A Temporal instance nested inside a mutable default (e.g. `p.object({ when: p.plainDate() }).optional().default({ when })`) previously threw `DataCloneError` at construction; it now works. Top-level Temporal defaults are frozen, so a property added to one parsed result can't leak into later parses. Function and symbol defaults are now rejected at construction: a default must be a value Paseri can clone and reproduce, which a function or symbol isn't.
+- 3a7e0a9: `Map` and `Set` `.default()` values are now truly immutable. Previously `Object.freeze` left their `set`/`add`/`delete`/`clear` methods working, so the shared default could be mutated and the change leaked into every later parse. Those mutators now throw, matching frozen plain objects.
+- 02b5e72: `.required()` and `.partial()` now see through the `nullable` and `refine` wrappers. Previously `.required()` silently no-op'd on `.optional().nullable()` / `.optional().refine()` fields (a missing key was still accepted); it now strips the optional layer while keeping the field nullable/refined, matching TypeScript's `Required`. `.partial()` now keeps the default fill on a wrapped default (e.g. `.optional().default(v).refine(...)`) instead of dropping it, and the field's inferred type no longer offers a `.default()` that throws when called.
+- 3493f74: `.pick()` and `.omit()` now preserve the object's mode. Previously they reverted to `strict`, so `.strip().pick(...)` rejected extra keys and `.passthrough().omit(...)` dropped them.
+- 9ece7bd: `p.record()` now infers `Record<string, Element>` instead of `Record<PropertyKey, Element>`. The old type claimed symbol-keyed values were `Element`, but the runtime never validates symbol keys — they pass through untouched, the same way object schemas treat them. The narrowed type matches that string-keyed behaviour; numeric-literal access (`result[1]`) still works and `keyof` is still `string | number`.
+- b6af635: Fixed the Standard Schema input type. `StandardSchemaV1.InferInput` on a Paseri schema previously reported the output type instead of `unknown` — backwards for transforming schemas (a `string`→`number` chain inferred its input as `number`). It now infers `unknown` input (matching `safeParse`), with `InferOutput` the parsed type.
+- b463299: `p.string().url()` now rejects URLs whose host is an invalid all-numeric address — e.g. `http://999999999999`, `http://1.2.3.4.5`, `http://256.0` — which it previously accepted. These are malformed IPv4 per the WHATWG URL standard; genuine IPv4 like `http://1.2.3.4` is still accepted.
+
 ## 1.9.3
 
 ### Patch Changes
