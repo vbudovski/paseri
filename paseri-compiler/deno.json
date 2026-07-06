@@ -22,7 +22,8 @@
   "test": {
     "permissions": {
       "env": true,
-      "read": true
+      "read": true,
+      "write": true
     }
   },
   "publish": {

@@ -1,9 +1,14 @@
+import { mkdtempSync, rmSync, utimesSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import * as p from '@paseri/paseri';
 import { expect } from '@std/expect';
 import { it } from '@std/testing/bdd';
-import './aot-shadow.ts';
 import * as helpers from './_import-fixtures.ts';
 import isPositive, { isNonEmpty as check, isNonEmpty } from './_import-fixtures.ts';
+import { compileSync } from './aot-shadow.ts';
+import { resolveBindings } from './resolver.ts';
 
 // Helpers live at top level so the resolver finds them when it scans this file as the refine call site. Each exercises
 // a way the resolver can mis-resolve a callback's free identifiers and emit a validator that diverges from the runtime.
@@ -21,6 +26,10 @@ const h8Helper = ({ limit = H8_FALLBACK }: { limit?: number }): boolean => limit
 
 // H9: a captured binding whose name collides with one the generated module reserves (the `addIssue` runtime import).
 const addIssue = 5;
+
+// A const whose initializer isn't a reproducible constant: re-evaluating `Date.now()` in the generated module
+// binds a different value than the one the runtime predicate closed over.
+const DYNAMIC_THRESHOLD = Date.now();
 
 it('resolves a free identifier from a sibling declarator of a multi-declarator const', () => {
     const schema = p.number().refine((value) => h7Helper(value), { code: 'h7' });
@@ -107,5 +116,35 @@ it('reproduces a namespace import referenced by a predicate', () => {
         expect(result.value).toBe('a');
     } else {
         expect(result.ok).toBeTruthy();
+    }
+});
+
+it('refuses to compile a predicate capturing a const with a non-reproducible initializer', () => {
+    const schema = p.number().refine((value) => value > DYNAMIC_THRESHOLD, { code: 'threshold' });
+    // The resolver refuses to compile this rather than emit a validator that diverges from the runtime.
+    expect(compileSync(schema)).toBeNull();
+});
+
+it('re-reads a source file after it changes on disk', () => {
+    // A vite dev/watch rebuild resolves against the edited file; the process-lifetime cache must not serve a
+    // stale parse.
+    const dir = mkdtempSync(join(tmpdir(), 'paseri-resolver-'));
+    try {
+        const file = join(dir, 'binding.ts');
+        const url = pathToFileURL(file).href;
+        const noGlobals = () => false;
+
+        writeFileSync(file, 'const HELPER = (value) => value > 3;\n');
+        const first = resolveBindings(url, ['HELPER'], noGlobals, new Set(), new Set());
+        expect(first.hoists.join('\n')).toContain('value > 3');
+
+        writeFileSync(file, 'const HELPER = (value) => value > 5;\n');
+        // A real edit lands seconds later; force a distinct mtime so the change is unambiguous.
+        const later = new Date(Date.now() + 2000);
+        utimesSync(file, later, later);
+        const second = resolveBindings(url, ['HELPER'], noGlobals, new Set(), new Set());
+        expect(second.hoists.join('\n')).toContain('value > 5');
+    } finally {
+        rmSync(dir, { recursive: true, force: true });
     }
 });
