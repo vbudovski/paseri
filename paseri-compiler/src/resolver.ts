@@ -6,7 +6,7 @@
 // declarations are reproduced verbatim from the user's source — JS scope
 // lookups in the emitted output then bind the predicate to them.
 
-import { readFileSync } from 'node:fs';
+import { readFileSync, statSync } from 'node:fs';
 import ts from 'typescript';
 
 interface ResolvedBindings {
@@ -21,30 +21,44 @@ type ImportBinding =
 
 class ResolutionError extends Error {}
 
-const sourceFileCache = new Map<string, ts.SourceFile | null>();
+const sourceFileCache = new Map<string, { readonly mtimeMs: number; readonly sourceFile: ts.SourceFile | null }>();
 
 /**
- * Reads and parses a source file from disk, caching the result. Only `file://`
- * URLs are loaded; anything else (including read or parse failures) caches a
- * `null` so subsequent lookups short-circuit.
+ * Reads and parses a source file from disk. Only `file://` URLs are loaded. The parse is cached keyed by the
+ * file's modification time, so a long-lived process (a vite dev/watch server) re-reads a file after it changes
+ * rather than serving a stale parse.
  */
 function loadSourceFile(fileUrl: string): ts.SourceFile | null {
-    const cached = sourceFileCache.get(fileUrl);
-    if (cached !== undefined) {
-        return cached;
-    }
-    let result: ts.SourceFile | null = null;
+    let url: URL;
     try {
-        const url = new URL(fileUrl);
-        if (url.protocol === 'file:') {
-            const text = readFileSync(url, 'utf8');
-            result = ts.createSourceFile(fileUrl, text, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
-        }
+        url = new URL(fileUrl);
     } catch {
-        result = null;
+        return null;
     }
-    sourceFileCache.set(fileUrl, result);
-    return result;
+    if (url.protocol !== 'file:') {
+        return null;
+    }
+    let mtimeMs: number;
+    try {
+        mtimeMs = statSync(url).mtimeMs;
+    } catch {
+        // Missing or unreadable — drop any cached parse rather than serve it stale.
+        sourceFileCache.delete(fileUrl);
+        return null;
+    }
+    const cached = sourceFileCache.get(fileUrl);
+    if (cached !== undefined && cached.mtimeMs === mtimeMs) {
+        return cached.sourceFile;
+    }
+    let sourceFile: ts.SourceFile | null = null;
+    try {
+        const text = readFileSync(url, 'utf8');
+        sourceFile = ts.createSourceFile(fileUrl, text, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
+    } catch {
+        sourceFile = null;
+    }
+    sourceFileCache.set(fileUrl, { mtimeMs, sourceFile });
+    return sourceFile;
 }
 
 type Declaration =
@@ -53,6 +67,42 @@ type Declaration =
     | { readonly kind: 'mutable'; readonly reason: string }
     | { readonly kind: 'import'; readonly binding: ImportBinding }
     | { readonly kind: 'not-found' };
+
+/**
+ * Whether a const initializer produces the same value however often it's evaluated, so re-running it in the
+ * generated module is safe. A call, `new`, tagged template, or `await` in the eagerly-evaluated portion can
+ * yield a different value each time (`Date.now()`, `readFileSync(...)`) — those aren't reproducible. Function
+ * and arrow bodies are deferred (not run at declaration time), so their contents don't count.
+ */
+function initializerIsReproducible(node: ts.Node): boolean {
+    let reproducible = true;
+    function visit(current: ts.Node): void {
+        if (!reproducible) {
+            return;
+        }
+        if (
+            ts.isArrowFunction(current) ||
+            ts.isFunctionExpression(current) ||
+            ts.isMethodDeclaration(current) ||
+            ts.isGetAccessorDeclaration(current) ||
+            ts.isSetAccessorDeclaration(current)
+        ) {
+            return;
+        }
+        if (
+            ts.isCallExpression(current) ||
+            ts.isNewExpression(current) ||
+            ts.isTaggedTemplateExpression(current) ||
+            ts.isAwaitExpression(current)
+        ) {
+            reproducible = false;
+            return;
+        }
+        ts.forEachChild(current, visit);
+    }
+    visit(node);
+    return reproducible;
+}
 
 /**
  * Locates the top-level declaration of `name` in `sourceFile` and classifies
@@ -71,6 +121,16 @@ function findDeclaration(sourceFile: ts.SourceFile, name: string): Declaration {
                             kind: 'mutable',
                             reason: `'${name}' is declared with let/var; its value can change between schema construction and compile time.`,
                         };
+                    }
+                    // The whole statement is hoisted and re-evaluated at generated-module load, so every
+                    // declarator's initializer must be reproducible — not just the matched one.
+                    for (const sibling of statement.declarationList.declarations) {
+                        if (sibling.initializer !== undefined && !initializerIsReproducible(sibling.initializer)) {
+                            return {
+                                kind: 'mutable',
+                                reason: `'${name}' comes from a const whose initializer isn't a reproducible constant (it calls a function or constructs a value); re-evaluating it in the generated module could bind a different value.`,
+                            };
+                        }
                     }
                     return { kind: 'const', statement };
                 }
