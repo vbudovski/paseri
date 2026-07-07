@@ -546,6 +546,19 @@ it('accepts a conforming non-enumerable own required field', () => {
     }
 });
 
+it('keeps a validated non-enumerable own field when stripping unrecognised keys', () => {
+    const schema = p.object({ visible: p.string(), hidden: p.number() }).strip();
+    const data: Record<string, unknown> = { visible: 'ok', extra: 'drop me' };
+    Object.defineProperty(data, 'hidden', { value: 42, enumerable: false, writable: true, configurable: true });
+
+    const result = schema.safeParse(data);
+    if (result.ok) {
+        expect(result.value).toEqual({ visible: 'ok', hidden: 42 });
+    } else {
+        expect(result.ok).toBeTruthy();
+    }
+});
+
 it('validates a non-enumerable own optional field against its schema', () => {
     const schema = p.object({ visible: p.string(), hidden: p.number().optional() });
     const data: Record<string, unknown> = { visible: 'ok' };
