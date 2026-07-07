@@ -220,9 +220,9 @@ function tryEmitUnionShapeEntryBody(
  * Returns undefined (caller falls back to the generic shape / slow path) unless EVERY field is fast-path-safe: no
  * prototype-name fields; no non-default field that modifies; and each default's inner is a non-modifying shape that
  * pushes no nested extras level (so the present case needs no slow handling either). A strict parent's own extras are
- * caught by the count check below; a strip parent instead defers to the generic path when any field contributes a
- * nested extras level. Only top-level defaults are handled — nested defaults stay on the generic path (their absent
- * case correctly routes to slow, which applies them).
+ * caught by the count check below, but any nested strict/strip sibling's extras level makes the parent defer to the
+ * generic path. Only top-level defaults are handled — nested defaults stay on the generic path (their absent case
+ * correctly routes to slow, which applies them).
  */
 function tryEmitDefaultObjectEntry(
     ir: Extract<IR, { kind: 'object' }>,
@@ -331,6 +331,11 @@ function tryEmitDefaultObjectEntry(
                     : ternary(equals(accessor, undefinedExpression), defaultIdentifier, accessor);
         }
         return [ifStatement(shape, [returnStatement(successPayload(objectLiteral(props), outputType))]), slowCall];
+    }
+    // A nested strict/strip sibling's extras level: defer the whole object to the generic path (as the strip branch
+    // above does), rather than folding its count loop into this fast path. Only the outer strict level below stays.
+    if (strictLevels.length > 0) {
+        return undefined;
     }
     if (ir.mode === 'strict') {
         strictLevels.push({ valueExpression, requiredCount, optionalFieldNames });
