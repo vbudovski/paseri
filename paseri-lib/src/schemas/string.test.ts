@@ -263,26 +263,33 @@ describe('email', () => {
                     expect(result.ok).toBeTruthy();
                 }
             }),
+            // Pin an interior-hyphen domain — a valid case the generator may not produce.
+            { examples: [['foo@a-b.com']] },
         );
     });
 
     it('rejects invalid values', () => {
+        // Each violates the address grammar (RFC 5321 / 5322); the hyphen cases violate the RFC 1123 label
+        // rule (a label may not begin or end with '-').
         const schema = p.string().email();
-        const regex = emailRegex();
-
-        fc.assert(
-            fc.property(
-                fc.string().filter((value) => !regex.test(value)),
-                (data) => {
-                    const result = schema.safeParse(data);
-                    if (!result.ok) {
-                        expect(result.messages()).toEqual([{ path: [], message: 'invalid_email' }]);
-                    } else {
-                        expect(result.ok).toBeFalsy();
-                    }
-                },
-            ),
-        );
+        const invalid = [
+            'plainaddress', // no @
+            '@example.com', // no local part
+            'foo@', // no domain
+            'foo@.com', // empty label
+            'foo@bar..com', // empty interior label
+            'foo@-bar.com', // label begins with a hyphen
+            'foo@bar-.com', // label ends with a hyphen
+            'foo bar@example.com', // unquoted space in the local part
+        ];
+        for (const value of invalid) {
+            const result = schema.safeParse(value);
+            if (!result.ok) {
+                expect(result.messages()).toEqual([{ path: [], message: 'invalid_email' }]);
+            } else {
+                expect(result.ok).toBeFalsy();
+            }
+        }
     });
 
     it('is safe from ReDoS', async () => {
