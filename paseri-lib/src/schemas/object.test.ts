@@ -320,6 +320,40 @@ describe('strip', () => {
             expect(result.ok).toBeTruthy();
         }
     });
+
+    it('rejects an extra key in a nested strict object alongside a defaulted sibling', () => {
+        // The defaulted sibling is omitted, so its default fires; the nested strict object must still reject
+        // its own unknown key.
+        const schema = p
+            .object({
+                kept: p.number().optional().default(5),
+                nested: p.object({ x: p.number() }).strict(),
+            })
+            .strip();
+
+        const result = schema.safeParse({ nested: { x: 1, extra: 999 } });
+        if (!result.ok) {
+            expect(result.messages()).toEqual([{ path: ['nested', 'extra'], message: 'unrecognized_key' }]);
+        } else {
+            expect(result.ok).toBeFalsy();
+        }
+    });
+
+    it('fills a default and keeps a clean nested strict object', () => {
+        const schema = p
+            .object({
+                kept: p.number().optional().default(5),
+                nested: p.object({ x: p.number() }).strict(),
+            })
+            .strip();
+
+        const result = schema.safeParse({ nested: { x: 1 } });
+        if (result.ok) {
+            expect(result.value).toEqual({ kept: 5, nested: { x: 1 } });
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
+    });
 });
 
 describe('strict', () => {

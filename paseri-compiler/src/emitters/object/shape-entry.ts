@@ -219,9 +219,10 @@ function tryEmitUnionShapeEntryBody(
  *
  * Returns undefined (caller falls back to the generic shape / slow path) unless EVERY field is fast-path-safe: no
  * prototype-name fields; no non-default field that modifies; and each default's inner is a non-modifying shape that
- * pushes no nested extras level (so the present case needs no slow handling either). Strict/strip extras still route
- * to the slow path via the count check. Only top-level defaults are handled — nested defaults stay on the generic
- * path (their absent case correctly routes to slow, which applies them).
+ * pushes no nested extras level (so the present case needs no slow handling either). A strict parent's own extras are
+ * caught by the count check below; a strip parent instead defers to the generic path when any field contributes a
+ * nested extras level. Only top-level defaults are handled — nested defaults stay on the generic path (their absent
+ * case correctly routes to slow, which applies them).
  */
 function tryEmitDefaultObjectEntry(
     ir: Extract<IR, { kind: 'object' }>,
@@ -311,10 +312,14 @@ function tryEmitDefaultObjectEntry(
         ),
     );
     const outputType = emitType(ir);
-    // Strip + default fold: emit the output as a static-key literal — unknown keys dropped by construction (no count
-    // loop, no slow-path bail) and absent defaults filled inline, in one allocation. Reached only for the lean
-    // default-entry shape, so every value is read straight from the validated input.
+    // Strip + default fold: emit the OUTER object as a static-key literal — its own unknown keys drop out by
+    // construction, absent defaults fill inline, one allocation. A nested strict/strip sibling records an extras
+    // level during the field walk that the literal rebuild can't honour, so defer the whole object to the generic
+    // path (which validates nested extras correctly) rather than fast-folding it.
     if (ir.mode === 'strip') {
+        if (strictLevels.length > 0) {
+            return undefined;
+        }
         const defaultIdentifiers = new Map(defaults.map((entry) => [entry.key, entry.identifier]));
         const props: Record<string, ts.Expression> = {};
         for (const [fieldName] of fields) {
