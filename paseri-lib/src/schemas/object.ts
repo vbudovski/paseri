@@ -107,7 +107,6 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
         }
 
         let seen = 0;
-        let enumerated = 0;
         const modifiedValues: Record<PropertyKey, unknown> = {};
         // A Set avoids the __proto__ accessor issue that affects plain objects in browsers/Node.js.
         let unrecognisedKeys: Set<string> | undefined;
@@ -122,7 +121,6 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
         // expression — keep them in sync.
         if (shapeMap === undefined) {
             for (const key in value) {
-                enumerated++;
                 const schema = this._shape[key];
                 if (schema?._parse) {
                     seen++;
@@ -159,7 +157,6 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
             }
         } else {
             for (const key in value) {
-                enumerated++;
                 const schema = shapeMap.get(key);
                 if (schema?._parse) {
                     seen++;
@@ -197,10 +194,10 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
         }
 
         if (seen < this._shapeSize) {
-            // An unseen shape key is either absent or own-but-non-enumerable (hidden from for...in but still
-            // readable at the declared key, so it must be validated). Hidden own keys exist iff the own-name
-            // count exceeds the enumerated count; the per-key probe below only runs in that exotic case.
-            const hasHiddenKeys = Object.getOwnPropertyNames(value).length !== enumerated;
+            // An unseen shape key is either absent or own-but-non-enumerable — hidden from for...in but still
+            // readable, so it must be validated. Such a hidden key exists iff the own-name count (incl.
+            // non-enumerable) exceeds the own-enumerable count; both own-only, so an inherited key can't mask it.
+            const hasHiddenKeys = Object.getOwnPropertyNames(value).length !== Object.keys(value).length;
             for (const key of this._requiredKeys) {
                 if (!Object.hasOwn(value, key)) {
                     const issueOrSuccess = this._parseMissingKey(key, _depth, _maxDepth);
