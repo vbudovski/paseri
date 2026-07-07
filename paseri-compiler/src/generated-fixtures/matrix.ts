@@ -44,6 +44,16 @@ const MATRIX: readonly MatrixEntry[] = [
     { name: 'EnumNumber', schema: p.enum(1, 2, 3) },
     { name: 'UnionLiteral', schema: p.union(p.literal('a'), p.literal('b'), p.literal('c')) },
     { name: 'UnionMixed', schema: p.union(p.string(), p.number()) },
+    {
+        // A refined member must not disable discriminator dispatch; type-checks the refine-in-dispatch emit.
+        name: 'UnionDiscriminatedRefine',
+        schema: p.union(
+            p.object({ kind: p.literal('a'), value: p.string() }).refine((data) => data.value.length > 0, {
+                code: 'non_empty',
+            }),
+            p.object({ kind: p.literal('b'), value: p.number() }),
+        ),
+    },
     { name: 'ObjectSimple', schema: p.object({ foo: p.string() }) },
     { name: 'ObjectOptional', schema: p.object({ foo: p.string().optional() }) },
     { name: 'ObjectDefault', schema: p.object({ foo: p.string(), count: p.number().optional().default(0) }) },

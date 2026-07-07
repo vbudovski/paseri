@@ -45,14 +45,17 @@ function findLiteralSet<TupleType extends ValidTupleType>(...elements: TupleType
 }
 
 function findDiscriminator<TupleType extends ValidTupleType>(...elements: TupleType): DiscriminatorResult {
-    if (!elements.every((element) => element instanceof ObjectSchema)) {
+    // Unwrap refine (see `_unwrapRefine`) so refining a member doesn't drop the union off the discriminated
+    // path; a member that isn't object-based after unwrapping keeps the whole union on try-each.
+    const objects = elements.map((element) => element._unwrapRefine());
+    if (!objects.every((object) => object instanceof ObjectSchema)) {
         return { found: false };
     }
 
     // Null prototype: keys come from user shapes, so __proto__/constructor must behave as plain keys.
     const counts: Record<string, number> = Object.create(null);
-    for (const element of elements) {
-        for (const [key, schema] of Object.entries(element.shape)) {
+    for (const object of objects) {
+        for (const [key, schema] of Object.entries(object.shape)) {
             if (schema instanceof LiteralSchema) {
                 counts[key] = counts[key] === undefined ? 1 : counts[key] + 1;
             }
@@ -69,8 +72,8 @@ function findDiscriminator<TupleType extends ValidTupleType>(...elements: TupleT
         const schemas = new Map<unknown, AnySchemaType>();
         const options: string[] = [];
         let collided = false;
-        for (const element of elements) {
-            const value = (element.shape[key] as LiteralSchema<never>).value;
+        for (let index = 0; index < objects.length; index++) {
+            const value = (objects[index].shape[key] as LiteralSchema<never>).value;
 
             if (schemas.has(value)) {
                 collided = true;
@@ -80,7 +83,8 @@ function findDiscriminator<TupleType extends ValidTupleType>(...elements: TupleT
                 break;
             }
 
-            schemas.set(value, element);
+            // Dispatch to the original element, not the unwrapped object, so a member's refine still runs.
+            schemas.set(value, elements[index]);
             options.push(primitiveToString(value));
         }
         if (!collided) {

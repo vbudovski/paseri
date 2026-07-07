@@ -18,6 +18,7 @@ import './EnumString.gen.ts';
 import './EnumNumber.gen.ts';
 import './UnionLiteral.gen.ts';
 import './UnionMixed.gen.ts';
+import './UnionDiscriminatedRefine.gen.ts';
 import './ObjectSimple.gen.ts';
 import './ObjectOptional.gen.ts';
 import './ObjectDefault.gen.ts';
