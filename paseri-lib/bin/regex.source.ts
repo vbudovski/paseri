@@ -9,7 +9,7 @@ const emailRegex = (): RegExp => regex('i')`
         # Literal backtick leads to compatibility issues with u flag.
         (?<user-part> [a-z\d!#$%&'*\-\/=?^_\u0060\{\|\}~+]+)
         # The smallest allowable top-level domain is 2 characters (country codes).
-        (?<domain> ([a-z\d][a-z\d\-]*\.)+ [a-z]{2,})
+        (?<domain> ([a-z\d]([a-z\d\-]*[a-z\d])?\.)+ [a-z]{2,})
     )
 `;
 // Atomic group here to prevent ReDoS.

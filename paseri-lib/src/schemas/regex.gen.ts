@@ -1,7 +1,7 @@
 
 
 // User part validation adapted from https://github.com/validatorjs/validator.js/blob/master/src/lib/isEmail.js.
-const emailRegex = (): RegExp => /^(?:(?:[a-z\d\!\#\$\%\&'\*\-\/\=\?\^_\u0060\{\|\}\~\+]+)(?:\.(?:[a-z\d\!\#\$\%\&'\*\-\/\=\?\^_\u0060\{\|\}\~\+]+))*(?:)@(?:(?:[a-z\d][a-z\d\-]*\.)+[a-z]{2,}))$/iv;
+const emailRegex = (): RegExp => /^(?:(?:[a-z\d\!\#\$\%\&'\*\-\/\=\?\^_\u0060\{\|\}\~\+]+)(?:\.(?:[a-z\d\!\#\$\%\&'\*\-\/\=\?\^_\u0060\{\|\}\~\+]+))*(?:)@(?:(?:[a-z\d](?:[a-z\d\-]*[a-z\d])?\.)+[a-z]{2,}))$/iv;
 // Atomic group here to prevent ReDoS.
 const emojiRegex = (): RegExp => /^(?:(?=((?:\p{Extended_Pictographic}|\p{Emoji_Component})+))\1)$/v;
 // Conversion of UUID regex from https://github.com/validatorjs/validator.js/blob/master/src/lib/isUUID.js.
