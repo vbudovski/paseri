@@ -791,6 +791,14 @@ describe('time', () => {
         );
     });
 
+    it('rejects a timezone offset hour past 23', () => {
+        // The offset hour is 00-23 (RFC 3339 time-hour), not the 00-59 a minutes-style class would allow.
+        const schema = p.string().time({ offset: true });
+        expect(schema.safeParse('12:34:56+45:00').ok).toBe(false);
+        expect(schema.safeParse('12:34:56+24:00').ok).toBe(false);
+        expect(schema.safeParse('12:34:56+23:59').ok).toBe(true);
+    });
+
     it('throws on invalid precision', () => {
         fc.assert(
             fc.property(fc.oneof(fc.float({ noInteger: true }), fc.integer({ max: -1 })), (precision) => {
@@ -881,6 +889,14 @@ describe('datetime', () => {
                 },
             ),
         );
+    });
+
+    it('rejects a timezone offset hour past 23', () => {
+        // The offset hour is 00-23 (RFC 3339 time-hour), not the 00-59 a minutes-style class would allow.
+        const schema = p.string().datetime({ offset: true });
+        expect(schema.safeParse('2024-01-01T12:34:56+45:00').ok).toBe(false);
+        expect(schema.safeParse('2024-01-01T12:34:56+24:00').ok).toBe(false);
+        expect(schema.safeParse('2024-01-01T12:34:56+23:59').ok).toBe(true);
     });
 
     it('throws on invalid precision', () => {

@@ -72,7 +72,7 @@ const timeRegex = (precision?: number, offset?: boolean, local: boolean = true):
         (?<seconds> [0-5]\d)
         (?<fractional-seconds> ${precision === undefined ? pattern`(\.\d+)?` : precision === 0 ? pattern`` : pattern`\.\d{${String(precision)}}`})
         (?<timezone> ${offset && local ? pattern`(\g<offset> | Z?)` : offset ? pattern`(\g<offset> | Z)` : local ? pattern`Z?` : pattern`Z`})
-        (?<offset> [+\-][0-5]\d:[0-5]\d)
+        (?<offset> [+\-]\g<hours>:\g<minutes>)
     )
 `;
 const datetimeRegex = (precision?: number, offset?: boolean, local?: boolean): RegExp => regex`
@@ -91,7 +91,7 @@ const datetimeRegex = (precision?: number, offset?: boolean, local?: boolean): R
         (?<seconds> [0-5]\d)
         (?<fractional-seconds> ${precision === undefined ? pattern`(\.\d+)?` : precision === 0 ? pattern`` : pattern`\.\d{${String(precision)}}`})
         (?<timezone> ${offset && local ? pattern`(\g<offset> | Z?)` : offset ? pattern`(\g<offset> | Z)` : local ? pattern`Z?` : pattern`Z`})
-        (?<offset> [+\-][0-5]\d:[0-5]\d)
+        (?<offset> [+\-]\g<hours>:\g<minutes>)
     )
 `;
 // Adapted IP regex from https://github.com/validatorjs/validator.js/blob/master/src/lib/isIP.js.
