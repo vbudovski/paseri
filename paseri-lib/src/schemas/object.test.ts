@@ -532,6 +532,22 @@ it('validates a non-enumerable own required field against its schema', () => {
     }
 });
 
+it('validates a non-enumerable own field masked by an inherited enumerable key', () => {
+    // An inherited enumerable key must not offset the hidden-own-key count and skip validation of the own
+    // non-enumerable field. Passthrough keeps the inherited key from raising an unrecognised-key issue.
+    const schema = p.object({ visible: p.string(), hidden: p.number() }).passthrough();
+    const data: Record<string, unknown> = Object.create({ inherited: 'x' });
+    data.visible = 'ok';
+    Object.defineProperty(data, 'hidden', { value: 'not a number', enumerable: false });
+
+    const result = schema.safeParse(data);
+    if (!result.ok) {
+        expect(result.messages()).toEqual([{ path: ['hidden'], message: 'invalid_type' }]);
+    } else {
+        expect(result.ok).toBeFalsy();
+    }
+});
+
 it('accepts a conforming non-enumerable own required field', () => {
     const schema = p.object({ visible: p.string(), hidden: p.number() });
     const data: Record<string, unknown> = { visible: 'ok' };
