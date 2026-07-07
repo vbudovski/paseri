@@ -112,6 +112,9 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
         // A Set avoids the __proto__ accessor issue that affects plain objects in browsers/Node.js.
         let unrecognisedKeys: Set<string> | undefined;
         let hasModifiedChildValue = false;
+        // Non-enumerable own shape keys are validated below but skipped by the strip rebuild's for...in copy,
+        // which would drop them; collect them so it can re-add them. Exotic case only.
+        let hiddenOwnKeys: PropertyKey[] | undefined;
 
         let issue: TreeNode | undefined;
         const shapeMap = this._shapeMap;
@@ -223,6 +226,10 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
             if (hasHiddenKeys) {
                 for (const key of this._shapeKeys) {
                     if (Object.hasOwn(value, key) && !Object.prototype.propertyIsEnumerable.call(value, key)) {
+                        if (hiddenOwnKeys === undefined) {
+                            hiddenOwnKeys = [];
+                        }
+                        hiddenOwnKeys.push(key);
                         const schema = this._shape[key];
                         const issueOrSuccess = schema._parse(value[key], _depth, _maxDepth);
                         if (issueOrSuccess !== undefined) {
@@ -292,6 +299,20 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
                         } else {
                             sanitizedValue[key] = modifiedValues[key];
                         }
+                    }
+                }
+            }
+
+            if (hiddenOwnKeys) {
+                // The for...in copy skips non-enumerable keys and the loop above only fills absent ones, so
+                // add each validated non-enumerable own field (its modified value if any, else the original).
+                for (const key of hiddenOwnKeys) {
+                    const source =
+                        hasModifiedChildValue && Object.hasOwn(modifiedValues, key) ? modifiedValues[key] : value[key];
+                    if (key === '__proto__') {
+                        defineProtoProperty(sanitizedValue, source);
+                    } else {
+                        sanitizedValue[key] = source;
                     }
                 }
             }
