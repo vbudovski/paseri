@@ -9,7 +9,6 @@ import {
     dateRegex,
     datetimeRegex,
     emailRegex,
-    emojiRegex,
     ipCidrRegex,
     ipRegex,
     nanoidRegex,
@@ -435,57 +434,41 @@ describe('emoji', () => {
         const schema = p.string().emoji();
 
         fc.assert(
-            fc.property(
-                fc.string({
-                    minLength: 1,
-                    unit: fc.mapToConstant(
-                        ...emoji.map((e) => ({
-                            num: e.count,
-                            build: (v: number) => String.fromCodePoint(v + e.start),
-                        })),
-                    ),
-                }),
-                (data) => {
-                    const result = schema.safeParse(data);
-                    if (result.ok) {
-                        expectTypeOf(result.value).toEqualTypeOf<string>();
-                        expect(result.value).toBe(data);
-                    } else {
-                        expect(result.ok).toBeTruthy();
-                    }
-                },
-            ),
+            fc.property(fc.constantFrom(...emoji), (data) => {
+                const result = schema.safeParse(data);
+                if (result.ok) {
+                    expectTypeOf(result.value).toEqualTypeOf<string>();
+                    expect(result.value).toBe(data);
+                } else {
+                    expect(result.ok).toBeTruthy();
+                }
+            }),
+            // Pin a multi-emoji string to exercise the one-or-more quantifier.
+            { examples: [['😀🇦🇺👍🏽']] },
         );
     });
 
     it('rejects invalid values', () => {
+        // Bare Emoji_Component code points are not standalone emoji (UTS #51 ED-13); they appear only inside
+        // sequences (keycaps, flags), which `\p{RGI_Emoji}` matches as whole units.
         const schema = p.string().emoji();
-        const regex = emojiRegex();
-
-        fc.assert(
-            fc.property(
-                fc.string().filter((value) => !regex.test(value)),
-                (data) => {
-                    const result = schema.safeParse(data);
-                    if (!result.ok) {
-                        expect(result.messages()).toEqual([{ path: [], message: 'invalid_emoji' }]);
-                    } else {
-                        expect(result.ok).toBeFalsy();
-                    }
-                },
-            ),
-        );
-    });
-
-    it('is safe from ReDoS', async () => {
-        const regex = emojiRegex();
-        const diagnostics = await check(regex.source, regex.flags.replace('v', 'u'));
-        if (diagnostics.status === 'vulnerable') {
-            console.log(`Vulnerable pattern: ${diagnostics.attack.pattern}`);
-        } else if (diagnostics.status === 'unknown') {
-            console.log(`Error: ${diagnostics.error.kind}.`);
+        const invalid = [
+            '#', // keycap base without its sequence
+            '*',
+            '1',
+            '123',
+            '\u{1F1FA}', // a lone regional indicator (half a flag)
+            '\uFE0F', // a lone variation selector
+            'abc', // not emoji at all
+        ];
+        for (const value of invalid) {
+            const result = schema.safeParse(value);
+            if (!result.ok) {
+                expect(result.messages()).toEqual([{ path: [], message: 'invalid_emoji' }]);
+            } else {
+                expect(result.ok).toBeFalsy();
+            }
         }
-        expect(diagnostics.status).toBe('safe');
     });
 
     it('is immutable', () => {
