@@ -360,10 +360,14 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
     pick<Keys extends [keyof ShapeType, ...(keyof ShapeType)[]]>(
         ...keys: Keys
     ): ObjectSchema<Pick<ShapeType, TupleToUnion<Keys>>> {
+        // A numeric shape key arrives as a number via `keyof`, but runtime object keys are strings; normalise
+        // both to strings so they match (same for omit/partial/required below).
+        const picked = new Set(keys.map((key) => String(key)));
         const result = new ObjectSchema(
-            Object.fromEntries(
-                Object.entries(this._shape).filter(([key]) => keys.includes(key as keyof ShapeType)),
-            ) as Pick<ShapeType, TupleToUnion<Keys>>,
+            Object.fromEntries(Object.entries(this._shape).filter(([key]) => picked.has(key))) as Pick<
+                ShapeType,
+                TupleToUnion<Keys>
+            >,
             true,
         );
         result._mode = this._mode;
@@ -374,10 +378,12 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
         // Ensure at least one key remains in schema.
         ...keys: IsEqual<TupleToUnion<Keys>, keyof ShapeType> extends true ? never : Keys
     ): ObjectSchema<Omit<ShapeType, TupleToUnion<Keys>>> {
+        const omitted = new Set(keys.map((key) => String(key)));
         const result = new ObjectSchema(
-            Object.fromEntries(
-                Object.entries(this._shape).filter(([key]) => !keys.includes(key as keyof ShapeType)),
-            ) as Omit<ShapeType, TupleToUnion<Keys>>,
+            Object.fromEntries(Object.entries(this._shape).filter(([key]) => !omitted.has(key))) as Omit<
+                ShapeType,
+                TupleToUnion<Keys>
+            >,
             true,
         );
         result._mode = this._mode;
@@ -389,7 +395,8 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
     ): ObjectSchema<
         Keys extends [] ? WrapSomeOptional<ShapeType, keyof ShapeType> : WrapSomeOptional<ShapeType, TupleToUnion<Keys>>
     > {
-        const matchesKey = keys.length === 0 ? () => true : (key: PropertyKey) => keys.includes(key as keyof ShapeType);
+        const requested = keys.length === 0 ? null : new Set(keys.map((key) => String(key)));
+        const matchesKey = requested === null ? () => true : (key: string) => requested.has(key);
 
         const newShape: Record<PropertyKey, AnySchemaType> = {};
         for (const [key, field] of Object.entries(this._shape)) {
@@ -416,7 +423,8 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
             ? UnwrapSomeOptional<ShapeType, keyof ShapeType>
             : UnwrapSomeOptional<ShapeType, TupleToUnion<Keys>>
     > {
-        const matchesKey = keys.length === 0 ? () => true : (key: PropertyKey) => keys.includes(key as keyof ShapeType);
+        const requested = keys.length === 0 ? null : new Set(keys.map((key) => String(key)));
+        const matchesKey = requested === null ? () => true : (key: string) => requested.has(key);
 
         const newShape: Record<PropertyKey, AnySchemaType> = {};
         for (const [key, field] of Object.entries(this._shape)) {

@@ -802,6 +802,20 @@ describe('pick', () => {
         }
     });
 
+    it('picks numeric keys', () => {
+        const schema = p.object({ 1: p.string(), 2: p.number() });
+        const schemaPicked = schema.pick(1);
+
+        const data = { 1: 'hello' };
+        const result = schemaPicked.safeParse(data);
+        if (result.ok) {
+            expectTypeOf(result.value).toEqualTypeOf<{ 1: string }>();
+            expect(result.value).toEqual(data);
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
+    });
+
     it('preserves strip mode', () => {
         const schema = p.object({ foo: p.string(), bar: p.number() }).strip().pick('foo');
         const result = schema.safeParse({ foo: 'hi', extra: 'gone' });
@@ -838,6 +852,20 @@ describe('omit', () => {
         const result = schemaOmitted.safeParse(data);
         if (result.ok) {
             expectTypeOf(result.value).toEqualTypeOf<{ bar: number }>();
+            expect(result.value).toEqual(data);
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
+    });
+
+    it('omits numeric keys', () => {
+        const schema = p.object({ 1: p.string(), 2: p.number() });
+        const schemaOmitted = schema.omit(1);
+
+        const data = { 2: 123 };
+        const result = schemaOmitted.safeParse(data);
+        if (result.ok) {
+            expectTypeOf(result.value).toEqualTypeOf<{ 2: number }>();
             expect(result.value).toEqual(data);
         } else {
             expect(result.ok).toBeTruthy();
@@ -901,6 +929,17 @@ describe('partial', () => {
             expect(result.messages()).toEqual([{ path: ['bar'], message: 'missing_value' }]);
         } else {
             expect(result.ok).toBeFalsy();
+        }
+    });
+
+    it('makes only listed numeric-keyed fields optional', () => {
+        const schema = p.object({ 1: p.string(), 2: p.number() }).partial(1);
+        const result = schema.safeParse({ 2: 5 });
+        if (result.ok) {
+            expectTypeOf(result.value).toEqualTypeOf<{ 1?: string | undefined; 2: number }>();
+            expect(result.value).toEqual({ 2: 5 });
+        } else {
+            expect(result.ok).toBeTruthy();
         }
     });
 
@@ -1006,6 +1045,16 @@ describe('required', () => {
             expect(result.value).toEqual({ foo: 'hi' });
         } else {
             expect(result.ok).toBeTruthy();
+        }
+    });
+
+    it('requires only the listed numeric-keyed fields', () => {
+        const schema = p.object({ 1: p.string().optional(), 2: p.number().optional() }).required(1);
+        const result = schema.safeParse({ 2: 5 });
+        if (!result.ok) {
+            expect(result.messages()).toEqual([{ path: ['1'], message: 'missing_value' }]);
+        } else {
+            expect(result.ok).toBeFalsy();
         }
     });
 
