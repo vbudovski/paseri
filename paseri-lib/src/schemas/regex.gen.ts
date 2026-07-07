@@ -2,8 +2,9 @@
 
 // User part validation adapted from https://github.com/validatorjs/validator.js/blob/master/src/lib/isEmail.js.
 const emailRegex = (): RegExp => /^(?:(?:[a-z\d\!\#\$\%\&'\*\-\/\=\?\^_\u0060\{\|\}\~\+]+)(?:\.(?:[a-z\d\!\#\$\%\&'\*\-\/\=\?\^_\u0060\{\|\}\~\+]+))*(?:)@(?:(?:[a-z\d](?:[a-z\d\-]*[a-z\d])?\.)+[a-z]{2,}))$/iv;
-// Atomic group here to prevent ReDoS.
-const emojiRegex = (): RegExp => /^(?:(?=((?:\p{Extended_Pictographic}|\p{Emoji_Component})+))\1)$/v;
+// `\p{RGI_Emoji}` (a property of strings, v-mode) matches whole emoji including sequences, so bare
+// `Emoji_Component` code points (digits, `#`, `*`, a lone regional indicator) are not accepted on their own.
+const emojiRegex = (): RegExp => /^\p{RGI_Emoji}+$/v;
 // Conversion of UUID regex from https://github.com/validatorjs/validator.js/blob/master/src/lib/isUUID.js.
 const uuidRegex = (): RegExp => /^(?:(?:\p{AHex}{8}-\p{AHex}{4}-[1-8]\p{AHex}{3}-[89ab]\p{AHex}{3}-\p{AHex}{12})|(?:00000000-0000-0000-0000-000000000000)|(?:ffffffff-ffff-ffff-ffff-ffffffffffff))$/iv;
 const nanoidRegex = (): RegExp => /^[a-z\d_-]{21}$/i;

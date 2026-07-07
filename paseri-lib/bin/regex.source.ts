@@ -12,8 +12,9 @@ const emailRegex = (): RegExp => regex('i')`
         (?<domain> ([a-z\d]([a-z\d\-]*[a-z\d])?\.)+ [a-z]{2,})
     )
 `;
-// Atomic group here to prevent ReDoS.
-const emojiRegex = (): RegExp => regex`^(\p{Extended_Pictographic} | \p{Emoji_Component})++$`;
+// `\p{RGI_Emoji}` (a property of strings, v-mode) matches whole emoji including sequences, so bare
+// `Emoji_Component` code points (digits, `#`, `*`, a lone regional indicator) are not accepted on their own.
+const emojiRegex = (): RegExp => /^\p{RGI_Emoji}+$/v;
 // Conversion of UUID regex from https://github.com/validatorjs/validator.js/blob/master/src/lib/isUUID.js.
 const uuidRegex = (): RegExp => regex('i')`
     ^ (\g<uuid> | \g<uuid-min> | \g<uuid-max>) $
