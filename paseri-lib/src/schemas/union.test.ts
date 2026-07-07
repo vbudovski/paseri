@@ -164,6 +164,41 @@ it('rejects invalid discriminator values', () => {
     }
 });
 
+it('discriminates a union whose member is wrapped in refine', () => {
+    const schema = p.union(
+        p.object({ kind: p.literal('a'), value: p.string() }).refine(() => true, { code: 'custom' }),
+        p.object({ kind: p.literal('b'), value: p.number() }),
+    );
+
+    // A refine on one member must not demote the union to try-each: an unknown tag still yields the single
+    // discriminator error rather than aggregated per-member issues.
+    const result = schema.safeParse({ kind: 'c', value: 'x' });
+    if (!result.ok) {
+        expect(result.messages()).toEqual([{ path: [], message: 'invalid_discriminator_value' }]);
+    } else {
+        expect(result.ok).toBeFalsy();
+    }
+});
+
+it("runs a refined member's predicate after discriminator dispatch", () => {
+    const schema = p.union(
+        p.object({ kind: p.literal('a'), value: p.string() }).refine((data) => data.value === 'ok', {
+            code: 'must_be_ok',
+        }),
+        p.object({ kind: p.literal('b'), value: p.number() }),
+    );
+
+    // Dispatch selects member 'a' by tag; its predicate then fails, and there is no fallback to member 'b'.
+    const refineFail = schema.safeParse({ kind: 'a', value: 'nope' });
+    if (!refineFail.ok) {
+        expect(refineFail.messages()).toEqual([{ path: [], message: 'must_be_ok' }]);
+    } else {
+        expect(refineFail.ok).toBeFalsy();
+    }
+
+    expect(schema.safeParse({ kind: 'a', value: 'ok' }).ok).toBe(true);
+});
+
 it('rejects non-object input to discriminated union', () => {
     const schema = p.union(
         p.object({ shape: p.literal('circle'), radius: p.number() }),

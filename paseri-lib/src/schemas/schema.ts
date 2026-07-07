@@ -65,6 +65,11 @@ abstract class Schema<OutputType> implements StandardSchemaV1<unknown, OutputTyp
     public _unwrapOptional(): Schema<unknown> {
         return this;
     }
+    // Strip refine layers to reach the wrapped schema (self for non-refine). Refine preserves the value space,
+    // so a refined object is still discriminable as that object; unlike optional/nullable, which do not.
+    public _unwrapRefine(): Schema<unknown> {
+        return this;
+    }
     parse(value: unknown, options?: ParseOptions): OutputType {
         const maxDepth = options?.maxDepth ?? DEFAULT_MAX_DEPTH;
         if (!Number.isInteger(maxDepth) || maxDepth < 1) {
@@ -317,6 +322,9 @@ class RefineSchema<
     }
     override _hasDefault(): boolean {
         return this._base._hasDefault();
+    }
+    override _unwrapRefine(): Schema<unknown> {
+        return this._base._unwrapRefine();
     }
     // Strip the optional layer from within, rebuilding refine around the unwrapped base so `.required()`
     // drops optionality but keeps the refinement (matches TS `Required`). Constructing directly bypasses the

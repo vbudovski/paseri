@@ -18,12 +18,11 @@ import { emitValidation } from '../../toSource.ts';
 import { tryEmitOutlinedObject } from '../object/outline.ts';
 
 type UnionIR = Extract<IR, { kind: 'union' }>;
-type ObjectIR = Extract<IR, { kind: 'object' }>;
 type LiteralIR = Extract<IR, { kind: 'literal' }>;
 
 interface Discriminator {
     readonly key: string;
-    readonly cases: readonly { readonly value: LiteralIR['value']; readonly member: ObjectIR }[];
+    readonly cases: readonly { readonly value: LiteralIR['value']; readonly member: IR }[];
     readonly expected: readonly string[];
 }
 
@@ -37,10 +36,21 @@ function findDiscriminator(union: UnionIR): Discriminator | undefined {
     if (key === undefined) {
         return undefined;
     }
-    const cases: { value: LiteralIR['value']; member: ObjectIR }[] = [];
+    const cases: { value: LiteralIR['value']; member: IR }[] = [];
     const expected: string[] = [];
-    for (const member of union.members as readonly ObjectIR[]) {
-        const field = member.fields[key] as LiteralIR;
+    for (const member of union.members) {
+        // The runtime discriminates through refine wrappers; unwrap to the object to read the tag but keep the
+        // outer member so its predicate still runs on dispatch. A member that doesn't resolve to an object
+        // (e.g. an unsupported refine) can't be dispatched — fall back to try-each, which surfaces the
+        // ResolutionError when it emits that member.
+        let object: IR = member;
+        while (object.kind === 'refine') {
+            object = object.inner;
+        }
+        if (object.kind !== 'object') {
+            return undefined;
+        }
+        const field = object.fields[key] as LiteralIR;
         cases.push({ value: field.value, member });
         expected.push(primitiveToString(field.value));
     }
@@ -78,9 +88,10 @@ function emitDiscriminatedUnion(
     for (let i = discriminator.cases.length - 1; i >= 0; i--) {
         const { value, member } = discriminator.cases[i];
         // Inlining every member into one return-sink body crosses V8's optimise-size limit on wide unions;
-        // outline non-modifying members instead. Accumulate sinks already outline via the object emitter.
+        // outline non-modifying members instead. Accumulate sinks already outline via the object emitter. Only a
+        // plain object outlines; a refined member runs through emitValidation so its predicate is emitted.
         let memberStatements: ts.Statement[] | undefined;
-        if (sink.kind === 'return' && !modifies(member, state)) {
+        if (sink.kind === 'return' && member.kind === 'object' && !modifies(member, state)) {
             memberStatements = tryEmitOutlinedObject(member, valueExpression, sink, state);
         }
         if (memberStatements === undefined) {
