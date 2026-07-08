@@ -187,7 +187,7 @@ function _validateObjectStripDefault(value: unknown, options?: {
     if (!(Number.isInteger(maxDepth)) || maxDepth < 1) {
         throw new Error("maxDepth must be a positive integer.");
     }
-    if (typeof value === "object" && value !== null && typeof (value as Record<PropertyKey, unknown>)["host"] === "string" && ((value as Record<PropertyKey, unknown>)["port"] === undefined || typeof (value as Record<PropertyKey, unknown>)["port"] === "number" && !(Number.isNaN((value as Record<PropertyKey, unknown>)["port"]))) && (Object.getPrototypeOf(value) === Object.prototype || Object.getPrototypeOf(value) === null)) {
+    if (isPlainObject(value) && typeof (value as Record<PropertyKey, unknown>)["host"] === "string" && ((value as Record<PropertyKey, unknown>)["port"] === undefined || typeof (value as Record<PropertyKey, unknown>)["port"] === "number" && !(Number.isNaN((value as Record<PropertyKey, unknown>)["port"])))) {
         return { ok: true as const, value: { host: (value as Record<PropertyKey, unknown>)["host"], port: (value as Record<PropertyKey, unknown>)["port"] === undefined ? _default0 : (value as Record<PropertyKey, unknown>)["port"] } as {
                 "host": string;
                 "port": number;

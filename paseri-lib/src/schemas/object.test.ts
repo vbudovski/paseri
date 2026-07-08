@@ -108,6 +108,18 @@ it('rejects a plain-looking object whose own constructor is undefined', () => {
     }
 });
 
+it('rejects a constructor-undefined object when the schema has a default field', () => {
+    // A default field with passthrough mode takes the fast path whose object gate must reject a plain-looking
+    // object whose own constructor is undefined — passthrough keeps the extra key, so the gate is the sole guard.
+    const schema = p.object({ a: p.string(), b: p.number().optional().default(5) }).passthrough();
+    const result = schema.safeParse({ a: 'x', constructor: undefined });
+    if (!result.ok) {
+        expect(result.messages()).toEqual([{ path: [], message: 'invalid_type' }]);
+    } else {
+        expect(result.ok).toBeFalsy();
+    }
+});
+
 it('rejects an array whose prototype was reset to Object.prototype', () => {
     const schema = p.object({ a: p.number() });
     const value: unknown[] = [];

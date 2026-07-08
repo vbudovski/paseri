@@ -23,7 +23,6 @@ import {
     numericLiteral,
     objectLiteral,
     postfixIncrement,
-    property,
     recordAccess,
     recordCast,
     recordType,
@@ -248,11 +247,10 @@ function tryEmitDefaultObjectEntry(
         [];
     const optionalFieldNames: string[] = [];
     let requiredCount = 0;
-    let shape: ts.Expression = binary(
-        equals(typeofExpression(valueExpression), stringLiteral('object')),
-        ts.SyntaxKind.AmpersandAmpersandToken,
-        notEquals(valueExpression, nullExpression),
-    );
+    // Gate with the spliced `isPlainObject` (as tryShape's object arm does), not a bespoke typeof + prototype
+    // check — the latter accepts a plain-looking object whose own `constructor` is undefined, which the runtime
+    // rejects. `isPlainObject` also subsumes the prototype/array guards, so no separate proto check is appended.
+    let shape: ts.Expression = call(identifier('isPlainObject'), [valueExpression]);
     for (const [fieldName, fieldIR] of fields) {
         const accessor = recordAccess(valueExpression, stringLiteral(fieldName));
         if (fieldIR.kind === 'default') {
@@ -301,16 +299,6 @@ function tryEmitDefaultObjectEntry(
     if (defaults.length === 0) {
         return undefined;
     }
-    const protoCall = (): ts.Expression => call(property(identifier('Object'), 'getPrototypeOf'), [valueExpression]);
-    shape = binary(
-        shape,
-        ts.SyntaxKind.AmpersandAmpersandToken,
-        binary(
-            equals(protoCall(), property(identifier('Object'), 'prototype')),
-            ts.SyntaxKind.BarBarToken,
-            equals(protoCall(), nullExpression),
-        ),
-    );
     const outputType = emitType(ir);
     // Strip + default fold: emit the OUTER object as a static-key literal — its own unknown keys drop out by
     // construction, absent defaults fill inline, one allocation. A nested strict/strip sibling records an extras

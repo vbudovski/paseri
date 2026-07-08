@@ -162,7 +162,7 @@ function _validateObjectDefault(value: unknown, options?: {
     if (!(Number.isInteger(maxDepth)) || maxDepth < 1) {
         throw new Error("maxDepth must be a positive integer.");
     }
-    if (typeof value === "object" && value !== null && typeof (value as Record<PropertyKey, unknown>)["foo"] === "string" && ((value as Record<PropertyKey, unknown>)["count"] === undefined || typeof (value as Record<PropertyKey, unknown>)["count"] === "number" && !(Number.isNaN((value as Record<PropertyKey, unknown>)["count"]))) && (Object.getPrototypeOf(value) === Object.prototype || Object.getPrototypeOf(value) === null)) {
+    if (isPlainObject(value) && typeof (value as Record<PropertyKey, unknown>)["foo"] === "string" && ((value as Record<PropertyKey, unknown>)["count"] === undefined || typeof (value as Record<PropertyKey, unknown>)["count"] === "number" && !(Number.isNaN((value as Record<PropertyKey, unknown>)["count"])))) {
         let _count2 = 0;
         for (const _k3 in value) {
             _count2++;
