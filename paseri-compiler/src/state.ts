@@ -383,8 +383,15 @@ function valueToExpression(value: unknown): ts.Expression {
         ]);
     }
     if (typeof value === 'object') {
-        const entries = Object.entries(value as Record<string, unknown>);
-        return objectLiteral(Object.fromEntries(entries.map(([key, inner]) => [key, valueToExpression(inner)])));
+        // Only a plain object serialises faithfully via its own enumerable entries. A non-plain object (RegExp,
+        // typed array, Error, class instance) keeps its data in internal slots that `Object.entries` misses, so it
+        // would emit a lossy `{}`; throw instead. The runtime rejects such defaults at construction, so this is a
+        // backstop rather than a reachable path.
+        const prototype = Object.getPrototypeOf(value);
+        if (prototype === Object.prototype || prototype === null) {
+            const entries = Object.entries(value as Record<string, unknown>);
+            return objectLiteral(Object.fromEntries(entries.map(([key, inner]) => [key, valueToExpression(inner)])));
+        }
     }
     throw new Error(`Cannot embed value of type ${typeof value} into generated source.`);
 }

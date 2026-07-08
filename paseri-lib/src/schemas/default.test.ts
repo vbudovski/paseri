@@ -505,4 +505,37 @@ describe('rejects non-serialisable defaults', () => {
     it('throws on a symbol default', () => {
         expect(() => p.unknown().optional().default(Symbol('x'))).toThrow('cannot be a symbol');
     });
+
+    it('throws on a RegExp default', () => {
+        expect(() => p.unknown().optional().default(/foo/i)).toThrow('cannot be a RegExp');
+    });
+
+    it('throws on a typed-array default', () => {
+        expect(() =>
+            p
+                .unknown()
+                .optional()
+                .default(new Uint8Array([1, 2, 3])),
+        ).toThrow('cannot be a Uint8Array');
+    });
+
+    it('throws on a class-instance default', () => {
+        class Point {
+            x = 1;
+        }
+        expect(() => p.unknown().optional().default(new Point())).toThrow('cannot be a Point');
+    });
+
+    it('throws on a non-serialisable value nested in an object default', () => {
+        expect(() => p.object({ re: p.unknown() }).optional().default({ re: /foo/i })).toThrow('cannot be a RegExp');
+    });
+
+    it('throws on a function nested in an object default', () => {
+        expect(() =>
+            p
+                .object({ fn: p.unknown() })
+                .optional()
+                .default({ fn: () => 1 }),
+        ).toThrow('cannot be a function');
+    });
 });
