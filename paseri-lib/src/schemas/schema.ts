@@ -251,15 +251,9 @@ class DefaultSchema<OutputType> extends Schema<OutputType> {
         super();
 
         this._schema = schema;
-        // A default must be a reproducible value the schema can clone to detach from the caller's reference
-        // (and embed as a literal once compiled). A function or symbol is an opaque identity — structuredClone
-        // rejects it and no literal expresses it — so it can be neither; reject it at construction.
-        if (typeof value === 'function' || typeof value === 'symbol') {
-            throw new Error(`A default value cannot be a ${typeof value}.`);
-        }
-        // Clone detaches from the caller's reference (deepClone is Temporal-aware; structuredClone throws on
-        // Temporal) and freeze blocks mutation of parsed results, so a property added to a shared Temporal
-        // instance can't leak across parses.
+        // Clone detaches from the caller's reference and freeze blocks mutation of parsed results (so a property
+        // added to a shared instance can't leak across parses). deepClone also enforces the default contract,
+        // throwing at construction for a value it can't faithfully store.
         this._default = deepFreeze(deepClone(value));
     }
     protected _clone(): DefaultSchema<OutputType> {

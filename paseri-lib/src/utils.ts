@@ -88,17 +88,28 @@ function isTemporalInstance(value: object): boolean {
 }
 
 /**
- * Deep-clones a `.default()` value so the stored copy is detached from the caller's reference. Unlike
- * `structuredClone`, Temporal instances are treated as immutable leaves — they can't be `structuredClone`d and
- * need no copy — while containers are cloned recursively so a nested Temporal survives. Remaining leaf types
- * (`Date`, `RegExp`, typed arrays, …) fall back to `structuredClone`.
+ * Deep-clones a `.default()` value so the stored copy is detached from the caller's reference, and enforces the
+ * default-value contract: a default must be faithfully cloneable, safe to freeze, and embeddable as a literal when
+ * compiled. Supported at any depth are primitives, plain objects, arrays, `Date`, Temporal instances, `Map`, and
+ * `Set`; Temporal instances are immutable leaves (no copy). Anything else — a function, symbol, `RegExp`, typed
+ * array, `Error`, or other class instance — satisfies none of those, so it is rejected here at construction rather
+ * than silently mangled (a `RegExp` clone can't be frozen-and-used; a class instance loses its prototype).
  */
 function deepClone<ValueType>(value: ValueType): ValueType {
-    if (value === null || typeof value !== 'object') {
+    if (value === null) {
+        return value;
+    }
+    if (typeof value === 'function' || typeof value === 'symbol') {
+        throw new Error(`A default value cannot be a ${typeof value}.`);
+    }
+    if (typeof value !== 'object') {
         return value;
     }
     if (isTemporalInstance(value)) {
         return value;
+    }
+    if (value instanceof Date) {
+        return new Date(value.getTime()) as ValueType;
     }
     if (Array.isArray(value)) {
         return (value as unknown[]).map((item) => deepClone(item)) as ValueType;
@@ -129,7 +140,8 @@ function deepClone<ValueType>(value: ValueType): ValueType {
         }
         return cloned as ValueType;
     }
-    return structuredClone(value);
+    const name = (value as { constructor?: { name?: string } }).constructor?.name ?? 'non-plain object';
+    throw new Error(`A default value cannot be a ${name}.`);
 }
 
 function deepFreeze<ValueType>(value: ValueType): ValueType {
