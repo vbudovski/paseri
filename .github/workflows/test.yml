@@ -38,7 +38,7 @@ jobs:
           persist-credentials: false
 
       - name: Set up Deno
-        uses: denoland/setup-deno@667a34cdef165d8d2b2e98dde39547c9daac7282 # v2
+        uses: denoland/setup-deno@667a34cdef165d8d2b2e98dde39547c9daac7282 # v2.0.4
         with:
           deno-version: "^2.9.0"
 
@@ -188,7 +188,7 @@ jobs:
         if: |
           github.event_name == 'pull_request' &&
           github.event.pull_request.head.repo.full_name == github.repository
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           LIB_PR: ${{ steps.delta.outputs.lib_pr }}
           LIB_MAIN: ${{ steps.delta.outputs.lib_main }}
