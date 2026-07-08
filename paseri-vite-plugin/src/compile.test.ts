@@ -62,4 +62,18 @@ describe('buildAggregator', () => {
                 'export { Post } from "paseri-schema:/abs/x.schema.ts?name=Post";\n',
         );
     });
+
+    it('re-exports a schema whose export name is an arbitrary string', async () => {
+        // A schema exported under an ES2022 string name is collected with that name; the aggregator must use the
+        // string re-export form, or it emits an unparseable `export { my-schema } from …` and the build fails.
+        const userUrl = new URL('userStringName.ts', genDir);
+        await Deno.writeTextFile(
+            userUrl,
+            `import * as p from '@paseri/paseri';\nconst s = p.string();\nexport { s as "my-schema" };\n`,
+        );
+        const source = buildAggregator([{ name: 'my-schema', specifier: userUrl.href }]);
+        // Oracle: the aggregator is valid ESM that re-exports the schema (imports without a syntax error).
+        const aggregated = await writeAndImport('aggregatorStringName', source);
+        expect(typeof (aggregated as Record<string, SchemaLike>)['my-schema'].safeParse).toBe('function');
+    });
 });
