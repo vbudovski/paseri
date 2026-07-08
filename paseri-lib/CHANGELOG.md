@@ -1,5 +1,18 @@
 # @paseri/paseri
 
+## 1.9.5
+
+### Patch Changes
+
+- d998a86: `p.string().email()` now rejects an address whose domain label ends with a hyphen (e.g. `foo@a-.com`), matching the hostname-label rule that a label may not begin or end with `-`. Interior hyphens (`foo@a-b.com`) remain valid.
+- b354c8f: `p.string().emoji()` now rejects bare emoji component code points — digits, `#`, `*`, and lone regional indicators — that previously validated as emoji. Per Unicode, these are emoji only inside a sequence, so keycaps (`1️⃣`), flags (`🇦🇺`), and other emoji sequences are still accepted.
+- 74fe3f0: An object schema now rejects an invalid value in a non-enumerable own property when the input also carries an inherited enumerable key; that combination previously let the invalid value pass unvalidated. Only objects built with `Object.create` / `Object.defineProperty` can trigger it — JSON, object literals, and spreads are unaffected.
+- 78c453c: `.pick()`, `.omit()`, `.partial()`, and `.required()` now work on objects with numeric keys (e.g. `p.object({ 1: p.string() })`). Previously `.pick(1)` threw `Object must contain at least one field.` and `.omit(1)` / `.partial(1)` / `.required(1)` silently did nothing.
+- 17549aa: A `.strip()` object schema now keeps a validated non-enumerable own property in its output instead of dropping it while removing unrecognised keys. Only reachable for objects built with `Object.create` / `Object.defineProperty`; JSON, object literals, and spreads are unaffected.
+- f850d39: `p.string().time({ offset: true })` and `p.string().datetime({ offset: true })` now reject a timezone offset whose hour is above 23 (e.g. `12:34:56+45:00`). The offset hour is validated as 00-23, matching the time-of-day hour.
+- 1b3e5a0: `.default()` now throws `A default value cannot be a <type>.` at construction when given a value it can't faithfully store — a RegExp, typed array, Error, or other class instance (at any depth). Previously such a value was silently corrupted.
+- 8ca9780: When a member of a discriminated union is wrapped in `.refine()`, an unknown discriminator value now reports a single `invalid_discriminator_value` — matching a union with no refined members — instead of aggregated per-member issues. The refined member's own checks still run once its tag is matched.
+
 ## 1.9.4
 
 ### Patch Changes

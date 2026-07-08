@@ -1,5 +1,19 @@
 # @paseri/compiler
 
+## 0.7.5
+
+### Patch Changes
+
+- 4fd9e0f: A compiled object that combines a `.default()` field with a nested `.strict()` or `.strip()` object now compiles to a faster validator.
+- 20ee684: A compiled object schema with a `.default()` field now rejects a plain-looking object whose own `constructor` is `undefined`. Previously it was accepted.
+- c6f42d5: Compiling a schema whose refine/chain callback imports from a path containing an apostrophe (e.g. `/Users/o'brien/schema.ts`) no longer emits a module with a `SyntaxError`.
+- 73e1388: A compiled object schema with both a `-0` default and a `0` default now keeps them distinct, instead of emitting `-0` for both.
+- 42fc1ad: A compiled object schema with a field named `__proto__` (or `constructor`, etc.) carrying a wrapped default now fires that default when the field is absent, instead of failing with `invalid_type` in browsers/Node.js.
+- 37cd88c: Compiling a schema with a sparse-array default (e.g. `[1, , 3]`) no longer crashes the compiler with an opaque `TypeError`.
+- f522046: A compiled `.strip()` object with a `.default()` field now handles unknown keys inside a nested `.strict()` or `.strip()` object correctly, matching the runtime: rejected for `.strict()`, dropped for `.strip()`. Previously the generated validator let them through.
+- 1b3e5a0: `.default()` now throws `A default value cannot be a <type>.` at construction when given a value it can't faithfully store — a RegExp, typed array, Error, or other class instance (at any depth). Previously such a value was silently corrupted.
+- 8ca9780: When a member of a discriminated union is wrapped in `.refine()`, an unknown discriminator value now reports a single `invalid_discriminator_value` — matching a union with no refined members — instead of aggregated per-member issues. The refined member's own checks still run once its tag is matched.
+
 ## 0.7.4
 
 ### Patch Changes
