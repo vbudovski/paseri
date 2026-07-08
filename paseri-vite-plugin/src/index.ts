@@ -83,12 +83,15 @@ async function evaluateSchemaFile(
                     if (id !== resolvedEntry) {
                         return null;
                     }
-                    return `import '@paseri/paseri/introspect';\nexport * from ${JSON.stringify(file)};\n`;
+                    // `export *` (bare) drops the file's default export, so a schema written as
+                    // `export default …` would vanish. `export * as` builds a namespace that includes the
+                    // default, which the caller reads back via `.schemas`.
+                    return `import '@paseri/paseri/introspect';\nexport * as schemas from ${JSON.stringify(file)};\n`;
                 },
             },
         ],
     });
-    return module;
+    return module.schemas as Readonly<Record<string, unknown>>;
 }
 
 // Dev-only: evaluate + compile each schema in a `.schema.ts` to surface AOT-compile
