@@ -137,9 +137,21 @@ function emitObjectSlowPath(ir: ObjectIR, valueExpression: ts.Expression, sink: 
         // Use the literal field name for the property access. V8 inline-caches
         // `value["fieldName"]` like a dot-access on a stable shape; the dynamic
         // `value[loopKey]` form forces a generic lookup per iteration.
-        const coreStatements: ts.Statement[] = [
-            letStatement(fieldIdentifier, undefined, recordAccess(valueExpression, stringLiteral(fieldName))),
-        ];
+        // For a prototype-shadowing name (`__proto__`, `constructor`, …), reading an absent key returns the
+        // inherited value (Object.prototype, the Object constructor, …) via Annex B, not undefined — which would
+        // defeat the wrapped-default `=== undefined` trigger. Gate on own-presence so an absent key reads undefined
+        // (an own data property shadows the inherited accessor, so a present key still reads its own value).
+        const fieldRead = shadowsPrototype(fieldName)
+            ? ternary(
+                  call(property(identifier('Object'), 'hasOwn'), [
+                      recordCast(valueExpression),
+                      stringLiteral(fieldName),
+                  ]),
+                  recordAccess(valueExpression, stringLiteral(fieldName)),
+                  undefinedExpression,
+              )
+            : recordAccess(valueExpression, stringLiteral(fieldName));
+        const coreStatements: ts.Statement[] = [letStatement(fieldIdentifier, undefined, fieldRead)];
         if (fieldIsModified) {
             coreStatements.push(letStatement(fieldIsModified, undefined, falseLiteral));
         }
