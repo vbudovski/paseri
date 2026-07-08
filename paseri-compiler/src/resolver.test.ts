@@ -5,6 +5,7 @@ import { pathToFileURL } from 'node:url';
 import * as p from '@paseri/paseri';
 import { expect } from '@std/expect';
 import { it } from '@std/testing/bdd';
+import ts from 'typescript';
 import * as helpers from './_import-fixtures.ts';
 import isPositive, { isNonEmpty as check, isNonEmpty } from './_import-fixtures.ts';
 import { compileSync } from './aot-shadow.ts';
@@ -144,6 +145,34 @@ it('re-reads a source file after it changes on disk', () => {
         utimesSync(file, later, later);
         const second = resolveBindings(url, ['HELPER'], noGlobals, new Set(), new Set());
         expect(second.hoists.join('\n')).toContain('value > 5');
+    } finally {
+        rmSync(dir, { recursive: true, force: true });
+    }
+});
+
+it('emits a valid import when the resolved specifier contains an apostrophe', () => {
+    // A file path may contain an apostrophe (o'brien); it survives URL resolution, so the specifier must be
+    // escaped when spliced into the generated import or the emitted module has a SyntaxError.
+    const dir = mkdtempSync(join(tmpdir(), 'paseri-resolver-'));
+    try {
+        writeFileSync(join(dir, "o'brien.ts"), 'export const isOk = (value) => value > 0;\n');
+        const bindingFile = join(dir, 'binding.ts');
+        writeFileSync(bindingFile, 'import { isOk } from "./o\'brien.ts";\nconst HELPER = (value) => isOk(value);\n');
+
+        const { imports } = resolveBindings(
+            pathToFileURL(bindingFile).href,
+            ['HELPER'],
+            () => false,
+            new Set(),
+            new Set(),
+        );
+
+        expect(imports.length).toBe(1);
+        // Oracle: the emitted import parses as valid JS (spec), not "contains an escaped quote" (mirrors the fix).
+        const parsed = ts.createSourceFile('gen.ts', imports[0], ts.ScriptTarget.Latest, false) as ts.SourceFile & {
+            parseDiagnostics: readonly ts.Diagnostic[];
+        };
+        expect(parsed.parseDiagnostics.length).toBe(0);
     } finally {
         rmSync(dir, { recursive: true, force: true });
     }
