@@ -331,7 +331,12 @@ function valueToExpression(value: unknown): ts.Expression {
         return bigintLiteral(value);
     }
     if (Array.isArray(value)) {
-        return factory.createArrayLiteralExpression(value.map(valueToExpression), false);
+        // `Array.map` skips holes, leaving undefined slots that crash the printer. Iterate by index and emit an
+        // elision for each hole (a sparse `[1, , 3]` default).
+        const elements = Array.from({ length: value.length }, (_, index) =>
+            index in value ? valueToExpression(value[index]) : factory.createOmittedExpression(),
+        );
+        return factory.createArrayLiteralExpression(elements, false);
     }
     if (value instanceof Date) {
         return newExpression(identifier('Date'), undefined, [stringLiteral(value.toISOString())]);

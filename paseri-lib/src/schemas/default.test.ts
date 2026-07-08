@@ -141,6 +141,20 @@ describe('collection defaults', () => {
             }),
         );
     });
+
+    it('substitutes a sparse-array default, preserving holes', () => {
+        // biome-ignore lint/suspicious/noSparseArray: the hole is the value under test — it must survive to output.
+        const schema = p.array(p.number().optional()).optional().default([1, , 3]);
+        const result = schema.safeParse(undefined);
+        if (result.ok) {
+            expect(result.value.length).toBe(3);
+            expect(1 in result.value).toBe(false);
+            expect(result.value[0]).toBe(1);
+            expect(result.value[2]).toBe(3);
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
+    });
 });
 
 describe('Temporal defaults', () => {
