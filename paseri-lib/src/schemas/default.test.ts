@@ -325,6 +325,18 @@ describe('inside object schemas', () => {
         }
     });
 
+    it('substitutes for a missing __proto__ field with a wrapped default', () => {
+        // As above, but the default is wrapped (nullable), so absence must be detected via an own-key check:
+        // reading value["__proto__"] on an absent key yields Object.prototype under Annex B, not undefined.
+        const schema = p.object({ ['__proto__']: p.number().optional().default(5).nullable(), other: p.string() });
+        const result = schema.safeParse({ other: 'x' });
+        if (result.ok) {
+            expect(Object.getOwnPropertyDescriptor(result.value, '__proto__')?.value).toBe(5);
+        } else {
+            expect(result.ok).toBeTruthy();
+        }
+    });
+
     it('does not substitute for a non-enumerable own field', () => {
         const schema = p.object({ port: p.number().optional().default(123) });
         const data: Record<string, unknown> = {};
