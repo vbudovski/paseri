@@ -1,5 +1,12 @@
 # @paseri/vite-plugin
 
+## 0.2.2
+
+### Patch Changes
+
+- 3963cbb: A `.schema.ts` file that exports a schema under a string name (e.g. `export { schema as "my-schema" }`) no longer breaks the build with a `SyntaxError`.
+- e32d00a: A `.schema.ts` that exports its schema as the module default (`export default p.object(…)`) now compiles, instead of failing the build with "no Paseri schema exports".
+
 ## 0.2.1
 
 ### Patch Changes
