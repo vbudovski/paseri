@@ -64,7 +64,15 @@ function compileSchema(name: string, schema: SchemaLike, options: CompileOptions
 // stand-in from its own generated module. No concatenation -> no duplicate-import or
 // name-counter collisions across multiple schemas in one file.
 function buildAggregator(entries: readonly AggregatorEntry[]): string {
-    return `${entries.map((entry) => `export { ${entry.name} } from ${JSON.stringify(entry.specifier)};`).join('\n')}\n`;
+    return `${entries
+        .map((entry) => {
+            // A schema exported under an ES2022 string name (`export { s as "my-schema" }`) is collected with that
+            // name; splicing it bare produces the unparseable `export { my-schema }`. Emit the string re-export form
+            // for any name that isn't a plain identifier (valid identifiers stay bare, unquoted).
+            const exported = /^[A-Za-z_$][A-Za-z0-9_$]*$/.test(entry.name) ? entry.name : JSON.stringify(entry.name);
+            return `export { ${exported} } from ${JSON.stringify(entry.specifier)};`;
+        })
+        .join('\n')}\n`;
 }
 
 export type { AggregatorEntry, CompileOptions, SchemaExport, SchemaLike };
