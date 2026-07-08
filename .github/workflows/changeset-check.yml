@@ -36,14 +36,17 @@ jobs:
           # Require a changeset only for changes that ship to consumers: files `deno publish` includes for
           # their member, honouring each member's publish include/exclude. Tests, test-only helpers, and
           # generated fixtures are publish-excluded, so touching only those needs no changeset.
-          published_changes=$(git diff --name-only "$BASE_SHA" "$HEAD_SHA" | deno run --allow-read bin/published-changes.ts)
+          #
+          # Three-dot (merge-base..HEAD): only what this PR introduced. Two-dot would also flag base-branch
+          # commits the PR is merely behind, demanding a changeset for files it never touched.
+          published_changes=$(git diff --name-only "$BASE_SHA...$HEAD_SHA" | deno run --allow-read bin/published-changes.ts)
 
           if [ -z "$published_changes" ]; then
             echo "No published changes — changeset not required."
             exit 0
           fi
 
-          new_changesets=$(git diff --name-only --diff-filter=A "$BASE_SHA" "$HEAD_SHA" -- .changeset \
+          new_changesets=$(git diff --name-only --diff-filter=A "$BASE_SHA...$HEAD_SHA" -- .changeset \
             | grep -E '^\.changeset/.+\.md$' \
             | grep -v '^\.changeset/README\.md$' || true)
 
