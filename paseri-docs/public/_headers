@@ -2,3 +2,14 @@
 # given URL never change. Cache them permanently and skip revalidation.
 /_astro/*
   Cache-Control: public, max-age=31536000, immutable
+
+# Pagefind content-hashes its search-index chunks; the filenames change when the
+# indexed content changes, so they're safe to cache forever. Everything else in
+# /pagefind/ is intentionally excluded — pagefind-entry.json is the manifest and
+# must stay fresh, and the stable-named JS/CSS and wasm.*.pagefind files change
+# between Pagefind releases without changing name (Pagefind#814), so freezing
+# them would serve broken search after an upgrade.
+/pagefind/fragment/*
+  Cache-Control: public, max-age=31536000, immutable
+/pagefind/index/*
+  Cache-Control: public, max-age=31536000, immutable
