@@ -112,6 +112,15 @@ describe('vite build', () => {
         assertParity(validate, runtime, cases);
     });
 
+    it('compiles a schema exported as the module default', async () => {
+        // A schema written as `export default …` must compile like a named one; the loader has to expose
+        // the default (a bare `export *` drops it, which would report the file as having no schema exports).
+        const { code, validate } = await buildAndImport('entry-default.ts', 'out-default.mjs');
+        expect(code).not.toContain('ObjectSchema'); // runtime traversal dropped → the default was AOT-compiled
+        const runtime = p.object({ id: p.number().int().gte(1) });
+        assertParity(validate, runtime, [{ id: 1 }, { id: 0 }, 'nope']);
+    });
+
     it('rejects app code that uses a schema export beyond .safeParse/.parse', async () => {
         await expect(buildEntry('entry-misuse.ts')).rejects.toThrow('User.optional');
     });
