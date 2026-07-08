@@ -354,16 +354,19 @@ function resolveSpecifier(specifier: string, callSiteFile: string, trustedBareSp
 }
 
 function formatImport(binding: ImportBinding, resolvedSpecifier: string): string {
+    // JSON.stringify escapes the specifier into a valid string literal — a resolved path/URL can contain an
+    // apostrophe (`o'brien`), which would break a hand-quoted `'...'`.
+    const specifier = JSON.stringify(resolvedSpecifier);
     if (binding.kind === 'default') {
-        return `import ${binding.local} from '${resolvedSpecifier}';`;
+        return `import ${binding.local} from ${specifier};`;
     }
     if (binding.kind === 'namespace') {
-        return `import * as ${binding.local} from '${resolvedSpecifier}';`;
+        return `import * as ${binding.local} from ${specifier};`;
     }
     if (binding.imported === binding.local) {
-        return `import { ${binding.local} } from '${resolvedSpecifier}';`;
+        return `import { ${binding.local} } from ${specifier};`;
     }
-    return `import { ${binding.imported} as ${binding.local} } from '${resolvedSpecifier}';`;
+    return `import { ${binding.imported} as ${binding.local} } from ${specifier};`;
 }
 
 /**
