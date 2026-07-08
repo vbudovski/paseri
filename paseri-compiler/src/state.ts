@@ -282,18 +282,23 @@ function defaultNeedsFreeze(value: unknown): boolean {
     return value !== null && typeof value === 'object';
 }
 
+// `-0` and `0` are distinct default values (`Object.is`), but a `Map` keys them the same (SameValueZero), which
+// would dedup them to one hoisted const and emit `-0` for both. Key `-0` by a sentinel so it reuses only other `-0`s.
+const NEGATIVE_ZERO_KEY = Symbol('negativeZero');
+
 /**
  * Hoists a `.default()` value as a module-scope constant and returns the identifier. Object values are wrapped
  * in `deepFreeze(<value>)`; primitives are emitted directly. Repeat calls with the same value (by reference)
  * reuse the declaration.
  */
 function registerDefault(state: State, value: unknown): ts.Identifier {
-    const existing = state.defaults.get(value);
+    const key = Object.is(value, -0) ? NEGATIVE_ZERO_KEY : value;
+    const existing = state.defaults.get(key);
     if (existing !== undefined) {
         return existing;
     }
     const result = identifier(`_default${state.defaults.size}`);
-    state.defaults.set(value, result);
+    state.defaults.set(key, result);
     const valueExpression = valueToExpression(value);
     const initializer = defaultNeedsFreeze(value) ? call(identifier('deepFreeze'), [valueExpression]) : valueExpression;
     state.hoistedDeclarations.push(constStatement(result, undefined, initializer));

@@ -25,6 +25,17 @@ it('preserves a negative-zero default', () => {
     }
 });
 
+it('keeps a -0 default distinct from a 0 default on the same object', () => {
+    const schema = p.object({ a: p.number().optional().default(-0), b: p.number().optional().default(0) });
+    const result = schema.safeParse({});
+    if (result.ok) {
+        expect(Object.is(result.value.a, -0)).toBe(true);
+        expect(Object.is(result.value.b, 0)).toBe(true);
+    } else {
+        expect(result.ok).toBeTruthy();
+    }
+});
+
 it('preserves a default whose string contains module syntax', () => {
     const schema = p.string().optional().default('export function evil() {}');
     const result = schema.safeParse(undefined);
