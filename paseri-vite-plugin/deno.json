@@ -8,10 +8,10 @@
     ".": "./src/index.ts"
   },
   "imports": {
-    "@std/expect": "jsr:@std/expect@^1.0.19",
+    "@std/expect": "jsr:@std/expect@^1.0.20",
     "@std/testing": "jsr:@std/testing@^1.0.19",
     "fast-check": "npm:fast-check@^4.8.0",
-    "vite": "npm:vite@^7.3.5"
+    "vite": "npm:vite@^7.3.6"
   },
   "test": {
     "permissions": {

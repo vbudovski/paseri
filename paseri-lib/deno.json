@@ -15,7 +15,7 @@
     "@std/expect": "jsr:@std/expect@^1.0.20",
     "@std/path": "jsr:@std/path@^1.1.6",
     "@std/testing": "jsr:@std/testing@^1.0.19",
-    "@sveltejs/acorn-typescript": "npm:@sveltejs/acorn-typescript@^1.0.10",
+    "@sveltejs/acorn-typescript": "npm:@sveltejs/acorn-typescript@^1.0.11",
     "@vbudovski/rollup-plugin-transform-regex": "jsr:@vbudovski/rollup-plugin-transform-regex@^0.1.4",
     "acorn": "npm:acorn@^8.17.0",
     "expect-type": "npm:expect-type@^1.4.0",
