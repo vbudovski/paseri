@@ -58,6 +58,16 @@ type UnwrapSomeOptional<ShapeType, Keys extends keyof ShapeType> = {
     [K in keyof ShapeType]: K extends Keys ? UnwrapOptional<ShapeType[K]> : ShapeType[K];
 };
 
+// TypeScript types a generic object spread as the intersection `DestinationShapeType & SourceShapeType`, which
+// collapses conflicting keys, whereas the runtime spread lets `source` win — exactly type-fest's `Merge`. The
+// compiler only accepts that assertion under plain record bounds, so the cast is confined to this helper.
+function mergeShapes<
+    DestinationShapeType extends Record<string, unknown>,
+    SourceShapeType extends Record<string, unknown>,
+>(destination: DestinationShapeType, source: SourceShapeType): Merge<DestinationShapeType, SourceShapeType> {
+    return { ...destination, ...source } as Merge<DestinationShapeType, SourceShapeType>;
+}
+
 class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends Schema<Infer<ShapeType>> {
     private readonly _shape: ShapeType;
     // Set for shapes assembled by derivation methods (merge/pick/omit/partial/required): their V8 maps
@@ -363,14 +373,7 @@ class ObjectSchema<ShapeType extends Record<PropertyKey, AnySchemaType>> extends
     merge<ShapeTypeOther extends ValidShapeType<ShapeTypeOther>>(
         other: ObjectSchema<ShapeTypeOther>,
     ): ObjectSchema<Merge<ShapeType, ShapeTypeOther>> {
-        // Cast required: TS can't reduce `ShapeType & ShapeTypeOther` to type-fest's `Merge` when both are unresolved generics.
-        const merged = new ObjectSchema<Merge<ShapeType, ShapeTypeOther>>(
-            {
-                ...this._shape,
-                ...other._shape,
-            } as Merge<ShapeType, ShapeTypeOther>,
-            true,
-        );
+        const merged = new ObjectSchema(mergeShapes(this._shape, other._shape), true);
         merged._mode = other._mode;
 
         return merged;
