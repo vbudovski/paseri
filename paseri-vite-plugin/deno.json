@@ -2,7 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/denoland/deno/main/cli/schemas/config-file.v1.json",
   "name": "@paseri/vite-plugin",
   "license": "MIT",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Vite plugin that AOT-compiles Paseri schemas at build time.",
   "exports": {
     ".": "./src/index.ts"

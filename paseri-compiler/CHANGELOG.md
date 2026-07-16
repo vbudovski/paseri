@@ -1,5 +1,11 @@
 # @paseri/compiler
 
+## 0.7.6
+
+### Patch Changes
+
+- c854627: The generated API documentation no longer shows `IRGraph` as an unresolved type on `toSource`.
+
 ## 0.7.5
 
 ### Patch Changes
