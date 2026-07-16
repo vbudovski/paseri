@@ -16,6 +16,7 @@
     "lint-staged": "deno run --allow-env --allow-read --allow-write --allow-sys --allow-run lint-staged",
     "ci": "deno run --allow-env --allow-read --allow-run @biomejs/biome ci",
     "check": "deno run --allow-env --allow-read --allow-run @biomejs/biome check",
+    "check:docs": "deno run --allow-read --allow-run=deno bin/check-docs.ts",
     "commitlint": "deno run --allow-env --allow-sys --allow-read --allow-write --allow-run @commitlint/cli",
     "changeset": "deno run --allow-read --allow-write --allow-run=deno bin/changeset.ts",
     "changeset:version": "deno run --allow-read --allow-write --allow-run=deno bin/changeset.ts version",

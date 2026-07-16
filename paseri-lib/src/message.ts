@@ -1,6 +1,7 @@
 import type { Simplify, UnwrapTagged } from 'type-fest';
 import type { IssueCode, LeafNode, Message, TreeNode } from './issue.ts';
 
+/** @internal */
 type Translations = Simplify<
     {
         [K in IssueCode as UnwrapTagged<K>]: (

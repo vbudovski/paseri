@@ -1,4 +1,4 @@
-import type { IR, IRGraph } from '@paseri/paseri/introspect';
+import type { IR, IRGraph as LibIRGraph } from '@paseri/paseri/introspect';
 import ts from 'typescript';
 import {
     binary,
@@ -61,6 +61,11 @@ import { emitSuccessRouting, failurePayload, leafExpression, successPayload } fr
 import { ResolutionError } from './resolver.ts';
 import { RUNTIME_SOURCE } from './runtime.gen.ts';
 import { defaultNeedsFreeze, makeState, type Sink, type State } from './state.ts';
+
+// `toSource` is public, so a direct reference to paseri-lib's IRGraph would leak as a private-type-ref in deno doc.
+// Keep this local @internal alias rather than inlining it.
+/** @internal */
+type IRGraph = LibIRGraph;
 
 const { factory } = ts;
 

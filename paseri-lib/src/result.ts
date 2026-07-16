@@ -1,6 +1,7 @@
 import type { CustomIssueCode, Message, TreeNode } from './issue.ts';
 import { messageList, type Translations } from './message.ts';
 
+/** @internal */
 interface ParseSuccessResult<OutputType> {
     readonly ok: true;
     readonly value: OutputType;
@@ -12,6 +13,7 @@ interface ParseErrorResultInterface {
     readonly messages: (locale?: Translations) => readonly Message[];
 }
 
+/** @internal */
 class ParseErrorResult implements ParseErrorResultInterface {
     readonly ok = false as const;
     private readonly _issue: TreeNode;
@@ -33,6 +35,7 @@ class ParseErrorResult implements ParseErrorResultInterface {
 class PaseriError extends Error {
     private readonly _issue: TreeNode;
 
+    /** @internal */
     constructor(issue: TreeNode) {
         super('Failed to parse. See `e.messages()` for details.');
 
@@ -48,6 +51,7 @@ class PaseriError extends Error {
     }
 }
 
+/** @internal */
 type ParseResult<OutputType> = ParseSuccessResult<OutputType> | ParseErrorResultInterface;
 
 /**
@@ -74,8 +78,10 @@ function err(code: string, params?: Record<string, unknown>): ParseErrorResult {
 // To avoid creating intermediate objects, we return `undefined` when the input value does not need to be sanitised.
 // Primitive values can just be passed straight through in the `parse` and `safeParse` functions, and `undefined`
 // signals this.
+/** @internal */
 type InternalParseResult<OutputType> = ParseSuccessResult<OutputType> | TreeNode | undefined;
 
+/** @internal */
 // biome-ignore lint/suspicious/noExplicitAny: Needed to be able to assert Record is ParseSuccessResult.
 function isParseSuccess<OutputType>(value: Record<string, any>): value is ParseSuccessResult<OutputType> {
     return value.ok === true;

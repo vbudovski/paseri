@@ -17,12 +17,17 @@
  *
  * @module
  */
-import type { Logger, Plugin, ResolvedConfig } from 'vite';
+import type { Logger, ResolvedConfig, Plugin as VitePlugin } from 'vite';
 import { runnerImport } from 'vite';
 import { type AggregatorEntry, buildAggregator, collectSchemaExports, compileSchema } from './compile.ts';
 import { SCHEMA_SUFFIX } from './constants.ts';
 import { checkSchemaImportUsage } from './guard.ts';
 import { encodeVirtualId, isVirtualId, parseVirtualId } from './virtual.ts';
+
+// `paseri` is public, so a direct reference to Vite's Plugin would leak as a private-type-ref in deno doc.
+// Keep this local @internal alias rather than inlining it.
+/** @internal */
+type Plugin = VitePlugin;
 
 /** Options for the Paseri Vite plugin. */
 interface PaseriPluginOptions {

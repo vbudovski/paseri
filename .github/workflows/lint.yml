@@ -39,3 +39,6 @@ jobs:
         id: biome-ci
         run: |
           deno task ci
+
+      - name: Doc lint
+        run: deno task check:docs

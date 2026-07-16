@@ -7,7 +7,9 @@
  * referenced by `{ kind: 'ref' }` entries elsewhere in the graph.
  */
 interface IRGraph {
+    /** The root node of the graph. */
     readonly entry: IR;
+    /** Shared nodes keyed by name, targeted by `{ kind: 'ref' }` entries elsewhere in the graph. */
     readonly named: Readonly<Record<string, IR>>;
     /**
      * Names from `named` whose emission re-entered themselves — i.e. targets that actually participate in a
@@ -79,10 +81,15 @@ type IR =
  * re-emit it ahead of time.
  */
 interface SerializedCallback {
+    /** The callback's source text, as written at the call site. */
     readonly source: string;
+    /** The callback's name, or the empty string when anonymous. */
     readonly name: string;
+    /** The number of declared parameters. */
     readonly arity: number;
+    /** The declared parameter names, in order. */
     readonly parameterNames: readonly string[];
+    /** Identifiers the callback references but does not bind. */
     readonly freeIdentifiers: readonly string[];
     /**
      * URL of the file where `.refine()` / `.chain()` was constructed. Set when the host produces a parseable stack at
