@@ -1,5 +1,11 @@
 # @paseri/vite-plugin
 
+## 0.2.3
+
+### Patch Changes
+
+- c854627: The generated API documentation no longer shows Vite's `Plugin` as an unresolved type on the `paseri` plugin.
+
 ## 0.2.2
 
 ### Patch Changes

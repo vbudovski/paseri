@@ -1,5 +1,12 @@
 # @paseri/paseri
 
+## 1.9.6
+
+### Patch Changes
+
+- 65174b9: Fixed a type error in the object schema's `merge()` implementation.
+- 6f81d71: The public schema methods (`parse`, `safeParse`, `optional`, `nullable`, `chain`, `refine`, `~standard`) and the introspection types are now documented, and internal-only symbols no longer appear in the generated API documentation.
+
 ## 1.9.5
 
 ### Patch Changes
