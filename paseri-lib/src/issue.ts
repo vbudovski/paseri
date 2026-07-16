@@ -1,5 +1,6 @@
 import type { Tagged } from 'type-fest';
 
+/** @internal */
 const issueCodes = {
     // Common.
     INVALID_TYPE: 'invalid_type' as Tagged<'invalid_type', 'IssueCode'>,
@@ -48,6 +49,7 @@ const issueCodes = {
 } as const;
 
 type IssueCode = (typeof issueCodes)[keyof typeof issueCodes];
+/** @internal */
 type CustomIssueCode = Tagged<string, 'CustomIssueCode'>;
 
 type LeafNode =
@@ -99,13 +101,16 @@ interface NestNode {
     child: TreeNode;
 }
 
+/** @internal */
 type TreeNode = LeafNode | JoinNode | NestNode;
 
+/** @internal */
 interface Message {
     path: PropertyKey[];
     message: string;
 }
 
+/** @internal */
 function addIssue(node: TreeNode | undefined, newNode: TreeNode): TreeNode {
     if (!node) {
         return newNode;

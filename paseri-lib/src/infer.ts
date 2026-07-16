@@ -1,4 +1,4 @@
-import type { Merge, Simplify } from 'type-fest';
+import type { Merge, Simplify as TypeFestSimplify } from 'type-fest';
 import type {
     AnySchemaType,
     DefaultSchema,
@@ -8,6 +8,12 @@ import type {
     Schema,
 } from './schemas/schema.ts';
 
+// `Infer` is public, so a direct reference to type-fest's Simplify would leak as a private-type-ref in deno doc.
+// Keep this local @internal alias rather than inlining it.
+/** @internal */
+type Simplify<T> = TypeFestSimplify<T>;
+
+/** @internal */
 type InferArray<SchemaType> = {
     [Key in keyof SchemaType]: SchemaType[Key] extends Schema<infer OutputType> ? OutputType : never;
 };
@@ -46,6 +52,7 @@ type InferObjectRequired<SchemaType> = {
         ? never
         : Key]: SchemaType[Key] extends Schema<infer OutputType> ? OutputType : never;
 };
+/** @internal */
 type InferObject<SchemaType> = Merge<InferObjectOptional<SchemaType>, InferObjectRequired<SchemaType>>;
 
 /**

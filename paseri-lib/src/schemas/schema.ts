@@ -8,6 +8,7 @@ import { deepClone, deepFreeze } from '../utils.ts';
 
 const DEFAULT_MAX_DEPTH = 1000;
 
+/** @internal */
 interface ParseOptions {
     /** Caps the nesting depth of recursive input. Defaults to 1000. */
     maxDepth?: number;
@@ -18,6 +19,10 @@ interface ParseOptions {
  * interface.
  */
 abstract class Schema<OutputType> implements StandardSchemaV1<unknown, OutputType> {
+    /**
+     * The [Standard Schema](https://standardschema.dev) interface, letting Paseri schemas be consumed by any
+     * Standard Schema-compatible tool.
+     */
     get '~standard'(): StandardSchemaV1.Props<unknown, OutputType> {
         // deno-lint-ignore no-this-alias
         const self = this;
@@ -39,10 +44,7 @@ abstract class Schema<OutputType> implements StandardSchemaV1<unknown, OutputTyp
         };
     }
 
-    /**
-     * Builds the intermediate representation node for this schema. Populated at runtime by the `./introspect`
-     * side-effect subpath; calling it before importing that subpath fails with `_emit is not a function`.
-     */
+    /** @internal */
     declare _emit: (context: IRContext) => IR;
     /**
      * Produces the {@link IRGraph} for this schema — the input consumed by paseri-compiler. Populated at runtime by
@@ -51,25 +53,36 @@ abstract class Schema<OutputType> implements StandardSchemaV1<unknown, OutputTyp
      */
     declare toIR: () => IRGraph;
 
+    /** @internal */
     protected abstract _clone(): Schema<OutputType>;
+    /** @internal */
     public abstract _parse(value: unknown, _depth: number, _maxDepth: number): InternalParseResult<OutputType>;
     // This is to allow optional and nullable to be used together in any order.
+    /** @internal */
     public _isOptional(): boolean {
         return false;
     }
     // Whether a default fires for undefined input. Nullable/refine delegate (like _isOptional); chain is
     // deliberately a semantic boundary for wrapper traits and does not.
+    /** @internal */
     public _hasDefault(): boolean {
         return false;
     }
+    /** @internal */
     public _unwrapOptional(): Schema<unknown> {
         return this;
     }
     // Strip refine layers to reach the wrapped schema (self for non-refine). Refine preserves the value space,
     // so a refined object is still discriminable as that object; unlike optional/nullable, which do not.
+    /** @internal */
     public _unwrapRefine(): Schema<unknown> {
         return this;
     }
+    /**
+     * Validate `value` and return the typed output, throwing {@link PaseriError} if validation fails.
+     * @param value The value to validate.
+     * @param options Parsing options; `maxDepth` caps the nesting depth of recursive input (default 1000).
+     */
     parse(value: unknown, options?: ParseOptions): OutputType {
         const maxDepth = options?.maxDepth ?? DEFAULT_MAX_DEPTH;
         if (!Number.isInteger(maxDepth) || maxDepth < 1) {
@@ -84,6 +97,12 @@ abstract class Schema<OutputType> implements StandardSchemaV1<unknown, OutputTyp
         }
         throw new PaseriError(issueOrSuccess);
     }
+    /**
+     * Validate `value` and return a result object instead of throwing: `{ ok: true, value }` on success, or
+     * `{ ok: false }` carrying the issue and a `messages()` accessor on failure.
+     * @param value The value to validate.
+     * @param options Parsing options; `maxDepth` caps the nesting depth of recursive input (default 1000).
+     */
     safeParse(value: unknown, options?: ParseOptions): ParseResult<OutputType> {
         const maxDepth = options?.maxDepth ?? DEFAULT_MAX_DEPTH;
         if (!Number.isInteger(maxDepth) || maxDepth < 1) {
@@ -101,18 +120,34 @@ abstract class Schema<OutputType> implements StandardSchemaV1<unknown, OutputTyp
 
         return new ParseErrorResult(issueOrSuccess);
     }
+    /**
+     * Returns a new schema that also accepts `undefined`. The returned schema also provides a `.default(value)`
+     * method that substitutes `value` when the input is `undefined`.
+     */
     optional(): OptionalSchema<OutputType, this> {
         return new OptionalSchema<OutputType, this>(this);
     }
+    /** Returns a new schema that also accepts `null`. */
     nullable(): NullableSchema<OutputType, this> {
         return new NullableSchema<OutputType, this>(this);
     }
+    /**
+     * Transform this schema's output and validate the result against `schema`, producing a schema for the
+     * transformed value.
+     * @param schema The schema validating the transformed value.
+     * @param transformer Maps this schema's output to a result for `schema`.
+     */
     chain<ToOutputType>(
         schema: Schema<ToOutputType>,
         transformer: (value: OutputType) => ParseResult<ToOutputType>,
     ): Schema<ToOutputType> {
         return new ChainSchema(this, schema, transformer);
     }
+    /**
+     * Add a custom validation check. When `predicate` returns `false`, parsing fails with the given issue `code`.
+     * @param predicate Returns `true` when the value is valid.
+     * @param options The issue `code`, plus optional `path` and `params` describing the failure.
+     */
     refine(
         predicate: (value: OutputType) => boolean,
         options: { code: string; path?: (string | number)[]; params?: Record<string, unknown> },
@@ -123,6 +158,7 @@ abstract class Schema<OutputType> implements StandardSchemaV1<unknown, OutputTyp
 
 // The inner schema type parameter preserves the concrete subclass through `.optional()`, so `.required()`
 // (and any other unwrap) recovers it instead of the abstract base — mirrors `NullableSchema`.
+/** @internal */
 class OptionalSchema<OutputType, InnerSchemaType extends Schema<OutputType> = Schema<OutputType>> extends Schema<
     OutputType | undefined
 > {
@@ -156,6 +192,7 @@ class OptionalSchema<OutputType, InnerSchemaType extends Schema<OutputType> = Sc
 
 // The inner schema type parameter lets `Infer` see through nullable to an OptionalSchema underneath,
 // mirroring the runtime's `_isOptional` delegation (optional and nullable compose in any order).
+/** @internal */
 class NullableSchema<
     OutputType,
     InnerSchemaType extends Schema<OutputType> = Schema<OutputType>,
@@ -243,6 +280,7 @@ class ChainSchema<FromOutputType, ToOutputType> extends Schema<ToOutputType> {
     }
 }
 
+/** @internal */
 class DefaultSchema<OutputType> extends Schema<OutputType> {
     private readonly _schema: Schema<OutputType>;
     private readonly _default: OutputType;
@@ -276,6 +314,7 @@ class DefaultSchema<OutputType> extends Schema<OutputType> {
 
 // The inner schema type parameter preserves the concrete base subclass through `.refine()`, and lets `Infer`
 // recurse for key optionality — mirroring the runtime's `_isOptional`/`_hasDefault` delegation below.
+/** @internal */
 class RefineSchema<
     OutputType,
     InnerSchemaType extends Schema<OutputType> = Schema<OutputType>,
@@ -362,6 +401,7 @@ class RefineSchema<
     }
 }
 
+/** @internal */
 type AnySchemaType = Schema<unknown>;
 
 export type { AnySchemaType, ParseOptions };
