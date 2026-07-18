@@ -42,17 +42,25 @@ const _schema: StandardSchemaV1<unknown, boolean> & {
     safeParse: typeof safeParseBoolean;
     parse: typeof parseBoolean;
 } = {
-    "~standard": {
+    "~standard": Object.freeze<StandardSchemaV1.Props<unknown, boolean>>({
         version: 1,
         vendor: "paseri",
         validate(value, options?) {
-            const result = safeParseBoolean(value);
-            if (result.ok) {
-                return { value: result.value };
+            const result = _validateBoolean(value);
+            if (result === undefined) {
+                return { value: value as boolean };
             }
-            return { issues: result.messages(options?.libraryOptions?.locale as Translations | undefined) };
+            if ((result as {
+                ok?: unknown;
+            }).ok === true) {
+                return { value: (result as {
+                        ok: true;
+                        value: boolean;
+                    }).value };
+            }
+            return { issues: new ParseErrorResult(result as TreeNode).messages(options?.libraryOptions?.locale as Translations | undefined) };
         }
-    },
+    }),
     safeParse: safeParseBoolean,
     parse: parseBoolean
 };

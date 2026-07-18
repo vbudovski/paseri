@@ -122,17 +122,31 @@ const _schema: StandardSchemaV1<unknown, {
     safeParse: typeof safeParseObjectOptional;
     parse: typeof parseObjectOptional;
 } = {
-    "~standard": {
+    "~standard": Object.freeze<StandardSchemaV1.Props<unknown, {
+        "foo"?: string | undefined;
+    }>>({
         version: 1,
         vendor: "paseri",
         validate(value, options?) {
-            const result = safeParseObjectOptional(value);
-            if (result.ok) {
-                return { value: result.value };
+            const result = _validateObjectOptional(value);
+            if (result === undefined) {
+                return { value: value as {
+                        "foo"?: string | undefined;
+                    } };
             }
-            return { issues: result.messages(options?.libraryOptions?.locale as Translations | undefined) };
+            if ((result as {
+                ok?: unknown;
+            }).ok === true) {
+                return { value: (result as {
+                        ok: true;
+                        value: {
+                            "foo"?: string | undefined;
+                        };
+                    }).value };
+            }
+            return { issues: new ParseErrorResult(result as TreeNode).messages(options?.libraryOptions?.locale as Translations | undefined) };
         }
-    },
+    }),
     safeParse: safeParseObjectOptional,
     parse: parseObjectOptional
 };

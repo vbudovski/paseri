@@ -42,17 +42,25 @@ const _schema: StandardSchemaV1<unknown, Temporal.Duration> & {
     safeParse: typeof safeParseDuration;
     parse: typeof parseDuration;
 } = {
-    "~standard": {
+    "~standard": Object.freeze<StandardSchemaV1.Props<unknown, Temporal.Duration>>({
         version: 1,
         vendor: "paseri",
         validate(value, options?) {
-            const result = safeParseDuration(value);
-            if (result.ok) {
-                return { value: result.value };
+            const result = _validateDuration(value);
+            if (result === undefined) {
+                return { value: value as Temporal.Duration };
             }
-            return { issues: result.messages(options?.libraryOptions?.locale as Translations | undefined) };
+            if ((result as {
+                ok?: unknown;
+            }).ok === true) {
+                return { value: (result as {
+                        ok: true;
+                        value: Temporal.Duration;
+                    }).value };
+            }
+            return { issues: new ParseErrorResult(result as TreeNode).messages(options?.libraryOptions?.locale as Translations | undefined) };
         }
-    },
+    }),
     safeParse: safeParseDuration,
     parse: parseDuration
 };

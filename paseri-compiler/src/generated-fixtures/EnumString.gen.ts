@@ -44,17 +44,25 @@ const _schema: StandardSchemaV1<unknown, "a" | "b" | "c"> & {
     safeParse: typeof safeParseEnumString;
     parse: typeof parseEnumString;
 } = {
-    "~standard": {
+    "~standard": Object.freeze<StandardSchemaV1.Props<unknown, "a" | "b" | "c">>({
         version: 1,
         vendor: "paseri",
         validate(value, options?) {
-            const result = safeParseEnumString(value);
-            if (result.ok) {
-                return { value: result.value };
+            const result = _validateEnumString(value);
+            if (result === undefined) {
+                return { value: value as "a" | "b" | "c" };
             }
-            return { issues: result.messages(options?.libraryOptions?.locale as Translations | undefined) };
+            if ((result as {
+                ok?: unknown;
+            }).ok === true) {
+                return { value: (result as {
+                        ok: true;
+                        value: "a" | "b" | "c";
+                    }).value };
+            }
+            return { issues: new ParseErrorResult(result as TreeNode).messages(options?.libraryOptions?.locale as Translations | undefined) };
         }
-    },
+    }),
     safeParse: safeParseEnumString,
     parse: parseEnumString
 };

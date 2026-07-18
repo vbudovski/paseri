@@ -44,17 +44,25 @@ const _schema: StandardSchemaV1<unknown, 1 | 2 | 3> & {
     safeParse: typeof safeParseEnumNumber;
     parse: typeof parseEnumNumber;
 } = {
-    "~standard": {
+    "~standard": Object.freeze<StandardSchemaV1.Props<unknown, 1 | 2 | 3>>({
         version: 1,
         vendor: "paseri",
         validate(value, options?) {
-            const result = safeParseEnumNumber(value);
-            if (result.ok) {
-                return { value: result.value };
+            const result = _validateEnumNumber(value);
+            if (result === undefined) {
+                return { value: value as 1 | 2 | 3 };
             }
-            return { issues: result.messages(options?.libraryOptions?.locale as Translations | undefined) };
+            if ((result as {
+                ok?: unknown;
+            }).ok === true) {
+                return { value: (result as {
+                        ok: true;
+                        value: 1 | 2 | 3;
+                    }).value };
+            }
+            return { issues: new ParseErrorResult(result as TreeNode).messages(options?.libraryOptions?.locale as Translations | undefined) };
         }
-    },
+    }),
     safeParse: safeParseEnumNumber,
     parse: parseEnumNumber
 };

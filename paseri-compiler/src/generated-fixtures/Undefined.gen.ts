@@ -42,17 +42,25 @@ const _schema: StandardSchemaV1<unknown, undefined> & {
     safeParse: typeof safeParseUndefined;
     parse: typeof parseUndefined;
 } = {
-    "~standard": {
+    "~standard": Object.freeze<StandardSchemaV1.Props<unknown, undefined>>({
         version: 1,
         vendor: "paseri",
         validate(value, options?) {
-            const result = safeParseUndefined(value);
-            if (result.ok) {
-                return { value: result.value };
+            const result = _validateUndefined(value);
+            if (result === undefined) {
+                return { value: value as undefined };
             }
-            return { issues: result.messages(options?.libraryOptions?.locale as Translations | undefined) };
+            if ((result as {
+                ok?: unknown;
+            }).ok === true) {
+                return { value: (result as {
+                        ok: true;
+                        value: undefined;
+                    }).value };
+            }
+            return { issues: new ParseErrorResult(result as TreeNode).messages(options?.libraryOptions?.locale as Translations | undefined) };
         }
-    },
+    }),
     safeParse: safeParseUndefined,
     parse: parseUndefined
 };

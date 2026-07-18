@@ -97,17 +97,25 @@ const _schema: StandardSchemaV1<unknown, string | number> & {
     safeParse: typeof safeParseUnionMixed;
     parse: typeof parseUnionMixed;
 } = {
-    "~standard": {
+    "~standard": Object.freeze<StandardSchemaV1.Props<unknown, string | number>>({
         version: 1,
         vendor: "paseri",
         validate(value, options?) {
-            const result = safeParseUnionMixed(value);
-            if (result.ok) {
-                return { value: result.value };
+            const result = _validateUnionMixed(value);
+            if (result === undefined) {
+                return { value: value as string | number };
             }
-            return { issues: result.messages(options?.libraryOptions?.locale as Translations | undefined) };
+            if ((result as {
+                ok?: unknown;
+            }).ok === true) {
+                return { value: (result as {
+                        ok: true;
+                        value: string | number;
+                    }).value };
+            }
+            return { issues: new ParseErrorResult(result as TreeNode).messages(options?.libraryOptions?.locale as Translations | undefined) };
         }
-    },
+    }),
     safeParse: safeParseUnionMixed,
     parse: parseUnionMixed
 };

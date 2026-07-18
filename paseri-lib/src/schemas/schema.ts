@@ -8,6 +8,9 @@ import { deepClone, deepFreeze } from '../utils.ts';
 
 const DEFAULT_MAX_DEPTH = 1000;
 
+// Props for instances that can't have the cache field added to them; see the `~standard` getter.
+const nonExtensibleStandardProps = new WeakMap<object, StandardSchemaV1.Props<unknown, unknown>>();
+
 /** @internal */
 interface ParseOptions {
     /** Caps the nesting depth of recursive input. Defaults to 1000. */
@@ -19,29 +22,72 @@ interface ParseOptions {
  * interface.
  */
 abstract class Schema<OutputType> implements StandardSchemaV1<unknown, OutputType> {
+    // Built lazily and cached: consumers read `schema['~standard']` per validation call, so rebuilding the
+    // props object and its validate closure on every access is measurable overhead. Not copied by _clone
+    // implementations (each instance builds its own, bound to itself). `declare` keeps the field type-only:
+    // installing it on every construction measured slower, so the property is created on first access instead.
+    private declare _standardProps: StandardSchemaV1.Props<unknown, OutputType> | undefined;
+
     /**
      * The [Standard Schema](https://standardschema.dev) interface, letting Paseri schemas be consumed by any
      * Standard Schema-compatible tool.
      */
     get '~standard'(): StandardSchemaV1.Props<unknown, OutputType> {
-        // deno-lint-ignore no-this-alias
-        const self = this;
-
-        return {
-            version: 1,
-            vendor: 'paseri',
-            validate(
-                value: unknown,
-                options?: StandardSchemaV1.Options | undefined,
-            ): StandardSchemaV1.Result<OutputType> {
-                const result = self.safeParse(value);
-                if (result.ok) {
-                    return { value: result.value };
+        if (this._standardProps === undefined) {
+            // Adding the cache field throws on any non-extensible instance, frozen or merely sealed
+            // (an app that deep-freezes a config object freezes any schema held inside it, and the
+            // primitive factories return shared singletons), so those instances keep their props in
+            // the WeakMap instead. These checks only run while the cache is still empty.
+            const isExtensible = Object.isExtensible(this);
+            if (!isExtensible) {
+                const cached = nonExtensibleStandardProps.get(this);
+                if (cached !== undefined) {
+                    return cached as StandardSchemaV1.Props<unknown, OutputType>;
                 }
+            }
 
-                return { issues: result.messages(options?.libraryOptions?.locale as Translations | undefined) };
-            },
-        };
+            // The alias is deliberate: an arrow property reading `this` instead measured much slower
+            // per validate call.
+            // deno-lint-ignore no-this-alias
+            const self = this;
+
+            const props: StandardSchemaV1.Props<unknown, OutputType> = {
+                version: 1,
+                vendor: 'paseri',
+                validate(
+                    value: unknown,
+                    options?: StandardSchemaV1.Options | undefined,
+                ): StandardSchemaV1.Result<OutputType> {
+                    // Calls _parse directly (mirroring safeParse) so a success builds the spec's result object
+                    // straight away instead of wrapping an intermediate ParseResult.
+                    const issueOrSuccess = self._parse(value, 0, DEFAULT_MAX_DEPTH);
+                    if (issueOrSuccess === undefined) {
+                        return { value: value as OutputType };
+                    }
+                    if (isParseSuccess(issueOrSuccess)) {
+                        return { value: issueOrSuccess.value };
+                    }
+
+                    return {
+                        issues: new ParseErrorResult(issueOrSuccess).messages(
+                            options?.libraryOptions?.locale as Translations | undefined,
+                        ),
+                    };
+                },
+            };
+            // Frozen so one consumer patching the shared object (e.g. wrapping `validate`) fails loudly
+            // instead of silently rewiring every other consumer of this schema.
+            const frozenProps = Object.freeze(props);
+            if (isExtensible) {
+                this._standardProps = frozenProps;
+            } else {
+                nonExtensibleStandardProps.set(this, frozenProps);
+            }
+
+            return frozenProps;
+        }
+
+        return this._standardProps;
     }
 
     /** @internal */

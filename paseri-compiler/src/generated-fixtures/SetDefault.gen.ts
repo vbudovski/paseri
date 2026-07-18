@@ -126,17 +126,25 @@ const _schema: StandardSchemaV1<unknown, Set<string>> & {
     safeParse: typeof safeParseSetDefault;
     parse: typeof parseSetDefault;
 } = {
-    "~standard": {
+    "~standard": Object.freeze<StandardSchemaV1.Props<unknown, Set<string>>>({
         version: 1,
         vendor: "paseri",
         validate(value, options?) {
-            const result = safeParseSetDefault(value);
-            if (result.ok) {
-                return { value: result.value };
+            const result = _validateSetDefault(value);
+            if (result === undefined) {
+                return { value: value as Set<string> };
             }
-            return { issues: result.messages(options?.libraryOptions?.locale as Translations | undefined) };
+            if ((result as {
+                ok?: unknown;
+            }).ok === true) {
+                return { value: (result as {
+                        ok: true;
+                        value: Set<string>;
+                    }).value };
+            }
+            return { issues: new ParseErrorResult(result as TreeNode).messages(options?.libraryOptions?.locale as Translations | undefined) };
         }
-    },
+    }),
     safeParse: safeParseSetDefault,
     parse: parseSetDefault
 };

@@ -48,17 +48,25 @@ const _schema: StandardSchemaV1<unknown, Date> & {
     safeParse: typeof safeParseDate;
     parse: typeof parseDate;
 } = {
-    "~standard": {
+    "~standard": Object.freeze<StandardSchemaV1.Props<unknown, Date>>({
         version: 1,
         vendor: "paseri",
         validate(value, options?) {
-            const result = safeParseDate(value);
-            if (result.ok) {
-                return { value: result.value };
+            const result = _validateDate(value);
+            if (result === undefined) {
+                return { value: value as Date };
             }
-            return { issues: result.messages(options?.libraryOptions?.locale as Translations | undefined) };
+            if ((result as {
+                ok?: unknown;
+            }).ok === true) {
+                return { value: (result as {
+                        ok: true;
+                        value: Date;
+                    }).value };
+            }
+            return { issues: new ParseErrorResult(result as TreeNode).messages(options?.libraryOptions?.locale as Translations | undefined) };
         }
-    },
+    }),
     safeParse: safeParseDate,
     parse: parseDate
 };

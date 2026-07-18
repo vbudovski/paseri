@@ -44,17 +44,25 @@ const _schema: StandardSchemaV1<unknown, Temporal.PlainTime> & {
     safeParse: typeof safeParsePlainTime;
     parse: typeof parsePlainTime;
 } = {
-    "~standard": {
+    "~standard": Object.freeze<StandardSchemaV1.Props<unknown, Temporal.PlainTime>>({
         version: 1,
         vendor: "paseri",
         validate(value, options?) {
-            const result = safeParsePlainTime(value);
-            if (result.ok) {
-                return { value: result.value };
+            const result = _validatePlainTime(value);
+            if (result === undefined) {
+                return { value: value as Temporal.PlainTime };
             }
-            return { issues: result.messages(options?.libraryOptions?.locale as Translations | undefined) };
+            if ((result as {
+                ok?: unknown;
+            }).ok === true) {
+                return { value: (result as {
+                        ok: true;
+                        value: Temporal.PlainTime;
+                    }).value };
+            }
+            return { issues: new ParseErrorResult(result as TreeNode).messages(options?.libraryOptions?.locale as Translations | undefined) };
         }
-    },
+    }),
     safeParse: safeParsePlainTime,
     parse: parsePlainTime
 };

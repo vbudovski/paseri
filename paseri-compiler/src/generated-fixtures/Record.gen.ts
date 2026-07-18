@@ -104,17 +104,25 @@ const _schema: StandardSchemaV1<unknown, Record<string, number>> & {
     safeParse: typeof safeParseRecord;
     parse: typeof parseRecord;
 } = {
-    "~standard": {
+    "~standard": Object.freeze<StandardSchemaV1.Props<unknown, Record<string, number>>>({
         version: 1,
         vendor: "paseri",
         validate(value, options?) {
-            const result = safeParseRecord(value);
-            if (result.ok) {
-                return { value: result.value };
+            const result = _validateRecord(value);
+            if (result === undefined) {
+                return { value: value as Record<string, number> };
             }
-            return { issues: result.messages(options?.libraryOptions?.locale as Translations | undefined) };
+            if ((result as {
+                ok?: unknown;
+            }).ok === true) {
+                return { value: (result as {
+                        ok: true;
+                        value: Record<string, number>;
+                    }).value };
+            }
+            return { issues: new ParseErrorResult(result as TreeNode).messages(options?.libraryOptions?.locale as Translations | undefined) };
         }
-    },
+    }),
     safeParse: safeParseRecord,
     parse: parseRecord
 };

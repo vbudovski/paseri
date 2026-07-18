@@ -280,17 +280,43 @@ const _schema: StandardSchemaV1<unknown, {
     safeParse: typeof safeParseUnionDiscriminatedRefine;
     parse: typeof parseUnionDiscriminatedRefine;
 } = {
-    "~standard": {
+    "~standard": Object.freeze<StandardSchemaV1.Props<unknown, {
+        "kind": "a";
+        "value": string;
+    } | {
+        "kind": "b";
+        "value": number;
+    }>>({
         version: 1,
         vendor: "paseri",
         validate(value, options?) {
-            const result = safeParseUnionDiscriminatedRefine(value);
-            if (result.ok) {
-                return { value: result.value };
+            const result = _validateUnionDiscriminatedRefine(value);
+            if (result === undefined) {
+                return { value: value as {
+                        "kind": "a";
+                        "value": string;
+                    } | {
+                        "kind": "b";
+                        "value": number;
+                    } };
             }
-            return { issues: result.messages(options?.libraryOptions?.locale as Translations | undefined) };
+            if ((result as {
+                ok?: unknown;
+            }).ok === true) {
+                return { value: (result as {
+                        ok: true;
+                        value: {
+                            "kind": "a";
+                            "value": string;
+                        } | {
+                            "kind": "b";
+                            "value": number;
+                        };
+                    }).value };
+            }
+            return { issues: new ParseErrorResult(result as TreeNode).messages(options?.libraryOptions?.locale as Translations | undefined) };
         }
-    },
+    }),
     safeParse: safeParseUnionDiscriminatedRefine,
     parse: parseUnionDiscriminatedRefine
 };

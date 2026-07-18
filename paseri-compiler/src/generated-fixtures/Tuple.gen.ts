@@ -112,17 +112,37 @@ const _schema: StandardSchemaV1<unknown, [
     safeParse: typeof safeParseTuple;
     parse: typeof parseTuple;
 } = {
-    "~standard": {
+    "~standard": Object.freeze<StandardSchemaV1.Props<unknown, [
+        string,
+        number,
+        123n
+    ]>>({
         version: 1,
         vendor: "paseri",
         validate(value, options?) {
-            const result = safeParseTuple(value);
-            if (result.ok) {
-                return { value: result.value };
+            const result = _validateTuple(value);
+            if (result === undefined) {
+                return { value: value as [
+                        string,
+                        number,
+                        123n
+                    ] };
             }
-            return { issues: result.messages(options?.libraryOptions?.locale as Translations | undefined) };
+            if ((result as {
+                ok?: unknown;
+            }).ok === true) {
+                return { value: (result as {
+                        ok: true;
+                        value: [
+                            string,
+                            number,
+                            123n
+                        ];
+                    }).value };
+            }
+            return { issues: new ParseErrorResult(result as TreeNode).messages(options?.libraryOptions?.locale as Translations | undefined) };
         }
-    },
+    }),
     safeParse: safeParseTuple,
     parse: parseTuple
 };
