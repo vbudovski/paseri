@@ -56,7 +56,9 @@ const dateRegex = (): RegExp => regex`
     ^ \g<date> $
 
     (?(DEFINE)
-        (?<date> (\g<leap-date> | \d{4}-(\g<with-31> | \g<with-30> | \g<february>)))
+        # The 29 February case comes last: almost no dates match it, so checking it first
+        # would slow down all the rest.
+        (?<date> (\d{4}-(\g<with-31> | \g<with-30> | \g<february>) | \g<leap-date>))
         (?<leap-date> (\d\d[2468][048] | \d\d[13579][26] | \d\d0[48] | [02468][048]00 | [13579][26]00)-02-29)
         (?<with-31> (0[13578] | 1[02])-(0[1-9] | [12]\d | 3[01]))
         (?<with-30> (0[469] | 11)-(0[1-9] | [12]\d|30))
@@ -71,8 +73,8 @@ const timeRegex = (precision?: number, offset?: boolean, local: boolean = true):
         (?<hours> ([01]\d | 2[0-3]))
         (?<minutes> [0-5]\d)
         (?<seconds> [0-5]\d)
-        (?<fractional-seconds> ${precision === undefined ? pattern`(\.\d+)?` : precision === 0 ? pattern`` : pattern`\.\d{${String(precision)}}`})
-        (?<timezone> ${offset && local ? pattern`(\g<offset> | Z?)` : offset ? pattern`(\g<offset> | Z)` : local ? pattern`Z?` : pattern`Z`})
+        (?<fractional-seconds> ${precision === undefined ? pattern`(?:\.\d+)?` : precision === 0 ? pattern`` : pattern`\.\d{${String(precision)}}`})
+        (?<timezone> ${offset && local ? pattern`(?:\g<offset> | Z?)` : offset ? pattern`(?:\g<offset> | Z)` : local ? pattern`Z?` : pattern`Z`})
         (?<offset> [+\-]\g<hours>:\g<minutes>)
     )
 `;
@@ -81,7 +83,8 @@ const datetimeRegex = (precision?: number, offset?: boolean, local?: boolean): R
 
     (?(DEFINE)
         (?<datetime> \g<date> T \g<time> \g<timezone>)
-        (?<date> (\g<leap-date> | \d{4}-(\g<with-31> | \g<with-30> | \g<february>)))
+        # The 29 February case comes last: see dateRegex.
+        (?<date> (\d{4}-(\g<with-31> | \g<with-30> | \g<february>) | \g<leap-date>))
         (?<leap-date> (\d\d[2468][048] | \d\d[13579][26] | \d\d0[48] | [02468][048]00 | [13579][26]00)-02-29)
         (?<with-31> (0[13578] | 1[02])-(0[1-9] | [12]\d | 3[01]))
         (?<with-30> (0[469] | 11)-(0[1-9] | [12]\d|30))
@@ -90,8 +93,8 @@ const datetimeRegex = (precision?: number, offset?: boolean, local?: boolean): R
         (?<hours> ([01]\d | 2[0-3]))
         (?<minutes> [0-5]\d)
         (?<seconds> [0-5]\d)
-        (?<fractional-seconds> ${precision === undefined ? pattern`(\.\d+)?` : precision === 0 ? pattern`` : pattern`\.\d{${String(precision)}}`})
-        (?<timezone> ${offset && local ? pattern`(\g<offset> | Z?)` : offset ? pattern`(\g<offset> | Z)` : local ? pattern`Z?` : pattern`Z`})
+        (?<fractional-seconds> ${precision === undefined ? pattern`(?:\.\d+)?` : precision === 0 ? pattern`` : pattern`\.\d{${String(precision)}}`})
+        (?<timezone> ${offset && local ? pattern`(?:\g<offset> | Z?)` : offset ? pattern`(?:\g<offset> | Z)` : local ? pattern`Z?` : pattern`Z`})
         (?<offset> [+\-]\g<hours>:\g<minutes>)
     )
 `;
@@ -100,7 +103,7 @@ const ipRegex = (version?: 4 | 6): RegExp => regex('i')`
     ^ \g<ip> $
 
     (?(DEFINE)
-        (?<ip> ${version === undefined ? pattern`(\g<ipv4> | \g<ipv6>)` : version === 4 ? pattern`\g<ipv4>` : pattern`\g<ipv6>`})
+        (?<ip> ${version === undefined ? pattern`(?:\g<ipv4> | \g<ipv6>)` : version === 4 ? pattern`\g<ipv4>` : pattern`\g<ipv6>`})
         (?<ipv6>
             (
                 (\g<segment> :){7} (\g<segment> | :) |
@@ -123,7 +126,7 @@ const ipCidrRegex = (version?: 4 | 6): RegExp => regex('i')`
     ^ \g<ip-range> $
 
     (?(DEFINE)
-        (?<ip-range> ${version === undefined ? pattern`(\g<ipv4-range> | \g<ipv6-range>)` : version === 4 ? pattern`\g<ipv4-range>` : pattern`\g<ipv6-range>`})
+        (?<ip-range> ${version === undefined ? pattern`(?:\g<ipv4-range> | \g<ipv6-range>)` : version === 4 ? pattern`\g<ipv4-range>` : pattern`\g<ipv6-range>`})
         (?<ipv6-range> \g<ipv6> / \g<ipv6-bits>)
         (?<ipv6>
             (
