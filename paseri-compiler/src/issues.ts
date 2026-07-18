@@ -3,7 +3,7 @@
 // accumulator update (accumulate-sink).
 
 import { issueCodes } from '@paseri/paseri/internal';
-import type ts from 'typescript';
+import ts from 'typescript';
 import {
     asConst,
     assign,
@@ -11,6 +11,7 @@ import {
     block,
     call,
     castTo,
+    equals,
     identifier,
     ifStatement,
     newExpression,
@@ -21,8 +22,11 @@ import {
     stringLiteral,
     trueLiteral,
     undefinedExpression,
+    unknownType,
 } from './builders.ts';
 import type { Sink } from './state.ts';
+
+const { factory } = ts;
 
 // Built-in codes are emitted as branded `issueCodes.X` references so generated leaves type-check against the
 // runtime's `LeafNode` union; unknown (custom refine/chain) codes get a `CustomIssueCode` cast, mirroring `err()`.
@@ -57,6 +61,31 @@ function successPayload(valueExpression: ts.Expression, outputType: ts.TypeNode)
     // `Set<unknown>`, `Record<…>`, …). Cast it to the function's actual output type (not `any`) so it satisfies the
     // typed `ParseResult<OutputType>` return while a grossly-mistyped success value would still be a type error.
     return objectLiteral({ ok: asConst(trueLiteral), value: castTo(valueExpression, outputType) });
+}
+
+/**
+ * Builds the success-box probe, `(expression as { ok?: unknown }).ok === true`. Inlined rather than calling the
+ * runtime's `isParseSuccess` because the inline form benchmarked faster in generated modules; the untyped cast
+ * keeps the check valid over the `InternalParseResult` union without narrowing help. Keeps the box's shape
+ * defined in one module.
+ */
+function successProbe(expression: ts.Expression): ts.Expression {
+    const probeType = factory.createTypeLiteralNode([
+        factory.createPropertySignature(undefined, 'ok', factory.createToken(ts.SyntaxKind.QuestionToken), unknownType),
+    ]);
+
+    return equals(property(castTo(expression, probeType), 'ok'), trueLiteral);
+}
+
+/**
+ * The success box's type, `{ ok: true; value: OutputType }`, for reading `.value` once {@link successProbe} has
+ * passed.
+ */
+function successBoxType(outputType: ts.TypeNode): ts.TypeNode {
+    return factory.createTypeLiteralNode([
+        factory.createPropertySignature(undefined, 'ok', undefined, factory.createLiteralTypeNode(trueLiteral)),
+        factory.createPropertySignature(undefined, 'value', undefined, outputType),
+    ]);
 }
 
 /**
@@ -116,5 +145,7 @@ export {
     failurePayload,
     leafExpression,
     nestExpression,
+    successBoxType,
     successPayload,
+    successProbe,
 };

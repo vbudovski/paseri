@@ -44,17 +44,25 @@ const _schema: StandardSchemaV1<unknown, Temporal.ZonedDateTime> & {
     safeParse: typeof safeParseZonedDateTime;
     parse: typeof parseZonedDateTime;
 } = {
-    "~standard": {
+    "~standard": Object.freeze<StandardSchemaV1.Props<unknown, Temporal.ZonedDateTime>>({
         version: 1,
         vendor: "paseri",
         validate(value, options?) {
-            const result = safeParseZonedDateTime(value);
-            if (result.ok) {
-                return { value: result.value };
+            const result = _validateZonedDateTime(value);
+            if (result === undefined) {
+                return { value: value as Temporal.ZonedDateTime };
             }
-            return { issues: result.messages(options?.libraryOptions?.locale as Translations | undefined) };
+            if ((result as {
+                ok?: unknown;
+            }).ok === true) {
+                return { value: (result as {
+                        ok: true;
+                        value: Temporal.ZonedDateTime;
+                    }).value };
+            }
+            return { issues: new ParseErrorResult(result as TreeNode).messages(options?.libraryOptions?.locale as Translations | undefined) };
         }
-    },
+    }),
     safeParse: safeParseZonedDateTime,
     parse: parseZonedDateTime
 };

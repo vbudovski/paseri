@@ -226,17 +226,34 @@ const _schema: StandardSchemaV1<unknown, {
     safeParse: typeof safeParseObjectDefault;
     parse: typeof parseObjectDefault;
 } = {
-    "~standard": {
+    "~standard": Object.freeze<StandardSchemaV1.Props<unknown, {
+        "foo": string;
+        "count": number;
+    }>>({
         version: 1,
         vendor: "paseri",
         validate(value, options?) {
-            const result = safeParseObjectDefault(value);
-            if (result.ok) {
-                return { value: result.value };
+            const result = _validateObjectDefault(value);
+            if (result === undefined) {
+                return { value: value as {
+                        "foo": string;
+                        "count": number;
+                    } };
             }
-            return { issues: result.messages(options?.libraryOptions?.locale as Translations | undefined) };
+            if ((result as {
+                ok?: unknown;
+            }).ok === true) {
+                return { value: (result as {
+                        ok: true;
+                        value: {
+                            "foo": string;
+                            "count": number;
+                        };
+                    }).value };
+            }
+            return { issues: new ParseErrorResult(result as TreeNode).messages(options?.libraryOptions?.locale as Translations | undefined) };
         }
-    },
+    }),
     safeParse: safeParseObjectDefault,
     parse: parseObjectDefault
 };

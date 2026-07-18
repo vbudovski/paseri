@@ -281,17 +281,37 @@ const _schema: StandardSchemaV1<unknown, {
     safeParse: typeof safeParseObjectStripNested;
     parse: typeof parseObjectStripNested;
 } = {
-    "~standard": {
+    "~standard": Object.freeze<StandardSchemaV1.Props<unknown, {
+        "inner": {
+            "baz": number;
+        };
+    }>>({
         version: 1,
         vendor: "paseri",
         validate(value, options?) {
-            const result = safeParseObjectStripNested(value);
-            if (result.ok) {
-                return { value: result.value };
+            const result = _validateObjectStripNested(value);
+            if (result === undefined) {
+                return { value: value as {
+                        "inner": {
+                            "baz": number;
+                        };
+                    } };
             }
-            return { issues: result.messages(options?.libraryOptions?.locale as Translations | undefined) };
+            if ((result as {
+                ok?: unknown;
+            }).ok === true) {
+                return { value: (result as {
+                        ok: true;
+                        value: {
+                            "inner": {
+                                "baz": number;
+                            };
+                        };
+                    }).value };
+            }
+            return { issues: new ParseErrorResult(result as TreeNode).messages(options?.libraryOptions?.locale as Translations | undefined) };
         }
-    },
+    }),
     safeParse: safeParseObjectStripNested,
     parse: parseObjectStripNested
 };

@@ -94,17 +94,25 @@ const _schema: StandardSchemaV1<unknown, Map<string, number>> & {
     safeParse: typeof safeParseMap;
     parse: typeof parseMap;
 } = {
-    "~standard": {
+    "~standard": Object.freeze<StandardSchemaV1.Props<unknown, Map<string, number>>>({
         version: 1,
         vendor: "paseri",
         validate(value, options?) {
-            const result = safeParseMap(value);
-            if (result.ok) {
-                return { value: result.value };
+            const result = _validateMap(value);
+            if (result === undefined) {
+                return { value: value as Map<string, number> };
             }
-            return { issues: result.messages(options?.libraryOptions?.locale as Translations | undefined) };
+            if ((result as {
+                ok?: unknown;
+            }).ok === true) {
+                return { value: (result as {
+                        ok: true;
+                        value: Map<string, number>;
+                    }).value };
+            }
+            return { issues: new ParseErrorResult(result as TreeNode).messages(options?.libraryOptions?.locale as Translations | undefined) };
         }
-    },
+    }),
     safeParse: safeParseMap,
     parse: parseMap
 };

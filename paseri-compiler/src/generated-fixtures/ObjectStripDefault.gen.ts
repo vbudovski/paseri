@@ -235,17 +235,34 @@ const _schema: StandardSchemaV1<unknown, {
     safeParse: typeof safeParseObjectStripDefault;
     parse: typeof parseObjectStripDefault;
 } = {
-    "~standard": {
+    "~standard": Object.freeze<StandardSchemaV1.Props<unknown, {
+        "host": string;
+        "port": number;
+    }>>({
         version: 1,
         vendor: "paseri",
         validate(value, options?) {
-            const result = safeParseObjectStripDefault(value);
-            if (result.ok) {
-                return { value: result.value };
+            const result = _validateObjectStripDefault(value);
+            if (result === undefined) {
+                return { value: value as {
+                        "host": string;
+                        "port": number;
+                    } };
             }
-            return { issues: result.messages(options?.libraryOptions?.locale as Translations | undefined) };
+            if ((result as {
+                ok?: unknown;
+            }).ok === true) {
+                return { value: (result as {
+                        ok: true;
+                        value: {
+                            "host": string;
+                            "port": number;
+                        };
+                    }).value };
+            }
+            return { issues: new ParseErrorResult(result as TreeNode).messages(options?.libraryOptions?.locale as Translations | undefined) };
         }
-    },
+    }),
     safeParse: safeParseObjectStripDefault,
     parse: parseObjectStripDefault
 };

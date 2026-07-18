@@ -42,17 +42,25 @@ const _schema: StandardSchemaV1<unknown, Temporal.PlainMonthDay> & {
     safeParse: typeof safeParsePlainMonthDay;
     parse: typeof parsePlainMonthDay;
 } = {
-    "~standard": {
+    "~standard": Object.freeze<StandardSchemaV1.Props<unknown, Temporal.PlainMonthDay>>({
         version: 1,
         vendor: "paseri",
         validate(value, options?) {
-            const result = safeParsePlainMonthDay(value);
-            if (result.ok) {
-                return { value: result.value };
+            const result = _validatePlainMonthDay(value);
+            if (result === undefined) {
+                return { value: value as Temporal.PlainMonthDay };
             }
-            return { issues: result.messages(options?.libraryOptions?.locale as Translations | undefined) };
+            if ((result as {
+                ok?: unknown;
+            }).ok === true) {
+                return { value: (result as {
+                        ok: true;
+                        value: Temporal.PlainMonthDay;
+                    }).value };
+            }
+            return { issues: new ParseErrorResult(result as TreeNode).messages(options?.libraryOptions?.locale as Translations | undefined) };
         }
-    },
+    }),
     safeParse: safeParsePlainMonthDay,
     parse: parsePlainMonthDay
 };

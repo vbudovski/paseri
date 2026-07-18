@@ -53,17 +53,25 @@ const _schema: StandardSchemaV1<unknown, Temporal.PlainDate> & {
     safeParse: typeof safeParsePlainDate;
     parse: typeof parsePlainDate;
 } = {
-    "~standard": {
+    "~standard": Object.freeze<StandardSchemaV1.Props<unknown, Temporal.PlainDate>>({
         version: 1,
         vendor: "paseri",
         validate(value, options?) {
-            const result = safeParsePlainDate(value);
-            if (result.ok) {
-                return { value: result.value };
+            const result = _validatePlainDate(value);
+            if (result === undefined) {
+                return { value: value as Temporal.PlainDate };
             }
-            return { issues: result.messages(options?.libraryOptions?.locale as Translations | undefined) };
+            if ((result as {
+                ok?: unknown;
+            }).ok === true) {
+                return { value: (result as {
+                        ok: true;
+                        value: Temporal.PlainDate;
+                    }).value };
+            }
+            return { issues: new ParseErrorResult(result as TreeNode).messages(options?.libraryOptions?.locale as Translations | undefined) };
         }
-    },
+    }),
     safeParse: safeParsePlainDate,
     parse: parsePlainDate
 };

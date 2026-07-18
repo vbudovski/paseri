@@ -49,17 +49,25 @@ const _schema: StandardSchemaV1<unknown, string | undefined> & {
     safeParse: typeof safeParseOptional;
     parse: typeof parseOptional;
 } = {
-    "~standard": {
+    "~standard": Object.freeze<StandardSchemaV1.Props<unknown, string | undefined>>({
         version: 1,
         vendor: "paseri",
         validate(value, options?) {
-            const result = safeParseOptional(value);
-            if (result.ok) {
-                return { value: result.value };
+            const result = _validateOptional(value);
+            if (result === undefined) {
+                return { value: value as string | undefined };
             }
-            return { issues: result.messages(options?.libraryOptions?.locale as Translations | undefined) };
+            if ((result as {
+                ok?: unknown;
+            }).ok === true) {
+                return { value: (result as {
+                        ok: true;
+                        value: string | undefined;
+                    }).value };
+            }
+            return { issues: new ParseErrorResult(result as TreeNode).messages(options?.libraryOptions?.locale as Translations | undefined) };
         }
-    },
+    }),
     safeParse: safeParseOptional,
     parse: parseOptional
 };

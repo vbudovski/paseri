@@ -141,17 +141,25 @@ const _schema: StandardSchemaV1<unknown, _lazy_0Type> & {
     safeParse: typeof safeParseLazyRecursive;
     parse: typeof parseLazyRecursive;
 } = {
-    "~standard": {
+    "~standard": Object.freeze<StandardSchemaV1.Props<unknown, _lazy_0Type>>({
         version: 1,
         vendor: "paseri",
         validate(value, options?) {
-            const result = safeParseLazyRecursive(value);
-            if (result.ok) {
-                return { value: result.value };
+            const result = _validateLazyRecursive(value);
+            if (result === undefined) {
+                return { value: value as _lazy_0Type };
             }
-            return { issues: result.messages(options?.libraryOptions?.locale as Translations | undefined) };
+            if ((result as {
+                ok?: unknown;
+            }).ok === true) {
+                return { value: (result as {
+                        ok: true;
+                        value: _lazy_0Type;
+                    }).value };
+            }
+            return { issues: new ParseErrorResult(result as TreeNode).messages(options?.libraryOptions?.locale as Translations | undefined) };
         }
-    },
+    }),
     safeParse: safeParseLazyRecursive,
     parse: parseLazyRecursive
 };

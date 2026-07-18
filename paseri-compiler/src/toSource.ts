@@ -57,7 +57,14 @@ import { emitUndefined } from './emitters/undefined.ts';
 import { emitUnion } from './emitters/union/index.ts';
 import { emitUnknown } from './emitters/unknown.ts';
 import { emitZonedDateTime } from './emitters/zonedDateTime.ts';
-import { emitSuccessRouting, failurePayload, leafExpression, successPayload } from './issues.ts';
+import {
+    emitSuccessRouting,
+    failurePayload,
+    leafExpression,
+    successBoxType,
+    successPayload,
+    successProbe,
+} from './issues.ts';
 import { ResolutionError } from './resolver.ts';
 import { RUNTIME_SOURCE } from './runtime.gen.ts';
 import { defaultNeedsFreeze, makeState, type Sink, type State } from './state.ts';
@@ -474,9 +481,11 @@ function buildSafeParseWrapper(
 
 /**
  * Emits the module's sole export: the `${name}` object. `safeParse`/`parse` alias the internal wrapper functions;
- * `~standard` adapts `safeParse${name}` to the Standard Schema spec (delegate to safeParse, map `messages(locale)`
- * → `issues`), mirroring paseri-lib's `Schema['~standard']` (see `schemas/schema.ts`). The `typeof` intersection
- * gives the value an explicit type for `isolatedDeclarations`; the `validate` params are typed contextually by it.
+ * `~standard` implements the Standard Schema spec over the internal validator directly: a success returns the
+ * spec's `{ value }` without the intermediate ParseResult, a failure maps `messages(locale)` to `issues`. The
+ * props object is frozen so a consumer patching the shared surface fails loudly; the freeze call's explicit
+ * type argument keeps `validate`'s params contextually typed. The `typeof` intersection gives the value an
+ * explicit type for `isolatedDeclarations`.
  *
  * Bound internally as `_schema` and surfaced via `export { _schema as ${name} }` rather than `export const
  * ${name}`: an export alias creates no module-scope binding, so a schema named after a global the validator body
@@ -484,6 +493,7 @@ function buildSafeParseWrapper(
  */
 function buildStandardSchemaObject(
     name: string,
+    validateName: string,
     safeParseName: string,
     parseName: string,
     outputType: ts.TypeNode,
@@ -495,10 +505,15 @@ function buildStandardSchemaObject(
     const resultStatement = constStatement(
         resultIdentifier,
         undefined,
-        call(identifier(safeParseName), [valueParameter]),
+        call(identifier(validateName), [valueParameter]),
     );
-    const okReturn = ifStatement(property(resultIdentifier, 'ok'), [
-        returnStatement(objectLiteral({ value: property(resultIdentifier, 'value') })),
+    const undefinedReturn = ifStatement(equals(resultIdentifier, undefinedExpression), [
+        returnStatement(objectLiteral({ value: castTo(valueParameter, outputType) })),
+    ]);
+    const boxReturn = ifStatement(successProbe(resultIdentifier), [
+        returnStatement(
+            objectLiteral({ value: property(castTo(resultIdentifier, successBoxType(outputType)), 'value') }),
+        ),
     ]);
     // options?.libraryOptions?.locale as Translations | undefined
     const localeAccess = factory.createPropertyAccessChain(
@@ -512,7 +527,11 @@ function buildStandardSchemaObject(
     );
     const localeCast = castTo(localeAccess, typeUnion([typeReference('Translations'), undefinedType]));
     const issuesReturn = returnStatement(
-        objectLiteral({ issues: call(property(resultIdentifier, 'messages'), [localeCast]) }),
+        objectLiteral({
+            issues: call(property(failurePayload(castTo(resultIdentifier, typeReference('TreeNode'))), 'messages'), [
+                localeCast,
+            ]),
+        }),
     );
 
     const validateMethod = factory.createMethodDeclaration(
@@ -532,16 +551,24 @@ function buildStandardSchemaObject(
             ),
         ],
         undefined,
-        block([resultStatement, okReturn, issuesReturn]),
+        block([resultStatement, undefinedReturn, boxReturn, issuesReturn]),
     );
 
-    const standardProps = factory.createObjectLiteralExpression(
+    // The explicit type argument keeps the literal (and so validate's params) contextually typed;
+    // bare Object.freeze would infer from the literal and leave the params implicitly any.
+    const standardProps = factory.createCallExpression(
+        property(identifier('Object'), 'freeze'),
+        [typeReference('StandardSchemaV1.Props', [unknownType, outputType])],
         [
-            factory.createPropertyAssignment('version', numericLiteral(1)),
-            factory.createPropertyAssignment('vendor', stringLiteral('paseri')),
-            validateMethod,
+            factory.createObjectLiteralExpression(
+                [
+                    factory.createPropertyAssignment('version', numericLiteral(1)),
+                    factory.createPropertyAssignment('vendor', stringLiteral('paseri')),
+                    validateMethod,
+                ],
+                true,
+            ),
         ],
-        true,
     );
 
     const objectExpression = factory.createObjectLiteralExpression(
@@ -745,10 +772,12 @@ function toSource(graph: IRGraph, options: ToSourceOptions): string {
     const splitFunctions = tryEmitSplitFunctions(validateName, slowName, graph.entry, state);
     const entryFunctions: ts.Statement[] = splitFunctions ?? [buildValidatorFunction(validateName, graph.entry, state)];
     // Thin wrappers over the shared validator (see above); the `${name}` object aliases them, and `~standard`
-    // adapts safeParse to the spec.
+    // implements the spec over the validator directly.
     entryFunctions.push(buildSafeParseWrapper(safeParseName, validateName, emitType(graph.entry)));
     entryFunctions.push(buildThrowingWrapper(throwingName, safeParseName, emitType(graph.entry)));
-    entryFunctions.push(...buildStandardSchemaObject(options.name, safeParseName, throwingName, emitType(graph.entry)));
+    entryFunctions.push(
+        ...buildStandardSchemaObject(options.name, validateName, safeParseName, throwingName, emitType(graph.entry)),
+    );
 
     const needs = analyzeNeeds(graph);
     const runtimeStatements = selectRuntimeStatements(needs);

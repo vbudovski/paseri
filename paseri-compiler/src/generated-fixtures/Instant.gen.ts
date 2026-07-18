@@ -44,17 +44,25 @@ const _schema: StandardSchemaV1<unknown, Temporal.Instant> & {
     safeParse: typeof safeParseInstant;
     parse: typeof parseInstant;
 } = {
-    "~standard": {
+    "~standard": Object.freeze<StandardSchemaV1.Props<unknown, Temporal.Instant>>({
         version: 1,
         vendor: "paseri",
         validate(value, options?) {
-            const result = safeParseInstant(value);
-            if (result.ok) {
-                return { value: result.value };
+            const result = _validateInstant(value);
+            if (result === undefined) {
+                return { value: value as Temporal.Instant };
             }
-            return { issues: result.messages(options?.libraryOptions?.locale as Translations | undefined) };
+            if ((result as {
+                ok?: unknown;
+            }).ok === true) {
+                return { value: (result as {
+                        ok: true;
+                        value: Temporal.Instant;
+                    }).value };
+            }
+            return { issues: new ParseErrorResult(result as TreeNode).messages(options?.libraryOptions?.locale as Translations | undefined) };
         }
-    },
+    }),
     safeParse: safeParseInstant,
     parse: parseInstant
 };

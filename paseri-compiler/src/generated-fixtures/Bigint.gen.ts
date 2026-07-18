@@ -44,17 +44,25 @@ const _schema: StandardSchemaV1<unknown, bigint> & {
     safeParse: typeof safeParseBigint;
     parse: typeof parseBigint;
 } = {
-    "~standard": {
+    "~standard": Object.freeze<StandardSchemaV1.Props<unknown, bigint>>({
         version: 1,
         vendor: "paseri",
         validate(value, options?) {
-            const result = safeParseBigint(value);
-            if (result.ok) {
-                return { value: result.value };
+            const result = _validateBigint(value);
+            if (result === undefined) {
+                return { value: value as bigint };
             }
-            return { issues: result.messages(options?.libraryOptions?.locale as Translations | undefined) };
+            if ((result as {
+                ok?: unknown;
+            }).ok === true) {
+                return { value: (result as {
+                        ok: true;
+                        value: bigint;
+                    }).value };
+            }
+            return { issues: new ParseErrorResult(result as TreeNode).messages(options?.libraryOptions?.locale as Translations | undefined) };
         }
-    },
+    }),
     safeParse: safeParseBigint,
     parse: parseBigint
 };

@@ -42,17 +42,25 @@ const _schema: StandardSchemaV1<unknown, 5> & {
     safeParse: typeof safeParseLiteralNumber;
     parse: typeof parseLiteralNumber;
 } = {
-    "~standard": {
+    "~standard": Object.freeze<StandardSchemaV1.Props<unknown, 5>>({
         version: 1,
         vendor: "paseri",
         validate(value, options?) {
-            const result = safeParseLiteralNumber(value);
-            if (result.ok) {
-                return { value: result.value };
+            const result = _validateLiteralNumber(value);
+            if (result === undefined) {
+                return { value: value as 5 };
             }
-            return { issues: result.messages(options?.libraryOptions?.locale as Translations | undefined) };
+            if ((result as {
+                ok?: unknown;
+            }).ok === true) {
+                return { value: (result as {
+                        ok: true;
+                        value: 5;
+                    }).value };
+            }
+            return { issues: new ParseErrorResult(result as TreeNode).messages(options?.libraryOptions?.locale as Translations | undefined) };
         }
-    },
+    }),
     safeParse: safeParseLiteralNumber,
     parse: parseLiteralNumber
 };
