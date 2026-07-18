@@ -1,15 +1,18 @@
 import { pattern, regex } from 'regex';
 
 // User part validation adapted from https://github.com/validatorjs/validator.js/blob/master/src/lib/isEmail.js.
-const emailRegex = (): RegExp => regex('i')`
+// No i flag: combined with the v flag it applies Unicode case folding, letting U+017F (long s, folds to s)
+// and U+212A (Kelvin sign, folds to k) into the letter classes. RFC 5321 atext and RFC 1035 domain labels
+// are ASCII-only, so case-insensitivity is spelt as explicit A-Z ranges instead.
+const emailRegex = (): RegExp => regex`
     ^ \g<email> $
 
     (?(DEFINE)
         (?<email> \g<user-part> (\. \g<user-part>)* @ \g<domain>)
         # Literal backtick leads to compatibility issues with u flag.
-        (?<user-part> [a-z\d!#$%&'*\-\/=?^_\u0060\{\|\}~+]+)
+        (?<user-part> [a-zA-Z\d!#$%&'*\-\/=?^_\u0060\{\|\}~+]+)
         # The smallest allowable top-level domain is 2 characters (country codes).
-        (?<domain> ([a-z\d]([a-z\d\-]*[a-z\d])?\.)+ [a-z]{2,})
+        (?<domain> ([a-zA-Z\d]([a-zA-Z\d\-]*[a-zA-Z\d])?\.)+ [a-zA-Z]{2,})
     )
 `;
 // `\p{RGI_Emoji}` (a property of strings, v-mode) matches whole emoji including sequences, so bare
@@ -40,14 +43,19 @@ const nanoidRegex = (): RegExp => /^[a-z\d_-]{21}$/i;
 // Anything not matched (file:, IPv6 literals, userinfo, IDN hosts, non-special schemes with an authority)
 // falls through to `URL.canParse`. Soundness — never accepting a string canParse rejects — and ReDoS-safety
 // are both pinned by property tests.
-const urlRegex = (): RegExp => regex('i')`
+// No i flag: combined with the v flag it applies Unicode case folding, letting U+017F (long s, folds to s)
+// and U+212A (Kelvin sign, folds to k) match the scheme's letter classes. A scheme is ASCII-only per
+// the WHATWG spec, so canParse rejects them and a fast-accept match would be unsound. Scheme
+// case-insensitivity is spelt as per-character ASCII classes instead.
+const urlRegex = (): RegExp => regex`
     ^ (\g<authority-url> | \g<opaque-url>) $
 
     (?(DEFINE)
-        (?<authority-url> (https? | ftp | wss?) :// \g<host> (: \g<port>)? \g<tail>)
-        (?<opaque-url> (?!\g<special>) [a-z] [a-z\d+.\-]*+ : (?!//) .*)
-        (?<special> (https? | ftp | wss? | file) :)
-        (?<host> (?=[a-z\d._\-]*?[a-z_\-]) [a-z\d._\-]++)
+        (?<authority-url> \g<authority-scheme> :// \g<host> (: \g<port>)? \g<tail>)
+        (?<authority-scheme> [hH][tT][tT][pP][sS]? | [fF][tT][pP] | [wW][sS][sS]?)
+        (?<opaque-url> (?!\g<special>) [a-zA-Z] [a-zA-Z\d+.\-]*+ : (?!//) .*)
+        (?<special> (\g<authority-scheme> | [fF][iI][lL][eE]) :)
+        (?<host> (?=[a-zA-Z\d._\-]*?[a-zA-Z_\-]) [a-zA-Z\d._\-]++)
         (?<port> 6553[0-5] | 655[0-2]\d | 65[0-4]\d\d | 6[0-4]\d{3} | [1-5]\d{4} | \d{1,4})
         (?<tail> ([\/?#] .*)?)
     )

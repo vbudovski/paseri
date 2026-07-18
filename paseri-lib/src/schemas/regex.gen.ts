@@ -1,7 +1,10 @@
 
 
 // User part validation adapted from https://github.com/validatorjs/validator.js/blob/master/src/lib/isEmail.js.
-const emailRegex = (): RegExp => /^(?:(?:[a-z\d\!\#\$\%\&'\*\-\/\=\?\^_\u0060\{\|\}\~\+]+)(?:\.(?:[a-z\d\!\#\$\%\&'\*\-\/\=\?\^_\u0060\{\|\}\~\+]+))*(?:)@(?:(?:[a-z\d](?:[a-z\d\-]*[a-z\d])?\.)+[a-z]{2,}))$/iv;
+// No i flag: combined with the v flag it applies Unicode case folding, letting U+017F (long s, folds to s)
+// and U+212A (Kelvin sign, folds to k) into the letter classes. RFC 5321 atext and RFC 1035 domain labels
+// are ASCII-only, so case-insensitivity is spelt as explicit A-Z ranges instead.
+const emailRegex = (): RegExp => /^(?:(?:[a-zA-Z\d\!\#\$\%\&'\*\-\/\=\?\^_\u0060\{\|\}\~\+]+)(?:\.(?:[a-zA-Z\d\!\#\$\%\&'\*\-\/\=\?\^_\u0060\{\|\}\~\+]+))*(?:)@(?:(?:[a-zA-Z\d](?:[a-zA-Z\d\-]*[a-zA-Z\d])?\.)+[a-zA-Z]{2,}))$/v;
 // `\p{RGI_Emoji}` (a property of strings, v-mode) matches whole emoji including sequences, so bare
 // `Emoji_Component` code points (digits, `#`, `*`, a lone regional indicator) are not accepted on their own.
 const emojiRegex = (): RegExp => /^\p{RGI_Emoji}+$/v;
@@ -22,7 +25,11 @@ const nanoidRegex = (): RegExp => /^[a-z\d_-]{21}$/i;
 // Anything not matched (file:, IPv6 literals, userinfo, IDN hosts, non-special schemes with an authority)
 // falls through to `URL.canParse`. Soundness — never accepting a string canParse rejects — and ReDoS-safety
 // are both pinned by property tests.
-const urlRegex = (): RegExp => /^(?:(?:(?:https?|ftp|wss?):\/\/(?:(?=[a-z\d\._\-]*?[a-z_\-])(?:(?=([a-z\d\._\-]+))\1))(?::(?:6553[0-5]|655[0-2]\d|65[0-4]\d\d|6[0-4]\d{3}|[1-5]\d{4}|\d{1,4}))?(?:(?:[\/\?\#].*)?))|(?:(?!(?:(?:https?|ftp|wss?|file):))[a-z](?:(?=([a-z\d\+\.\-]*))\2):(?!\/\/).*))$/iv;
+// No i flag: combined with the v flag it applies Unicode case folding, letting U+017F (long s, folds to s)
+// and U+212A (Kelvin sign, folds to k) match the scheme's letter classes. A scheme is ASCII-only per
+// the WHATWG spec, so canParse rejects them and a fast-accept match would be unsound. Scheme
+// case-insensitivity is spelt as per-character ASCII classes instead.
+const urlRegex = (): RegExp => /^(?:(?:(?:[hH][tT][tT][pP][sS]?|[fF][tT][pP]|[wW][sS][sS]?):\/\/(?:(?=[a-zA-Z\d\._\-]*?[a-zA-Z_\-])(?:(?=([a-zA-Z\d\._\-]+))\1))(?::(?:6553[0-5]|655[0-2]\d|65[0-4]\d\d|6[0-4]\d{3}|[1-5]\d{4}|\d{1,4}))?(?:(?:[\/\?\#].*)?))|(?:(?!(?:(?:(?:[hH][tT][tT][pP][sS]?|[fF][tT][pP]|[wW][sS][sS]?)|[fF][iI][lL][eE]):))[a-zA-Z](?:(?=([a-zA-Z\d\+\.\-]*))\2):(?!\/\/).*))$/v;
 const dateRegex = (): RegExp => /^(?:(?:\d{4}-(?:(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01]))|(?:(?:0[469]|11)-(?:0[1-9]|[12]\d|30))|(?:02-(?:0[1-9]|1\d|2[0-8])))|(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29)))$/v;
 const timeRegex = (precision?: number, offset?: boolean, local: boolean = true): RegExp => new RegExp(`^(?:(?:(?:[01]\\d|2[0-3])):(?:[0-5]\\d):(?:[0-5]\\d)(?:${((precision === undefined)?("(?:\\.\\d+)?"):(((precision === 0)?(""):(`\\.\\d{${String(precision)}}`))))})(?:${((offset && local)?("(?:(?:[+\\-](?:(?:[01]\\d|2[0-3])):(?:[0-5]\\d))|Z?)"):(((offset)?("(?:(?:[+\\-](?:(?:[01]\\d|2[0-3])):(?:[0-5]\\d))|Z)"):(((local)?("Z?"):("Z"))))))}))$`, "v");
 const datetimeRegex = (precision?: number, offset?: boolean, local?: boolean): RegExp => new RegExp(`^(?:(?:(?:\\d{4}-(?:(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01]))|(?:(?:0[469]|11)-(?:0[1-9]|[12]\\d|30))|(?:02-(?:0[1-9]|1\\d|2[0-8])))|(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29)))T(?:(?:(?:[01]\\d|2[0-3])):(?:[0-5]\\d):(?:[0-5]\\d)(?:${((precision === undefined)?("(?:\\.\\d+)?"):(((precision === 0)?(""):(`\\.\\d{${String(precision)}}`))))}))(?:${((offset && local)?("(?:(?:[+\\-](?:(?:[01]\\d|2[0-3])):(?:[0-5]\\d))|Z?)"):(((offset)?("(?:(?:[+\\-](?:(?:[01]\\d|2[0-3])):(?:[0-5]\\d))|Z)"):(((local)?("Z?"):("Z"))))))}))$`, "v");
