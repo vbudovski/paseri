@@ -28,7 +28,9 @@ const uuidRegex = (): RegExp => regex('i')`
         (?<uuid-max> ffffffff-ffff-ffff-ffff-ffffffffffff)
     )
 `;
-const nanoidRegex = (): RegExp => /^[a-z\d_-]{21}$/i;
+// No i flag: an i-flagged [a-z] class is one added u/v flag away from Unicode case folding letting
+// U+017F (long s) and U+212A (Kelvin sign) in, so both cases are spelt explicitly instead.
+const nanoidRegex = (): RegExp => /^[a-zA-Z\d_-]{21}$/;
 // Conservative fast-accept pre-filter for `string().url()`: matches only strings the WHATWG URL parser
 // (https://url.spec.whatwg.org/) is guaranteed to accept, short-circuiting the `URL.canParse` fall-through.
 // Two branches, mirroring the spec's parser:
@@ -113,7 +115,11 @@ const datetimeRegex = (precision?: number, offset?: boolean, local?: boolean): R
     )
 `;
 // Adapted IP regex from https://github.com/validatorjs/validator.js/blob/master/src/lib/isIP.js.
-const ipRegex = (version?: 4 | 6): RegExp => regex('i')`
+// No i flag: combined with the v flag it applies Unicode case folding, letting U+017F (long s, folds to s)
+// and U+212A (Kelvin sign, folds to k) into the zone ID's letter class. RFC 6874 zone IDs are ASCII-only,
+// so case-insensitivity is spelt as an explicit A-Z range instead. Hex segments use \p{AHex}, which already
+// covers both cases.
+const ipRegex = (version?: 4 | 6): RegExp => regex`
     ^ \g<ip> $
 
     (?(DEFINE)
@@ -129,14 +135,15 @@ const ipRegex = (version?: 4 | 6): RegExp => regex('i')`
                 (\g<segment> :){1} ((: \g<segment>){0,4} : \g<ipv4> | (: \g<segment>){1,6} | :) |
                 (: ((: \g<segment>){0,5} : \g<ipv4> | (: \g<segment>){1,7} | :))
             )
-            (% [\da-z]+)?
+            (% [\da-zA-Z]+)?
         )
         (?<segment> \p{AHex}{1,4})
         (?<ipv4> (\g<byte> \.){3} \g<byte>)
         (?<byte> 25[0-5] | 2[0-4]\d | 1\d\d | [1-9]\d | \d)
     )
 `;
-const ipCidrRegex = (version?: 4 | 6): RegExp => regex('i')`
+// No i flag: same fold reasoning as ipRegex above.
+const ipCidrRegex = (version?: 4 | 6): RegExp => regex`
     ^ \g<ip-range> $
 
     (?(DEFINE)
@@ -153,7 +160,7 @@ const ipCidrRegex = (version?: 4 | 6): RegExp => regex('i')`
                 (\g<segment> :){1} ((: \g<segment>){0,4} : \g<ipv4> | (: \g<segment>){1,6} | :) |
                 (: ((: \g<segment>){0,5} : \g<ipv4> | (: \g<segment>){1,7} | :))
             )
-            (% [\da-z]+)?
+            (% [\da-zA-Z]+)?
         )
         (?<ipv6-bits> (12[0-8] | 1[01]\d | \d{1,2}))
         (?<segment> \p{AHex}{1,4})
