@@ -16,20 +16,24 @@ const nanoidRegex = (): RegExp => /^[a-z\d_-]{21}$/i;
 // Two branches, mirroring the spec's parser:
 //   - authority-url: the special schemes (except file, whose host rules differ) require a host, share one
 //     authority grammar, and cap the port at 65535. The host is a conservative subset of the allowed domain
-//     code points, written as a possessive class (no backtracking) bounded by the `:` `/` `?` `#` that follow.
-//     An all-digits-and-dots host is an IPv4 candidate the WHATWG parser may reject (overflow, out-of-range
-//     octet, wrong part count), so the leading lookahead requires at least one non-digit char and defers such
-//     hosts to `URL.canParse`.
+//     code points, matched label by label with two rules that defer to `URL.canParse`: a host whose LAST
+//     label is a number (all digits, or 0x/0X-prefixed hex, including bare 0x) is IPv4-parsed by the WHATWG
+//     parser and may be rejected (overflow, wrong part count, out-of-range octet); and a label starting with
+//     xn-- (any case) is punycode-decoded and validated, so it can fail even when pure ASCII (e.g.
+//     xn--a.com). Hosts with empty labels or a trailing dot don't fit the label structure and also defer.
+//     The label loop is deliberately greedy, not possessive: each iteration ends at a literal dot, so the
+//     decomposition is unambiguous and backtracking stays linear; the library's emulated possessive form
+//     measured slower.
 //   - opaque-url: a non-special scheme with no `//` takes the spec's opaque-path state, which accepts any
 //     content. Special schemes are excluded (they always parse an authority, e.g. `http:foo bar` is rejected).
-// Anything not matched (file:, IPv6 literals, userinfo, IDN hosts, non-special schemes with an authority)
-// falls through to `URL.canParse`. Soundness — never accepting a string canParse rejects — and ReDoS-safety
-// are both pinned by property tests.
+// Anything not matched (file:, IPv6 literals, userinfo, IDN hosts, xn-- labels, numeric last labels,
+// non-special schemes with an authority) falls through to `URL.canParse`. Soundness — never accepting a
+// string canParse rejects — and ReDoS-safety are both pinned by property tests.
 // No i flag: combined with the v flag it applies Unicode case folding, letting U+017F (long s, folds to s)
 // and U+212A (Kelvin sign, folds to k) match the scheme's letter classes. A scheme is ASCII-only per
 // the WHATWG spec, so canParse rejects them and a fast-accept match would be unsound. Scheme
 // case-insensitivity is spelt as per-character ASCII classes instead.
-const urlRegex = (): RegExp => /^(?:(?:(?:[hH][tT][tT][pP][sS]?|[fF][tT][pP]|[wW][sS][sS]?):\/\/(?:(?=[a-zA-Z\d\._\-]*?[a-zA-Z_\-])(?:(?=([a-zA-Z\d\._\-]+))\1))(?::(?:6553[0-5]|655[0-2]\d|65[0-4]\d\d|6[0-4]\d{3}|[1-5]\d{4}|\d{1,4}))?(?:(?:[\/\?\#].*)?))|(?:(?!(?:(?:(?:[hH][tT][tT][pP][sS]?|[fF][tT][pP]|[wW][sS][sS]?)|[fF][iI][lL][eE]):))[a-zA-Z](?:(?=([a-zA-Z\d\+\.\-]*))\2):(?!\/\/).*))$/v;
+const urlRegex = (): RegExp => /^(?:(?:(?:[hH][tT][tT][pP][sS]?|[fF][tT][pP]|[wW][sS][sS]?):\/\/(?:(?:(?:(?![xX][nN]--)[a-zA-Z\d_\-]+)\.)*(?:(?!(?:\d+|0[xX]\p{AHex}*)(?:[\:\/\?\#]|$))(?:(?![xX][nN]--)[a-zA-Z\d_\-]+)))(?::(?:6553[0-5]|655[0-2]\d|65[0-4]\d\d|6[0-4]\d{3}|[1-5]\d{4}|\d{1,4}))?(?:(?:[\/\?\#].*)?))|(?:(?!(?:(?:(?:[hH][tT][tT][pP][sS]?|[fF][tT][pP]|[wW][sS][sS]?)|[fF][iI][lL][eE]):))[a-zA-Z](?:(?=([a-zA-Z\d\+\.\-]*))\1):(?!\/\/).*))$/v;
 const dateRegex = (): RegExp => /^(?:(?:\d{4}-(?:(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01]))|(?:(?:0[469]|11)-(?:0[1-9]|[12]\d|30))|(?:02-(?:0[1-9]|1\d|2[0-8])))|(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29)))$/v;
 const timeRegex = (precision?: number, offset?: boolean, local: boolean = true): RegExp => new RegExp(`^(?:(?:(?:[01]\\d|2[0-3])):(?:[0-5]\\d):(?:[0-5]\\d)(?:${((precision === undefined)?("(?:\\.\\d+)?"):(((precision === 0)?(""):(`\\.\\d{${String(precision)}}`))))})(?:${((offset && local)?("(?:(?:[+\\-](?:(?:[01]\\d|2[0-3])):(?:[0-5]\\d))|Z?)"):(((offset)?("(?:(?:[+\\-](?:(?:[01]\\d|2[0-3])):(?:[0-5]\\d))|Z)"):(((local)?("Z?"):("Z"))))))}))$`, "v");
 const datetimeRegex = (precision?: number, offset?: boolean, local?: boolean): RegExp => new RegExp(`^(?:(?:(?:\\d{4}-(?:(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01]))|(?:(?:0[469]|11)-(?:0[1-9]|[12]\\d|30))|(?:02-(?:0[1-9]|1\\d|2[0-8])))|(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29)))T(?:(?:(?:[01]\\d|2[0-3])):(?:[0-5]\\d):(?:[0-5]\\d)(?:${((precision === undefined)?("(?:\\.\\d+)?"):(((precision === 0)?(""):(`\\.\\d{${String(precision)}}`))))}))(?:${((offset && local)?("(?:(?:[+\\-](?:(?:[01]\\d|2[0-3])):(?:[0-5]\\d))|Z?)"):(((offset)?("(?:(?:[+\\-](?:(?:[01]\\d|2[0-3])):(?:[0-5]\\d))|Z)"):(((local)?("Z?"):("Z"))))))}))$`, "v");

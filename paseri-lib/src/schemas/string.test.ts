@@ -372,6 +372,29 @@ describe('url', () => {
                 fc.constantFrom(':foo', '://example.com', 'cheme:bar', 'ttp://example.com'),
             )
             .map(([prefix, fold, rest]) => `${prefix}${fold}${rest}`),
+        // xn-- labels (any case) are punycode-decoded and validated by the WHATWG host parser, so some
+        // pure-ASCII hosts are rejected (invalid punycode) while others are fine: the fast-accept must
+        // defer all of them to `URL.canParse`.
+        fc
+            .tuple(
+                fc.constantFrom('http://', 'https://', 'ws://'),
+                fc.constantFrom('', 'a.', 'sub.example.'),
+                fc.constantFrom('xn--', 'XN--', 'xN--a', 'xn---', 'xn--a', 'xn--zzz', 'xn--nxasmq6b', 'axn--b'),
+                fc.constantFrom('', '.com', '.xn--a', '.example.com'),
+                fc.constantFrom('', ':8080', '/path', '?q=1'),
+            )
+            .map(([scheme, prefix, label, suffix, tail]) => `${scheme}${prefix}${label}${suffix}${tail}`),
+        // A host whose LAST label is a number (all digits, or 0x/0X-prefixed hex, including bare 0x) is
+        // IPv4-parsed by the WHATWG parser and often rejected, regardless of any letters in earlier labels;
+        // the fast-accept must defer those. Non-numeric last labels (0x1g, 12a, 1-2) stay on the fast path.
+        fc
+            .tuple(
+                fc.constantFrom('http://', 'https://', 'wss://'),
+                fc.constantFrom('', 'a.', 'a.b.', '0.', '_.'),
+                fc.constantFrom('1', '123', '999999999999', '0x', '0X', '0x1f', '0X1F', '0x1g', '12a', '1-2', 'a1'),
+                fc.constantFrom('', '.', ':80', '/p', '?q'),
+            )
+            .map(([scheme, prefix, label, tail]) => `${scheme}${prefix}${label}${tail}`),
     );
 
     it('agrees with URL.canParse on every input', () => {
@@ -383,7 +406,24 @@ describe('url', () => {
             fc.property(urlLike, (data) => {
                 expect(schema.safeParse(data).ok).toBe(URL.canParse(data));
             }),
-            { numRuns: 1000, examples: [['Kelvin:foo'], ['ſcheme:foo'], ['httpſ://example.com']] },
+            {
+                numRuns: 1000,
+                examples: [
+                    ['Kelvin:foo'],
+                    ['ſcheme:foo'],
+                    ['httpſ://example.com'],
+                    ['http://xn--a.com'],
+                    ['http://XN--a.com'],
+                    ['http://a.xn---.com'],
+                    ['http://bcc.0'],
+                    ['http://a.1'],
+                    ['http://_.1'],
+                    ['http://a.0x'],
+                    ['http://a.0X1f'],
+                    ['http://example.com.'],
+                    ['http://a..com'],
+                ],
+            },
         );
     });
 
