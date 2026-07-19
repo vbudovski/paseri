@@ -2,7 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/denoland/deno/main/cli/schemas/config-file.v1.json",
   "name": "@paseri/compiler",
   "license": "MIT",
-  "version": "0.7.6",
+  "version": "0.7.7",
   "description": "Ahead-of-time compiler for Paseri schemas.",
   "exports": {
     ".": "./src/index.ts"
