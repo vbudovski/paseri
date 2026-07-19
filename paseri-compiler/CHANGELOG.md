@@ -1,5 +1,11 @@
 # @paseri/compiler
 
+## 0.7.7
+
+### Patch Changes
+
+- acbf288: Compiled modules validate invalid inputs ~7-10% faster through the Standard Schema interface.
+
 ## 0.7.6
 
 ### Patch Changes

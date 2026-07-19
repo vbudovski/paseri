@@ -1,5 +1,15 @@
 # @paseri/paseri
 
+## 1.9.7
+
+### Patch Changes
+
+- c87e4c9: `p.string().ip()` and `p.string().cidr()` now reject IPv6 zone IDs containing U+212A (Kelvin sign) or U+017F (long s), e.g. `fe80::1%ſ1`; zone IDs are ASCII-only per RFC 6874.
+- 6531b82: Fixed `email()` accepting U+017F (long s) and U+212A (Kelvin sign), e.g. `ſ@example.com`, and `url()` accepting them in a scheme. RFC 5321/RFC 1035 email addresses and WHATWG URL schemes are ASCII-only.
+- d106235: Sped up the `date()`, `datetime()` and `time()` validators. Valid dates and datetimes parse ~5-7% faster.
+- acbf288: `schema['~standard'].validate(value)` is ~18% faster on valid objects, ~7% on invalid, and more on primitives.
+- cb6197e: Fixed `url()` accepting invalid URLs whose host the WHATWG parser rejects: a label starting with `xn--` that is invalid punycode (e.g. `http://xn--a.com`), or a host whose last label is a number that fails IPv4 parsing (e.g. `http://a.1`).
+
 ## 1.9.6
 
 ### Patch Changes
