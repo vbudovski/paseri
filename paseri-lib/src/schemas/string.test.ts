@@ -555,20 +555,47 @@ describe('uuid', () => {
 
     it('rejects invalid values', () => {
         const schema = p.string().uuid();
-        const regex = uuidRegex();
+
+        // Inputs built invalid by construction from the 8-4-4-4-12 hex grammar.
+        const hexCharacter = fc.constantFrom(...'0123456789abcdefABCDEF');
+        const groups = fc.tuple(
+            ...[8, 4, 4, 4, 12].map((length) =>
+                fc.string({ unit: hexCharacter, minLength: length, maxLength: length }),
+            ),
+        );
+        const groupIndex = fc.nat({ max: 4 });
+        const invalid = fc.oneof(
+            // A non-hex letter in one group.
+            fc.tuple(groups, groupIndex, fc.constantFrom(...'ghijklmnopqrstuvwxyz')).map(([parts, index, letter]) => {
+                const mutated = [...parts];
+                mutated[index] = `${letter}${mutated[index].slice(1)}`;
+                return mutated.join('-');
+            }),
+            // One group a character short.
+            fc.tuple(groups, groupIndex).map(([parts, index]) => {
+                const mutated = [...parts];
+                mutated[index] = mutated[index].slice(1);
+                return mutated.join('-');
+            }),
+            // One group a character long.
+            fc.tuple(groups, groupIndex, hexCharacter).map(([parts, index, extra]) => {
+                const mutated = [...parts];
+                mutated[index] = `${mutated[index]}${extra}`;
+                return mutated.join('-');
+            }),
+            // Too few groups.
+            groups.map((parts) => parts.slice(0, 4).join('-')),
+        );
 
         fc.assert(
-            fc.property(
-                fc.string().filter((value) => !regex.test(value)),
-                (data) => {
-                    const result = schema.safeParse(data);
-                    if (!result.ok) {
-                        expect(result.messages()).toEqual([{ path: [], message: 'invalid_uuid' }]);
-                    } else {
-                        expect(result.ok).toBeFalsy();
-                    }
-                },
-            ),
+            fc.property(invalid, (data) => {
+                const result = schema.safeParse(data);
+                if (!result.ok) {
+                    expect(result.messages()).toEqual([{ path: [], message: 'invalid_uuid' }]);
+                } else {
+                    expect(result.ok).toBeFalsy();
+                }
+            }),
         );
     });
 
@@ -613,20 +640,33 @@ describe('nanoid', () => {
 
     it('rejects invalid values', () => {
         const schema = p.string().nanoid();
-        const regex = nanoidRegex();
+
+        // Inputs built invalid by construction: a Nano ID is exactly 21 characters of [A-Za-z0-9_-].
+        const alphabetCharacter = fc.constantFrom(
+            ...'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-',
+        );
+        const invalid = fc.oneof(
+            // Wrong length.
+            fc.string({ unit: alphabetCharacter, maxLength: 30 }).filter((value) => value.length !== 21),
+            // A character outside the alphabet.
+            fc
+                .tuple(
+                    fc.string({ unit: alphabetCharacter, minLength: 20, maxLength: 20 }),
+                    fc.nat({ max: 20 }),
+                    fc.constantFrom(...'!@#$%^&*()+= .,/\\'),
+                )
+                .map(([body, index, character]) => body.slice(0, index) + character + body.slice(index)),
+        );
 
         fc.assert(
-            fc.property(
-                fc.string().filter((value) => !regex.test(value)),
-                (data) => {
-                    const result = schema.safeParse(data);
-                    if (!result.ok) {
-                        expect(result.messages()).toEqual([{ path: [], message: 'invalid_nanoid' }]);
-                    } else {
-                        expect(result.ok).toBeFalsy();
-                    }
-                },
-            ),
+            fc.property(invalid, (data) => {
+                const result = schema.safeParse(data);
+                if (!result.ok) {
+                    expect(result.messages()).toEqual([{ path: [], message: 'invalid_nanoid' }]);
+                } else {
+                    expect(result.ok).toBeFalsy();
+                }
+            }),
         );
     });
 
@@ -747,20 +787,50 @@ describe('date (string)', () => {
 
     it('rejects invalid values', () => {
         const schema = p.string().date();
-        const regex = dateRegex();
+
+        // Inputs built invalid by construction from the RFC 3339 full-date grammar.
+        const year = fc.integer({ min: 0, max: 9999 }).map((value) => String(value).padStart(4, '0'));
+        const isLeapYear = (value: number): boolean => (value % 4 === 0 && value % 100 !== 0) || value % 400 === 0;
+        const paddedNumber = (value: number): string => String(value).padStart(2, '0');
+        const invalid = fc.oneof(
+            // Month 00 or past 12.
+            fc
+                .tuple(year, fc.oneof(fc.constant(0), fc.integer({ min: 13, max: 99 })))
+                .map(([yearString, month]) => `${yearString}-${paddedNumber(month)}-01`),
+            // Day 00 or past 31.
+            fc
+                .tuple(
+                    year,
+                    fc.integer({ min: 1, max: 12 }),
+                    fc.oneof(fc.constant(0), fc.integer({ min: 32, max: 99 })),
+                )
+                .map(([yearString, month, day]) => `${yearString}-${paddedNumber(month)}-${paddedNumber(day)}`),
+            // Day 31 in a 30-day month.
+            fc
+                .tuple(year, fc.constantFrom(4, 6, 9, 11))
+                .map(([yearString, month]) => `${yearString}-${paddedNumber(month)}-31`),
+            // 30 February.
+            year.map((yearString) => `${yearString}-02-30`),
+            // 29 February in a non-leap year, including the century rule (1900 is not a leap year).
+            fc
+                .integer({ min: 1, max: 9999 })
+                .filter((value) => !isLeapYear(value))
+                .map((value) => `${String(value).padStart(4, '0')}-02-29`),
+            // Unpadded month and day.
+            fc
+                .tuple(year, fc.integer({ min: 1, max: 9 }), fc.integer({ min: 1, max: 9 }))
+                .map(([yearString, month, day]) => `${yearString}-${month}-${day}`),
+        );
 
         fc.assert(
-            fc.property(
-                fc.string().filter((value) => !regex.test(value)),
-                (data) => {
-                    const result = schema.safeParse(data);
-                    if (!result.ok) {
-                        expect(result.messages()).toEqual([{ path: [], message: 'invalid_date_string' }]);
-                    } else {
-                        expect(result.ok).toBeFalsy();
-                    }
-                },
-            ),
+            fc.property(invalid, (data) => {
+                const result = schema.safeParse(data);
+                if (!result.ok) {
+                    expect(result.messages()).toEqual([{ path: [], message: 'invalid_date_string' }]);
+                } else {
+                    expect(result.ok).toBeFalsy();
+                }
+            }),
         );
     });
 
@@ -822,18 +892,50 @@ describe('time', () => {
     it('rejects invalid values', () => {
         const schema = p.string().time();
 
+        // Inputs built invalid by construction from the RFC 3339 partial-time grammar.
+        const paddedNumber = (value: number): string => String(value).padStart(2, '0');
+        const hour = fc.integer({ min: 0, max: 23 });
+        const minute = fc.integer({ min: 0, max: 59 });
+        const second = fc.integer({ min: 0, max: 59 });
+        const invalid = fc.oneof(
+            // Hour past 23.
+            fc
+                .tuple(fc.integer({ min: 24, max: 99 }), minute, second)
+                .map(
+                    ([hours, minutes, seconds]) =>
+                        `${paddedNumber(hours)}:${paddedNumber(minutes)}:${paddedNumber(seconds)}`,
+                ),
+            // Minute past 59.
+            fc
+                .tuple(hour, fc.integer({ min: 60, max: 99 }), second)
+                .map(
+                    ([hours, minutes, seconds]) =>
+                        `${paddedNumber(hours)}:${paddedNumber(minutes)}:${paddedNumber(seconds)}`,
+                ),
+            // Second past 60 (60 itself is a leap-second profile choice, so it is not drawn).
+            fc
+                .tuple(hour, minute, fc.integer({ min: 61, max: 99 }))
+                .map(
+                    ([hours, minutes, seconds]) =>
+                        `${paddedNumber(hours)}:${paddedNumber(minutes)}:${paddedNumber(seconds)}`,
+                ),
+            // Missing seconds.
+            fc.tuple(hour, minute).map(([hours, minutes]) => `${paddedNumber(hours)}:${paddedNumber(minutes)}`),
+            // Unpadded hour.
+            fc
+                .tuple(fc.integer({ min: 0, max: 9 }), minute, second)
+                .map(([hours, minutes, seconds]) => `${hours}:${paddedNumber(minutes)}:${paddedNumber(seconds)}`),
+        );
+
         fc.assert(
-            fc.property(
-                fc.string().filter((value) => !timeRegex().test(value)),
-                (data) => {
-                    const result = schema.safeParse(data);
-                    if (!result.ok) {
-                        expect(result.messages()).toEqual([{ path: [], message: 'invalid_time_string' }]);
-                    } else {
-                        expect(result.ok).toBeFalsy();
-                    }
-                },
-            ),
+            fc.property(invalid, (data) => {
+                const result = schema.safeParse(data);
+                if (!result.ok) {
+                    expect(result.messages()).toEqual([{ path: [], message: 'invalid_time_string' }]);
+                } else {
+                    expect(result.ok).toBeFalsy();
+                }
+            }),
         );
     });
 
@@ -922,18 +1024,32 @@ describe('datetime', () => {
     it('rejects invalid values', () => {
         const schema = p.string().datetime();
 
+        // Inputs built invalid by construction: an invalid part on one side of the T, a missing T,
+        // or a missing timezone (the default datetime() accepts only UTC 'Z').
+        const invalid = fc.oneof(
+            // Hour past 23.
+            fc.integer({ min: 24, max: 99 }).map((hours) => `2024-01-01T${hours}:00:00Z`),
+            // Minute past 59.
+            fc.integer({ min: 60, max: 99 }).map((minutes) => `2024-01-01T12:${minutes}:00Z`),
+            // Month past 12.
+            fc.integer({ min: 13, max: 99 }).map((months) => `2024-${months}-01T12:34:56Z`),
+            // Day past 31.
+            fc.integer({ min: 32, max: 99 }).map((days) => `2024-01-${days}T12:34:56Z`),
+            // No timezone.
+            fc.constant('2024-01-01T12:34:56'),
+            // A space instead of the T separator.
+            fc.constant('2024-01-01 12:34:56Z'),
+        );
+
         fc.assert(
-            fc.property(
-                fc.string().filter((value) => !datetimeRegex().test(value)),
-                (data) => {
-                    const result = schema.safeParse(data);
-                    if (!result.ok) {
-                        expect(result.messages()).toEqual([{ path: [], message: 'invalid_date_time_string' }]);
-                    } else {
-                        expect(result.ok).toBeFalsy();
-                    }
-                },
-            ),
+            fc.property(invalid, (data) => {
+                const result = schema.safeParse(data);
+                if (!result.ok) {
+                    expect(result.messages()).toEqual([{ path: [], message: 'invalid_date_time_string' }]);
+                } else {
+                    expect(result.ok).toBeFalsy();
+                }
+            }),
         );
     });
 
@@ -1004,19 +1120,70 @@ describe('ip', () => {
     it('rejects invalid values', () => {
         const schema = p.string().ip();
 
-        fc.assert(
-            fc.property(
-                fc.string().filter((value) => !ipRegex().test(value)),
-                (data) => {
-                    const result = schema.safeParse(data);
-                    if (!result.ok) {
-                        expect(result.messages()).toEqual([{ path: [], message: 'invalid_ip_address' }]);
-                    } else {
-                        expect(result.ok).toBeFalsy();
-                    }
-                },
-            ),
+        // Inputs built invalid by construction from the RFC 791/4291 grammar.
+        const octet = fc.integer({ min: 0, max: 255 });
+        const segment = fc.stringMatching(/^[0-9a-fA-F]{1,4}$/);
+        const invalid = fc.oneof(
+            // IPv4 needs dots and IPv6 needs colons, so a string with neither is never an IP address.
+            fc.string().filter((value) => !value.includes('.') && !value.includes(':')),
+            // An IPv4 octet past 255.
+            fc
+                .tuple(
+                    fc.array(octet, { minLength: 4, maxLength: 4 }),
+                    fc.nat({ max: 3 }),
+                    fc.integer({ min: 256, max: 999 }),
+                )
+                .map(([octets, position, excess]) => {
+                    const parts = octets.map(String);
+                    parts[position] = String(excess);
+                    return parts.join('.');
+                }),
+            // Five octets.
+            fc.array(octet, { minLength: 5, maxLength: 5 }).map((octets) => octets.join('.')),
+            // Nine colon-separated groups (IPv6 allows at most eight).
+            fc.array(segment, { minLength: 9, maxLength: 9 }).map((segments) => segments.join(':')),
+            // A group of five hex digits (IPv6 groups are one to four).
+            fc
+                .tuple(fc.array(segment, { minLength: 8, maxLength: 8 }), fc.nat({ max: 7 }))
+                .map(([segments, position]) => {
+                    segments[position] = '12345';
+                    return segments.join(':');
+                }),
+            // Two '::' compressions (IPv6 allows at most one).
+            fc.tuple(segment, segment, segment).map(([first, second, third]) => `${first}::${second}::${third}`),
         );
+
+        fc.assert(
+            fc.property(invalid, (data) => {
+                const result = schema.safeParse(data);
+                if (!result.ok) {
+                    expect(result.messages()).toEqual([{ path: [], message: 'invalid_ip_address' }]);
+                } else {
+                    expect(result.ok).toBeFalsy();
+                }
+            }),
+        );
+    });
+
+    it('rejects Unicode characters that case-fold into ASCII in the zone ID', () => {
+        // U+017F (long s) and U+212A (Kelvin sign) are the only code points that case-fold into ASCII
+        // a-z, so they must not slip into the zone ID class: RFC 6874 zone IDs are ASCII-only.
+        const schema = p.string().ip();
+
+        expect(schema.safeParse('fe80::1%eth0').ok).toBeTruthy();
+        expect(schema.safeParse('fe80::1%ETH0').ok).toBeTruthy();
+        const invalid = [
+            'fe80::1%K1', // Kelvin sign in the zone ID
+            'fe80::1%ſ1', // long s in the zone ID
+        ];
+        for (const value of invalid) {
+            const result = schema.safeParse(value);
+            if (!result.ok) {
+                expect(result.messages()).toEqual([{ path: [], message: 'invalid_ip_address' }]);
+            } else {
+                expect(result.ok).toBeFalsy();
+            }
+        }
     });
 
     it('is safe from ReDoS', () => {
@@ -1071,19 +1238,53 @@ describe('cidr', () => {
     it('rejects invalid values', () => {
         const schema = p.string().cidr();
 
-        fc.assert(
-            fc.property(
-                fc.string().filter((value) => !ipCidrRegex().test(value)),
-                (data) => {
-                    const result = schema.safeParse(data);
-                    if (!result.ok) {
-                        expect(result.messages()).toEqual([{ path: [], message: 'invalid_ip_address_range' }]);
-                    } else {
-                        expect(result.ok).toBeFalsy();
-                    }
-                },
-            ),
+        // Inputs built invalid by construction.
+        const invalid = fc.oneof(
+            // A bare address: CIDR notation requires the /prefix suffix.
+            fc.oneof(fc.ipV4(), fc.ipV6()),
+            // Prefix length past the maximum (32 for IPv4, 128 for IPv6).
+            fc.tuple(fc.ipV4(), fc.integer({ min: 33, max: 999 })).map(([ip, bits]) => `${ip}/${bits}`),
+            fc.tuple(fc.ipV6(), fc.integer({ min: 129, max: 999 })).map(([ip, bits]) => `${ip}/${bits}`),
+            // An invalid address before the prefix: no dots or colons is never an IP address.
+            fc
+                .tuple(
+                    fc.string().filter((value) => !value.includes('.') && !value.includes(':')),
+                    fc.integer({ min: 0, max: 128 }),
+                )
+                .map(([address, bits]) => `${address}/${bits}`),
         );
+
+        fc.assert(
+            fc.property(invalid, (data) => {
+                const result = schema.safeParse(data);
+                if (!result.ok) {
+                    expect(result.messages()).toEqual([{ path: [], message: 'invalid_ip_address_range' }]);
+                } else {
+                    expect(result.ok).toBeFalsy();
+                }
+            }),
+        );
+    });
+
+    it('rejects Unicode characters that case-fold into ASCII in the zone ID', () => {
+        // U+017F (long s) and U+212A (Kelvin sign) are the only code points that case-fold into ASCII
+        // a-z, so they must not slip into the zone ID class: RFC 6874 zone IDs are ASCII-only.
+        const schema = p.string().cidr();
+
+        expect(schema.safeParse('fe80::1%eth0/64').ok).toBeTruthy();
+        expect(schema.safeParse('fe80::1%ETH0/64').ok).toBeTruthy();
+        const invalid = [
+            'fe80::1%K1/64', // Kelvin sign in the zone ID
+            'fe80::1%ſ1/64', // long s in the zone ID
+        ];
+        for (const value of invalid) {
+            const result = schema.safeParse(value);
+            if (!result.ok) {
+                expect(result.messages()).toEqual([{ path: [], message: 'invalid_ip_address_range' }]);
+            } else {
+                expect(result.ok).toBeFalsy();
+            }
+        }
     });
 
     it('is safe from ReDoS', () => {
