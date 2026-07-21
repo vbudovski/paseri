@@ -16,7 +16,7 @@
     "rehype-external-links": "npm:rehype-external-links@^3.0.0",
     "rollup-plugin-visualizer": "npm:rollup-plugin-visualizer@^7.0.1",
     "sharp": "npm:sharp@^0.35.3",
-    "typescript": "npm:typescript@^6.0.3",
+    "typescript": "npm:typescript@^7.0.2",
     "zod": "npm:zod@^4.4.3"
   },
   "tasks": {
