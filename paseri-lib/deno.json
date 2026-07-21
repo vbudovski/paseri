@@ -19,7 +19,7 @@
     "@vbudovski/rollup-plugin-transform-regex": "jsr:@vbudovski/rollup-plugin-transform-regex@^0.1.4",
     "acorn": "npm:acorn@^8.17.0",
     "expect-type": "npm:expect-type@^1.4.0",
-    "fast-check": "npm:fast-check@^4.8.0",
+    "fast-check": "npm:fast-check@^4.9.0",
     "recheck": "npm:recheck@^4.5.0",
     "regex": "npm:regex@^6.1.0",
     "rollup": "npm:rollup@^4.62.2",

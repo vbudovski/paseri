@@ -29,16 +29,16 @@
     "npm:@sveltejs/acorn-typescript@^1.0.11": "1.0.11_acorn@8.17.0",
     "npm:@types/estree@^1.0.8": "1.0.9",
     "npm:acorn@^8.17.0": "8.17.0",
-    "npm:astro@^7.0.6": "7.0.9_@astrojs+markdown-remark@7.2.1",
+    "npm:astro@^7.0.9": "7.0.9_@astrojs+markdown-remark@7.2.1",
     "npm:charts.css@^1.2.0": "1.2.0",
     "npm:codejar@^4.3.0": "4.3.0",
     "npm:estree-walker@^3.0.3": "3.0.3",
     "npm:expect-type@^1.4.0": "1.4.0",
-    "npm:fast-check@^4.8.0": "4.8.0",
+    "npm:fast-check@^4.9.0": "4.9.0",
     "npm:husky@^9.1.7": "9.1.7",
     "npm:lint-staged@^17.0.8": "17.0.8",
     "npm:magic-string@~0.30.21": "0.30.21",
-    "npm:preact@^10.29.6": "10.29.7_preact-render-to-string@6.7.0",
+    "npm:preact@^10.29.7": "10.29.7_preact-render-to-string@6.7.0",
     "npm:recheck@^4.5.0": "4.5.0",
     "npm:regex@^6.1.0": "6.1.0",
     "npm:regexp-tree@~0.1.27": "0.1.27",
@@ -2701,8 +2701,8 @@
     "extendable-error@0.1.7": {
       "integrity": "sha512-UOiS2in6/Q0FK0R0q6UY9vYpQ21mr/Qn1KOnte7vsACuNJf514WvCCUHSRCPcgjPT2bAhNIJdlE6bVap1GKmeg=="
     },
-    "fast-check@4.8.0": {
-      "integrity": "sha512-GOJ158CUMnN6cSahsv4+ExARvIDuzzinFjkp0E9WtiBa5zcVeLozVkWaE4IzFcc+Y48Wp1EDlUZsXRyAztQcSg==",
+    "fast-check@4.9.0": {
+      "integrity": "sha512-7ms6T7SybUev/PQITciI0yLM2pOSFy5zpG8Ty7tQofcVaQUvrMXp6CBwqF6fThLCLOrfBtuHAtwq6Yu4XPCllg==",
       "dependencies": [
         "pure-rand"
       ]
@@ -4277,8 +4277,8 @@
     "property-information@7.2.0": {
       "integrity": "sha512-IAtzIB6sUiWaJYrX9smp3V46pBGbBeLFRGdh25kg1334VcBlD8HzhPeNIWQH9zhGmo2itIe25EHt9dQP7G5hmg=="
     },
-    "pure-rand@8.4.0": {
-      "integrity": "sha512-IoM8YF/jY0hiugFo/wOWqfmarlE6J0wc6fDK1PhftMk7MGhVZl88sZimmqBBFomLOCSmcCCpsfj7wXASCpvK9A=="
+    "pure-rand@8.4.2": {
+      "integrity": "sha512-vvuOGgcuPJAirlHvuQw1TrOiw7ptaIXXmIbNuiNOY6lNGJJH49PQ1Kj4nd783nPdQhQdicgOjVI2yI/9BD6/Ng=="
     },
     "quansync@0.2.11": {
       "integrity": "sha512-AifT7QEbW9Nri4tAwR5M/uzpBuqfZf+zwaEM/QkzEjj7NBuFD2rBuy0K3dE+8wltbezDV7JMA0WfnCPYRSYbXA=="
@@ -5474,10 +5474,10 @@
           "npm:@astrojs/starlight@~0.41.3",
           "npm:@preact/signals-core@^1.14.4",
           "npm:@preact/signals@^2.9.3",
-          "npm:astro@^7.0.6",
+          "npm:astro@^7.0.9",
           "npm:charts.css@^1.2.0",
           "npm:codejar@^4.3.0",
-          "npm:preact@^10.29.6",
+          "npm:preact@^10.29.7",
           "npm:rehype-external-links@3",
           "npm:rollup-plugin-visualizer@^7.0.1",
           "npm:sharp@~0.35.3",
@@ -5497,7 +5497,7 @@
           "npm:@sveltejs/acorn-typescript@^1.0.11",
           "npm:acorn@^8.17.0",
           "npm:expect-type@^1.4.0",
-          "npm:fast-check@^4.8.0",
+          "npm:fast-check@^4.9.0",
           "npm:recheck@^4.5.0",
           "npm:regex@^6.1.0",
           "npm:rollup@^4.62.2",
@@ -5510,7 +5510,7 @@
         "dependencies": [
           "jsr:@std/expect@^1.0.20",
           "jsr:@std/testing@^1.0.19",
-          "npm:fast-check@^4.8.0",
+          "npm:fast-check@^4.9.0",
           "npm:vite@^7.3.6"
         ]
       }
