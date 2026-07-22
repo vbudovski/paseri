@@ -1391,3 +1391,43 @@ describe('nested field validation', () => {
         }
     });
 });
+
+describe('collection fields', () => {
+    const schema = p.object({
+        tags: p.array(p.string()),
+        perms: p.set(p.string()),
+        flags: p.map(p.string(), p.boolean()),
+        meta: p.record(p.string()),
+    });
+
+    it('accepts an object whose array/set/map/record fields hold valid elements', () => {
+        fc.assert(
+            fc.property(
+                fc.array(fc.string()),
+                fc.array(fc.string()),
+                fc.array(fc.tuple(fc.string(), fc.boolean())),
+                fc.dictionary(
+                    fc.string().filter((key) => key !== '__proto__'),
+                    fc.string(),
+                ),
+                (tags, permElements, flagEntries, meta) => {
+                    const result = schema.safeParse({
+                        tags,
+                        perms: new Set(permElements),
+                        flags: new Map(flagEntries),
+                        meta,
+                    });
+                    expect(result.ok).toBe(true);
+                },
+            ),
+        );
+    });
+
+    it('rejects a wrong-typed element in any collection field', () => {
+        const base = { tags: ['a'], perms: new Set(['b']), flags: new Map([['c', true]]), meta: { d: 'e' } };
+        expect(schema.safeParse({ ...base, tags: [1] }).ok).toBe(false);
+        expect(schema.safeParse({ ...base, perms: new Set([1]) }).ok).toBe(false);
+        expect(schema.safeParse({ ...base, flags: new Map([['c', 'not-a-boolean']]) }).ok).toBe(false);
+        expect(schema.safeParse({ ...base, meta: { d: 9 } }).ok).toBe(false);
+    });
+});

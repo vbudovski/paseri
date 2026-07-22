@@ -68,6 +68,17 @@ const MATRIX: readonly MatrixEntry[] = [
         name: 'ObjectStripDefault',
         schema: p.object({ host: p.string(), port: p.number().optional().default(123) }).strip(),
     },
+    {
+        // Exercises the shape entry's inline-collection path: array/set/map/record element loops spliced inline
+        // rather than calling a `_shape*` helper.
+        name: 'ObjectCollectionFields',
+        schema: p.object({
+            tags: p.array(p.string()),
+            perms: p.set(p.string()),
+            flags: p.map(p.string(), p.boolean()),
+            meta: p.record(p.string()),
+        }),
+    },
     { name: 'ArrayString', schema: p.array(p.string()) },
     { name: 'ArrayObject', schema: p.array(p.object({ id: p.number() })) },
     { name: 'Record', schema: p.record(p.number()) },

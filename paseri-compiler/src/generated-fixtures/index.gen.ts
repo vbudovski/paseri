@@ -27,6 +27,7 @@ import './ObjectPassthrough.gen.ts';
 import './ObjectNested.gen.ts';
 import './ObjectStripNested.gen.ts';
 import './ObjectStripDefault.gen.ts';
+import './ObjectCollectionFields.gen.ts';
 import './ArrayString.gen.ts';
 import './ArrayObject.gen.ts';
 import './Record.gen.ts';

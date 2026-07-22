@@ -13,8 +13,10 @@ import {
     equals,
     expressionStatement,
     forIn,
+    forOf,
     identifier,
     ifStatement,
+    instanceOf,
     letStatement,
     literalExpression,
     not,
@@ -23,6 +25,7 @@ import {
     numericLiteral,
     objectLiteral,
     postfixIncrement,
+    property,
     recordAccess,
     recordCast,
     recordType,
@@ -418,6 +421,145 @@ function emitStripSuccess(
 }
 
 /**
+ * Element kinds whose `tryShape` predicate is a single self-contained expression: no hoisted helper, recursive ref,
+ * or strict/strip level. Only a container of these is eligible for element-loop inlining below.
+ */
+const INLINE_ELEMENT_KINDS: ReadonlySet<IR['kind']> = new Set<IR['kind']>([
+    'string',
+    'number',
+    'boolean',
+    'bigint',
+    'literal',
+    'enum',
+    'null',
+    'undefined',
+    'symbol',
+    'unknown',
+    'never',
+    'date',
+    'duration',
+    'instant',
+    'plainDate',
+    'plainDateTime',
+    'plainMonthDay',
+    'plainTime',
+    'plainYearMonth',
+    'zonedDateTime',
+]);
+
+/** Whether an element/key/value IR can inline as a single leaf predicate: an inline-eligible kind that doesn't modify. */
+function isInlineEligibleKind(ir: IR, state: State): boolean {
+    return INLINE_ELEMENT_KINDS.has(ir.kind) && !modifies(ir, state);
+}
+
+/** The leaf predicate for a container element, or undefined when the element isn't inline-eligible. */
+function inlineElementShape(elementIR: IR, elementLocal: ts.Identifier, state: State): ts.Expression | undefined {
+    if (!isInlineEligibleKind(elementIR, state)) {
+        return undefined;
+    }
+    const subLevels: StrictLevel[] = [];
+    const shape = tryShape(elementIR, elementLocal, subLevels, state);
+    if (shape === undefined || subLevels.length !== 0) {
+        return undefined;
+    }
+    return shape;
+}
+
+/**
+ * Statement-form inline of a required collection field's element check: the container guard followed by an element
+ * loop routing a failing element to `slowCall`, replacing the helper-call form `Array.isArray(x) && _shapeArrayN(x)`.
+ * In a wide entry V8 won't inline the per-container helper (its inline budget is spent on the big entry), so that
+ * call is a real per-parse cost the inline loop removes. Only for array/set/map/record whose element (and map key)
+ * is an inline-eligible leaf with no size checks: a leaf hoists no helper, so no dedup is lost. Returns undefined
+ * otherwise, so the caller keeps the helper-call form. Lazy/ref elements are recursive and never inline.
+ */
+function tryEmitInlineCollectionCheck(
+    fieldIR: FieldIR,
+    fieldLocal: ts.Identifier,
+    slowCall: ts.Statement,
+    state: State,
+): ts.Statement[] | undefined {
+    // array/set/map carry size checks the loop can't honour (record has none); bail so the caller keeps the helper.
+    if ((fieldIR.kind === 'array' || fieldIR.kind === 'set' || fieldIR.kind === 'map') && fieldIR.checks.length > 0) {
+        return undefined;
+    }
+    switch (fieldIR.kind) {
+        case 'array': {
+            const elementLocal = freshIdentifier(state, 'el');
+            const elementShape = inlineElementShape(fieldIR.element, elementLocal, state);
+            if (elementShape === undefined) {
+                return undefined;
+            }
+            const indexIdentifier = freshIdentifier(state, 'i');
+            const loop = ts.factory.createForStatement(
+                ts.factory.createVariableDeclarationList(
+                    [ts.factory.createVariableDeclaration(indexIdentifier, undefined, undefined, numericLiteral(0))],
+                    ts.NodeFlags.Let,
+                ),
+                binary(indexIdentifier, ts.SyntaxKind.LessThanToken, property(fieldLocal, 'length')),
+                ts.factory.createPostfixUnaryExpression(indexIdentifier, ts.SyntaxKind.PlusPlusToken),
+                block([
+                    constStatement(elementLocal, undefined, elementAccess(fieldLocal, indexIdentifier)),
+                    ifStatement(not(elementShape), [slowCall]),
+                ]),
+            );
+            return [ifStatement(not(call(property(identifier('Array'), 'isArray'), [fieldLocal])), [slowCall]), loop];
+        }
+        case 'set': {
+            const elementLocal = freshIdentifier(state, 'el');
+            const elementShape = inlineElementShape(fieldIR.element, elementLocal, state);
+            if (elementShape === undefined) {
+                return undefined;
+            }
+            return [
+                ifStatement(not(instanceOf(fieldLocal, identifier('Set'))), [slowCall]),
+                forOf(elementLocal, fieldLocal, [ifStatement(not(elementShape), [slowCall])]),
+            ];
+        }
+        case 'map': {
+            // Check both kinds before shaping so an ineligible value doesn't waste tryShape on the key.
+            if (!isInlineEligibleKind(fieldIR.key, state) || !isInlineEligibleKind(fieldIR.value, state)) {
+                return undefined;
+            }
+            const keyLocal = freshIdentifier(state, 'mk');
+            const valueLocal = freshIdentifier(state, 'mv');
+            const keyShape = inlineElementShape(fieldIR.key, keyLocal, state);
+            const valueShape = inlineElementShape(fieldIR.value, valueLocal, state);
+            if (keyShape === undefined || valueShape === undefined) {
+                return undefined;
+            }
+            const entryLocal = freshIdentifier(state, 'entry');
+            return [
+                ifStatement(not(instanceOf(fieldLocal, identifier('Map'))), [slowCall]),
+                forOf(entryLocal, fieldLocal, [
+                    constStatement(keyLocal, undefined, elementAccess(entryLocal, numericLiteral(0))),
+                    constStatement(valueLocal, undefined, elementAccess(entryLocal, numericLiteral(1))),
+                    ifStatement(not(keyShape), [slowCall]),
+                    ifStatement(not(valueShape), [slowCall]),
+                ]),
+            ];
+        }
+        case 'record': {
+            const elementLocal = freshIdentifier(state, 'el');
+            const elementShape = inlineElementShape(fieldIR.element, elementLocal, state);
+            if (elementShape === undefined) {
+                return undefined;
+            }
+            const keyIdentifier = freshIdentifier(state, 'k');
+            return [
+                ifStatement(not(call(identifier('isPlainObject'), [fieldLocal])), [slowCall]),
+                forIn(keyIdentifier, fieldLocal, [
+                    constStatement(elementLocal, undefined, elementAccess(fieldLocal, keyIdentifier)),
+                    ifStatement(not(elementShape), [slowCall]),
+                ]),
+            ];
+        }
+        default:
+            return undefined;
+    }
+}
+
+/**
  * Statement-form shape check for a top-level object entry: each field is read once into a local and its shape
  * expression tests that local, replacing the giant-boolean form whose conjuncts re-load the property for every
  * check. Same match semantics — a failing check routes to the slow call exactly like a false conjunct — and
@@ -459,15 +601,22 @@ function tryEmitObjectShapeEntryBody(
             );
         }
         const fieldLocal = freshIdentifier(state, 'field');
+        statements.push(constStatement(fieldLocal, undefined, recordAccess(valueExpression, stringLiteral(fieldName))));
+        // Set before both branches so an inlined element's `tryShape` sees the current mode; the inline attempt can
+        // still reset it (it runs `tryShape` on elements), so the helper-call branch re-sets it below.
         state.reconstructingStrip = reconstructStrip;
-        const fieldShape = tryShape(fieldIR, fieldLocal, strictLevels, state);
-        if (fieldShape === undefined) {
-            return undefined;
+        // An eligible required leaf-collection inlines its element loop; everything else keeps the helper-call form.
+        const inlined = optional ? undefined : tryEmitInlineCollectionCheck(fieldIR, fieldLocal, slowCall, state);
+        if (inlined !== undefined) {
+            statements.push(...inlined);
+        } else {
+            state.reconstructingStrip = reconstructStrip;
+            const fieldShape = tryShape(fieldIR, fieldLocal, strictLevels, state);
+            if (fieldShape === undefined) {
+                return undefined;
+            }
+            statements.push(ifStatement(not(fieldShape), [slowCall]));
         }
-        statements.push(
-            constStatement(fieldLocal, undefined, recordAccess(valueExpression, stringLiteral(fieldName))),
-            ifStatement(not(fieldShape), [slowCall]),
-        );
         outputFields.push({ name: fieldName, local: fieldLocal, optional, ir: fieldIR });
         if (optional) {
             optionalFieldNames.push(fieldName);
