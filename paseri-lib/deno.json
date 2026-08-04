@@ -17,7 +17,7 @@
     "@std/testing": "jsr:@std/testing@^1.0.19",
     "@sveltejs/acorn-typescript": "npm:@sveltejs/acorn-typescript@^1.0.11",
     "@vbudovski/rollup-plugin-transform-regex": "jsr:@vbudovski/rollup-plugin-transform-regex@^0.1.4",
-    "acorn": "npm:acorn@^8.17.0",
+    "acorn": "npm:acorn@^8.18.0",
     "expect-type": "npm:expect-type@^1.4.0",
     "fast-check": "npm:fast-check@^4.9.0",
     "recheck": "npm:recheck@^4.5.0",
