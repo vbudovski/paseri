@@ -1,13 +1,15 @@
 // Thin wrapper around @changesets/cli that lets a Deno workspace masquerade
 // as an npm workspace just long enough for the CLI to run, then syncs any
-// version bump back into each member's deno.json. The shim package.json
-// files are gitignored and removed at the end of every invocation —
-// including on signal-driven exits.
+// version bump back into each member's deno.json. The shim npm manifests are
+// gitignored and removed at the end of every invocation, including on
+// signal-driven exits.
 
 import { listPublishableMembers, type PublishableMember, readJson } from './lib/workspace.ts';
 
 const rootUrl = new URL('../', import.meta.url);
 const rootPackageUrl = new URL('package.json', rootUrl);
+const rootLockUrl = new URL('package-lock.json', rootUrl);
+const cliEntryUrl = new URL('changeset-cli.ts', import.meta.url);
 
 async function writeJson(path: URL, data: unknown): Promise<void> {
     await Deno.writeTextFile(path, `${JSON.stringify(data, null, 2)}\n`);
@@ -36,6 +38,10 @@ async function pre(): Promise<PublishableMember[]> {
         private: true,
         workspaces: members.map((m) => m.dir),
     });
+    // @manypkg/get-packages' NpmTool.isMonorepoRoot only checks that this file
+    // exists before treating the directory as an npm workspace root; the
+    // contents are never read.
+    await writeJson(rootLockUrl, { name: 'paseri-root', lockfileVersion: 3, requires: true, packages: {} });
 
     for (const member of members) {
         await writeJson(member.packageJsonUrl, {
@@ -76,7 +82,7 @@ async function sync(members: PublishableMember[]): Promise<void> {
 // workspace member rather than just the publishable ones, in case a shim
 // was somehow written before pre() classified the member.
 function cleanup(): void {
-    const candidates = [rootPackageUrl];
+    const candidates = [rootPackageUrl, rootLockUrl];
     try {
         const rootDenoText = Deno.readTextFileSync(new URL('deno.json', rootUrl));
         const rootDeno = JSON.parse(rootDenoText) as { workspace?: string[] };
@@ -109,7 +115,7 @@ Deno.addSignalListener('SIGTERM', onSignal);
 
 async function runChangeset(args: string[]): Promise<number> {
     const command = new Deno.Command('deno', {
-        args: ['run', '-A', '@changesets/cli', ...args],
+        args: ['run', '-A', cliEntryUrl.href, ...args],
         stdin: 'inherit',
         stdout: 'inherit',
         stderr: 'inherit',

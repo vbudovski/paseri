@@ -45,6 +45,20 @@ async function git(...args: string[]): Promise<string> {
     return stdout;
 }
 
+// `changeset version` exits 1 both when nothing is pending and when it fails
+// before writing anything, and both leave the tree clean, so its exit code
+// cannot tell a no-op from a failure. Counting pending files can; the
+// definition of pending matches changeset-check.yml.
+async function countPendingChangesets(): Promise<number> {
+    let count = 0;
+    for await (const entry of Deno.readDir(new URL('.changeset/', rootUrl))) {
+        if (entry.isFile && entry.name.endsWith('.md') && entry.name !== 'README.md') {
+            count += 1;
+        }
+    }
+    return count;
+}
+
 async function assertCleanTree(): Promise<void> {
     const status = await git('status', '--porcelain', '--untracked-files=no');
     if (status.length > 0) {
@@ -118,13 +132,12 @@ async function main(): Promise<void> {
     const before = await listPublishableMembers(rootUrl);
     const previousVersions = new Map(before.map((m) => [m.dir, m.version]));
 
-    await run('deno', ['task', 'changeset:version']);
-
-    const status = await git('status', '--porcelain');
-    if (status.length === 0) {
+    if ((await countPendingChangesets()) === 0) {
         console.log('No pending changesets — nothing to release.');
         return;
     }
+
+    await run('deno', ['task', 'changeset:version']);
 
     const changed = await detectChangedMembers(previousVersions);
     if (changed.length === 0) {
