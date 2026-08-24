@@ -27,7 +27,7 @@ function Editor(props: EditorProps) {
         (async () => {
             const [{ CodeJar }, { highlight: sugarHighlight }] = await Promise.all([
                 import('codejar'),
-                import('sugar-high'),
+                import('./highlight.ts'),
             ]);
             if (cancelled || !containerRef.current) {
                 return;
