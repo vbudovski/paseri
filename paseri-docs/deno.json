@@ -12,7 +12,7 @@
     "charts.css": "npm:charts.css@^1.2.0",
     "codejar": "npm:codejar@^4.3.0",
     "preact": "npm:preact@^10.29.8",
-    "sugar-high": "npm:sugar-high@^1.2.1",
+    "sugar-high": "npm:sugar-high@^2.1.0",
     "rehype-external-links": "npm:rehype-external-links@^3.0.0",
     "rollup-plugin-visualizer": "npm:rollup-plugin-visualizer@^7.0.1",
     "sharp": "npm:sharp@^0.35.3",
