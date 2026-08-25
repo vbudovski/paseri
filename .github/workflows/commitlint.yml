@@ -20,20 +20,7 @@ jobs:
         uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed # v2.0.5
         with:
           deno-version: "^2.9.0"
-
-      - name: Get pnpm store directory
-        id: deno-cache
-        shell: bash
-        run: |
-          echo "DENO_DIR=$(deno info | grep DENO_DIR | sed 's/\x1B\[[0-9;]\{1,\}[A-Za-z]//g' | cut -d ':' -f 2 | xargs)" >> $GITHUB_OUTPUT
-
-      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        name: Setup Deno cache
-        with:
-          path: ${{ steps.deno-cache.outputs.DENO_DIR }}
-          key: ${{ runner.os }}-deno-cache
-          restore-keys: |
-            ${{ runner.os }}-deno-cache
+          cache: true
 
       - name: Commit lint
         id: commitlint
