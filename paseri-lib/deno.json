@@ -25,7 +25,7 @@
     "rollup": "npm:rollup@^4.63.0",
     "type-fest": "npm:type-fest@^5.8.0",
     "typescript": "npm:typescript@^6.0.3",
-    "zod": "npm:zod@^4.4.3"
+    "zod": "npm:zod@^4.5.4"
   },
   "tasks": {
     "generate_emoji": "deno run --allow-net --allow-write bin/generate_emoji.ts",

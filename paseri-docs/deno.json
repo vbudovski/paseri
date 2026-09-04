@@ -17,7 +17,7 @@
     "rollup-plugin-visualizer": "npm:rollup-plugin-visualizer@^7.1.1",
     "sharp": "npm:sharp@^0.35.3",
     "typescript": "npm:typescript@^6.0.3",
-    "zod": "npm:zod@^4.4.3"
+    "zod": "npm:zod@^4.5.4"
   },
   "tasks": {
     "dev": "astro dev",

@@ -4,16 +4,6 @@ import { compile } from './_harness.ts';
 
 const { bench } = Deno;
 
-type Comment = { author: string; body: string; reply?: Comment | undefined };
-
-const commentSchema: p.Schema<Comment> = p.lazy(() =>
-    p.object({
-        author: p.string().min(1).max(50),
-        body: p.string().min(1).max(1000),
-        reply: commentSchema.optional(),
-    }),
-);
-
 const objectSchema = p.object({
     username: p.string().min(3).max(20),
     email: p.string().email(),
@@ -30,7 +20,6 @@ const objectSchema = p.object({
     externalId: p.bigint().gte(0n).lte(9999999999999999n),
     permissions: p.set(p.string()).min(1).max(20),
     featureFlags: p.map(p.string(), p.boolean()),
-    pinnedComment: p.lazy(() => commentSchema),
     address: p.object({
         street: p.string().min(1).max(200),
         city: p.string().min(1).max(100),
@@ -47,13 +36,6 @@ const objectSchema = p.object({
 function buildZodSchema(jitless = false) {
     z.config({ jitless });
     try {
-        const commentSchema: z.ZodType<Comment> = z.lazy(() =>
-            z.strictObject({
-                author: z.string().min(1).max(50),
-                body: z.string().min(1).max(1000),
-                reply: commentSchema.optional(),
-            }),
-        );
         return z.strictObject({
             username: z.string().min(3).max(20),
             email: z.email(),
@@ -70,7 +52,6 @@ function buildZodSchema(jitless = false) {
             externalId: z.bigint().gte(0n).lte(9999999999999999n),
             permissions: z.set(z.string()).min(1).max(20),
             featureFlags: z.map(z.string(), z.boolean()),
-            pinnedComment: z.lazy(() => commentSchema),
             address: z.strictObject({
                 street: z.string().min(1).max(200),
                 city: z.string().min(1).max(100),
@@ -90,6 +71,9 @@ function buildZodSchema(jitless = false) {
 
 const zodJitSchema = buildZodSchema();
 const zodSchema = buildZodSchema(true);
+// `strict` turns a refusal into a throw. Left to itself `z.compile` hands back the schema
+// uncompiled, which would benchmark the JIT parser a second time under a "compiled" label.
+const zodCompiledSchema = z.compile(buildZodSchema(), { strict: true });
 
 const objectAllFields = {
     username: 'yuki_tanaka',
@@ -110,11 +94,6 @@ const objectAllFields = {
         ['darkMode', true],
         ['experimentalEditor', false],
     ]),
-    pinnedComment: {
-        author: 'Priya',
-        body: 'Welcome to the team!',
-        reply: { author: 'Yuki Tanaka', body: 'Thanks, happy to be here!' },
-    },
     address: { street: '4-2-8 Shibuya', city: 'Tokyo', zip: '150-0002', country: 'JP' },
     settings: { theme: 'dark', fontSize: 14, notifications: true },
 };
@@ -133,7 +112,6 @@ const objectRequiredOnly = {
     externalId: 7730019284n,
     permissions: new Set(['read']),
     featureFlags: new Map<string, boolean>(),
-    pinnedComment: { author: 'Anabela', body: 'Just browsing.' },
     address: { street: 'Rua Augusta 27', city: 'Lisboa', zip: '1100-048', country: 'PT' },
     settings: { theme: 'light', fontSize: 18, notifications: false },
 };
@@ -152,7 +130,6 @@ const objectInvalid = {
     externalId: -1n,
     permissions: new Set<string>(),
     featureFlags: new Map<string, boolean>([['beta', true]]),
-    pinnedComment: { author: '', body: '' },
     address: { street: '', city: '', zip: 'x', country: 'AUS' },
     settings: { theme: 'solarized', fontSize: 4, notifications: true },
 };
@@ -178,6 +155,9 @@ bench('Paseri (AOT)', { group: 'Object real-world (all fields, valid)' }, () => 
 bench('Zod 4 (JIT)', { group: 'Object real-world (all fields, valid)' }, () => {
     zodJitSchema.safeParse(objectAllFields);
 });
+bench('Zod 4 (compiled)', { group: 'Object real-world (all fields, valid)' }, () => {
+    zodCompiledSchema.safeParse(objectAllFields);
+});
 bench('Zod 4', { group: 'Object real-world (all fields, valid)' }, () => {
     zodSchema.safeParse(objectAllFields);
 });
@@ -191,6 +171,9 @@ bench('Paseri (AOT)', { group: 'Object real-world (required only, valid)' }, () 
 bench('Zod 4 (JIT)', { group: 'Object real-world (required only, valid)' }, () => {
     zodJitSchema.safeParse(objectRequiredOnly);
 });
+bench('Zod 4 (compiled)', { group: 'Object real-world (required only, valid)' }, () => {
+    zodCompiledSchema.safeParse(objectRequiredOnly);
+});
 bench('Zod 4', { group: 'Object real-world (required only, valid)' }, () => {
     zodSchema.safeParse(objectRequiredOnly);
 });
@@ -203,6 +186,9 @@ bench('Paseri (AOT)', { group: 'Object real-world (invalid)' }, () => {
 });
 bench('Zod 4 (JIT)', { group: 'Object real-world (invalid)' }, () => {
     zodJitSchema.safeParse(objectInvalid);
+});
+bench('Zod 4 (compiled)', { group: 'Object real-world (invalid)' }, () => {
+    zodCompiledSchema.safeParse(objectInvalid);
 });
 bench('Zod 4', { group: 'Object real-world (invalid)' }, () => {
     zodSchema.safeParse(objectInvalid);

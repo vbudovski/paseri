@@ -50,25 +50,27 @@ import 'charts.css';
     <caption>
       <div class="title-main">Relative performance</div>
       <div class="title-sub">(higher is better)</div>
-      <small>Apple M4 Pro · Deno 2.9.0 / V8 14.9 · <a href="https://github.com/vbudovski/paseri/blob/main/paseri-compiler/bench/real-world.bench.ts" target="_blank" rel="noopener"><code>real-world.bench.ts</code></a></small>
+      <small>Apple M4 Pro · Deno 2.9.6 / V8 15.0 · <a href="https://github.com/vbudovski/paseri/blob/main/paseri-compiler/bench/real-world.bench.ts" target="_blank" rel="noopener"><code>real-world.bench.ts</code></a></small>
+      <small>@paseri/paseri 1.9.7 · @paseri/compiler 0.7.7 · zod 4.5.4</small>
     </caption>
     <tbody>
       <tr>
         <th scope="row">Valid input</th>
-        <td class="label" style="--size: 1;"><span class="data"><span>Paseri (AOT)<sup><a href="#paseri-aot-note">†</a></sup></span><span>×37.07</span></span></td>
-        <td class="label-right" style="--size: 0.1436106088;"><span class="data"><span>Paseri</span><span>×5.32</span></span></td>
-        <td class="label-right" style="--size: 0.0534274329;"><span class="data"><span>Zod 4 (JIT)<sup><a href="#zod-jit-note">*</a></sup></span><span>×1.98</span></span></td>
-        <td class="label-right" style="--size: 0.0269774295;"><span class="data"><span>Zod 4</span><span>×1</span></span></td>
+        <td class="label series-paseri-aot" style="--size: 1;"><span class="data"><span>Paseri (AOT)<sup><a href="#paseri-aot-note">†</a></sup></span><span>×20.66</span></span></td>
+        <td class="label-right series-zod-compiled" style="--size: 0.2542847786;"><span class="data"><span>Zod 4 (compiled)<sup><a href="#zod-compile-note">‡</a></sup></span><span>×5.25</span></span></td>
+        <td class="label-right series-paseri" style="--size: 0.1825313794;"><span class="data"><span>Paseri</span><span>×3.77</span></span></td>
+        <td class="label-right series-zod-jit" style="--size: 0.0484092030;"><span class="data"><span>Zod 4 (JIT)<sup><a href="#zod-jit-note">*</a></sup></span><span>×1</span></span></td>
       </tr>
       <tr>
         <th scope="row">Invalid input</th>
-        <td class="label" style="--size: 1;"><span class="data"><span>Paseri (AOT)<sup><a href="#paseri-aot-note">†</a></sup></span><span>×152.49</span></span></td>
-        <td class="label-right" style="--size: 0.2287304532;"><span class="data"><span>Paseri</span><span>×34.88</span></span></td>
-        <td class="label-right" style="--size: 0.0068730453;"><span class="data"><span>Zod 4 (JIT)<sup><a href="#zod-jit-note">*</a></sup></span><span>×1.05</span></span></td>
-        <td class="label-right" style="--size: 0.0065576464;"><span class="data"><span>Zod 4</span><span>×1</span></span></td>
+        <td class="label series-paseri-aot" style="--size: 1;"><span class="data"><span>Paseri (AOT)<sup><a href="#paseri-aot-note">†</a></sup></span><span>×62.65</span></span></td>
+        <td class="label-right series-paseri" style="--size: 0.2304470229;"><span class="data"><span>Paseri</span><span>×14.44</span></span></td>
+        <td class="label-right series-zod-jit" style="--size: 0.0159626719;"><span class="data"><span>Zod 4 (JIT)<sup><a href="#zod-jit-note">*</a></sup></span><span>×1</span></span></td>
+        <td class="label-right series-zod-compiled" style="--size: 0.0149402766;"><span class="data"><span>Zod 4 (compiled)<sup><a href="#zod-compile-note">‡</a></sup></span><span>×0.94</span></span></td>
       </tr>
     </tbody>
   </table>
   <p id="paseri-aot-note" class="chart-footnote"><small><sup>†</sup> Parser compiled ahead of time with <a href="https://jsr.io/@paseri/compiler" target="_blank" rel="noopener"><code>@paseri/compiler</code></a> (beta).</small></p>
   <p id="zod-jit-note" class="chart-footnote"><small><sup>*</sup> Zod 4 enables JIT compilation <a href="https://github.com/colinhacks/zod/issues/5414" target="_blank" rel="noopener"><em>by default</em></a>, requiring <code>unsafe-eval</code> in your CSP.</small></p>
+  <p id="zod-compile-note" class="chart-footnote"><small><sup>‡</sup> <a href="https://zod.dev/blog/zod-4-5?id=zcompile" target="_blank" rel="noopener"><code>z.compile()</code></a> also needs <code>unsafe-eval</code> in your CSP.</small></p>
 </div>
