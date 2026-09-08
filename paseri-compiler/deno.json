@@ -13,7 +13,7 @@
     "expect-type": "npm:expect-type@^1.4.0",
     "ts-blank-space": "npm:ts-blank-space@^0.9.0",
     "typescript": "npm:typescript@^6.0.3",
-    "zod": "npm:zod@^4.4.3"
+    "zod": "npm:zod@^4.5.4"
   },
   "tasks": {
     "generate_runtime": "deno run --allow-read --allow-write bin/generate_runtime.ts",

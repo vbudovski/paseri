@@ -92,16 +92,49 @@ li a {
     a:hover {
         color: var(--sl-color-white);
     }
+
+    /* Bars must clear the two-line label inside td.label, so em (not rem)
+       tracks the label's own font size. */
+    td.label,
+    td.label-right {
+        min-height: 3em;
+    }
+
+    caption small {
+        display: block;
+    }
+
+    /* Starlight's accent/gray tokens swap roles between themes, so the bars take
+       their own fills. Solved against APCA, not WCAG 2, which misjudges dark
+       backgrounds: Lc 30+ per bar, Lc 60+ for the label inside the AOT bar, and
+       Lc 16+ between any two so the series stay distinct in greyscale. Dark is
+       Starlight's base theme. */
+    --bar-paseri-aot: #019744;
+    --bar-paseri: #62d781;
+    --bar-zod-compiled: #a4a4a4;
+    --bar-zod-jit: #e1e1e1;
+
+    /* Each row is sorted by value, so the series order differs between rows and
+       colour has to follow the series, not the column charts-css derives it
+       from. */
+    td.series-paseri-aot {
+        --color: var(--bar-paseri-aot);
+    }
+
+    td.series-paseri {
+        --color: var(--bar-paseri);
+    }
+
+    td.series-zod-compiled {
+        --color: var(--bar-zod-compiled);
+    }
+
+    td.series-zod-jit {
+        --color: var(--bar-zod-jit);
+    }
 }
 
 :root[data-theme="dark"] .performance-chart.not-content {
-    .charts-css.bar {
-        --color-1: var(--sl-color-accent);
-        --color-2: var(--sl-color-accent-low);
-        --color-3: var(--sl-color-gray-2);
-        --color-4: var(--sl-color-gray-3);
-    }
-
     td.label > .data {
         color: var(--sl-color-white);
 
@@ -116,12 +149,10 @@ li a {
 }
 
 :root[data-theme="light"] .performance-chart.not-content {
-    .charts-css.bar {
-        --color-1: var(--sl-color-accent);
-        --color-2: var(--sl-color-accent-low);
-        --color-3: var(--sl-color-gray-2);
-        --color-4: var(--sl-color-gray-3);
-    }
+    --bar-paseri-aot: #00662c;
+    --bar-paseri: #009343;
+    --bar-zod-compiled: #a6a6a6;
+    --bar-zod-jit: #2e2e2e;
 
     td.label > .data {
         color: var(--sl-color-black);
