@@ -26,7 +26,7 @@ abstract class Schema<OutputType> implements StandardSchemaV1<unknown, OutputTyp
     // props object and its validate closure on every access is measurable overhead. Not copied by _clone
     // implementations (each instance builds its own, bound to itself). `declare` keeps the field type-only:
     // installing it on every construction measured slower, so the property is created on first access instead.
-    private declare _standardProps: StandardSchemaV1.Props<unknown, OutputType> | undefined;
+    declare private _standardProps: StandardSchemaV1.Props<unknown, OutputType> | undefined;
 
     /**
      * The [Standard Schema](https://standardschema.dev) interface, letting Paseri schemas be consumed by any
