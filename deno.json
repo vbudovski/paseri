@@ -9,7 +9,7 @@
     "@std/expect": "jsr:@std/expect@^1.0.20",
     "@std/testing": "jsr:@std/testing@^1.0.20",
     "husky": "npm:husky@^9.1.7",
-    "lint-staged": "npm:lint-staged@^17.3.0"
+    "lint-staged": "npm:lint-staged@^17.4.1"
   },
   "tasks": {
     "init": "deno run --allow-env --allow-read --allow-write --allow-run husky",
