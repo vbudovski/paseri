@@ -1,11 +1,12 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { satteri } from '@astrojs/markdown-satteri';
 import preact from '@astrojs/preact';
 import sitemap from '@astrojs/sitemap';
 import starlight from '@astrojs/starlight';
 import { defineConfig } from 'astro/config';
-import rehypeExternalLinks from 'rehype-external-links';
 import { visualizer } from 'rollup-plugin-visualizer';
+import externalLinks from 'satteri-external-links';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -47,15 +48,9 @@ const config: ReturnType<typeof defineConfig> = defineConfig({
         sitemap(),
     ],
     markdown: {
-        gfm: true,
-        rehypePlugins: [
-            [
-                rehypeExternalLinks,
-                {
-                    content: { type: 'text', value: '\u00a0🔗' },
-                },
-            ],
-        ],
+        processor: satteri({
+            hastPlugins: [externalLinks({ content: { type: 'text', value: '\u00a0🔗' } })],
+        }),
     },
     vite: {
         build: {
@@ -100,6 +95,9 @@ const config: ReturnType<typeof defineConfig> = defineConfig({
                     if (name === 'prerender' || name === 'ssr') {
                         return {
                             resolve: {
+                                // Sätteri `require`s a platform-specific `.node`
+                                // binding, which it can't find once inlined.
+                                external: ['satteri'],
                                 noExternal:
                                     command === 'build'
                                         ? true
