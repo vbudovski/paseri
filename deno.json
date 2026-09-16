@@ -2,14 +2,14 @@
   "$schema": "https://raw.githubusercontent.com/denoland/deno/main/cli/schemas/config-file.v1.json",
   "imports": {
     "@biomejs/biome": "npm:@biomejs/biome@^2.5.12",
-    "@changesets/cli": "npm:@changesets/cli@^3.0.1",
+    "@changesets/cli": "npm:@changesets/cli@^3.0.2",
     "@commitlint/cli": "npm:@commitlint/cli@^21.2.2",
     "@commitlint/config-conventional": "npm:@commitlint/config-conventional@^21.2.2",
     "@commitlint/types": "npm:@commitlint/types@^21.2.0",
     "@std/expect": "jsr:@std/expect@^1.0.20",
     "@std/testing": "jsr:@std/testing@^1.0.20",
     "husky": "npm:husky@^9.1.7",
-    "lint-staged": "npm:lint-staged@^17.4.1"
+    "lint-staged": "npm:lint-staged@^17.5.0"
   },
   "tasks": {
     "init": "deno run --allow-env --allow-read --allow-write --allow-run husky",
