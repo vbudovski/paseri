@@ -19,13 +19,13 @@
     "@vbudovski/rollup-plugin-transform-regex": "jsr:@vbudovski/rollup-plugin-transform-regex@^0.1.4",
     "acorn": "npm:acorn@^8.18.0",
     "expect-type": "npm:expect-type@^1.4.0",
-    "fast-check": "npm:fast-check@^4.9.0",
+    "fast-check": "npm:fast-check@^4.10.0",
     "recheck": "npm:recheck@^4.5.0",
     "regex": "npm:regex@^6.1.0",
-    "rollup": "npm:rollup@^4.63.1",
+    "rollup": "npm:rollup@^4.63.3",
     "type-fest": "npm:type-fest@^5.9.0",
     "typescript": "npm:typescript@^6.0.3",
-    "zod": "npm:zod@^4.5.4"
+    "zod": "npm:zod@^4.6.5"
   },
   "tasks": {
     "generate_emoji": "deno run --allow-net --allow-write bin/generate_emoji.ts",
