@@ -7,9 +7,9 @@
     "@commitlint/config-conventional": "npm:@commitlint/config-conventional@^21.2.3",
     "@commitlint/types": "npm:@commitlint/types@^21.2.3",
     "@std/expect": "jsr:@std/expect@^1.0.20",
-    "@std/testing": "jsr:@std/testing@^1.0.20",
+    "@std/testing": "jsr:@std/testing@^1.0.21",
     "husky": "npm:husky@^9.1.7",
-    "lint-staged": "npm:lint-staged@^17.5.1"
+    "lint-staged": "npm:lint-staged@^17.6.0"
   },
   "tasks": {
     "init": "deno run --allow-env --allow-read --allow-write --allow-run husky",
