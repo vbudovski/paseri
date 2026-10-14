@@ -22,8 +22,9 @@ jobs:
 
       - name: Verify deno.lock matches the manifests
         run: |
-          # Dependabot bumps a member's deno.json range without regenerating the root workspace lock,
-          # so the committed deno.lock silently goes stale. --frozen errors when the lock can't satisfy
-          # the manifests (the drift), while staying quiet for a within-range upstream release the lock
-          # still satisfies. --lockfile-only checks without installing packages.
+          # Changing a member's deno.json range without regenerating the root workspace lock leaves
+          # deno.lock stale. Dependabot does that when pointed at a member directory, which is why
+          # dependabot.yml lists only "/". --frozen errors when the lock can't satisfy the manifests,
+          # while staying quiet for a within-range upstream release the lock still satisfies.
+          # --lockfile-only checks without installing packages.
           deno install --frozen --lockfile-only

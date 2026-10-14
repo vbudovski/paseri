@@ -9,11 +9,7 @@ updates:
     commit-message:
       prefix: fix
   - package-ecosystem: deno
-    directories:
-      - "/"
-      - "/paseri-lib"
-      - "/paseri-compiler"
-      - "/paseri-docs"
+    directory: "/"
     schedule:
       interval: weekly
     cooldown:
