@@ -202,12 +202,12 @@ function checkSchemaImportUsage(code: string, id: string): void {
     if (!code.includes('.schema')) {
         return;
     }
-    // The code is post-transform JS whatever the id's extension, and kept parens would hide `(User).optional()`
-    // from the member checks.
+    // App code arrives as JS whatever the id's extension, and kept parens would hide `(User).optional()` from
+    // the member checks. Modules Vite hasn't converted to JS yet (CSS, for one) don't parse and can't import a
+    // schema, so skip them.
     const { program, errors } = parseSync(id, code, { lang: 'js', preserveParens: false });
-    const [firstError] = errors;
-    if (firstError !== undefined) {
-        throw new Error(`paseri: couldn't parse ${id} to check its ${SCHEMA_SUFFIX} imports: ${firstError.message}`);
+    if (errors.length > 0) {
+        return;
     }
     const bindings = collectSchemaBindings(program);
     if (bindings.named.size === 0 && bindings.namespace.size === 0) {

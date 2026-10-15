@@ -124,4 +124,8 @@ describe('vite build', () => {
     it('rejects app code that uses a schema export beyond .safeParse/.parse', async () => {
         await expect(buildEntry('entry-misuse.ts')).rejects.toThrow('User.optional');
     });
+
+    it('builds an app that imports CSS mentioning .schema', async () => {
+        await expect(buildEntry('entry-css.ts')).resolves.toContain('safeParseUser');
+    });
 });

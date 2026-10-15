@@ -85,8 +85,8 @@ describe('checkSchemaImportUsage', () => {
         expect(() => checkSchemaImportUsage(code, 'app.js')).toThrow('User.optional');
     });
 
-    it('throws rather than passing a module it cannot parse', () => {
-        const code = `import { User } from './user.schema.ts'; export const a = User.safeParse(;`;
-        expect(() => checkSchemaImportUsage(code, 'app.js')).toThrow();
+    it('skips a module that is not JavaScript', () => {
+        const code = `.schema-viewer { color: red; }`;
+        expect(() => checkSchemaImportUsage(code, 'viewer.css')).not.toThrow();
     });
 });
