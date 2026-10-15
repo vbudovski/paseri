@@ -4,7 +4,7 @@
 // `User.optional()`) works in dev but breaks at build. This flags such use-sites in app code at build time
 // with a clear error. It is a single-module heuristic — direct member access and destructuring on schema
 // bindings — not full dataflow, so it catches the common mistakes, not values routed through other variables.
-import { parseAst } from 'vite';
+import { parseSync } from 'vite';
 import { SCHEMA_SUFFIX } from './constants.ts';
 
 const ALLOWED_MEMBERS: ReadonlySet<string> = new Set(['safeParse', 'parse', '~standard']);
@@ -202,12 +202,18 @@ function checkSchemaImportUsage(code: string, id: string): void {
     if (!code.includes('.schema')) {
         return;
     }
-    const ast = parseAst(code);
-    const bindings = collectSchemaBindings(ast);
+    // The code is post-transform JS whatever the id's extension, and kept parens would hide `(User).optional()`
+    // from the member checks.
+    const { program, errors } = parseSync(id, code, { lang: 'js', preserveParens: false });
+    const [firstError] = errors;
+    if (firstError !== undefined) {
+        throw new Error(`paseri: couldn't parse ${id} to check its ${SCHEMA_SUFFIX} imports: ${firstError.message}`);
+    }
+    const bindings = collectSchemaBindings(program);
     if (bindings.named.size === 0 && bindings.namespace.size === 0) {
         return;
     }
-    walk(ast, (node) => {
+    walk(program, (node) => {
         if (node.type === 'MemberExpression') {
             checkMemberExpression(node, bindings, id);
             return;

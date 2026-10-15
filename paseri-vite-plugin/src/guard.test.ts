@@ -2,7 +2,7 @@ import { expect } from '@std/expect';
 import { describe, it } from '@std/testing/bdd';
 import { checkSchemaImportUsage } from './guard.ts';
 
-// The guard runs on post-esbuild JS in the plugin, so these inputs are plain JS.
+// The guard runs on JS that Vite has already transformed, so these inputs are plain JS.
 describe('checkSchemaImportUsage', () => {
     it('allows .safeParse and .parse on a schema import', () => {
         const code = `import { User } from './user.schema.ts';
@@ -78,5 +78,15 @@ describe('checkSchemaImportUsage', () => {
     it('throws on derivation via a namespace import', () => {
         const code = `import * as s from './user.schema.ts'; export const o = s.User.optional();`;
         expect(() => checkSchemaImportUsage(code, 'app.js')).toThrow('s.User.optional');
+    });
+
+    it('throws on a derivation through a parenthesised schema reference', () => {
+        const code = `import { User } from './user.schema.ts'; export const o = (User).optional();`;
+        expect(() => checkSchemaImportUsage(code, 'app.js')).toThrow('User.optional');
+    });
+
+    it('throws rather than passing a module it cannot parse', () => {
+        const code = `import { User } from './user.schema.ts'; export const a = User.safeParse(;`;
+        expect(() => checkSchemaImportUsage(code, 'app.js')).toThrow();
     });
 });

@@ -53,7 +53,7 @@
     "npm:ts-blank-space@0.9": "0.9.0",
     "npm:type-fest@^5.10.0": "5.10.0",
     "npm:typescript@^6.0.3": "6.0.3",
-    "npm:vite@^7.3.7": "7.3.7",
+    "npm:vite@^8.3.3": "8.3.4_esbuild@0.28.1",
     "npm:zod@^4.6.5": "4.6.5"
   },
   "jsr": {
@@ -276,7 +276,7 @@
         "devalue",
         "preact",
         "preact-render-to-string",
-        "vite@8.3.4_esbuild@0.28.1"
+        "vite"
       ]
     },
     "@astrojs/prism@4.0.2": {
@@ -1431,7 +1431,7 @@
         "debug",
         "magic-string@0.30.21",
         "picocolors",
-        "vite@8.3.4_esbuild@0.28.1",
+        "vite",
         "vite-prerender-plugin",
         "zimmerframe"
       ]
@@ -1470,7 +1470,7 @@
         "@prefresh/utils",
         "@rollup/pluginutils@4.2.1",
         "preact",
-        "vite@8.3.4_esbuild@0.28.1"
+        "vite"
       ]
     },
     "@rolldown/binding-android-arm-eabi@1.2.14": {
@@ -2011,7 +2011,7 @@
         "unifont",
         "unstorage",
         "verkit",
-        "vite@8.3.4_esbuild@0.28.1",
+        "vite",
         "vitefu",
         "xxhash-wasm",
         "yargs-parser",
@@ -3948,23 +3948,8 @@
         "simple-code-frame",
         "source-map@0.7.6",
         "stack-trace",
-        "vite@8.3.4_esbuild@0.28.1"
+        "vite"
       ]
-    },
-    "vite@7.3.7": {
-      "integrity": "sha512-AHEzTORMbi7/7aXp7w7KZ5+DCUdSeLsJz0grY8xHpc9DHdYb0vQu6DqJfm2tOw3gDExNgPgnJTXxM6syYFHaCA==",
-      "dependencies": [
-        "esbuild",
-        "fdir",
-        "picomatch@4.0.7",
-        "postcss",
-        "rollup",
-        "tinyglobby"
-      ],
-      "optionalDependencies": [
-        "fsevents"
-      ],
-      "bin": true
     },
     "vite@8.3.4_esbuild@0.28.1": {
       "integrity": "sha512-IftLE8phJhdNRIGNEV4JCCvfNScoZQVfcXaN8TQropWGJtOHcu+iAB9pHcuGvmEb/kddw0LBe/jS8ztdC6xdiQ==",
@@ -3987,10 +3972,10 @@
     "vitefu@1.1.3_vite@8.3.4__esbuild@0.28.1_esbuild@0.28.1": {
       "integrity": "sha512-ub4okH7Z5KLjb6hDyjqrGXqWtWvoYdU3IGm/NorpgHncKoLTCfRIbvlhBm7r0YstIaQRYlp4yEbFqDcKSzXSSg==",
       "dependencies": [
-        "vite@8.3.4_esbuild@0.28.1"
+        "vite"
       ],
       "optionalPeers": [
-        "vite@8.3.4_esbuild@0.28.1"
+        "vite"
       ]
     },
     "volar-service-css@0.0.71_@volar+language-service@2.4.28": {
@@ -4280,7 +4265,7 @@
           "jsr:@std/expect@^1.0.20",
           "jsr:@std/testing@^1.0.21",
           "npm:fast-check@^4.10.2",
-          "npm:vite@^7.3.7"
+          "npm:vite@^8.3.3"
         ]
       }
     }
