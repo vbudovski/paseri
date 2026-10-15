@@ -30,7 +30,7 @@
     "npm:@sveltejs/acorn-typescript@^1.0.13": "1.0.13_acorn@8.19.0",
     "npm:@types/estree@^1.0.8": "1.0.9",
     "npm:acorn@^8.19.0": "8.19.0",
-    "npm:astro@^7.3.6": "7.3.8",
+    "npm:astro@^7.3.7": "7.3.8",
     "npm:charts.css@^1.2.0": "1.2.0",
     "npm:codejar@^4.3.0": "4.3.0",
     "npm:estree-walker@^3.0.3": "3.0.3",
@@ -49,11 +49,11 @@
     "npm:satteri-external-links@~0.1.1": "0.1.1_satteri@0.10.5",
     "npm:satteri@~0.10.5": "0.10.5",
     "npm:sharp@~0.35.5": "0.35.5",
-    "npm:sugar-high@^2.5.2": "2.6.0",
+    "npm:sugar-high@^2.6.0": "2.6.0",
     "npm:ts-blank-space@0.9": "0.9.0",
     "npm:type-fest@^5.10.0": "5.10.0",
     "npm:typescript@^6.0.3": "6.0.3",
-    "npm:vite@^8.3.3": "8.3.4_esbuild@0.28.1",
+    "npm:vite@^8.3.4": "8.3.4_esbuild@0.28.1",
     "npm:zod@^4.6.5": "4.6.5"
   },
   "jsr": {
@@ -4227,7 +4227,7 @@
           "npm:@astrojs/starlight@~0.42.5",
           "npm:@preact/signals-core@^1.14.4",
           "npm:@preact/signals@^2.11.3",
-          "npm:astro@^7.3.6",
+          "npm:astro@^7.3.7",
           "npm:charts.css@^1.2.0",
           "npm:codejar@^4.3.0",
           "npm:preact@^10.29.8",
@@ -4235,7 +4235,7 @@
           "npm:satteri-external-links@~0.1.1",
           "npm:satteri@~0.10.5",
           "npm:sharp@~0.35.5",
-          "npm:sugar-high@^2.5.2",
+          "npm:sugar-high@^2.6.0",
           "npm:typescript@^6.0.3",
           "npm:zod@^4.6.5"
         ]
@@ -4265,7 +4265,7 @@
           "jsr:@std/expect@^1.0.20",
           "jsr:@std/testing@^1.0.21",
           "npm:fast-check@^4.10.2",
-          "npm:vite@^8.3.3"
+          "npm:vite@^8.3.4"
         ]
       }
     }
