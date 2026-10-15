@@ -2,7 +2,7 @@ import { expect } from '@std/expect';
 import { afterAll, describe, it } from '@std/testing/bdd';
 import '@paseri/paseri/introspect';
 import * as p from '@paseri/paseri';
-import { type Alias, build, type Rollup } from 'vite';
+import { type Alias, build, type Rolldown } from 'vite';
 import { paseri } from './index.ts';
 
 // `@paseri/paseri*` are JSR workspace packages, not npm-installed, so Vite's node
@@ -32,7 +32,7 @@ async function buildEntry(entry: string): Promise<string> {
             minify: false,
             lib: { entry, formats: ['es'], fileName: 'out' },
         },
-    })) as Rollup.RollupOutput | Rollup.RollupOutput[];
+    })) as Rolldown.RolldownOutput | Rolldown.RolldownOutput[];
     const outputs = Array.isArray(result) ? result : [result];
     const chunk = outputs.flatMap((output) => output.output).find((item) => item.type === 'chunk');
     if (chunk === undefined || chunk.type !== 'chunk') {
@@ -123,5 +123,9 @@ describe('vite build', () => {
 
     it('rejects app code that uses a schema export beyond .safeParse/.parse', async () => {
         await expect(buildEntry('entry-misuse.ts')).rejects.toThrow('User.optional');
+    });
+
+    it('builds an app that imports CSS mentioning .schema', async () => {
+        await expect(buildEntry('entry-css.ts')).resolves.toContain('safeParseUser');
     });
 });
