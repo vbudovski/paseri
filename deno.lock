@@ -18,10 +18,10 @@
     "npm:@astrojs/markdown-satteri@~0.4.3": "0.4.3",
     "npm:@astrojs/preact@^6.0.6": "6.0.6_preact@10.29.8__preact-render-to-string@6.7.0_rollup@4.64.6",
     "npm:@astrojs/sitemap@^3.7.4": "3.7.4",
-    "npm:@astrojs/starlight@~0.42.5": "0.42.6_astro@7.3.8",
+    "npm:@astrojs/starlight@~0.42.5": "0.42.6_astro@7.3.8_typescript@7.0.2",
     "npm:@biomejs/biome@^2.5.15": "2.5.15",
     "npm:@changesets/cli@^3.0.3": "3.0.3",
-    "npm:@commitlint/cli@^21.2.3": "21.2.3_@types+node@24.13.1_typescript@6.0.3",
+    "npm:@commitlint/cli@^21.2.3": "21.2.3_typescript@7.0.2",
     "npm:@commitlint/config-conventional@^21.2.3": "21.2.3",
     "npm:@commitlint/types@^21.2.3": "21.2.3",
     "npm:@preact/signals-core@^1.14.4": "1.14.4",
@@ -52,7 +52,7 @@
     "npm:sugar-high@^2.5.2": "2.6.0",
     "npm:ts-blank-space@0.9": "0.9.0",
     "npm:type-fest@^5.10.0": "5.10.0",
-    "npm:typescript@^6.0.3": "6.0.3",
+    "npm:typescript@^7.0.2": "7.0.2",
     "npm:vite@^7.3.7": "7.3.7",
     "npm:zod@^4.6.5": "4.6.5"
   },
@@ -129,7 +129,7 @@
         "@astrojs/language-server",
         "chokidar@4.0.3",
         "kleur",
-        "typescript",
+        "typescript@6.0.3",
         "yargs"
       ],
       "bin": true
@@ -292,7 +292,7 @@
         "zod"
       ]
     },
-    "@astrojs/starlight@0.42.6_astro@7.3.8": {
+    "@astrojs/starlight@0.42.6_astro@7.3.8_typescript@7.0.2": {
       "integrity": "sha512-Cfs7GdgzgNRCauDxQVsFUVL1thrGHK/rQdbv/SURv/xhGBXx+j5ypOHW9ENPraQxbIzUC8KAnJV7L9mvEVRuyQ==",
       "dependencies": [
         "@astrojs/markdown-satteri",
@@ -753,7 +753,7 @@
         "sisteransi"
       ]
     },
-    "@commitlint/cli@21.2.3_@types+node@24.13.1_typescript@6.0.3": {
+    "@commitlint/cli@21.2.3_typescript@7.0.2": {
       "integrity": "sha512-5yOX6IRjcrIReCxpyAd04hgI/yhUMpVBJ/ouwFV0wk9yx5+fYRDWZWJ5h55Tbedgfol+5m2mU5nqzbB8g3v0vQ==",
       "dependencies": [
         "@commitlint/config-conventional",
@@ -814,7 +814,7 @@
         "@commitlint/types"
       ]
     },
-    "@commitlint/load@21.2.3_@types+node@24.13.1_typescript@6.0.3": {
+    "@commitlint/load@21.2.3_typescript@7.0.2": {
       "integrity": "sha512-cDrL8lOo23Lk7knGzQdjbFcq7z2JgvjwV6PhbESVvEc+Fe21MeLjPKBJi8nKjg7j+jh79CVbVSUbZc104thXRw==",
       "dependencies": [
         "@commitlint/config-validator",
@@ -1828,6 +1828,106 @@
     "@types/unist@3.0.3": {
       "integrity": "sha512-ko/gIFJRv177XgZsZcBwnqJN5x/Gien8qNOn0D5bQU/zAzVf9Zt3BlcUiLqhV9y4ARk0GbT3tnUiPNgnTXzc/Q=="
     },
+    "@typescript/typescript-aix-ppc64@7.0.2": {
+      "integrity": "sha512-MTKKkWB7p/0E9xi1d1tHtZ5PiLkGEMIq88pK2CubZjOsLtYTLqhgIgi6zepFa+9GHZ6h05NMCkQxGKiPXMxXtQ==",
+      "os": ["aix"],
+      "cpu": ["ppc64"]
+    },
+    "@typescript/typescript-darwin-arm64@7.0.2": {
+      "integrity": "sha512-gowzar9MwS/aRWp6f3a4KUqzRjAZjOsmGNCM6LcTgXum+dBfgsBVMN+AgvOCCbguXyick6LJhpBszxMebJ8syA==",
+      "os": ["darwin"],
+      "cpu": ["arm64"]
+    },
+    "@typescript/typescript-darwin-x64@7.0.2": {
+      "integrity": "sha512-SZ9xZInqApNlNGc9s0W1VSsktYSOe9cFqNOIqmN1Gs8SmkjKZYFt017G4VwPxASInODuAdbTW7sXiFUf893RgA==",
+      "os": ["darwin"],
+      "cpu": ["x64"]
+    },
+    "@typescript/typescript-freebsd-arm64@7.0.2": {
+      "integrity": "sha512-W5NH4y/J0plIIS5b2xvTEkU7JFxyqdMAOgf+Ilhl0vHQXKO5dZoxd+C/jEtq56c4F3wk71RB4BMRQ2XdI+bwYQ==",
+      "os": ["freebsd"],
+      "cpu": ["arm64"]
+    },
+    "@typescript/typescript-freebsd-x64@7.0.2": {
+      "integrity": "sha512-UMGDx5sTpzNw3WiPebH7l90IWfJggEd+egHt/q6p7/Cm3zqoV7VxkGXt+3DxPIw8CcmvAB0j3sVVfbhX+M4Tpw==",
+      "os": ["freebsd"],
+      "cpu": ["x64"]
+    },
+    "@typescript/typescript-linux-arm64@7.0.2": {
+      "integrity": "sha512-Qh4eU4/y3yDjnfjjyPYihMj5/ODIlmt+Bzu17OI+fiSRDW57QmU5SiN63exPRNJPKUzcc1INa1NXdrJ+MqHjUQ==",
+      "os": ["linux"],
+      "cpu": ["arm64"]
+    },
+    "@typescript/typescript-linux-arm@7.0.2": {
+      "integrity": "sha512-gffT3xPz9sR7j/YJExkyPntrI0P2EP9XbOyWzth2/Gs0RstK+90RBcO0ncXoXy/beYll1SXw846Nf2zdnEz0QQ==",
+      "os": ["linux"],
+      "cpu": ["arm"]
+    },
+    "@typescript/typescript-linux-loong64@7.0.2": {
+      "integrity": "sha512-uEHck9i8hoAzXPiYRib1O7miOnz23SxIeVl6F4LXox+qov1K35jHcEW6VHKvZI+pyvl7fZEP4MCU5LYvIq1GuQ==",
+      "os": ["linux"],
+      "cpu": ["loong64"]
+    },
+    "@typescript/typescript-linux-mips64el@7.0.2": {
+      "integrity": "sha512-R4KvAMnE43W5Qeqb0Ly56O3mWMWIAgsMyz36DCaycd5nbg/9kzm0liw3JocfRqyJY0KPmzFjbswozXyW0DnIYA==",
+      "os": ["linux"],
+      "cpu": ["mips64el"]
+    },
+    "@typescript/typescript-linux-ppc64@7.0.2": {
+      "integrity": "sha512-DORx5b3sd/4S7eayxm4FQv+A7CrkUIGRaHiwI8oiHTAI1fAPWhF4J0vAlkC8biAlHSVVwxMQ3tjZ2/DVbnQiiA==",
+      "os": ["linux"],
+      "cpu": ["ppc64"]
+    },
+    "@typescript/typescript-linux-riscv64@7.0.2": {
+      "integrity": "sha512-wf0jqEDOjrPRnKwYRyyJDRo11KMbvMFrU+q4zqKyChODBzvlkbhNQfKvLxQCcwTpdDaXSHZTVuh0JoCrKCUMHQ==",
+      "os": ["linux"],
+      "cpu": ["riscv64"]
+    },
+    "@typescript/typescript-linux-s390x@7.0.2": {
+      "integrity": "sha512-IkwJc3L7yhytWd/ewjyxNDfOmswCm9GWMJT/ue/dU4aZNbwZeYAetq42VyLmsmSjvoX7z74X6ZaYCtzAr0EuGw==",
+      "os": ["linux"],
+      "cpu": ["s390x"]
+    },
+    "@typescript/typescript-linux-x64@7.0.2": {
+      "integrity": "sha512-EYdf2cNg7rgCWJnxCdJ+F3V39O8ihb37eHAu1LK8oAFizgTQbPOK7zHHXbPt8rX24COqODXeI3sIf0fCXG7H/A==",
+      "os": ["linux"],
+      "cpu": ["x64"]
+    },
+    "@typescript/typescript-netbsd-arm64@7.0.2": {
+      "integrity": "sha512-+polYF4MF04aPpO5FTkHran9yUQDSXqy5GiSDKpsll5jy3l3+g9QLhpf39T+ePtefhXLOGrLl0QIjkQP6VnelA==",
+      "os": ["netbsd"],
+      "cpu": ["arm64"]
+    },
+    "@typescript/typescript-netbsd-x64@7.0.2": {
+      "integrity": "sha512-8YIT0EHM/3dq10ZOVF/A7pc/YSMtbcecct4rWtexrnSCHOPcpC2KTLXfTCR6vDpnSiY12heNb1GiN/wu+T/FyA==",
+      "os": ["netbsd"],
+      "cpu": ["x64"]
+    },
+    "@typescript/typescript-openbsd-arm64@7.0.2": {
+      "integrity": "sha512-APT8+ClYnuYm1u9+kgGXoMj2VzWzcymwh2gNSQVySHfkRDGOTVkoWLjCmOQSaO+PoqQ57B0flRp9SA+7GnnkzQ==",
+      "os": ["openbsd"],
+      "cpu": ["arm64"]
+    },
+    "@typescript/typescript-openbsd-x64@7.0.2": {
+      "integrity": "sha512-yX7s+Q0Dln0Dt9tEzZsAjXXR/+ytBM7AlglaqyeMPxQszJ1JhlJdZ6jLA+IzldHtflX81em7lDao1xXu+aRRkg==",
+      "os": ["openbsd"],
+      "cpu": ["x64"]
+    },
+    "@typescript/typescript-sunos-x64@7.0.2": {
+      "integrity": "sha512-dLJDGaLZ1D4HPQn62u1n8mBDkJREwMsAkCdkwd4Ieqw+x3TUyTsqY0YiBCtE6H6OzzgGk3iuZ3vFWRS+E8/d1g==",
+      "os": ["sunos"],
+      "cpu": ["x64"]
+    },
+    "@typescript/typescript-win32-arm64@7.0.2": {
+      "integrity": "sha512-Gyl1Vy6OsWesLzmq+EP0Fb7b4Nid5232AvcA2SFcdYreldpNtYFFofPjnt62y9hQy7VTaZp65ICJjuAQRaVcIQ==",
+      "os": ["win32"],
+      "cpu": ["arm64"]
+    },
+    "@typescript/typescript-win32-x64@7.0.2": {
+      "integrity": "sha512-0BQ3HkAHHlKLSp1qRvf3SUhGpGsDuhB/jgFw75guyqbxJqEaS0Cw/VFO8i2nHglJUzQCRtMMR/IBAKE3ETMC4g==",
+      "os": ["win32"],
+      "cpu": ["x64"]
+    },
     "@ungap/structured-clone@1.3.0": {
       "integrity": "sha512-WmoN8qaIAo7WTYWbAZuG8PYEhn5fkz7dZrqTBZ7dtt//lL2Gwms1IcnQ5yHqjDfX8Ft5j4YzDM23f87zBfDe9g==",
       "deprecated": true
@@ -1838,7 +1938,7 @@
         "@volar/language-service",
         "@volar/typescript",
         "typesafe-path",
-        "typescript",
+        "typescript@6.0.3",
         "vscode-languageserver-textdocument",
         "vscode-uri"
       ]
@@ -2163,26 +2263,26 @@
     "cookie@2.0.1": {
       "integrity": "sha512-yuToqVvRrj6pfDXREyQAAv8SkAEk/8GS3jQRTiUMm66TVtBYmqQeoEjL2Lmq8Rpo6271vH76InTChTitEAm65w=="
     },
-    "cosmiconfig-typescript-loader@6.3.0_@types+node@24.13.1_cosmiconfig@9.0.2__typescript@6.0.3_typescript@6.0.3": {
+    "cosmiconfig-typescript-loader@6.3.0_cosmiconfig@9.0.2__typescript@7.0.2_typescript@7.0.2": {
       "integrity": "sha512-Akr82WH1Wfqatyiqpj8HDkO2o2KmJRu1FhKfSNJP3K4IdXwHfEyL7MOb62i1AGQVLtIQM+iCE9CGOtrfhR+mmA==",
       "dependencies": [
         "@types/node",
         "cosmiconfig",
         "jiti",
-        "typescript"
+        "typescript@7.0.2"
       ]
     },
-    "cosmiconfig@9.0.2_typescript@6.0.3": {
+    "cosmiconfig@9.0.2_typescript@7.0.2": {
       "integrity": "sha512-gtTZxTDau1wL7Y7zifc2dd8jHSK/k6BTx/2Xp/BpdlAdnlYWFVt7qhJqgwi7637yRwRQ3qL4ZidbB4I8tA5VOg==",
       "dependencies": [
         "env-paths",
         "import-fresh",
         "js-yaml",
         "parse-json",
-        "typescript"
+        "typescript@7.0.2"
       ],
       "optionalPeers": [
-        "typescript"
+        "typescript@7.0.2"
       ]
     },
     "crossws@0.3.5": {
@@ -2670,13 +2770,13 @@
       "integrity": "sha512-5gs5ytaNjBrh5Ow3zrvdUUY+0VxIuWVL4i9irt6friV+BqdCfmV11CQTWMiBYWHbXhco+J1kHfTOUkePhCDvMA==",
       "bin": true
     },
-    "i18next@26.4.5_typescript@6.0.3": {
+    "i18next@26.4.5_typescript@7.0.2": {
       "integrity": "sha512-CY9xqbWNQ+eLGDhFX3eNl1kDO1amJixszVKjC4Nd0tvfxUFLKqarN0VUHRt+2b88U7bkNIhnL84dRKQ5mFI+fg==",
       "dependencies": [
-        "typescript"
+        "typescript@7.0.2"
       ],
       "optionalPeers": [
-        "typescript"
+        "typescript@7.0.2"
       ]
     },
     "import-fresh@3.3.1": {
@@ -3794,7 +3894,7 @@
     "ts-blank-space@0.9.0": {
       "integrity": "sha512-TU6coIZm6RxGgAjroRKmi6aCQ7Pq7cT+1I+bTKBepD6joOuWqUCOptVlz+eurqTnatnQOimlR8XB5sQZ6ULwbw==",
       "dependencies": [
-        "typescript"
+        "typescript@6.0.3"
       ]
     },
     "tslib@2.8.1": {
@@ -3817,6 +3917,32 @@
     },
     "typescript@6.0.3": {
       "integrity": "sha512-y2TvuxSZPDyQakkFRPZHKFm+KKVqIisdg9/CZwm9ftvKXLP8NRWj38/ODjNbr43SsoXqNuAisEf1GdCxqWcdBw==",
+      "bin": true
+    },
+    "typescript@7.0.2": {
+      "integrity": "sha512-8FYau96o3NKOhbjKi/qNvG/W5jhzxkbdm5sj9AbZ/5T5sWqn3hJgLfGx27sRKZWTvyzCP8dLRBTf5tBTSRVUNA==",
+      "optionalDependencies": [
+        "@typescript/typescript-aix-ppc64",
+        "@typescript/typescript-darwin-arm64",
+        "@typescript/typescript-darwin-x64",
+        "@typescript/typescript-freebsd-arm64",
+        "@typescript/typescript-freebsd-x64",
+        "@typescript/typescript-linux-arm",
+        "@typescript/typescript-linux-arm64",
+        "@typescript/typescript-linux-loong64",
+        "@typescript/typescript-linux-mips64el",
+        "@typescript/typescript-linux-ppc64",
+        "@typescript/typescript-linux-riscv64",
+        "@typescript/typescript-linux-s390x",
+        "@typescript/typescript-linux-x64",
+        "@typescript/typescript-netbsd-arm64",
+        "@typescript/typescript-netbsd-x64",
+        "@typescript/typescript-openbsd-arm64",
+        "@typescript/typescript-openbsd-x64",
+        "@typescript/typescript-sunos-x64",
+        "@typescript/typescript-win32-arm64",
+        "@typescript/typescript-win32-x64"
+      ],
       "bin": true
     },
     "ufo@1.6.4": {
@@ -4229,7 +4355,7 @@
           "jsr:@std/testing@^1.0.21",
           "npm:expect-type@^1.4.0",
           "npm:ts-blank-space@0.9",
-          "npm:typescript@^6.0.3",
+          "npm:typescript@^7.0.2",
           "npm:zod@^4.6.5"
         ]
       },
@@ -4251,7 +4377,7 @@
           "npm:satteri@~0.10.5",
           "npm:sharp@~0.35.5",
           "npm:sugar-high@^2.5.2",
-          "npm:typescript@^6.0.3",
+          "npm:typescript@^7.0.2",
           "npm:zod@^4.6.5"
         ]
       },
@@ -4271,7 +4397,7 @@
           "npm:regex@^6.1.0",
           "npm:rollup@^4.64.2",
           "npm:type-fest@^5.10.0",
-          "npm:typescript@^6.0.3",
+          "npm:typescript@^7.0.2",
           "npm:zod@^4.6.5"
         ]
       },

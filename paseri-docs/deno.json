@@ -18,7 +18,7 @@
     "satteri": "npm:satteri@^0.10.5",
     "satteri-external-links": "npm:satteri-external-links@^0.1.1",
     "sharp": "npm:sharp@^0.35.5",
-    "typescript": "npm:typescript@^6.0.3",
+    "typescript": "npm:typescript@^7.0.2",
     "zod": "npm:zod@^4.6.5"
   },
   "tasks": {
