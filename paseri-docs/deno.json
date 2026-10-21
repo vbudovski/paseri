@@ -12,7 +12,7 @@
     "astro": "npm:astro@^7.3.8",
     "charts.css": "npm:charts.css@^1.2.0",
     "codejar": "npm:codejar@^4.3.0",
-    "preact": "npm:preact@^10.29.8",
+    "preact": "npm:preact@^11.0.1",
     "sugar-high": "npm:sugar-high@^2.6.0",
     "rollup-plugin-visualizer": "npm:rollup-plugin-visualizer@^7.1.1",
     "satteri": "npm:satteri@^0.10.5",
