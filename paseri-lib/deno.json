@@ -22,7 +22,7 @@
     "fast-check": "npm:fast-check@^4.10.2",
     "recheck": "npm:recheck@^4.5.0",
     "regex": "npm:regex@^6.1.0",
-    "rollup": "npm:rollup@^4.64.6",
+    "rollup": "npm:rollup@^4.64.12",
     "type-fest": "npm:type-fest@^5.10.0",
     "typescript": "npm:typescript@^6.0.3",
     "zod": "npm:zod@^4.6.7"
