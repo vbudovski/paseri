@@ -54,14 +54,14 @@ schema immutability.
 
 The list may be expanded over time, but for now the objectives are the following:
 
-* Parsing and validation of untrusted input to ensure it conforms to the expected format. A successful result will
+- Parsing and validation of untrusted input to ensure it conforms to the expected format. A successful result will
   be typed with the narrowest possible definition to obviate the need to do additional validation at the point of
   usage[^2].
-* High performance[^1] and usability in a strict
+- High performance[^1] and usability in a strict
   [Content Security Policy (CSP)](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP) environment.
-* A full-featured parser API for real-world data structures.
-* Honest validator contracts, even when stricter or less ergonomic than alternatives.
-* Immutability of schemas. This avoids a lot of bugs caused by mutating references to non-primitive types.
+- A full-featured parser API for real-world data structures.
+- Honest validator contracts, even when stricter or less ergonomic than alternatives.
+- Immutability of schemas. This avoids a lot of bugs caused by mutating references to non-primitive types.
 
 ## Documentation
 
