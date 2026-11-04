@@ -2,7 +2,7 @@ name: Pull request
 
 on:
   pull_request:
-    types: [ opened, synchronize, reopened ]
+    types: [opened, synchronize, reopened]
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
