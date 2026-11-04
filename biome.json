@@ -47,6 +47,12 @@
       "indentWidth": 2
     }
   },
+  "html": {
+    "experimentalFullSupportEnabled": true,
+    "formatter": {
+      "enabled": true
+    }
+  },
   "markdown": {
     "parser": {
       "frontmatter": true
@@ -60,5 +66,12 @@
       "indentWidth": 2
     }
   },
-  "overrides": []
+  "overrides": [
+    {
+      "includes": ["**/*.svg"],
+      "formatter": {
+        "enabled": false
+      }
+    }
+  ]
 }
